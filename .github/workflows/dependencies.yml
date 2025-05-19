@@ -1,0 +1,135 @@
+name: Dependencies & Security
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Check for updates
+      id: ncu
+      run: |
+        npm install -g npm-check-updates
+        cd backend && ncu > backend-updates.txt
+        cd ../frontend && ncu > frontend-updates.txt
+
+    - name: Create dependency update PR
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore(deps): update dependencies'
+        title: '⬆️ Update Dependencies'
+        body: |
+          Automated dependency updates.
+          
+          <details>
+          <summary>Backend Updates</summary>
+          
+          ```
+          $(cat backend/backend-updates.txt)
+          ```
+          </details>
+          
+          <details>
+          <summary>Frontend Updates</summary>
+          
+          ```
+          $(cat frontend/frontend-updates.txt)
+          ```
+          </details>
+        branch: chore/dependency-updates
+        base: main
+        labels: dependencies
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run Snyk Security Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        command: monitor
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript, typescript
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+    - name: Run npm audit
+      run: |
+        cd backend && npm audit
+        cd ../frontend && npm audit
+
+    - name: Create Security Report
+      if: always()
+      run: |
+        echo "# Security Scan Results" > security-report.md
+        echo "## Snyk Results" >> security-report.md
+        echo "\`\`\`" >> security-report.md
+        cat snyk-results.json >> security-report.md
+        echo "\`\`\`" >> security-report.md
+        echo "## npm audit Results" >> security-report.md
+        echo "\`\`\`" >> security-report.md
+        cd backend && npm audit >> ../security-report.md
+        cd ../frontend && npm audit >> ../security-report.md
+        echo "\`\`\`" >> security-report.md
+
+    - name: Create Security Issue
+      if: failure()
+      uses: peter-evans/create-issue-from-file@v4
+      with:
+        title: '🚨 Security Vulnerabilities Detected'
+        content-filepath: ./security-report.md
+        labels: security, high-priority
+
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install license checker
+      run: npm install -g license-checker
+
+    - name: Check licenses
+      run: |
+        cd backend && license-checker --json > ../backend-licenses.json
+        cd ../frontend && license-checker --json > ../frontend-licenses.json
+
+    - name: Create License Report
+      run: |
+        echo "# License Report" > license-report.md
+        echo "## Backend Dependencies" >> license-report.md
+        echo "\`\`\`json" >> license-report.md
+        cat backend-licenses.json >> license-report.md
+        echo "\`\`\`" >> license-report.md
+        echo "## Frontend Dependencies" >> license-report.md
+        echo "\`\`\`json" >> license-report.md
+        cat frontend-licenses.json >> license-report.md
+        echo "\`\`\`" >> license-report.md
+
+    - name: Upload License Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-report
+        path: license-report.md

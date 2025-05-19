@@ -1,0 +1,109 @@
+# Repository settings managed by probot-settings (https://probot.github.io/apps/settings/)
+
+repository:
+  name: testops-companion
+  description: A comprehensive test automation management platform
+  homepage: https://docs.testops-companion.com
+  private: true
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+labels:
+  - name: bug
+    color: d73a4a
+    description: Something isn't working
+  - name: documentation
+    color: 0075ca
+    description: Documentation improvements
+  - name: enhancement
+    color: a2eeef
+    description: New feature or request
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+  - name: help wanted
+    color: 008672
+    description: Extra attention is needed
+  - name: security
+    color: e11d21
+    description: Security related issues
+  - name: dependencies
+    color: 0366d6
+    description: Dependency updates
+
+branches:
+  - name: main
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+      required_status_checks:
+        strict: true
+        contexts:
+          - test
+          - security-scan
+          - license-check
+          - build
+      enforce_admins: false
+      restrictions: null
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+
+teams:
+  - name: maintainers
+    permission: maintain
+  - name: developers
+    permission: push
+  - name: contributors
+    permission: triage
+
+collaborators:
+  - username: rayalon1984
+    permission: admin
+
+# Branch protection for release branches
+branches:
+  - name: release/*
+    protection:
+      required_pull_request_reviews:
+        required_approving_review_count: 2
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+      required_status_checks:
+        strict: true
+        contexts:
+          - test
+          - security-scan
+          - license-check
+          - build
+      enforce_admins: true
+      restrictions:
+        users: [rayalon1984]
+        teams: [maintainers]
+      required_linear_history: true
+      allow_force_pushes: false
+      allow_deletions: false
+
+# Code owners configuration
+code_owners:
+  - pattern: '*'
+    owners: ['@rayalon1984']
+  - pattern: 'backend/*'
+    owners: ['@rayalon1984']
+  - pattern: 'frontend/*'
+    owners: ['@rayalon1984']
+  - pattern: '.github/*'
+    owners: ['@rayalon1984']
+  - pattern: 'docs/*'
+    owners: ['@rayalon1984']

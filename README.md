@@ -6,186 +6,61 @@
 [![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 
-TestOps Companion is a powerful web application designed to streamline QA and automation workflows. It helps QA leads, testers, and engineers manage test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
+TestOps Companion is a comprehensive test automation management platform that helps QA teams and developers manage their test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
 
-## 🎯 Features
+## Quick Start
 
-- **Pipeline Management**
-  - Define and schedule automated test pipelines
-  - Integration with Jenkins and GitHub Actions
-  - Real-time pipeline status monitoring
-
-- **Smart Notifications**
-  - Configurable alerts via Pushover, Slack, and Email
-  - Customizable notification rules and thresholds
-  - Team-wide notification management
-
-- **Test Analytics**
-  - Track flaky tests and test coverage
-  - Monitor bug open/fix ratios
-  - E2E test readiness tracking
-  - Regression analysis
-
-- **Documentation**
-  - Auto-generate test plans
-  - Release readiness reports
-  - Confluence integration
-
-- **Dashboard**
-  - Real-time test status overview
-  - Team performance metrics
-  - Quality trend analysis
-  - Customizable widgets
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Docker and Docker Compose (optional)
-- PostgreSQL (if not using Docker)
-
-### Quick Start with Docker
-
-1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/testops-companion.git
+# Clone the repository
+git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
-```
 
-2. Copy environment files:
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-3. Start the application:
-```bash
-docker-compose up -d
-```
-
-4. Access the application:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000
-- API Documentation: http://localhost:3000/api/docs
-- Adminer (Database UI): http://localhost:8080
-- MailHog (Email Testing): http://localhost:8025
-
-### Local Development Setup
-
-1. Install dependencies:
-```bash
+# Install dependencies
 npm run setup
-```
 
-2. Start the backend:
-```bash
-cd backend
-npm run dev
-```
-
-3. Start the frontend:
-```bash
-cd frontend
+# Start the application
 npm start
 ```
 
-## 📖 Documentation
+Visit http://localhost:5173 to access the application.
 
-- [Architecture Overview](docs/architecture.md)
+## Documentation
+
+- [Quick Start Guide](docs/quickstart.md)
 - [API Documentation](docs/api.md)
+- [Development Guide](docs/development.md)
+- [Deployment Guide](docs/deployment.md)
 - [Contributing Guide](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security Policy](SECURITY.md)
 
-## 🧪 Testing
+## Features
 
-```bash
-# Run all tests
-npm test
+- Pipeline Management
+  - Jenkins integration
+  - GitHub Actions integration
+  - Custom CI/CD support
+- Test Execution
+  - Real-time monitoring
+  - Test result analysis
+  - Coverage tracking
+- Notifications
+  - Slack integration
+  - Email notifications
+  - Custom notification rules
+- Analytics
+  - Performance metrics
+  - Quality trends
+  - Team dashboards
 
-# Run backend tests
-npm run test:backend
+## Contributing
 
-# Run frontend tests
-npm run test:frontend
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-# Run E2E tests
-npm run test:e2e
-```
+## Support
 
-## 🔧 Configuration
+- Documentation: [docs.testops-companion.com](https://docs.testops-companion.com)
+- Issues: [github.com/rayalon1984/testops-companion/issues](https://github.com/rayalon1984/testops-companion/issues)
+- Discussions: [github.com/rayalon1984/testops-companion/discussions](https://github.com/rayalon1984/testops-companion/discussions)
 
-### Backend Environment Variables
-
-Key environment variables for backend configuration:
-
-- `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET`: Secret key for JWT tokens
-- `CORS_ORIGIN`: Allowed frontend origin
-- See [backend/.env.example](backend/.env.example) for all options
-
-### Frontend Environment Variables
-
-Key environment variables for frontend configuration:
-
-- `VITE_API_BASE_URL`: Backend API URL
-- `VITE_AUTH_STORAGE_KEY`: Local storage key for auth
-- See [frontend/.env.example](frontend/.env.example) for all options
-
-## 🛠️ Tech Stack
-
-### Frontend
-- React with TypeScript
-- Material UI / Tailwind CSS
-- React Query
-- Vite
-- Vitest & Cypress
-
-### Backend
-- Node.js with Express
-- TypeScript
-- PostgreSQL with Sequelize
-- Jest for testing
-
-### DevOps
-- Docker & Docker Compose
-- GitHub Actions
-- Jenkins integration
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details about:
-- Code of conduct
-- Development process
-- How to submit pull requests
-- Coding standards
-
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- All our contributors and community members
-- Open source projects that made this possible
-- QA community for valuable feedback and suggestions
-
-## 📞 Support
-
-- GitHub Issues: For bug reports and feature requests
-- Email: support@yourdomain.com
-- Documentation: Check our [wiki](docs/wiki.md)
-
-## 🔮 Future Plans
-
-- Enterprise version with advanced features
-- Additional CI/CD integrations
-- Machine learning for test failure prediction
-- Mobile app development
-- Plugin marketplace
-
----
-
-Made with ❤️ by the TestOps Companion Team
