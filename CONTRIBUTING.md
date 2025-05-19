@@ -46,7 +46,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 1. Fork the repo
 2. Create a new branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run the tests (`make test`)
+4. Run the tests (`npm test`)
 5. Commit your changes (`git commit -m 'Add some amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
@@ -60,12 +60,22 @@ git clone https://github.com/<your-username>/testops-companion.git
 # Navigate to the project directory
 cd testops-companion
 
+# Install global dependencies
+npm install -g typescript ts-node
+
 # Install dependencies and set up development environment
-make setup
+npm run setup
 
 # Start the development environment
-make dev
+npm run dev
 ```
+
+The setup script will:
+- Clean existing node_modules
+- Install all dependencies (root, frontend, backend)
+- Set up environment files
+- Start database container
+- Run database migrations and seeds
 
 ### Project Structure
 
@@ -96,13 +106,11 @@ testops-companion/
 
 ```bash
 # Run all tests
-make test
+npm test
 
-# Run frontend tests
-cd frontend && npm test
-
-# Run backend tests
-cd backend && npm test
+# Run specific tests
+npm run test:frontend  # Run frontend tests only
+npm run test:backend   # Run backend tests only
 ```
 
 ### Documentation

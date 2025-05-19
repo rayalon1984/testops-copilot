@@ -6,16 +6,42 @@ Get started with TestOps Companion in minutes.
 
 - Node.js 18.x or higher
 - npm 9.x or higher
-- Docker and Docker Compose (recommended)
+- Docker and Docker Compose (required for database)
 - Git
 
-## Quick Installation
+## Environment Setup
+
+Before installation, you'll need to configure the following:
+
+### Backend Environment (.env)
+Key configurations in `backend/.env`:
+```env
+# Required minimal configuration
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testops
+JWT_SECRET=your-super-secret-jwt-key
+CORS_ORIGIN=http://localhost:5173
+```
+
+### Frontend Environment (.env)
+Key configurations in `frontend/.env`:
+```env
+# Required minimal configuration
+VITE_API_URL=http://localhost:3000
+VITE_WEBSOCKET_URL=ws://localhost:3000
+VITE_AUTH_PROVIDER=local
+```
+
+Full environment templates are available in `.env.example` files in both frontend and backend directories.
+
+## Installation
 
 ### Using Docker (Recommended)
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/testops-companion.git
+git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 ```
 
@@ -37,38 +63,50 @@ docker-compose up -d
 - Adminer (Database UI): http://localhost:8080
 - MailHog (Email Testing): http://localhost:8025
 
-### Manual Installation
+### Standard Installation
 
-1. Clone and setup:
+1. Clone and prepare the repository:
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/testops-companion.git
+git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 
-# Install dependencies
+# Install required global dependencies
+npm install -g typescript ts-node
+```
+
+2. Set up environment files:
+```bash
+# Copy environment templates
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Edit the .env files with your settings
+# Minimum required changes:
+# - backend/.env: JWT_SECRET
+# - backend/.env: DATABASE_URL (if using custom database)
+```
+
+3. Run the automated setup:
+```bash
+# This will:
+# - Clean existing node_modules
+# - Install all dependencies (root, frontend, backend)
+# - Set up environment files
+# - Start database container
+# - Run database migrations and seeds
 npm run setup
 ```
 
-2. Configure environment:
+4. Start the development servers:
 ```bash
-# Backend configuration
-cp backend/.env.example backend/.env
-# Edit backend/.env with your settings
-
-# Frontend configuration
-cp frontend/.env.example frontend/.env
-# Edit frontend/.env with your settings
-```
-
-3. Start services:
-```bash
-# Start backend
-cd backend
+# Start both frontend and backend
 npm run dev
 
-# Start frontend (new terminal)
-cd frontend
-npm start
+# The application will be available at:
+# - Frontend: http://localhost:5173
+# - Backend API: http://localhost:3000
+# - API Documentation: http://localhost:3000/api/docs
 ```
 
 ## First Steps
@@ -253,7 +291,7 @@ Solution: Verify external service connectivity and credentials.
 
 - Documentation: docs.testops-companion.com
 - Discord: discord.gg/testops-companion
-- GitHub Issues: github.com/yourusername/testops-companion/issues
+- GitHub Issues: github.com/rayalon1984/testops-companion/issues
 - Email: support@testops-companion.com
 
 ## Security Notes
@@ -271,3 +309,56 @@ Solution: Verify external service connectivity and credentials.
 3. Update dependencies
 4. Check logs
 5. Review metrics
+
+## Troubleshooting
+
+### Port Conflicts
+
+If you encounter port conflicts, you can modify the ports in the environment files:
+
+#### Backend Port (3000)
+If port 3000 is already in use:
+1. Edit `backend/.env`:
+```env
+PORT=3001  # or any available port
+```
+2. Update frontend configuration in `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:3001
+VITE_WEBSOCKET_URL=ws://localhost:3001
+```
+
+#### Frontend Port (5173)
+If port 5173 is already in use:
+1. Create or edit `frontend/.env.local`:
+```env
+VITE_PORT=5174  # or any available port
+```
+2. Update backend CORS configuration in `backend/.env`:
+```env
+CORS_ORIGIN=http://localhost:5174
+```
+
+#### Database Port (5432)
+If port 5432 is already in use:
+1. Edit `backend/.env`:
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/testops  # change port to 5433
+```
+2. Update `docker-compose.yml` postgres service:
+```yaml
+ports:
+  - "5433:5432"  # map host port 5433 to container port 5432
+```
+
+After changing any ports, restart the affected services:
+```bash
+# If changing backend/frontend ports
+npm run dev
+
+# If changing database port
+docker-compose down
+docker-compose up -d db
+npm run db:migrate
+npm run db:seed
+```

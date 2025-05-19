@@ -74,19 +74,41 @@ TestOps Companion is a comprehensive test automation management platform that he
 
 ## Quick Start
 
+### Prerequisites
+- Node.js 18.x or higher
+- npm 9.x or higher
+- Docker and Docker Compose
+- Git
+
+### Installation Steps
+
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 
-# Install dependencies
+# 2. Install global dependencies
+npm install -g typescript ts-node
+
+# 3. Run the automated setup script (this will handle everything including database)
 npm run setup
 
-# Start the application
-npm start
+# 4. Start the development servers
+npm run dev
 ```
 
-Visit http://localhost:5173 to access the application.
+The setup script will automatically:
+- Clean existing node_modules
+- Install all dependencies (root, frontend, backend)
+- Set up environment files
+- Start database container and run migrations/seeds
+
+Access the application:
+- Frontend: http://localhost:5173
+- API: http://localhost:3000
+- API Documentation: http://localhost:3000/api/docs
+
+Note: If any of these ports are already in use, see the [Quick Start Guide](docs/quickstart.md#port-conflicts) for instructions on changing ports.
 
 ## Documentation
 
