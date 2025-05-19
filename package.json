@@ -8,9 +8,12 @@
     "backend"
   ],
   "scripts": {
-    "setup": "npm install --legacy-peer-deps && npm run setup:frontend && npm run setup:backend && npm run security:fix",
+    "setup": "npm run setup:install && npm run setup:env && npm run setup:db && npm run security:fix",
+    "setup:install": "npm install --legacy-peer-deps && npm run setup:frontend && npm run setup:backend",
     "setup:frontend": "cd frontend && npm install --legacy-peer-deps",
     "setup:backend": "cd backend && npm install",
+    "setup:env": "node scripts/setup-env.js",
+    "setup:db": "docker-compose up -d db && sleep 5 && npm run db:migrate && npm run db:seed && npm run generate:types",
     "dev": "docker-compose up -d",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
@@ -38,8 +41,7 @@
     "update:deps": "npm run update:deps:root && npm run update:deps:frontend && npm run update:deps:backend",
     "update:deps:root": "npm update --legacy-peer-deps",
     "update:deps:frontend": "cd frontend && npm update --legacy-peer-deps",
-    "update:deps:backend": "cd backend && npm update",
-    "postinstall": "npm run generate:types"
+    "update:deps:backend": "cd backend && npm update"
   },
   "repository": {
     "type": "git",

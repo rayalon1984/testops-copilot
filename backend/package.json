@@ -9,10 +9,14 @@
     "start": "node dist/server.js",
     "test": "jest",
     "lint": "eslint . --ext .ts",
-    "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "generate:types": "prisma generate",
-    "seed": "ts-node prisma/seed.ts"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "migrate:dev": "npm run prisma:generate && prisma migrate dev",
+    "migrate:deploy": "npm run prisma:generate && prisma migrate deploy",
+    "generate:types": "npm run prisma:generate",
+    "seed": "npm run prisma:generate && ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.9.1",
