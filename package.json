@@ -8,9 +8,9 @@
     "backend"
   ],
   "scripts": {
-    "setup": "npm install && npm run setup:frontend && npm run setup:backend && npm audit fix",
-    "setup:frontend": "cd frontend && npm install && npm audit fix",
-    "setup:backend": "cd backend && npm install && npm audit fix",
+    "setup": "npm install --legacy-peer-deps && npm run setup:frontend && npm run setup:backend && npm run security:fix",
+    "setup:frontend": "cd frontend && npm install --legacy-peer-deps",
+    "setup:backend": "cd backend && npm install",
     "dev": "docker-compose up -d",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
@@ -34,7 +34,12 @@
     "docker:ps": "docker-compose ps",
     "deploy": "bash scripts/deploy.sh",
     "security:audit": "npm audit && cd frontend && npm audit && cd ../backend && npm audit",
-    "security:fix": "npm audit fix && cd frontend && npm audit fix && cd ../backend && npm audit fix"
+    "security:fix": "npm audit fix --legacy-peer-deps && cd frontend && npm audit fix --legacy-peer-deps && cd ../backend && npm audit fix",
+    "update:deps": "npm run update:deps:root && npm run update:deps:frontend && npm run update:deps:backend",
+    "update:deps:root": "npm update --legacy-peer-deps",
+    "update:deps:frontend": "cd frontend && npm update --legacy-peer-deps",
+    "update:deps:backend": "cd backend && npm update",
+    "postinstall": "npm run generate:types"
   },
   "repository": {
     "type": "git",

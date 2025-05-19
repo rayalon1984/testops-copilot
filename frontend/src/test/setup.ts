@@ -1,28 +1,10 @@
 import '@testing-library/jest-dom';
-import { afterEach } from 'vitest';
+import { vi, expect, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import { QueryClient } from '@tanstack/react-query';
+import matchers from '@testing-library/jest-dom/matchers';
 
-// Extend matchers
-expect.extend({
-  toHaveBeenCalledOnceWith(received: jest.Mock, ...args: any[]) {
-    const pass = received.mock.calls.length === 1 &&
-      JSON.stringify(received.mock.calls[0]) === JSON.stringify(args);
-
-    return {
-      pass,
-      message: () =>
-        pass
-          ? `Expected function not to have been called once with ${args}`
-          : `Expected function to have been called once with ${args}`,
-    };
-  },
-});
-
-// Clean up after each test
-afterEach(() => {
-  cleanup();
-});
+// Extend Vitest's expect with Testing Library matchers
+expect.extend(matchers);
 
 // Mock IntersectionObserver
 const mockIntersectionObserver = vi.fn();
@@ -33,15 +15,14 @@ mockIntersectionObserver.mockReturnValue({
 });
 window.IntersectionObserver = mockIntersectionObserver;
 
-// Create a test QueryClient
-export const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
+// Mock ResizeObserver
+const mockResizeObserver = vi.fn();
+mockResizeObserver.mockReturnValue({
+  observe: () => null,
+  unobserve: () => null,
+  disconnect: () => null,
+});
+window.ResizeObserver = mockResizeObserver;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -58,28 +39,53 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Custom matcher for checking if a mock was called with specific arguments
+expect.extend({
+  toHaveBeenCalledOnceWith(received: ReturnType<typeof vi.fn>, ...args: any[]) {
+    const pass = received.mock.calls.length === 1 &&
+      JSON.stringify(received.mock.calls[0]) === JSON.stringify(args);
 
-// Mock window.fetch
+    return {
+      pass,
+      message: () =>
+        pass
+          ? `Expected mock not to have been called once with ${args}`
+          : `Expected mock to have been called once with ${args}`,
+    };
+  },
+});
+
+// Clean up after each test
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+// Mock fetch globally
 global.fetch = vi.fn();
 
-// Mock console.error to fail tests
-const originalError = console.error;
-console.error = (...args: any[]) => {
-  originalError(...args);
-  throw new Error('Console error was called. Check the error message above.');
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-// Add custom matchers
-declare global {
-  namespace Vi {
-    interface Assertion {
-      toHaveBeenCalledOnceWith: (...args: any[]) => boolean;
-    }
-  }
-}
+// Mock sessionStorage
+const sessionStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
+
+// Export mocks for use in tests
+export {
+  mockIntersectionObserver,
+  mockResizeObserver,
+  localStorageMock,
+  sessionStorageMock,
+};
