@@ -1,15 +1,21 @@
 import { Octokit } from '@octokit/rest';
-import { Pipeline } from '@/models/pipeline.model';
-import { TestRun } from '@/models/testRun.model';
 import { logger } from '@/utils/logger';
+import { prisma } from '@/lib/prisma';
+import {
+  GitHubConfig,
+  Pipeline,
+  TestRun,
+  PipelineStatus
+} from '@/types/github';
 
-import { GitHubConfig } from '@/types/github';
-
-interface WorkflowRunResponse {
+// Types for GitHub API responses
+interface OctokitWorkflowRun {
   id: number;
-  status: string;
-  conclusion: string | null;
+  status: 'queued' | 'in_progress' | 'completed' | string;
+  conclusion: 'success' | 'failure' | 'cancelled' | 'skipped' | null;
   html_url: string;
+  head_branch: string | null;
+  head_sha: string;
   created_at: string;
   updated_at: string;
 }
@@ -64,23 +70,28 @@ export class GithubService {
       this.initializeClient(config.credentials.apiToken);
 
       // Create test run record
-      const testRun = await TestRun.create({
-        pipelineId: pipeline.id,
-        userId: pipeline.userId,
-        status: 'pending',
-        branch: config.branch,
-        startTime: new Date(),
+      // Create test run record
+      const testRun = await prisma.testRun.create({
+        data: {
+          pipelineId: pipeline.id,
+          userId: pipeline.userId,
+          status: 'pending',
+          branch: config.branch,
+          startTime: new Date()
+        }
       });
 
-      // Get workflow ID if not provided
-      let workflowId = config.workflow;
-      if (!workflowId) {
-        const workflows = await this.octokit.actions.listRepoWorkflows({
-          owner,
-          repo,
-        });
-        workflowId = workflows.data.workflows[0].id.toString();
+      // Get workflows and select the first one
+      const workflows = await this.octokit.actions.listRepoWorkflows({
+        owner,
+        repo
+      });
+
+      if (workflows.data.workflows.length === 0) {
+        throw new Error('No workflows found in repository');
       }
+
+      const workflowId = workflows.data.workflows[0].id;
 
       // Trigger workflow
       const response = await this.octokit.actions.createWorkflowDispatch({
@@ -88,7 +99,7 @@ export class GithubService {
         repo,
         workflow_id: workflowId,
         ref: config.branch || 'main',
-        inputs: {},
+        inputs: {}
       });
 
       if (response.status !== 204) {
@@ -116,18 +127,27 @@ export class GithubService {
 
     const intervalId = setInterval(async () => {
       try {
+        // Get the latest workflow run
+        const workflows = await this.octokit.actions.listRepoWorkflows({
+          owner,
+          repo
+        });
+
+        const workflowId = workflows.data.workflows[0].id;
+
         const runs = await this.octokit.actions.listWorkflowRuns({
           owner,
           repo,
+          workflow_id: workflowId,
           branch: testRun.branch || undefined,
-          per_page: 1,
+          per_page: 1
         });
 
         if (runs.data.workflow_runs.length === 0) {
           return;
         }
 
-        const run = runs.data.workflow_runs[0];
+        const run = runs.data.workflow_runs[0] as OctokitWorkflowRun;
         await this.processWorkflowStatus(run, testRun);
 
         if (run.status === 'completed') {
@@ -137,60 +157,60 @@ export class GithubService {
         elapsed += pollInterval;
         if (elapsed >= maxDuration) {
           clearInterval(intervalId);
-          await testRun.update({
-            status: 'timeout',
-            error: 'Workflow exceeded maximum duration',
+          await prisma.testRun.update({
+            where: { id: testRun.id },
+            data: {
+              status: 'timeout',
+              error: 'Workflow exceeded maximum duration'
+            }
           });
         }
       } catch (error) {
         logger.error('Error monitoring workflow progress:', error);
         clearInterval(intervalId);
-        await testRun.update({
-          status: 'failure',
-          error: `Failed to monitor workflow: ${(error as Error).message}`,
+        await prisma.testRun.update({
+          where: { id: testRun.id },
+          data: {
+            status: 'failure',
+            error: `Failed to monitor workflow: ${(error as Error).message}`
+          }
         });
       }
     }, pollInterval);
   }
 
-  private async processWorkflowStatus(run: WorkflowRunResponse, testRun: TestRun): Promise<void> {
-    let status: 'pending' | 'running' | 'success' | 'failure' | 'cancelled' | 'timeout';
+  private async processWorkflowStatus(run: OctokitWorkflowRun, testRun: TestRun): Promise<void> {
+    const status = this.mapWorkflowStatus(run);
 
-    switch (run.status) {
-      case 'queued':
-        status = 'pending';
-        break;
-      case 'in_progress':
-        status = 'running';
-        break;
-      case 'completed':
-        status = run.conclusion === 'success' ? 'success' : 'failure';
-        break;
-      default:
-        status = 'failure';
-    }
-
-    const updates: Partial<TestRun> = {
-      status,
-    };
-
-    if (status === 'success' || status === 'failure') {
-      updates.endTime = new Date(run.updated_at);
-      updates.duration = Math.floor(
-        (new Date(run.updated_at).getTime() - new Date(run.created_at).getTime()) / 1000
-      );
-
-      // Fetch test results if available
-      const results = await this.fetchTestResults(run.html_url);
-      if (results) {
-        updates.results = results;
+    await prisma.testRun.update({
+      where: { id: testRun.id },
+      data: {
+        status,
+        endTime: (status === 'success' || status === 'failure') ? new Date(run.updated_at) : undefined,
+        duration: (status === 'success' || status === 'failure')
+          ? Math.floor((new Date(run.updated_at).getTime() - new Date(run.created_at).getTime()) / 1000)
+          : undefined,
+        results: (status === 'success' || status === 'failure')
+          ? await this.fetchTestResults(run.html_url)
+          : undefined
       }
-    }
-
-    await testRun.update(updates);
+    });
   }
 
-  private async fetchTestResults(runUrl: string): Promise<any> {
+  private mapWorkflowStatus(run: OctokitWorkflowRun): PipelineStatus {
+    switch (run.status) {
+      case 'queued':
+        return 'pending';
+      case 'in_progress':
+        return 'running';
+      case 'completed':
+        return run.conclusion === 'success' ? 'success' : 'failure';
+      default:
+        return 'failure';
+    }
+  }
+
+  private async fetchTestResults(runUrl: string): Promise<Record<string, any> | undefined> {
     try {
       // GitHub Actions doesn't have a direct API for test results
       // You would need to implement a custom solution to parse test results
@@ -205,7 +225,7 @@ export class GithubService {
       };
     } catch (error) {
       logger.warn('Failed to fetch test results:', error);
-      return null;
+      return undefined;
     }
   }
 }

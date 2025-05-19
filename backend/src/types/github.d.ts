@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 export interface GitHubCredentials {
   username: string;
   apiToken: string;
@@ -24,19 +26,36 @@ export interface GitHubWorkflow {
 
 export interface GitHubWorkflowRun {
   id: number;
-  name: string;
-  status: string;
-  conclusion: string | null;
-  head_branch: string;
+  name?: string;
+  status: 'queued' | 'in_progress' | 'completed';
+  conclusion: 'success' | 'failure' | 'cancelled' | 'skipped' | null;
+  head_branch: string | null;
   head_sha: string;
   run_number: number;
-  event: string;
-  url: string;
+  event?: string;
+  html_url: string;
   created_at: string;
   updated_at: string;
+  display_title?: string;
 }
 
-// Add type guard
+// Prisma Model Types
+export type Pipeline = Prisma.PipelineGetPayload<{
+  include: {
+    testRuns: true;
+  };
+}>;
+
+export type TestRun = Prisma.TestRunGetPayload<{
+  include: {
+    pipeline: true;
+  };
+}>;
+
+// Pipeline Status Types
+export type PipelineStatus = 'pending' | 'running' | 'success' | 'failure' | 'cancelled' | 'timeout';
+
+// Type Guards
 export function isGitHubConfig(config: any): config is GitHubConfig {
   return (
     typeof config === 'object' &&
