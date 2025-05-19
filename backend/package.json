@@ -23,7 +23,7 @@
     "setup": "npm install && npm install --save-dev @types/all-dependencies"
   },
   "dependencies": {
-    "@octokit/rest": "^19.0.13",
+    "@octokit/rest": "^21.1.1",
     "@prisma/client": "^5.0.0",
     "@slack/web-api": "^6.9.0",
     "axios": "^1.4.0",
