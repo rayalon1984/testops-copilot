@@ -16,7 +16,7 @@
     "migrate:dev": "npm run prisma:generate && prisma migrate dev",
     "migrate:deploy": "npm run prisma:generate && prisma migrate deploy",
     "generate:types": "npm run prisma:generate",
-    "seed": "npm run prisma:generate && ts-node prisma/seed.ts"
+    "seed": "npm run prisma:generate && ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.9.1",
@@ -30,6 +30,7 @@
     "morgan": "^1.10.0",
     "prom-client": "^15.1.0",
     "redis": "^4.6.13",
+    "tslib": "^2.6.2",
     "winston": "^3.11.0",
     "ws": "^8.16.0",
     "zod": "^3.22.4"
@@ -58,7 +59,7 @@
     "npm": ">=9.0.0"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "jest": {
     "preset": "ts-jest",

@@ -8,13 +8,15 @@
     "backend"
   ],
   "scripts": {
-    "setup": "npm run setup:install && npm run setup:env && npm run setup:db && npm run security:fix",
+    "preinstall": "npm install -g typescript ts-node",
+    "setup": "npm run setup:clean && npm run setup:install && npm run setup:env && npm run setup:db",
+    "setup:clean": "rimraf node_modules frontend/node_modules backend/node_modules",
     "setup:install": "npm install --legacy-peer-deps && npm run setup:frontend && npm run setup:backend",
     "setup:frontend": "cd frontend && npm install --legacy-peer-deps",
     "setup:backend": "cd backend && npm install",
     "setup:env": "node scripts/setup-env.js",
-    "setup:db": "docker-compose up -d db && sleep 5 && npm run db:migrate && npm run db:seed && npm run generate:types",
-    "dev": "docker-compose up -d",
+    "setup:db": "docker-compose up -d db && sleep 5 && npm run db:migrate && npm run db:seed",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
     "build": "npm run build:frontend && npm run build:backend",
@@ -26,7 +28,6 @@
     "lint": "npm run lint:frontend && npm run lint:backend",
     "lint:frontend": "cd frontend && npm run lint",
     "lint:backend": "cd backend && npm run lint",
-    "clean": "rimraf node_modules frontend/node_modules backend/node_modules",
     "db:migrate": "cd backend && npm run migrate:dev",
     "db:seed": "cd backend && npm run seed",
     "generate:types": "cd backend && npm run generate:types",
@@ -55,7 +56,7 @@
     "devops",
     "ci/cd"
   ],
-  "author": "Rotem Ayalon",
+  "author": "Rotem Ayalon <rayalon@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rayalon1984/testops-companion/issues"
@@ -66,6 +67,8 @@
     "npm": ">=9.0.0"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1"
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.1",
+    "tslib": "^2.6.2"
   }
 }
