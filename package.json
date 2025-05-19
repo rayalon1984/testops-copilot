@@ -8,9 +8,9 @@
     "backend"
   ],
   "scripts": {
-    "setup": "npm install && npm run setup:frontend && npm run setup:backend",
-    "setup:frontend": "cd frontend && npm install",
-    "setup:backend": "cd backend && npm install",
+    "setup": "npm install && npm run setup:frontend && npm run setup:backend && npm audit fix",
+    "setup:frontend": "cd frontend && npm install && npm audit fix",
+    "setup:backend": "cd backend && npm install && npm audit fix",
     "dev": "docker-compose up -d",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
@@ -23,7 +23,7 @@
     "lint": "npm run lint:frontend && npm run lint:backend",
     "lint:frontend": "cd frontend && npm run lint",
     "lint:backend": "cd backend && npm run lint",
-    "clean": "rm -rf node_modules && rm -rf frontend/node_modules && rm -rf backend/node_modules",
+    "clean": "rimraf node_modules frontend/node_modules backend/node_modules",
     "db:migrate": "cd backend && npm run migrate:dev",
     "db:seed": "cd backend && npm run seed",
     "generate:types": "cd backend && npm run generate:types",
@@ -32,7 +32,9 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:ps": "docker-compose ps",
-    "deploy": "bash scripts/deploy.sh"
+    "deploy": "bash scripts/deploy.sh",
+    "security:audit": "npm audit && cd frontend && npm audit && cd ../backend && npm audit",
+    "security:fix": "npm audit fix && cd frontend && npm audit fix && cd ../backend && npm audit fix"
   },
   "repository": {
     "type": "git",
@@ -54,6 +56,9 @@
   "homepage": "https://github.com/rayalon1984/testops-companion#readme",
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1"
   }
 }
