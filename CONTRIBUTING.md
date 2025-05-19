@@ -19,41 +19,35 @@ Before creating bug reports, please check the issue list as you might find out t
 * Explain which behavior you expected to see instead and why
 * Include screenshots and animated GIFs if possible
 * Include error messages and stack traces
+* Include the version of TestOps Companion you're using
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, please include:
+Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, please provide the following information:
 
 * Use a clear and descriptive title
 * Provide a step-by-step description of the suggested enhancement
 * Provide specific examples to demonstrate the steps
 * Describe the current behavior and explain which behavior you expected to see instead
 * Explain why this enhancement would be useful
-* List some other applications where this enhancement exists
-* Include screenshots and animated GIFs
+* List some other tools or applications where this enhancement exists
 
 ### Pull Requests
 
 * Fill in the required template
 * Do not include issue numbers in the PR title
+* Follow the JavaScript/TypeScript styleguides
 * Include screenshots and animated GIFs in your pull request whenever possible
-* Follow our [coding standards](#coding-standards)
+* Document new code based on the Documentation Styleguide
 * End all files with a newline
-* Avoid platform-dependent code
-* Place imports in the following order:
-  * Built-in Node modules
-  * External modules
-  * Internal modules
-  * Parent directory imports
-  * Current directory imports
 
 ## Development Process
 
 1. Fork the repo
 2. Create a new branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run the tests (`npm test`)
-5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Run the tests (`make test`)
+5. Commit your changes (`git commit -m 'Add some amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
@@ -61,164 +55,74 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```bash
 # Clone your fork
-git clone https://github.com/your-username/testops-companion.git
+git clone https://github.com/<your-username>/testops-companion.git
 
 # Navigate to the project directory
 cd testops-companion
 
-# Install dependencies
-npm run setup
+# Install dependencies and set up development environment
+make setup
 
-# Start development environment
-npm start
+# Start the development environment
+make dev
 ```
 
-## Coding Standards
+### Project Structure
 
-### TypeScript
-
-* Use TypeScript for all new code
-* Enable strict mode
-* Define interfaces for all data structures
-* Use enums for fixed sets of values
-* Avoid using `any` type
-* Use type inference when possible
-
-```typescript
-// Good
-interface User {
-  id: string;
-  name: string;
-  role: UserRole;
-}
-
-enum UserRole {
-  Admin = 'admin',
-  User = 'user',
-}
-
-// Bad
-const user: any = { id: 1, name: 'John' };
+```
+testops-companion/
+├── .github/          # GitHub specific files (workflows, templates)
+├── backend/         # Backend Node.js/Express application
+├── frontend/        # Frontend React application
+├── nginx/           # Nginx configuration files
+├── prometheus/      # Prometheus configuration
+├── scripts/         # Utility scripts
+└── docker-compose.yml
 ```
 
-### React
+### Coding Style
 
-* Use functional components with hooks
-* Implement proper error boundaries
-* Use TypeScript for props definitions
-* Implement proper loading states
-* Handle edge cases and errors
-
-```typescript
-interface Props {
-  user: User;
-  onUpdate: (user: User) => Promise<void>;
-}
-
-const UserProfile: React.FC<Props> = ({ user, onUpdate }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  // Component implementation
-};
-```
+* Use TypeScript for both frontend and backend
+* Follow the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript)
+* Use ESLint and Prettier for code formatting
+* Write meaningful commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
 
 ### Testing
 
-* Write tests for all new features
-* Maintain high test coverage
-* Use meaningful test descriptions
-* Follow AAA pattern (Arrange, Act, Assert)
-* Keep tests independent
-* Mock external dependencies
+* Write unit tests for all new code
+* Ensure all tests pass before submitting a PR
+* Include integration tests for new features
+* Maintain or improve code coverage
 
-```typescript
-describe('UserService', () => {
-  it('should create user with valid data', async () => {
-    // Arrange
-    const userData = createValidUserData();
+```bash
+# Run all tests
+make test
 
-    // Act
-    const user = await userService.create(userData);
+# Run frontend tests
+cd frontend && npm test
 
-    // Assert
-    expect(user).toMatchObject(userData);
-  });
-});
+# Run backend tests
+cd backend && npm test
 ```
 
-## Commit Messages
+### Documentation
 
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+* Update the README.md with details of changes to the interface
+* Update the API documentation if you change the API
+* Add JSDoc comments for new functions and classes
+* Update the TypeScript types and interfaces
 
-```
-type(scope): description
+## Release Process
 
-[optional body]
-
-[optional footer]
-```
-
-Types:
-* feat: A new feature
-* fix: A bug fix
-* docs: Documentation only changes
-* style: Changes that do not affect the meaning of the code
-* refactor: A code change that neither fixes a bug nor adds a feature
-* perf: A code change that improves performance
-* test: Adding missing tests or correcting existing tests
-* chore: Changes to the build process or auxiliary tools
-
-Examples:
-```
-feat(pipeline): add support for GitHub Actions integration
-fix(auth): resolve token refresh issue
-docs(api): update API documentation
-style(ui): improve dashboard layout
-```
-
-## Documentation
-
-* Document all new features
-* Update existing documentation when needed
-* Use clear and concise language
-* Include code examples
-* Document breaking changes
-* Update API documentation
-
-## Review Process
-
-1. Code Review
-   * Code quality
-   * Test coverage
-   * Documentation
-   * Performance impact
-   * Security considerations
-
-2. Testing
-   * All tests pass
-   * New tests added
-   * Integration tested
-   * Performance verified
-
-3. Documentation
-   * Features documented
-   * API documentation updated
-   * Breaking changes noted
-   * Examples provided
-
-## Community
-
-* Join our [Discord server](https://discord.gg/testops-companion)
-* Follow us on [Twitter](https://twitter.com/testops-companion)
-* Read our [blog](https://blog.testops-companion.com)
-* Subscribe to our [newsletter](https://newsletter.testops-companion.com)
+1. Update the version number in package.json following [semver](http://semver.org/)
+2. Update the CHANGELOG.md
+3. Create a new release on GitHub
+4. Tag the release with the version number
+5. Push the release to npm if applicable
 
 ## Questions?
 
-* Check our [FAQ](docs/faq.md)
-* Join our [Discord server](https://discord.gg/testops-companion)
-* Open a [GitHub Discussion](https://github.com/yourusername/testops-companion/discussions)
+Feel free to open an issue with the tag `question` if you have any questions about contributing.
 
 ## License
 

@@ -1,114 +1,121 @@
 # Dependencies
 node_modules/
-/.pnp
+.pnp/
 .pnp.js
-yarn.lock
-package-lock.json
 
 # Testing
-/coverage
-.nyc_output
-junit.xml
+coverage/
+.nyc_output/
 
 # Production
-/build
-/dist
-*.tsbuildinfo
+build/
+dist/
+out/
 
-# Development
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+*.srl
 
 # Database
 *.sqlite
 *.sqlite3
 *.db
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
 # Temporary files
-*.swp
-*.swo
-*.tmp
-*.temp
-*.bak
+tmp/
+temp/
+.tmp/
 
-# Debug
-.debug/
-debug.log
-
-# Docker
-.docker/
-docker-compose.override.yml
-
-# Compiled output
-/frontend/build/
-/backend/dist/
-/cli/dist/
-
-# Cache directories
+# Cache
 .cache/
 .npm/
 .eslintcache
 .stylelintcache
+.parcel-cache/
 
-# Test artifacts
-/cypress/videos/
-/cypress/screenshots/
-/playwright/test-results/
-/playwright/screenshots/
-/playwright/videos/
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
 
-# Documentation generated files
-/docs/_site/
-/docs/.jekyll-cache/
-/docs/.jekyll-metadata
+# TypeScript
+*.tsbuildinfo
+
+# Compiled binary addons
+build/Release
 
 # Misc
+.DS_Store
 *.pem
-.env.*.local
-*.tgz
-.vercel
-.netlify
-.next
-out/
-.nuxt
-dist/
-.docusaurus
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Local SSL certificates
-*.crt
-*.key
-*.csr
-*.srl
+# Debug
+.debug/
+debug.log
+debug/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Test results
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Generated files
+generated/
+*.generated.*
+schema.generated.graphql
+
+# Monitoring
+prometheus/data/
+grafana/data/
