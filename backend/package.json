@@ -16,7 +16,7 @@
     "migrate:dev": "npm run prisma:generate && prisma migrate dev",
     "migrate:deploy": "npm run prisma:generate && prisma migrate deploy",
     "generate:types": "npm run prisma:generate",
-    "seed": "npm run prisma:generate && ts-node -O '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+    "seed": "npm run prisma:generate && ts-node -P prisma/tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.9.1",
@@ -59,7 +59,7 @@
     "npm": ">=9.0.0"
   },
   "prisma": {
-    "seed": "ts-node -O '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+    "seed": "ts-node -P prisma/tsconfig.seed.json prisma/seed.ts"
   },
   "jest": {
     "preset": "ts-jest",

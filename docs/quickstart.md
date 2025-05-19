@@ -341,16 +341,44 @@ npm run setup:db
 
 ### Seed Script Errors
 
-If you see TypeScript/Node.js related errors during seeding:
-1. Ensure you have the latest TypeScript and ts-node installed globally:
+If you encounter TypeScript/Node.js related errors during seeding:
+
+1. Ensure TypeScript dependencies are installed:
 ```bash
 npm install -g typescript ts-node
 ```
 
-2. Try running the seed script directly:
+2. Verify the seed configuration:
+```bash
+# Check if tsconfig.seed.json exists
+ls backend/prisma/tsconfig.seed.json
+
+# If missing, create it with:
+cat > backend/prisma/tsconfig.seed.json << EOL
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "../dist"
+  },
+  "include": [
+    "seed.ts"
+  ]
+}
+EOL
+```
+
+3. Try running the seed script directly:
 ```bash
 cd backend
+npm run prisma:generate
 npm run seed
+```
+
+4. If issues persist, try manual seeding:
+```bash
+cd backend
+npx prisma db seed
 ```
 
 
