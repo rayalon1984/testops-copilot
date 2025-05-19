@@ -312,6 +312,48 @@ Solution: Verify external service connectivity and credentials.
 
 ## Troubleshooting
 
+### Database Setup Issues
+
+If you encounter database-related errors during setup:
+
+1. Ensure PostgreSQL container is running:
+```bash
+docker ps | grep testops-companion-db
+```
+
+2. Check database logs:
+```bash
+docker-compose logs db
+```
+
+3. If the seed fails, it will automatically retry once. If it still fails:
+```bash
+# Manually retry database initialization
+npm run db:init
+```
+
+4. To completely reset the database:
+```bash
+docker-compose down
+rm -rf backend/prisma/migrations
+npm run setup:db
+```
+
+### Seed Script Errors
+
+If you see TypeScript/Node.js related errors during seeding:
+1. Ensure you have the latest TypeScript and ts-node installed globally:
+```bash
+npm install -g typescript ts-node
+```
+
+2. Try running the seed script directly:
+```bash
+cd backend
+npm run seed
+```
+
+
 ### Port Conflicts
 
 If you encounter port conflicts, you can modify the ports in the environment files:
