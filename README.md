@@ -175,7 +175,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - GitHub Issues: For bug reports and feature requests
-- Email: support@yourdomain.com
+- Email: rayalon@gmail.com
 - Documentation: Check our [wiki](docs/wiki.md)
 
 ## 🔮 Future Plans
@@ -188,4 +188,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Made with ❤️ by the TestOps Companion Team
+Made with ❤️ by Rotem Ayalon - TestOps Companion Team
