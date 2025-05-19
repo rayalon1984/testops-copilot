@@ -1,0 +1,10 @@
+export { default as Login } from './Login';
+export { default as Register } from './Register';
+export { default as Dashboard } from './Dashboard';
+export { default as PipelineList } from './PipelineList';
+export { default as PipelineDetail } from './PipelineDetail';
+export { default as TestRunList } from './TestRunList';
+export { default as TestRunDetail } from './TestRunDetail';
+export { default as NotificationList } from './NotificationList';
+export { default as Settings } from './Settings';
+export { default as NotFound } from './NotFound';

@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/yourusername/testops-companion/wiki
+    about: Check our documentation before creating an issue
+  - name: 💬 Discussions
+    url: https://github.com/yourusername/testops-companion/discussions
+    about: Ask questions and discuss with other community members
+  - name: 🤝 Contributing Guidelines
+    url: https://github.com/yourusername/testops-companion/blob/main/CONTRIBUTING.md
+    about: Review our contributing guidelines before submitting a PR
+  - name: 📝 Code of Conduct
+    url: https://github.com/yourusername/testops-companion/blob/main/CODE_OF_CONDUCT.md
+    about: Please read our Code of Conduct
+  - name: 🔒 Security Policy
+    url: https://github.com/yourusername/testops-companion/security/policy
+    about: Review our security policy for reporting vulnerabilities

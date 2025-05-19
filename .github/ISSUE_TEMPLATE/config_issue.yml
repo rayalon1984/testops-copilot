@@ -1,0 +1,122 @@
+name: Configuration Issue
+description: Report issues with setup, configuration, or environment
+labels: ["config", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a configuration issue!
+        Please provide the following information to help us resolve your issue quickly.
+
+  - type: dropdown
+    id: config_type
+    attributes:
+      label: Configuration Type
+      description: What type of configuration is causing issues?
+      options:
+        - Development Environment Setup
+        - Docker Configuration
+        - Database Configuration
+        - Environment Variables
+        - CI/CD Integration
+        - Authentication Setup
+        - API Configuration
+        - Frontend Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_config
+    attributes:
+      label: Current Configuration
+      description: Please provide your current configuration (remove sensitive data)
+      placeholder: |
+        ```yaml
+        # Example configuration
+        PORT=4000
+        DB_PATH=./data/testops.db
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If applicable, provide any error messages you're seeing
+      placeholder: |
+        Error: ENOENT no such file or directory...
+
+  - type: textarea
+    id: environment_info
+    attributes:
+      label: Environment Information
+      description: Please provide details about your environment
+      value: |
+        - Operating System:
+        - Node.js Version:
+        - npm Version:
+        - Docker Version:
+        - Docker Compose Version:
+        - Browser (if applicable):
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_taken
+    attributes:
+      label: Steps Already Taken
+      description: What steps have you already taken to resolve this issue?
+      placeholder: |
+        1. Checked environment variables
+        2. Verified Docker configuration
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_config
+    attributes:
+      label: Expected Configuration
+      description: What configuration do you expect to work?
+      placeholder: |
+        Describe what you think the correct configuration should be.
+
+  - type: dropdown
+    id: setup_method
+    attributes:
+      label: Setup Method
+      description: How did you set up the application?
+      options:
+        - Using setup.sh script
+        - Manual setup
+        - Docker Compose
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the configuration issue here
+      placeholder: |
+        - When did this issue start?
+        - Any recent changes?
+        - Other relevant details?
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      description: Please verify the following
+      options:
+        - label: I have read the setup documentation
+          required: true
+        - label: I have checked for similar issues
+          required: true
+        - label: I have verified my environment meets the requirements
+          required: true
+        - label: I am using a supported version of the application
+          required: true

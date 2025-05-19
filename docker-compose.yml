@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:3000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - testops-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgres://testops:testops@db:5432/testops_companion
+      - DATABASE_SSL=false
+      - JWT_SECRET=your-development-jwt-secret
+      - JWT_EXPIRES_IN=24h
+      - JWT_REFRESH_SECRET=your-development-refresh-secret
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:5173
+    depends_on:
+      - db
+    networks:
+      - testops-network
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=testops
+      - POSTGRES_PASSWORD=testops
+      - POSTGRES_DB=testops_companion
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - testops-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - testops-network
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - testops-network
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web UI
+    networks:
+      - testops-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  testops-network:
+    driver: bridge
