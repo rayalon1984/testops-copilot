@@ -3,14 +3,7 @@ import { Pipeline } from '@/models/pipeline.model';
 import { TestRun } from '@/models/testRun.model';
 import { logger } from '@/utils/logger';
 
-interface GitHubConfig {
-  credentials: {
-    apiToken: string;
-  };
-  repository: string;
-  branch?: string;
-  workflow?: string;
-}
+import { GitHubConfig } from '@/types/github';
 
 interface WorkflowRunResponse {
   id: number;
@@ -44,6 +37,9 @@ export class GithubService {
 
   async validateConnection(config: GitHubConfig): Promise<void> {
     try {
+      if (!config.repository) {
+        throw new Error('Repository is required for GitHub validation');
+      }
       this.initializeClient(config.credentials.apiToken);
       const { owner, repo } = this.parseRepository(config.repository);
 

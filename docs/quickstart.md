@@ -312,6 +312,34 @@ Solution: Verify external service connectivity and credentials.
 
 ## Troubleshooting
 
+### Missing Dependencies
+
+If you encounter module not found errors:
+
+1. Install missing dependencies:
+```bash
+# In the backend directory
+cd backend
+npm install
+
+# Or in the root directory
+npm run setup:backend
+```
+
+2. If specific modules are missing:
+```bash
+# Example for compression module
+cd backend
+npm install compression @types/compression
+```
+
+3. Restart the development servers:
+```bash
+# Stop the current process (Ctrl+C)
+# Then restart:
+npm run dev
+```
+
 ### Database Setup Issues
 
 If you encounter database-related errors during setup:
