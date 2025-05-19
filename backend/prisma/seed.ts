@@ -1,5 +1,12 @@
-import { PrismaClient, UserRole, PipelineType, TestStatus, TestResult, NotificationType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import {
+  UserRole,
+  PipelineType,
+  TestStatus,
+  TestResult,
+  NotificationType,
+} from '../src/types/prisma';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +22,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@testops-companion.com',
+      email: 'rayalon@gmail.com',
       name: 'Admin User',
       passwordHash: adminPassword,
       role: UserRole.ADMIN,
@@ -26,7 +33,7 @@ async function main() {
   const userPassword = await bcrypt.hash('demo123', 10);
   const demoUser = await prisma.user.create({
     data: {
-      email: 'demo@testops-companion.com',
+      email: 'rayalon+demo@gmail.com',
       name: 'Demo User',
       passwordHash: userPassword,
       role: UserRole.USER,

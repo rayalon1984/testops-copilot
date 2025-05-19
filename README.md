@@ -8,6 +8,70 @@
 
 TestOps Companion is a comprehensive test automation management platform that helps QA teams and developers manage their test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
 
+## Architecture
+
+### System Overview
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    Frontend     │     │     Backend     │     │    External     │
+│   (React SPA)   │────▶│  (Node.js API)  │────▶│    Services    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+         │                      │                        │
+         │                      │                        │
+         ▼                      ▼                        ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    WebSocket    │     │    Database     │     │     Jenkins     │
+│  Notifications  │     │   (Postgres)    │     │  GitHub Actions │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Component Architecture
+
+#### Frontend Layer
+- **React SPA**: Single-page application built with React 18 and TypeScript
+- **State Management**: React Query for server state, Zustand for local state
+- **UI Framework**: Material UI with custom theme
+- **Real-time Updates**: WebSocket connection for live notifications
+- **Testing**: Vitest + React Testing Library
+
+#### Backend Layer
+- **API Server**: Express.js with TypeScript
+- **Database ORM**: Prisma with PostgreSQL
+- **Authentication**: JWT-based auth with refresh tokens
+- **Caching**: Redis for session and response caching
+- **Monitoring**: Prometheus + Grafana dashboards
+
+#### Infrastructure
+- **Containerization**: Docker with multi-stage builds
+- **Load Balancing**: Nginx with SSL termination
+- **CI/CD**: GitHub Actions for automated testing and deployment
+- **Monitoring**: Prometheus for metrics, Grafana for visualization
+
+### Data Flow
+1. **Authentication Flow**
+   ```
+   Client ─► Auth Request ─► Validate Credentials ─► Generate JWT ─► Return Token
+      ▲                                                                  │
+      └──────────────────── Store Token ◄────────────────────────────────┘
+   ```
+
+2. **Test Pipeline Flow**
+   ```
+   Pipeline Trigger ─► Queue Job ─► Execute Tests ─► Collect Results ─► Store Data
+         │                                                   │
+         └───────────────► Send Notifications ◄──────────────┘
+   ```
+
+### Security Measures
+- JWT-based authentication
+- Rate limiting on API endpoints
+- CORS configuration
+- Helmet.js security headers
+- Input validation with Zod
+- SQL injection prevention with Prisma
+- XSS protection
+- CSRF tokens
+
 ## Quick Start
 
 ```bash
@@ -57,9 +121,9 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Support
 
-- Documentation: [docs.testops-companion.com](https://docs.testops-companion.com)
-- Issues: [github.com/rayalon1984/testops-companion/issues](https://github.com/rayalon1984/testops-companion/issues)
-- Discussions: [github.com/rayalon1984/testops-companion/discussions](https://github.com/rayalon1984/testops-companion/discussions)
+- Documentation: [docs/README.md](docs/README.md)
+- Issues: [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
+- Contact: rayalon@gmail.com
 
 ## License
 
