@@ -23,7 +23,7 @@ jobs:
 
     - name: Generate changelog
       id: changelog
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           const { data: commits } = await github.rest.repos.compareCommits({
