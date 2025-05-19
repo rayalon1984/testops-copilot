@@ -43,7 +43,7 @@ const setup = () => {
   // Generate secrets
   const replacements = {
     JWT_SECRET: generateSecret(),
-    REFRESH_TOKEN_SECRET: generateSecret(),
+    REFRESH_TOKEN_SECRET: generateSecret(),  // Used for JWT_REFRESH_SECRET
     SESSION_SECRET: generateSecret(),
     DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/testops',
     REDIS_URL: 'redis://localhost:6379',
@@ -80,9 +80,9 @@ REDIS_URL={REDIS_URL}
 
 # Authentication
 JWT_SECRET={JWT_SECRET}
-JWT_EXPIRATION=24h
-REFRESH_TOKEN_SECRET={REFRESH_TOKEN_SECRET}
-REFRESH_TOKEN_EXPIRATION=7d
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET={REFRESH_TOKEN_SECRET}
+JWT_REFRESH_EXPIRES_IN=7d
 SESSION_SECRET={SESSION_SECRET}
 
 # Logging

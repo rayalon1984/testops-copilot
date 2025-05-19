@@ -80,6 +80,19 @@ TestOps Companion is a comprehensive test automation management platform that he
 - Docker and Docker Compose
 - Git
 
+### Environment Configuration
+
+Critical environment variables for authentication:
+```env
+# backend/.env
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=your-refresh-secret-key  # Required for refresh tokens
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+Note: These variable names must match exactly. Common issues arise from mismatched names (e.g., using REFRESH_TOKEN_SECRET instead of JWT_REFRESH_SECRET).
+
 ### Installation Steps
 
 1. Clone the repository:

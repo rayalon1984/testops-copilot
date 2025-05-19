@@ -312,6 +312,22 @@ Solution: Verify external service connectivity and credentials.
 
 ## Troubleshooting
 
+### Environment Variables
+
+Important: Make sure these environment variables match exactly:
+```env
+# Authentication (in backend/.env)
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=your-refresh-secret-key
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+If you encounter authentication errors, verify that:
+1. Variable names match exactly (e.g., JWT_REFRESH_SECRET, not REFRESH_TOKEN_SECRET)
+2. All required variables are present
+3. Expiration times are in the correct format (e.g., '24h', '7d')
+
 ### TypeScript and Module Resolution
 
 If you encounter TypeScript or module resolution errors:
