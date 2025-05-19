@@ -312,11 +312,75 @@ Solution: Verify external service connectivity and credentials.
 
 ## Troubleshooting
 
+### TypeScript and Module Resolution
+
+If you encounter TypeScript or module resolution errors:
+
+1. Install required dependencies:
+```bash
+cd backend
+npm install -g typescript ts-node
+npm install tsconfig-paths
+```
+
+2. Verify tsconfig setup:
+```bash
+# Check if tsconfig.seed.json exists for database seeding
+ls backend/prisma/tsconfig.seed.json
+
+# If missing, create it:
+cat > backend/prisma/tsconfig.seed.json << EOL
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "../dist"
+  },
+  "include": [
+    "seed.ts"
+  ]
+}
+EOL
+```
+
+3. Restart TypeScript server:
+```bash
+# In VS Code:
+# 1. Press Cmd+Shift+P (Mac) or Ctrl+Shift+P (Windows)
+# 2. Type "TypeScript: Restart TS Server"
+# 3. Press Enter
+```
+
+### GitHub Integration
+
+If you encounter GitHub API errors:
+
+1. Install required dependencies:
+```bash
+cd backend
+npm install @octokit/rest
+```
+
+2. Verify GitHub configuration:
+```bash
+# Check GitHub token in backend/.env
+GITHUB_API_TOKEN=your-token
+
+# Test GitHub connection
+curl -H "Authorization: Bearer $GITHUB_API_TOKEN" \
+     https://api.github.com/user
+```
+
+3. Common GitHub issues:
+- 401 Unauthorized: Check your token permissions
+- 404 Not Found: Verify repository path and access
+- Rate Limit: Use authenticated requests
+
 ### Missing Dependencies
 
-If you encounter module not found errors:
+If you encounter other module not found errors:
 
-1. Install missing dependencies:
+1. Install project dependencies:
 ```bash
 # In the backend directory
 cd backend
@@ -328,9 +392,8 @@ npm run setup:backend
 
 2. If specific modules are missing:
 ```bash
-# Example for compression module
 cd backend
-npm install compression @types/compression
+npm install [module-name] @types/[module-name]
 ```
 
 3. Restart the development servers:

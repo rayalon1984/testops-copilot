@@ -103,11 +103,25 @@ cp frontend/.env.example frontend/.env
 # backend/.env:
 # - JWT_SECRET (required for authentication)
 # - DATABASE_URL (if using custom database)
+# - GITHUB_API_TOKEN (for GitHub integration)
 # frontend/.env:
 # - VITE_API_URL (if using different port)
 ```
 
-4. Ensure prerequisites:
+4. Install project dependencies:
+```bash
+# Install backend dependencies including:
+# - @octokit/rest (for GitHub integration)
+# - tsconfig-paths (for module resolution)
+cd backend && npm install
+cd ..
+
+# Install frontend dependencies
+cd frontend && npm install
+cd ..
+```
+
+5. Ensure prerequisites:
 ```bash
 # Verify Docker is running
 docker ps
@@ -116,12 +130,12 @@ docker ps
 docker-compose up -d db
 ```
 
-5. Run the automated setup:
+6. Run the automated setup:
 ```bash
 npm run setup
 ```
 
-6. Start the development servers:
+7. Start the development servers:
 ```bash
 npm run dev
 ```
