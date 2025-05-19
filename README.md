@@ -110,6 +110,27 @@ Access the application:
 
 Note: If any of these ports are already in use, see the [Quick Start Guide](docs/quickstart.md#port-conflicts) for instructions on changing ports.
 
+### Troubleshooting Setup
+
+If you encounter issues during setup:
+
+1. **Port Conflicts**: See [Port Configuration Guide](docs/quickstart.md#port-conflicts)
+2. **Database Issues**: See [Database Troubleshooting](docs/quickstart.md#database-setup-issues)
+3. **Seed Script Errors**: See [Seed Troubleshooting](docs/quickstart.md#seed-script-errors)
+
+The setup process includes automatic retries for database operations. For manual intervention:
+```bash
+# Retry database initialization
+npm run db:init
+
+# Complete database reset if needed
+docker-compose down
+rm -rf backend/prisma/migrations
+npm run setup:db
+```
+
+For more detailed troubleshooting steps, see the [Quick Start Guide](docs/quickstart.md#troubleshooting).
+
 ## Documentation
 
 - [Quick Start Guide](docs/quickstart.md)
