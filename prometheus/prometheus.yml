@@ -1,0 +1,136 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'frontend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['frontend:80']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'frontend-$1'
+
+  - job_name: 'backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:3000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'backend-$1'
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/nginx_status'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'nginx-$1'
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['db:9187']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'postgres-$1'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:9121']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'redis-$1'
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'node-$1'
+
+alerting_rules:
+  groups:
+    - name: TestOpsCompanion
+      rules:
+        - alert: HighCPUUsage
+          expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: High CPU usage on {{ $labels.instance }}
+            description: CPU usage is above 80% for 5 minutes
+
+        - alert: HighMemoryUsage
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: High memory usage on {{ $labels.instance }}
+            description: Memory usage is above 85% for 5 minutes
+
+        - alert: HighDiskUsage
+          expr: 100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes) > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: High disk usage on {{ $labels.instance }}
+            description: Disk usage is above 85% for 5 minutes
+
+        - alert: ServiceDown
+          expr: up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: Service {{ $labels.job }} is down
+            description: Service has been down for more than 1 minute
+
+        - alert: HighErrorRate
+          expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: High error rate on {{ $labels.instance }}
+            description: Error rate is above 5% for 5 minutes
+
+        - alert: SlowResponseTime
+          expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Slow response time on {{ $labels.instance }}
+            description: Average response time is above 2 seconds for 5 minutes

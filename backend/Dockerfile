@@ -1,62 +1,54 @@
-# Stage 1: Development
-FROM node:18-alpine AS development
+# syntax=docker/dockerfile:1.4
 
+# Base stage for both development and production
+FROM node:18-alpine AS base
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Expose port
-EXPOSE 3000
-
-# Start development server
-CMD ["npm", "run", "dev"]
-
-# Stage 2: Builder
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Build application
-RUN npm run build
-
-# Stage 3: Production
-FROM node:18-alpine AS production
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install production dependencies
-RUN npm ci --only=production
-
-# Copy built application
-COPY --from=builder /app/dist ./dist
-
-# Copy necessary files
-COPY .env.example .env
-
-# Expose port
-EXPOSE 3000
-
-# Set environment variables
 ENV NODE_ENV=production
 
-# Start production server
-CMD ["node", "dist/server.js"]
+# Development stage
+FROM base AS development
+ENV NODE_ENV=development
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
+# Dependencies stage for production
+FROM base AS deps
+COPY package*.json ./
+RUN npm install --production
+
+# Build stage
+FROM base AS builder
+COPY package*.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM base AS production
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+
+# Copy migration files
+COPY prisma ./prisma/
+
+# Install Prisma CLI for migrations
+RUN npm install -g prisma
+
+# Create startup script
+RUN echo "#!/bin/sh\n\
+    echo 'Running database migrations...'\n\
+    prisma migrate deploy\n\
+    echo 'Starting application...'\n\
+    node dist/server.js" > ./start.sh && \
+    chmod +x ./start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
+
+EXPOSE 3000
+CMD ["./start.sh"]

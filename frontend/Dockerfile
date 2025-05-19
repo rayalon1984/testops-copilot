@@ -1,51 +1,41 @@
-# Stage 1: Development
-FROM node:18-alpine AS development
+# syntax=docker/dockerfile:1.4
 
+# Base stage for both development and production
+FROM node:18-alpine AS base
 WORKDIR /app
+ENV NODE_ENV=production
+ENV VITE_API_URL=http://localhost:3000
+ENV VITE_WEBSOCKET_URL=ws://localhost:3000
 
-# Copy package files
+# Development stage
+FROM base AS development
+ENV NODE_ENV=development
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy source code
 COPY . .
-
-# Expose port
 EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
 
-# Start development server
-CMD ["npm", "start"]
-
-# Stage 2: Builder
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
+# Dependencies stage for production
+FROM base AS deps
 COPY package*.json ./
+RUN npm install --production
 
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+# Build stage
+FROM base AS builder
+COPY package*.json ./
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build application
 RUN npm run build
 
-# Stage 3: Production
+# Production stage
 FROM nginx:alpine AS production
-
-# Copy nginx configuration
+COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built application
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Health check for production
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost:80/health || exit 1
 
-# Expose port
 EXPOSE 80
-
-# Start nginx server
 CMD ["nginx", "-g", "daemon off;"]

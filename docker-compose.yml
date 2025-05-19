@@ -4,7 +4,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
       target: development
     ports:
       - "5173:5173"
@@ -13,7 +12,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - VITE_API_BASE_URL=http://localhost:3000/api/v1
+      - VITE_API_URL=http://localhost:3000
+      - VITE_WEBSOCKET_URL=ws://localhost:3000
     depends_on:
       - backend
     networks:
@@ -22,7 +22,6 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
       target: development
     ports:
       - "3000:3000"
@@ -31,14 +30,12 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3000
-      - DATABASE_URL=postgres://testops:testops@db:5432/testops_companion
-      - DATABASE_SSL=false
-      - JWT_SECRET=your-development-jwt-secret
-      - JWT_EXPIRES_IN=24h
-      - JWT_REFRESH_SECRET=your-development-refresh-secret
-      - JWT_REFRESH_EXPIRES_IN=7d
-      - CORS_ORIGIN=http://localhost:5173
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/testops
+      - JWT_SECRET=your_jwt_secret_here
+      - SLACK_WEBHOOK_URL=your_slack_webhook_here
+      - JENKINS_URL=your_jenkins_url_here
+      - JENKINS_USERNAME=your_jenkins_username
+      - JENKINS_TOKEN=your_jenkins_token
     depends_on:
       - db
     networks:
@@ -48,21 +45,12 @@ services:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=testops
-      - POSTGRES_PASSWORD=testops
-      - POSTGRES_DB=testops_companion
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - testops-network
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=testops
     networks:
       - testops-network
 
@@ -75,11 +63,12 @@ services:
     networks:
       - testops-network
 
-  mailhog:
-    image: mailhog/mailhog
+  redis:
+    image: redis:7-alpine
     ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - testops-network
 
