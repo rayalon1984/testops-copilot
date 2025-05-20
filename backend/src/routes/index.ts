@@ -1,33 +1,22 @@
-import { Router } from 'express';
-import authRoutes from './auth.routes';
-import pipelineRoutes from './pipeline.routes';
-import testRunRoutes from './testRun.routes';
-import notificationRoutes from './notification.routes';
-import { notFoundHandler } from '@/middleware/errorHandler';
+import { Application, Router, IRouter } from 'express';
+import { jiraController } from '../controllers/jira.controller';
 
-const router = Router();
+// Create and export routers
+export const pipelineRouter: IRouter = Router();
+export const testRunRouter: IRouter = Router();
+export const notificationRouter: IRouter = Router();
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Server is healthy',
-    timestamp: new Date().toISOString(),
-  });
-});
+// Import route handlers
+import './pipeline.routes';
+import './testRun.routes';
+import './notification.routes';
 
-// API Documentation endpoint
-router.get('/docs', (req, res) => {
-  res.redirect('/api-docs');
-});
+export function registerRoutes(app: Application): void {
+  // API routes
+  app.use('/api/v1/pipelines', pipelineRouter);
+  app.use('/api/v1/test-runs', testRunRouter);
+  app.use('/api/v1/notifications', notificationRouter);
+  app.use('/api/v1/jira', jiraController);
+}
 
-// Mount routes
-router.use('/auth', authRoutes);
-router.use('/pipelines', pipelineRoutes);
-router.use('/test-runs', testRunRoutes);
-router.use('/notifications', notificationRoutes);
-
-// Handle 404 routes
-router.use(notFoundHandler);
-
-export default router;
+export default registerRoutes;

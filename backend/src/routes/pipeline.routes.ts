@@ -1,158 +1,172 @@
 import { Router } from 'express';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { authenticate, authorize } from '@/middleware/auth';
-import { validatePipelineInput } from '@/middleware/validation';
-import { PipelineController } from '@/controllers/pipeline.controller';
+import { authenticate, authorize } from '../middleware/auth';
+import { asyncHandler } from '../middleware/errorHandler';
+import { pipelineController } from '../controllers/pipeline.controller';
+import { UserRole } from '../constants';
 
 const router: Router = Router();
-const pipelineController = new PipelineController();
 
-// Apply authentication middleware to all routes
+// Apply authentication to all routes
 router.use(authenticate);
 
-// @route   GET /api/v1/pipelines
-// @desc    Get all pipelines
-// @access  Private
+// List pipelines
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const pipelines = await pipelineController.getAllPipelines(req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: pipelines
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const pipelines = await pipelineController.listPipelines(req.user.id);
+    res.json(pipelines);
   })
 );
 
-// @route   GET /api/v1/pipelines/:id
-// @desc    Get pipeline by ID
-// @access  Private
+// Get pipeline by ID
 router.get(
   '/:id',
   asyncHandler(async (req, res) => {
-    const pipeline = await pipelineController.getPipelineById(req.params.id, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: pipeline
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const pipeline = await pipelineController.getPipeline(req.params.id, req.user.id);
+    res.json(pipeline);
   })
 );
 
-// @route   POST /api/v1/pipelines
-// @desc    Create new pipeline
-// @access  Private
+// Create pipeline
 router.post(
   '/',
-  validatePipelineInput,
   asyncHandler(async (req, res) => {
-    const pipeline = await pipelineController.createPipeline(req.body, req.user!.id);
-    res.status(201).json({
-      success: true,
-      data: pipeline
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const pipeline = await pipelineController.createPipeline(req.body, req.user.id);
+    res.status(201).json(pipeline);
   })
 );
 
-// @route   PUT /api/v1/pipelines/:id
-// @desc    Update pipeline
-// @access  Private
+// Update pipeline
 router.put(
   '/:id',
-  validatePipelineInput,
   asyncHandler(async (req, res) => {
-    const pipeline = await pipelineController.updatePipeline(req.params.id, req.body, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: pipeline
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const pipeline = await pipelineController.updatePipeline(
+      req.params.id,
+      req.body,
+      req.user.id
+    );
+    res.json(pipeline);
   })
 );
 
-// @route   DELETE /api/v1/pipelines/:id
-// @desc    Delete pipeline
-// @access  Private
+// Delete pipeline
 router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
-    await pipelineController.deletePipeline(req.params.id, req.user!.id);
-    res.status(200).json({
-      success: true,
-      message: 'Pipeline deleted successfully'
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    await pipelineController.deletePipeline(req.params.id, req.user.id);
+    res.status(204).send();
   })
 );
 
-// @route   POST /api/v1/pipelines/:id/run
-// @desc    Run pipeline
-// @access  Private
+// Start pipeline
 router.post(
-  '/:id/run',
+  '/:id/start',
   asyncHandler(async (req, res) => {
-    const result = await pipelineController.runPipeline(req.params.id, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: result
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const testRun = await pipelineController.startPipeline(req.params.id, req.user.id);
+    res.json(testRun);
   })
 );
 
-// @route   GET /api/v1/pipelines/:id/runs
-// @desc    Get pipeline run history
-// @access  Private
+// Get pipeline test runs
 router.get(
-  '/:id/runs',
+  '/:id/test-runs',
   asyncHandler(async (req, res) => {
-    const runs = await pipelineController.getPipelineRuns(req.params.id, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: runs
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const runs = await pipelineController.getTestRuns(req.params.id, req.user.id);
+    res.json(runs);
   })
 );
 
-// @route   POST /api/v1/pipelines/:id/schedule
-// @desc    Schedule pipeline
-// @access  Private
+// Schedule pipeline
 router.post(
   '/:id/schedule',
   asyncHandler(async (req, res) => {
-    const schedule = await pipelineController.schedulePipeline(req.params.id, req.body, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: schedule
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    await pipelineController.schedulePipeline(
+      req.params.id,
+      req.body.schedule,
+      req.user.id
+    );
+    res.json({ message: 'Pipeline scheduled successfully' });
   })
 );
 
-// @route   GET /api/v1/pipelines/:id/metrics
-// @desc    Get pipeline metrics
-// @access  Private
+// Get failed tests
 router.get(
-  '/:id/metrics',
+  '/:id/failed-tests',
   asyncHandler(async (req, res) => {
-    const metrics = await pipelineController.getPipelineMetrics(req.params.id, req.user!.id);
-    res.status(200).json({
-      success: true,
-      data: metrics
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const tests = await pipelineController.getFailedTests(req.params.id, req.user.id);
+    res.json(tests);
   })
 );
 
-// Admin only routes
-router.use(authorize('admin'));
-
-// @route   GET /api/v1/pipelines/system/metrics
-// @desc    Get system-wide pipeline metrics
-// @access  Admin
+// Get flakey tests
 router.get(
-  '/system/metrics',
+  '/:id/flakey-tests',
   asyncHandler(async (req, res) => {
-    const metrics = await pipelineController.getSystemMetrics();
-    res.status(200).json({
-      success: true,
-      data: metrics
-    });
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
+    const tests = await pipelineController.getFlakeyTests(req.params.id, req.user.id);
+    res.json(tests);
   })
 );
 
-export { router as pipelineRoutes };
+// Validate pipeline configuration
+router.post(
+  '/validate-config',
+  asyncHandler(async (req, res) => {
+    const result = await pipelineController.validatePipelineConfig(req.body);
+    res.json(result);
+  })
+);
+
+// Admin routes
+router.use(authorize(UserRole.ADMIN));
+
+export { router as pipelineRouter };

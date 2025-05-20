@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file
 
 generator client {
   provider = "prisma-client-js"
@@ -10,118 +9,166 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  name          String?
-  passwordHash  String
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  pipelines     Pipeline[]
-  testRuns      TestRun[]
-  notifications Notification[]
-}
-
 enum UserRole {
   ADMIN
-  MANAGER
   USER
-}
-
-model Pipeline {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  type        PipelineType
-  config      Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  createdBy   User      @relation(fields: [userId], references: [id])
-  userId      String
-  testRuns    TestRun[]
-  status      PipelineStatus @default(ACTIVE)
 }
 
 enum PipelineType {
   JENKINS
   GITHUB_ACTIONS
-  GITLAB_CI
   CUSTOM
 }
 
 enum PipelineStatus {
-  ACTIVE
-  PAUSED
-  ARCHIVED
-}
-
-model TestRun {
-  id          String    @id @default(uuid())
-  pipeline    Pipeline  @relation(fields: [pipelineId], references: [id])
-  pipelineId  String
-  startedAt   DateTime  @default(now())
-  endedAt     DateTime?
-  status      TestStatus
-  result      TestResult?
-  logs        String?
-  metadata    Json?
-  createdBy   User      @relation(fields: [userId], references: [id])
-  userId      String
-  testCases   TestCase[]
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILURE
+  CANCELLED
+  TIMEOUT
 }
 
 enum TestStatus {
-  QUEUED
+  PENDING
   RUNNING
-  COMPLETED
+  PASSED
   FAILED
-  CANCELLED
+  SKIPPED
+  ERROR
 }
 
 enum TestResult {
-  PASSED
-  FAILED
-  FLAKY
-  SKIPPED
-  BLOCKED
-}
-
-model TestCase {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  testRun     TestRun   @relation(fields: [testRunId], references: [id])
-  testRunId   String
-  status      TestStatus
-  result      TestResult?
-  duration    Int?      // in milliseconds
-  errorMessage String?
-  stackTrace   String?
-  metadata     Json?
-}
-
-model Notification {
-  id        String    @id @default(uuid())
-  type      NotificationType
-  title     String
-  message   String
-  status    NotificationStatus @default(UNREAD)
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String
-  metadata  Json?
+  PASS
+  FAIL
+  SKIP
+  ERROR
 }
 
 enum NotificationType {
-  PIPELINE_STATUS
-  TEST_FAILURE
-  SYSTEM_ALERT
-  MAINTENANCE
+  EMAIL
+  SLACK
+  PUSHOVER
 }
 
 enum NotificationStatus {
-  UNREAD
-  READ
-  ARCHIVED
+  PENDING
+  SENT
+  FAILED
+}
+
+enum JiraIssueType {
+  BUG
+  TASK
+  STORY
+  EPIC
+}
+
+enum JiraIssueStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CUSTOM
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  role          UserRole       @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  pipelines     Pipeline[]
+  testRuns      TestRun[]
+  notifications Notification[]
+}
+
+model Pipeline {
+  id            String         @id @default(uuid())
+  name          String
+  type          PipelineType
+  config        Json
+  status        PipelineStatus @default(PENDING)
+  userId        String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id])
+  testRuns      TestRun[]
+  jiraIssues    JiraIssue[]
+}
+
+model TestRun {
+  id            String         @id @default(uuid())
+  pipelineId    String
+  userId        String
+  status        TestStatus     @default(PENDING)
+  branch        String?
+  commit        String?
+  startTime     DateTime?
+  endTime       DateTime?
+  duration      Int?
+  results       Json?
+  error         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  pipeline      Pipeline       @relation(fields: [pipelineId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
+  testCases     TestCase[]
+  jiraIssues    JiraIssue[]
+}
+
+model TestCase {
+  id            String      @id @default(uuid())
+  testRunId     String
+  name          String
+  status        TestStatus  @default(PENDING)
+  duration      Int?
+  error         String?
+  stackTrace    String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  testRun       TestRun     @relation(fields: [testRunId], references: [id])
+}
+
+model Notification {
+  id            String             @id @default(uuid())
+  userId        String
+  type          NotificationType
+  status        NotificationStatus @default(PENDING)
+  content       Json
+  error         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  user          User               @relation(fields: [userId], references: [id])
+}
+
+model JiraConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   JiraIssueType @default(BUG)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JiraIssue {
+  id            String    @id @default(uuid())
+  issueKey      String    @unique
+  issueType     JiraIssueType
+  status        JiraIssueStatus @default(TODO)
+  summary       String
+  description   String?
+  labels        String[]
+  pipelineId    String?
+  testRunId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  pipeline      Pipeline? @relation(fields: [pipelineId], references: [id])
+  testRun       TestRun?  @relation(fields: [testRunId], references: [id])
+
+  @@index([issueKey])
 }

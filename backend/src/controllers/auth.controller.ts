@@ -1,251 +1,130 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { config } from '@/config';
-import { User, UserAttributes } from '@/models/user.model';
-import { AuthenticationError, NotFoundError } from '@/middleware/errorHandler';
-import { logger } from '@/utils/logger';
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
+import { config } from '../config';
+import { JwtService } from '../services/jwt.service';
+import { AuthenticationError, NotFoundError } from '../middleware/errorHandler';
+import { ERROR_MESSAGES, UserRole } from '../constants';
+import {
+  CreateUserDTO,
+  LoginDTO,
+  UpdatePasswordDTO,
+  TokenPayload,
+  UserResponse
+} from '../types/user';
 
-interface RegisterInput {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role?: 'admin' | 'user';
-}
-
-interface LoginInput {
-  email: string;
-  password: string;
-}
-
-interface TokenPayload {
-  id: string;
-  email: string;
-  role: string;
-}
+const prisma = new PrismaClient();
 
 export class AuthController {
-  private generateToken(payload: TokenPayload): string {
-    return jwt.sign(payload, config.jwt.secret, {
-      expiresIn: config.jwt.expiresIn,
+  async register(data: CreateUserDTO): Promise<UserResponse> {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email }
     });
-  }
 
-  private generateRefreshToken(payload: TokenPayload): string {
-    return jwt.sign(payload, config.jwt.refreshSecret, {
-      expiresIn: config.jwt.refreshExpiresIn,
-    });
-  }
-
-  async register(input: RegisterInput): Promise<UserAttributes> {
-    const { email, password, firstName, lastName, role = 'user' } = input;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      where: { email },
-      scope: 'withPassword'
-    });
-    
     if (existingUser) {
-      throw new AuthenticationError('User already exists');
+      throw new AuthenticationError('Email already registered');
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(
+      data.password,
+      config.security.bcryptSaltRounds
+    );
 
-    // Create user
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      role,
+    const user = await prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+        role: data.role || UserRole.USER
+      }
     });
 
-    logger.info(`New user registered: ${user.email}`);
-    return user.get({ plain: true });
+    return this.mapUserToResponse(user);
   }
 
-  async login(input: LoginInput): Promise<{ token: string; user: UserAttributes }> {
-    const { email, password } = input;
-
-    // Find user
-    const user = await User.findOne({ 
-      where: { email },
-      scope: ['withPassword', 'withRefreshToken']
+  async login(data: LoginDTO) {
+    const user = await prisma.user.findUnique({
+      where: { email: data.email }
     });
-    
+
     if (!user) {
-      throw new AuthenticationError('Invalid credentials');
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new AuthenticationError('Invalid credentials');
+    const isValidPassword = await bcrypt.compare(data.password, user.password);
+    if (!isValidPassword) {
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    // Generate tokens
     const tokenPayload: TokenPayload = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
+      userId: user.id,
+      role: user.role
     };
 
-    const token = this.generateToken(tokenPayload);
-    const refreshToken = this.generateRefreshToken(tokenPayload);
-
-    // Save refresh token to user
-    await user.update({ refreshToken });
-
-    logger.info(`User logged in: ${user.email}`);
-    return { token, user: user.get({ plain: true }) };
-  }
-
-  async refreshToken(refreshToken: string): Promise<string> {
-    try {
-      // Verify refresh token
-      const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret) as TokenPayload;
-
-      // Find user
-      const user = await User.findOne({ 
-        where: { id: decoded.id },
-        scope: 'withRefreshToken'
-      });
-      
-      if (!user || user.refreshToken !== refreshToken) {
-        throw new AuthenticationError('Invalid refresh token');
-      }
-
-      // Generate new access token
-      const tokenPayload: TokenPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      };
-
-      return this.generateToken(tokenPayload);
-    } catch (error) {
-      throw new AuthenticationError('Invalid refresh token');
-    }
+    return {
+      user: this.mapUserToResponse(user),
+      ...JwtService.generateTokenPair(tokenPayload)
+    };
   }
 
   async logout(userId: string): Promise<void> {
-    const user = await User.findOne({ 
+    // In a real application, you might want to invalidate the token
+    // by adding it to a blacklist or similar mechanism
+    await prisma.user.update({
       where: { id: userId },
-      scope: 'withRefreshToken'
+      data: { updatedAt: new Date() }
     });
-    
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
-
-    // Clear refresh token
-    await user.update({ refreshToken: null });
-
-    logger.info(`User logged out: ${user.email}`);
   }
 
-  async getCurrentUser(userId: string): Promise<UserAttributes> {
-    const user = await User.findOne({ where: { id: userId } });
+  async getCurrentUser(userId: string): Promise<UserResponse> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
     if (!user) {
       throw new NotFoundError('User not found');
     }
-    return user.get({ plain: true });
+
+    return this.mapUserToResponse(user);
   }
 
-  async updatePassword(userId: string, input: { currentPassword: string; newPassword: string }): Promise<void> {
-    const { currentPassword, newPassword } = input;
-
-    // Find user
-    const user = await User.findOne({ 
-      where: { id: userId },
-      scope: 'withPassword'
+  async updatePassword(userId: string, data: UpdatePasswordDTO): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
     });
-    
+
     if (!user) {
       throw new NotFoundError('User not found');
     }
 
-    // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isPasswordValid) {
+    const isValidPassword = await bcrypt.compare(
+      data.currentPassword,
+      user.password
+    );
+
+    if (!isValidPassword) {
       throw new AuthenticationError('Current password is incorrect');
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    const hashedPassword = await bcrypt.hash(
+      data.newPassword,
+      config.security.bcryptSaltRounds
+    );
 
-    // Update password
-    await user.update({ password: hashedPassword });
-
-    logger.info(`Password updated for user: ${user.email}`);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
   }
 
-  async forgotPassword(email: string): Promise<void> {
-    // Find user
-    const user = await User.findOne({ 
-      where: { email },
-      scope: 'withResetToken'
-    });
-    
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
-
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedResetToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    // Save reset token to user
-    await user.update({
-      passwordResetToken: hashedResetToken,
-      passwordResetExpires: new Date(Date.now() + 3600000) // 1 hour
-    });
-
-    // TODO: Send reset email
-    logger.info(`Password reset requested for user: ${user.email}`);
-  }
-
-  async resetPassword(resetToken: string, newPassword: string): Promise<void> {
-    // Hash token
-    const hashedResetToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
-
-    // Find user with valid reset token
-    const user = await User.findOne({
-      where: {
-        passwordResetToken: hashedResetToken,
-        passwordResetExpires: {
-          [Symbol.for('gt')]: new Date()
-        }
-      },
-      scope: ['withPassword', 'withResetToken']
-    });
-
-    if (!user) {
-      throw new AuthenticationError('Invalid or expired reset token');
-    }
-
-    // Hash new password
-    const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update password and clear reset token
-    await user.update({
-      password: hashedPassword,
-      passwordResetToken: null,
-      passwordResetExpires: null
-    });
-
-    logger.info(`Password reset completed for user: ${user.email}`);
+  private mapUserToResponse(user: any): UserResponse {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role
+    };
   }
 }
+
+export const authController = new AuthController();

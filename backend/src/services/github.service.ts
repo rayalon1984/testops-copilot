@@ -1,231 +1,182 @@
 import { Octokit } from '@octokit/rest';
-import { logger } from '@/utils/logger';
-import { prisma } from '@/lib/prisma';
-import {
-  GitHubConfig,
-  Pipeline,
-  TestRun,
-  PipelineStatus
-} from '@/types/github';
+import { Prisma } from '@prisma/client';
+import { config } from '../config';
+import { logger } from '../utils/logger';
+import { PipelineStatus, TestStatus, PipelineType } from '../constants';
+import { Pipeline, TestRun, TestRunWithPipeline } from '../types/pipeline';
+import { sleep, generateUUID } from '../utils/common';
 
-// Types for GitHub API responses
-interface OctokitWorkflowRun {
-  id: number;
-  status: 'queued' | 'in_progress' | 'completed' | string;
-  conclusion: 'success' | 'failure' | 'cancelled' | 'skipped' | null;
-  html_url: string;
-  head_branch: string | null;
+interface GitHubWorkflowConfig {
+  owner: string;
+  repo: string;
+  workflow: string;
+}
+
+interface GitHubWorkflowRun {
+  status: string;
+  conclusion: string | null;
   head_sha: string;
-  created_at: string;
   updated_at: string;
 }
 
-export class GithubService {
+export class GitHubService {
   private octokit: Octokit;
 
   constructor() {
-    this.octokit = new Octokit();
-  }
-
-  private initializeClient(token: string): void {
     this.octokit = new Octokit({
-      auth: token,
+      auth: config.github.token,
+      baseUrl: config.github.apiUrl
     });
   }
 
-  private parseRepository(repository: string): { owner: string; repo: string } {
-    const [owner, repo] = repository.split('/');
-    if (!owner || !repo) {
-      throw new Error('Invalid repository format. Expected "owner/repo"');
-    }
-    return { owner, repo };
-  }
-
-  async validateConnection(config: GitHubConfig): Promise<void> {
+  async validateConnection(config: unknown): Promise<void> {
     try {
-      if (!config.repository) {
-        throw new Error('Repository is required for GitHub validation');
-      }
-      this.initializeClient(config.credentials.apiToken);
-      const { owner, repo } = this.parseRepository(config.repository);
+      const { owner, repo, workflow } = this.parseConfig(config);
 
-      // Verify repository access
-      await this.octokit.repos.get({
+      // Try to get workflow info to validate connection
+      await this.octokit.actions.getWorkflow({
         owner,
         repo,
+        workflow_id: workflow
       });
-
-      logger.info('GitHub connection validated successfully');
     } catch (error) {
       logger.error('GitHub connection validation failed:', error);
-      throw new Error('Failed to connect to GitHub: ' + (error as Error).message);
+      throw new Error('Failed to validate GitHub connection');
     }
   }
 
-  async startPipeline(pipeline: Pipeline): Promise<TestRun> {
-    const { config } = pipeline;
-    const { owner, repo } = this.parseRepository(config.repository!);
-
+  async startPipeline(pipeline: Pipeline & { type: PipelineType }): Promise<TestRunWithPipeline> {
     try {
-      this.initializeClient(config.credentials.apiToken);
+      const workflowConfig = this.parseConfig(pipeline.config);
 
-      // Create test run record
-      // Create test run record
-      const testRun = await prisma.testRun.create({
-        data: {
-          pipelineId: pipeline.id,
-          userId: pipeline.userId,
-          status: 'pending',
-          branch: config.branch,
-          startTime: new Date()
-        }
-      });
+      // Create a test run
+      const testRun: TestRun = {
+        id: generateUUID(),
+        pipelineId: pipeline.id,
+        userId: pipeline.userId,
+        status: TestStatus.PENDING,
+        branch: 'main',
+        commit: null,
+        startTime: new Date(),
+        endTime: null,
+        duration: null,
+        results: {},
+        error: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      // Get workflows and select the first one
-      const workflows = await this.octokit.actions.listRepoWorkflows({
-        owner,
-        repo
-      });
-
-      if (workflows.data.workflows.length === 0) {
-        throw new Error('No workflows found in repository');
-      }
-
-      const workflowId = workflows.data.workflows[0].id;
-
-      // Trigger workflow
+      // Start GitHub workflow
       const response = await this.octokit.actions.createWorkflowDispatch({
-        owner,
-        repo,
-        workflow_id: workflowId,
-        ref: config.branch || 'main',
-        inputs: {}
+        owner: workflowConfig.owner,
+        repo: workflowConfig.repo,
+        workflow_id: workflowConfig.workflow,
+        ref: 'main'
       });
 
       if (response.status !== 204) {
-        throw new Error('Failed to trigger GitHub Actions workflow');
+        throw new Error('Failed to start GitHub workflow');
       }
 
-      // Start monitoring workflow progress
-      this.monitorWorkflowProgress(owner, repo, testRun);
+      // Start monitoring the workflow progress
+      this.monitorWorkflowProgress(workflowConfig, testRun, pipeline);
 
-      return testRun;
+      return {
+        ...testRun,
+        pipeline: {
+          ...pipeline,
+          status: PipelineStatus.RUNNING
+        }
+      };
     } catch (error) {
-      logger.error('Failed to start GitHub Actions workflow:', error);
+      logger.error('Failed to start GitHub pipeline:', error);
       throw error;
     }
   }
 
   private async monitorWorkflowProgress(
-    owner: string,
-    repo: string,
-    testRun: TestRun
+    config: GitHubWorkflowConfig,
+    testRun: TestRun,
+    pipeline: Pipeline
   ): Promise<void> {
-    const pollInterval = 30000; // 30 seconds
-    const maxDuration = 3600000; // 1 hour
-    let elapsed = 0;
-
-    const intervalId = setInterval(async () => {
-      try {
-        // Get the latest workflow run
-        const workflows = await this.octokit.actions.listRepoWorkflows({
-          owner,
-          repo
-        });
-
-        const workflowId = workflows.data.workflows[0].id;
-
-        const runs = await this.octokit.actions.listWorkflowRuns({
-          owner,
-          repo,
-          workflow_id: workflowId,
-          branch: testRun.branch || undefined,
-          per_page: 1
-        });
-
-        if (runs.data.workflow_runs.length === 0) {
-          return;
-        }
-
-        const run = runs.data.workflow_runs[0] as OctokitWorkflowRun;
-        await this.processWorkflowStatus(run, testRun);
-
-        if (run.status === 'completed') {
-          clearInterval(intervalId);
-        }
-
-        elapsed += pollInterval;
-        if (elapsed >= maxDuration) {
-          clearInterval(intervalId);
-          await prisma.testRun.update({
-            where: { id: testRun.id },
-            data: {
-              status: 'timeout',
-              error: 'Workflow exceeded maximum duration'
-            }
-          });
-        }
-      } catch (error) {
-        logger.error('Error monitoring workflow progress:', error);
-        clearInterval(intervalId);
-        await prisma.testRun.update({
-          where: { id: testRun.id },
-          data: {
-            status: 'failure',
-            error: `Failed to monitor workflow: ${(error as Error).message}`
-          }
-        });
-      }
-    }, pollInterval);
-  }
-
-  private async processWorkflowStatus(run: OctokitWorkflowRun, testRun: TestRun): Promise<void> {
-    const status = this.mapWorkflowStatus(run);
-
-    await prisma.testRun.update({
-      where: { id: testRun.id },
-      data: {
-        status,
-        endTime: (status === 'success' || status === 'failure') ? new Date(run.updated_at) : undefined,
-        duration: (status === 'success' || status === 'failure')
-          ? Math.floor((new Date(run.updated_at).getTime() - new Date(run.created_at).getTime()) / 1000)
-          : undefined,
-        results: (status === 'success' || status === 'failure')
-          ? await this.fetchTestResults(run.html_url)
-          : undefined
-      }
-    });
-  }
-
-  private mapWorkflowStatus(run: OctokitWorkflowRun): PipelineStatus {
-    switch (run.status) {
-      case 'queued':
-        return 'pending';
-      case 'in_progress':
-        return 'running';
-      case 'completed':
-        return run.conclusion === 'success' ? 'success' : 'failure';
-      default:
-        return 'failure';
-    }
-  }
-
-  private async fetchTestResults(runUrl: string): Promise<Record<string, any> | undefined> {
     try {
-      // GitHub Actions doesn't have a direct API for test results
-      // You would need to implement a custom solution to parse test results
-      // from workflow artifacts or a custom API endpoint
-      return {
-        total: 0,
-        passed: 0,
-        failed: 0,
-        skipped: 0,
-        flaky: 0,
-        reportUrl: runUrl,
-      };
+      while (true) {
+        const runs = await this.octokit.actions.listWorkflowRuns({
+          owner: config.owner,
+          repo: config.repo,
+          workflow_id: config.workflow
+        });
+
+        const latestRun = runs.data.workflow_runs[0] as GitHubWorkflowRun;
+
+        if (!latestRun) {
+          await sleep(5000);
+          continue;
+        }
+
+        // Update test run status
+        const status = this.mapGitHubStatus(latestRun.status, latestRun.conclusion || '');
+        testRun.status = status;
+        testRun.commit = latestRun.head_sha;
+        testRun.updatedAt = new Date();
+
+        if (this.isCompleted(status)) {
+          testRun.endTime = new Date(latestRun.updated_at);
+          testRun.duration = this.calculateDuration(testRun);
+          break;
+        }
+
+        await sleep(5000);
+      }
     } catch (error) {
-      logger.warn('Failed to fetch test results:', error);
-      return undefined;
+      logger.error('Error monitoring GitHub workflow:', error);
+      testRun.status = TestStatus.ERROR;
+      testRun.error = error instanceof Error ? error.message : 'Unknown error';
+      testRun.endTime = new Date();
+      testRun.duration = this.calculateDuration(testRun);
     }
+  }
+
+  private parseConfig(config: unknown): GitHubWorkflowConfig {
+    if (
+      !config ||
+      typeof config !== 'object' ||
+      !('owner' in config) ||
+      !('repo' in config) ||
+      !('workflow' in config)
+    ) {
+      throw new Error('Invalid GitHub configuration');
+    }
+
+    return {
+      owner: String(config.owner),
+      repo: String(config.repo),
+      workflow: String(config.workflow)
+    };
+  }
+
+  private mapGitHubStatus(status: string, conclusion: string): TestStatus {
+    if (status === 'queued') return TestStatus.PENDING;
+    if (status === 'in_progress') return TestStatus.RUNNING;
+    if (conclusion === 'success') return TestStatus.PASSED;
+    if (conclusion === 'failure') return TestStatus.FAILED;
+    if (conclusion === 'skipped') return TestStatus.SKIPPED;
+    return TestStatus.ERROR;
+  }
+
+  private isCompleted(status: TestStatus): boolean {
+    return [
+      TestStatus.PASSED,
+      TestStatus.FAILED,
+      TestStatus.SKIPPED,
+      TestStatus.ERROR
+    ].includes(status);
+  }
+
+  private calculateDuration(testRun: TestRun): number {
+    if (!testRun.startTime || !testRun.endTime) return 0;
+    return testRun.endTime.getTime() - testRun.startTime.getTime();
   }
 }
+
+export const githubService = new GitHubService();

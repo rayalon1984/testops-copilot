@@ -1,11 +1,15 @@
-declare namespace Express {
-  export interface Request {
-    user?: {
-      id: string;
-      email: string;
-      role: 'admin' | 'user';
-      firstName: string;
-      lastName: string;
-    };
+import { User, TokenPayload } from './user';
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: User;
+      token?: string;
+      tokenPayload?: TokenPayload;
+      startTime?: number;
+    }
   }
 }
+
+// This export is needed to make the file a module
+export {};

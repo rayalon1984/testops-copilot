@@ -1,237 +1,147 @@
 # TestOps Companion
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
-[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
-
-TestOps Companion is a comprehensive test automation management platform that helps QA teams and developers manage their test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
-
-## Architecture
-
-### System Overview
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│    Frontend     │     │     Backend     │     │    External     │
-│   (React SPA)   │────▶│  (Node.js API)  │────▶│    Services    │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                      │                        │
-         │                      │                        │
-         ▼                      ▼                        ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│    WebSocket    │     │    Database     │     │     Jenkins     │
-│  Notifications  │     │   (Postgres)    │     │  GitHub Actions │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
-
-### Component Architecture
-
-#### Frontend Layer
-- **React SPA**: Single-page application built with React 18 and TypeScript
-- **State Management**: React Query for server state, Zustand for local state
-- **UI Framework**: Material UI with custom theme
-- **Real-time Updates**: WebSocket connection for live notifications
-- **Testing**: Vitest + React Testing Library
-
-#### Backend Layer
-- **API Server**: Express.js with TypeScript
-- **Database ORM**: Prisma with PostgreSQL
-- **Authentication**: JWT-based auth with refresh tokens
-- **Caching**: Redis for session and response caching
-- **Monitoring**: Prometheus + Grafana dashboards
-
-#### Infrastructure
-- **Containerization**: Docker with multi-stage builds
-- **Load Balancing**: Nginx with SSL termination
-- **CI/CD**: GitHub Actions for automated testing and deployment
-- **Monitoring**: Prometheus for metrics, Grafana for visualization
-
-### Data Flow
-1. **Authentication Flow**
-   ```
-   Client ─► Auth Request ─► Validate Credentials ─► Generate JWT ─► Return Token
-      ▲                                                                  │
-      └──────────────────── Store Token ◄────────────────────────────────┘
-   ```
-
-2. **Test Pipeline Flow**
-   ```
-   Pipeline Trigger ─► Queue Job ─► Execute Tests ─► Collect Results ─► Store Data
-         │                                                   │
-         └───────────────► Send Notifications ◄──────────────┘
-   ```
-
-### Security Measures
-- JWT-based authentication
-- Rate limiting on API endpoints
-- CORS configuration
-- Helmet.js security headers
-- Input validation with Zod
-- SQL injection prevention with Prisma
-- XSS protection
-- CSRF tokens
-
-## Quick Start
-
-### Prerequisites
-- Node.js 18.x or higher
-- npm 9.x or higher
-- Docker and Docker Compose
-- Git
-
-### Environment Configuration
-
-Critical environment variables for authentication:
-```env
-# backend/.env
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=24h
-JWT_REFRESH_SECRET=your-refresh-secret-key  # Required for refresh tokens
-JWT_REFRESH_EXPIRES_IN=7d
-```
-
-Note: These variable names must match exactly. Common issues arise from mismatched names (e.g., using REFRESH_TOKEN_SECRET instead of JWT_REFRESH_SECRET).
-
-### Installation Steps
-
-1. Clone the repository:
-```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
-```
-
-2. Install global dependencies:
-```bash
-npm install -g typescript ts-node
-```
-
-3. Set up environment files:
-```bash
-# Copy environment templates
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# Configure required settings:
-# backend/.env:
-# - JWT_SECRET (required for authentication)
-# - DATABASE_URL (if using custom database)
-# - GITHUB_API_TOKEN (for GitHub integration)
-# frontend/.env:
-# - VITE_API_URL (if using different port)
-```
-
-4. Install project dependencies:
-```bash
-# Install backend dependencies including:
-# - @octokit/rest (for GitHub integration)
-# - tsconfig-paths (for module resolution)
-cd backend && npm install
-cd ..
-
-# Install frontend dependencies
-cd frontend && npm install
-cd ..
-```
-
-5. Ensure prerequisites:
-```bash
-# Verify Docker is running
-docker ps
-
-# Start database container
-docker-compose up -d db
-```
-
-6. Run the automated setup:
-```bash
-npm run setup
-```
-
-7. Start the development servers:
-```bash
-npm run dev
-```
-
-For detailed configuration options and troubleshooting, see the [Quick Start Guide](docs/quickstart.md).
-
-The setup script will handle:
-- Clean existing node_modules
-- Install all dependencies (root, frontend, backend)
-- Set up environment files
-- Start database container and run migrations/seeds
-
-Access the application:
-- Frontend: http://localhost:5173
-- API: http://localhost:3000
-- API Documentation: http://localhost:3000/api/docs
-
-Note: If any of these ports are already in use, see the [Quick Start Guide](docs/quickstart.md#port-conflicts) for instructions on changing ports.
-
-### Troubleshooting Setup
-
-If you encounter issues during setup:
-
-1. **Port Conflicts**: See [Port Configuration Guide](docs/quickstart.md#port-conflicts)
-2. **Database Issues**: See [Database Troubleshooting](docs/quickstart.md#database-setup-issues)
-3. **Seed Script Errors**: See [Seed Troubleshooting](docs/quickstart.md#seed-script-errors)
-
-The setup process includes automatic retries for database operations. For manual intervention:
-```bash
-# Retry database initialization
-npm run db:init
-
-# Complete database reset if needed
-docker-compose down
-rm -rf backend/prisma/migrations
-npm run setup:db
-```
-
-For more detailed troubleshooting steps, see the [Quick Start Guide](docs/quickstart.md#troubleshooting).
-
-## Documentation
-
-- [Quick Start Guide](docs/quickstart.md)
-- [API Documentation](docs/api.md)
-- [Development Guide](docs/development.md)
-- [Deployment Guide](docs/deployment.md)
-- [Troubleshooting Guide](docs/troubleshooting.md)
-- [Contributing Guide](CONTRIBUTING.md)
-
-Need help? Check our [Troubleshooting Guide](docs/troubleshooting.md) for common issues and solutions.
+A comprehensive test operations companion for managing test pipelines and results.
 
 ## Features
 
-- Pipeline Management
-  - Jenkins integration
-  - GitHub Actions integration
-  - Custom CI/CD support
-- Test Execution
-  - Real-time monitoring
-  - Test result analysis
-  - Coverage tracking
-- Notifications
-  - Slack integration
-  - Email notifications
-  - Custom notification rules
-- Analytics
-  - Performance metrics
-  - Quality trends
-  - Team dashboards
+- Pipeline management for various CI/CD systems (GitHub Actions, Jenkins)
+- Test run tracking and analysis
+- Failure analysis and trend reporting
+- Integrations with issue tracking systems (Jira)
+- Notification system (Email, Slack)
+- User authentication and authorization
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- PostgreSQL (v14 or higher)
+
+### Installation
+
+The project includes a comprehensive setup script that handles all dependencies and database setup:
+
+```bash
+# Clone the repository
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion
+
+# Run the setup script
+npm run setup
+```
+
+The setup script performs the following actions:
+1. Cleans any existing node_modules directories
+2. Installs all dependencies (root, frontend, backend)
+3. Sets up environment files with guided prompts
+4. Creates and configures the database
+
+### Manual Setup
+
+If you prefer to set up manually:
+
+1. Install dependencies:
+   ```bash
+   npm install
+   cd frontend && npm install
+   cd ../backend && npm install
+   ```
+
+2. Create `.env` files in both frontend and backend directories (use the `.env.example` files as templates)
+
+3. Set up the database:
+   ```bash
+   cd backend
+   npx prisma generate
+   npx prisma migrate deploy
+   ```
+
+## Development
+
+Start the development servers:
+
+```bash
+# Start both frontend and backend
+npm run dev
+
+# Start only backend
+npm run dev:backend
+
+# Start only frontend
+npm run dev:frontend
+```
+
+## Integrations
+
+### Jira Integration
+
+TestOps Companion integrates with Jira to provide seamless issue tracking and test result management. See [Jira Integration Documentation](docs/integrations/jira.md) for details.
+
+Key features:
+- Create Jira issues from failed test runs
+- Link test runs to existing Jira issues
+- Synchronize test status with Jira
+- View Jira issue details within TestOps Companion
+
+#### Configuration
+
+Add the following to your `backend/.env`:
+
+```env
+# Jira Configuration
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_API_TOKEN=your-api-token
+JIRA_PROJECT_KEY=PROJ
+JIRA_DEFAULT_ISSUE_TYPE=Bug
+JIRA_DEBUG=false
+```
+
+### GitHub Integration
+
+TestOps Companion integrates with GitHub to trigger and monitor workflows:
+
+```env
+# GitHub Configuration
+GITHUB_TOKEN=your-github-token
+GITHUB_API_URL=https://api.github.com
+GITHUB_WEBHOOK_SECRET=your-webhook-secret
+```
+
+## Project Structure
+
+```
+testops-companion/
+├── backend/             # Backend API server
+│   ├── prisma/          # Database schema and migrations
+│   ├── scripts/         # Setup and utility scripts
+│   └── src/             # Source code
+│       ├── controllers/ # API controllers
+│       ├── middleware/  # Express middleware
+│       ├── routes/      # API routes
+│       ├── services/    # Business logic
+│       ├── types/       # TypeScript type definitions
+│       └── utils/       # Utility functions
+├── frontend/            # React frontend application
+│   ├── public/          # Static assets
+│   └── src/             # Source code
+│       ├── components/  # React components
+│       ├── contexts/    # React contexts
+│       ├── hooks/       # Custom React hooks
+│       └── pages/       # Page components
+├── docs/                # Documentation
+└── scripts/             # Project-level scripts
+```
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## Support & Community
-
-- [Documentation](docs/README.md)
-- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
-- [Discord Community](https://discord.gg/testops-companion)
-- [Stack Overflow [testops-companion]](https://stackoverflow.com/questions/tagged/testops-companion)
-- [GitHub Discussions](https://github.com/rayalon1984/testops-companion/discussions)
-- Contact: rayalon@gmail.com
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.

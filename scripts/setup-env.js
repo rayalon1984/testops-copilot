@@ -1,140 +1,141 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
+const readline = require('readline');
+const { execSync } = require('child_process');
 
-// Helper function to generate random string
-const generateSecret = (length = 32) => {
-  return crypto.randomBytes(length).toString('hex');
-};
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-// Helper function to ensure directory exists
-const ensureDirectoryExists = (dirPath) => {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-};
+// Paths to environment files
+const backendEnvPath = path.join(__dirname, '../backend/.env');
+const backendEnvExamplePath = path.join(__dirname, '../backend/.env.example');
+const frontendEnvPath = path.join(__dirname, '../frontend/.env');
+const frontendEnvExamplePath = path.join(__dirname, '../frontend/.env.example');
 
-// Helper function to create .env file if it doesn't exist
-const createEnvFile = (templatePath, envPath, replacements) => {
-  if (fs.existsSync(envPath)) {
-    console.log(`${envPath} already exists, skipping...`);
-    return;
-  }
+// Ensure scripts directory exists
+if (!fs.existsSync(__dirname)) {
+  fs.mkdirSync(__dirname, { recursive: true });
+}
 
-  let content = fs.readFileSync(templatePath, 'utf8');
-  
-  // Replace placeholders with actual values
-  Object.entries(replacements).forEach(([key, value]) => {
-    content = content.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+// Function to prompt user for input with a default value
+function prompt(question, defaultValue) {
+  return new Promise((resolve) => {
+    rl.question(`${question} (${defaultValue}): `, (answer) => {
+      resolve(answer || defaultValue);
+    });
   });
+}
 
-  fs.writeFileSync(envPath, content);
+// Function to generate a random string for secrets
+function generateRandomString(length = 32) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+// Function to create environment file from example
+async function setupEnvFile(examplePath, envPath, additionalSetup) {
+  console.log(`Setting up ${envPath}...`);
+
+  if (!fs.existsSync(examplePath)) {
+    console.error(`Example file not found: ${examplePath}`);
+    return false;
+  }
+
+  // Read example file
+  let envContent = fs.readFileSync(examplePath, 'utf8');
+
+  // Apply additional setup if provided
+  if (additionalSetup) {
+    envContent = await additionalSetup(envContent);
+  }
+
+  // Write to env file
+  fs.writeFileSync(envPath, envContent);
   console.log(`Created ${envPath}`);
-};
+  return true;
+}
+
+// Setup backend environment
+async function setupBackendEnv(envContent) {
+  // Replace placeholders with actual values
+  envContent = envContent.replace('DATABASE_URL=', `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testops`);
+  envContent = envContent.replace('PORT=3000', `PORT=3001`);
+  envContent = envContent.replace('JWT_SECRET=', `JWT_SECRET=${generateRandomString()}`);
+  envContent = envContent.replace('JWT_REFRESH_SECRET=', `JWT_REFRESH_SECRET=${generateRandomString()}`);
+  
+  // Ask for GitHub token
+  const githubToken = await prompt('Enter your GitHub token (leave empty to skip)', '');
+  if (githubToken) {
+    envContent = envContent.replace('GITHUB_TOKEN=', `GITHUB_TOKEN=${githubToken}`);
+  }
+  
+  // Ask for Jira token
+  const jiraToken = await prompt('Enter your Jira API token (leave empty to skip)', '');
+  if (jiraToken) {
+    envContent = envContent.replace('JIRA_API_TOKEN=', `JIRA_API_TOKEN=${jiraToken}`);
+    
+    // Ask for Jira base URL
+    const jiraBaseUrl = await prompt('Enter your Jira base URL', 'https://your-domain.atlassian.net');
+    envContent = envContent.replace('JIRA_BASE_URL=https://your-domain.atlassian.net', `JIRA_BASE_URL=${jiraBaseUrl}`);
+    
+    // Ask for Jira project key
+    const jiraProjectKey = await prompt('Enter your Jira project key', 'PROJ');
+    envContent = envContent.replace('JIRA_PROJECT_KEY=PROJ', `JIRA_PROJECT_KEY=${jiraProjectKey}`);
+  }
+  
+  return envContent;
+}
+
+// Setup frontend environment
+async function setupFrontendEnv(envContent) {
+  // Replace placeholders with actual values
+  envContent = envContent.replace('REACT_APP_API_URL=http://localhost:3000/api', 'REACT_APP_API_URL=http://localhost:3001/api');
+  
+  return envContent;
+}
 
 // Main setup function
-const setup = () => {
-  const rootDir = path.resolve(__dirname, '..');
+async function setup() {
+  console.log('Setting up TestOps Companion environment...');
   
-  // Ensure required directories exist
-  ensureDirectoryExists(path.join(rootDir, 'frontend'));
-  ensureDirectoryExists(path.join(rootDir, 'backend'));
+  // Create directories if they don't exist
+  const dirs = [
+    path.join(__dirname, '../backend'),
+    path.join(__dirname, '../frontend')
+  ];
+  
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
 
-  // Generate secrets
-  const replacements = {
-    JWT_SECRET: generateSecret(),
-    REFRESH_TOKEN_SECRET: generateSecret(),  // Used for JWT_REFRESH_SECRET
-    SESSION_SECRET: generateSecret(),
-    DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/testops',
-    REDIS_URL: 'redis://localhost:6379',
-    NODE_ENV: 'development',
-    PORT: '3000',
-    FRONTEND_URL: 'http://localhost:5173',
-    BACKEND_URL: 'http://localhost:3000',
-  };
-
-  // Frontend .env
-  const frontendEnvTemplate = `
-VITE_API_URL={BACKEND_URL}
-VITE_WEBSOCKET_URL=ws://localhost:3000
-VITE_APP_NAME=TestOps Companion
-VITE_ENABLE_NOTIFICATIONS=true
-VITE_ENABLE_ANALYTICS=false
-VITE_DEFAULT_THEME=light
-VITE_DEFAULT_LANGUAGE=en
-VITE_ENABLE_DARK_MODE=true
-VITE_ENABLE_QUERY_CACHE=true
-VITE_CACHE_TTL=300000
-`.trim();
-
-  // Backend .env
-  const backendEnvTemplate = `
-# Server Configuration
-NODE_ENV={NODE_ENV}
-PORT={PORT}
-FRONTEND_URL={FRONTEND_URL}
-
-# Database Configuration
-DATABASE_URL={DATABASE_URL}
-REDIS_URL={REDIS_URL}
-
-# Authentication
-JWT_SECRET={JWT_SECRET}
-JWT_EXPIRES_IN=24h
-JWT_REFRESH_SECRET={REFRESH_TOKEN_SECRET}
-JWT_REFRESH_EXPIRES_IN=7d
-SESSION_SECRET={SESSION_SECRET}
-
-# Logging
-LOG_LEVEL=debug
-ENABLE_REQUEST_LOGGING=true
-ENABLE_RESPONSE_LOGGING=true
-
-# Cache Configuration
-CACHE_TTL=300
-ENABLE_RESPONSE_CACHE=true
-
-# Rate Limiting
-RATE_LIMIT_WINDOW=15m
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Security
-BCRYPT_SALT_ROUNDS=10
-ENABLE_2FA=false
-PASSWORD_RESET_TOKEN_EXPIRY=1h
-ALLOWED_DOMAINS=*
-`.trim();
-
-  // Create temporary template files
-  const frontendTemplatePath = path.join(rootDir, 'frontend', '.env.template');
-  const backendTemplatePath = path.join(rootDir, 'backend', '.env.template');
-
-  fs.writeFileSync(frontendTemplatePath, frontendEnvTemplate);
-  fs.writeFileSync(backendTemplatePath, backendEnvTemplate);
-
-  // Create actual .env files
-  createEnvFile(
-    frontendTemplatePath,
-    path.join(rootDir, 'frontend', '.env'),
-    replacements
-  );
-  createEnvFile(
-    backendTemplatePath,
-    path.join(rootDir, 'backend', '.env'),
-    replacements
-  );
-
-  // Clean up template files
-  fs.unlinkSync(frontendTemplatePath);
-  fs.unlinkSync(backendTemplatePath);
-
-  console.log('Environment setup completed successfully!');
-};
+  // Setup backend environment
+  const backendSetup = await setupEnvFile(backendEnvExamplePath, backendEnvPath, setupBackendEnv);
+  
+  // Setup frontend environment
+  const frontendSetup = await setupEnvFile(frontendEnvExamplePath, frontendEnvPath, setupFrontendEnv);
+  
+  if (backendSetup && frontendSetup) {
+    console.log('Environment setup completed successfully!');
+  } else {
+    console.error('Environment setup failed. Please check the error messages above.');
+  }
+  
+  rl.close();
+}
 
 // Run setup
-try {
-  setup();
-} catch (error) {
-  console.error('Error during environment setup:', error);
+setup().catch(err => {
+  console.error('Error during setup:', err);
+  rl.close();
   process.exit(1);
-}
+});

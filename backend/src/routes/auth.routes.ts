@@ -1,125 +1,110 @@
-import { Router } from 'express';
-import { asyncHandler } from '@/middleware/errorHandler';
-import { AuthenticationError } from '@/middleware/errorHandler';
-import { validateLoginInput, validateRegisterInput } from '@/middleware/validation';
-import { AuthController } from '@/controllers/auth.controller';
+import { Router, Request, Response } from 'express';
+import { authController } from '../controllers/auth.controller';
+import { authenticate } from '../middleware/auth';
+import { asyncHandler } from '../middleware/errorHandler';
+import { JwtService } from '../services/jwt.service';
+import { LoginDTO, CreateUserDTO, UpdatePasswordDTO } from '../types/user';
+
+interface TypedRequest<T> extends Request {
+  body: T;
+}
 
 const router: Router = Router();
-const authController = new AuthController();
 
-// @route   POST /api/v1/auth/register
-// @desc    Register a new user
-// @access  Public
+// Register new user
 router.post(
   '/register',
-  validateRegisterInput,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: TypedRequest<CreateUserDTO>, res: Response) => {
     const user = await authController.register(req.body);
-    res.status(201).json({
-      success: true,
-      data: user
-    });
+    res.status(201).json({ user });
   })
 );
 
-// @route   POST /api/v1/auth/login
-// @desc    Login user and return JWT token
-// @access  Public
+// Login user
 router.post(
   '/login',
-  validateLoginInput,
-  asyncHandler(async (req, res) => {
-    const { token, user } = await authController.login(req.body);
-    res.status(200).json({
-      success: true,
-      token,
-      data: user
+  asyncHandler(async (req: TypedRequest<LoginDTO>, res: Response) => {
+    const { user, accessToken, refreshToken } = await authController.login(req.body);
+    
+    // Set refresh token in HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+
+    res.json({ user, accessToken });
   })
 );
 
-// @route   POST /api/v1/auth/refresh-token
-// @desc    Refresh JWT token
-// @access  Private
-router.post(
-  '/refresh-token',
-  asyncHandler(async (req, res) => {
-    const token = await authController.refreshToken(req.body.refreshToken);
-    res.status(200).json({
-      success: true,
-      token
-    });
-  })
-);
-
-// @route   POST /api/v1/auth/logout
-// @desc    Logout user / clear cookie
-// @access  Private
+// Logout user
 router.post(
   '/logout',
-  asyncHandler(async (req, res) => {
-    await authController.logout(req.user.id);
-    res.status(200).json({
-      success: true,
-      message: 'User logged out successfully'
-    });
+  authenticate,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (req.user) {
+      await authController.logout(req.user.id);
+    }
+    
+    res.clearCookie('refreshToken');
+    res.json({ message: 'Logged out successfully' });
   })
 );
 
-// @route   GET /api/v1/auth/me
-// @desc    Get current logged in user
-// @access  Private
+// Refresh access token
+router.post(
+  '/refresh',
+  asyncHandler(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+    
+    if (!refreshToken) {
+      res.status(401).json({ message: 'Refresh token not found' });
+      return;
+    }
+
+    const tokens = JwtService.refreshTokens(refreshToken);
+    
+    // Set new refresh token in HTTP-only cookie
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.json({ accessToken: tokens.accessToken });
+  })
+);
+
+// Get current user
 router.get(
   '/me',
-  asyncHandler(async (req, res) => {
+  authenticate,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
     const user = await authController.getCurrentUser(req.user.id);
-    res.status(200).json({
-      success: true,
-      data: user
-    });
+    res.json({ user });
   })
 );
 
-// @route   PUT /api/v1/auth/update-password
-// @desc    Update user password
-// @access  Private
+// Update password
 router.put(
-  '/update-password',
-  asyncHandler(async (req, res) => {
+  '/password',
+  authenticate,
+  asyncHandler(async (req: TypedRequest<UpdatePasswordDTO>, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authenticated' });
+      return;
+    }
+
     await authController.updatePassword(req.user.id, req.body);
-    res.status(200).json({
-      success: true,
-      message: 'Password updated successfully'
-    });
+    res.json({ message: 'Password updated successfully' });
   })
 );
 
-// @route   POST /api/v1/auth/forgot-password
-// @desc    Forgot password
-// @access  Public
-router.post(
-  '/forgot-password',
-  asyncHandler(async (req, res) => {
-    await authController.forgotPassword(req.body.email);
-    res.status(200).json({
-      success: true,
-      message: 'Password reset email sent'
-    });
-  })
-);
-
-// @route   PUT /api/v1/auth/reset-password/:resetToken
-// @desc    Reset password
-// @access  Public
-router.put(
-  '/reset-password/:resetToken',
-  asyncHandler(async (req, res) => {
-    await authController.resetPassword(req.params.resetToken, req.body.password);
-    res.status(200).json({
-      success: true,
-      message: 'Password reset successful'
-    });
-  })
-);
-
-export { router as authRoutes };
+export { router as authRouter };

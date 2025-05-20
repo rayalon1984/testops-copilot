@@ -1,77 +1,52 @@
 {
   "name": "testops-companion",
   "version": "1.0.0",
-  "description": "A comprehensive test automation management platform",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "description": "A comprehensive test operations companion for managing test pipelines and results",
+  "main": "index.js",
   "scripts": {
-    "presetup": "npm install -g typescript ts-node",
-    "setup": "npm run setup:clean && npm run setup:install && npm run setup:env && npm run setup:db",
-    "setup:clean": "rm -rf node_modules frontend/node_modules backend/node_modules",
-    "setup:install": "npm install && npm run setup:frontend && npm run setup:backend",
-    "setup:frontend": "cd frontend && npm install",
-    "setup:backend": "cd backend && npm install",
-    "setup:env": "node scripts/setup-env.js",
-    "setup:db": "npm run db:start && npm run db:wait && npm run db:init",
-    "db:start": "docker-compose up -d db",
-    "db:wait": "sleep 10",
-    "db:init": "npm run db:migrate && (npm run db:seed || (echo 'Retrying seed after error...' && npm run db:seed))",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && npm run dev",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm run start",
+    "start:frontend": "cd frontend && npm run start",
+    "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "build:backend": "cd backend && npm run build",
-    "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "cd frontend && npm test",
-    "test:backend": "cd backend && npm test",
-    "lint": "npm run lint:frontend && npm run lint:backend",
-    "lint:frontend": "cd frontend && npm run lint",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "setup": "npm run setup:clean && npm run setup:install && npm run setup:env && npm run setup:db",
+    "setup:clean": "rimraf node_modules frontend/node_modules backend/node_modules",
+    "setup:install": "npm install && concurrently \"npm run install:backend\" \"npm run install:frontend\"",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "setup:env": "node scripts/setup-env.js",
+    "setup:db": "cd backend && npm run db:setup",
+    "lint": "concurrently \"npm run lint:backend\" \"npm run lint:frontend\"",
     "lint:backend": "cd backend && npm run lint",
-    "db:migrate": "cd backend && npm run migrate:dev",
-    "db:seed": "cd backend && npm run seed",
-    "generate:types": "cd backend && npm run generate:types",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "docker:ps": "docker-compose ps",
-    "deploy": "bash scripts/deploy.sh",
-    "security:audit": "npm audit && cd frontend && npm audit && cd ../backend && npm audit",
-    "security:fix": "npm audit fix && cd frontend && npm audit fix && cd ../backend && npm audit fix",
-    "update:deps": "npm run update:deps:root && npm run update:deps:frontend && npm run update:deps:backend",
-    "update:deps:root": "npm update",
-    "update:deps:frontend": "cd frontend && npm update",
-    "update:deps:backend": "cd backend && npm update",
-    "clean": "rm -rf node_modules frontend/node_modules backend/node_modules"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rayalon1984/testops-companion.git"
+    "lint:frontend": "cd frontend && npm run lint"
   },
   "keywords": [
-    "testops",
-    "automation",
-    "testing",
-    "qa",
-    "devops",
-    "ci/cd"
+    "test",
+    "operations",
+    "pipeline",
+    "ci",
+    "cd",
+    "test-results",
+    "dashboard"
   ],
-  "author": "Rotem Ayalon <rayalon@gmail.com>",
+  "author": "Rotem Ayalon",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/rayalon1984/testops-companion/issues"
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
+    "rimraf": "^5.0.5"
   },
-  "homepage": "https://github.com/rayalon1984/testops-companion#readme",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.1.0"
+  },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2",
-    "tslib": "^2.6.2"
   }
 }

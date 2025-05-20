@@ -1,185 +1,216 @@
-import { Pipeline } from '@/models/pipeline.model';
-import { TestRun } from '@/models/testRun.model';
-import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
-import { logger } from '@/utils/logger';
-import { Pipeline as PipelineType, TestRun as TestRunType, Schedule, MetricsQuery } from '@/middleware/validation';
-import { JenkinsService } from '@/services/jenkins.service';
-import { GithubService } from '@/services/github.service';
-import { NotificationService } from '@/services/notification.service';
+import { PrismaClient } from '@prisma/client';
+import { GitHubService } from '../services/github.service';
+import { AuthorizationError, NotFoundError } from '../middleware/errorHandler';
+import { 
+  CreatePipelineDTO, 
+  UpdatePipelineDTO, 
+  PipelineFilters,
+  toPipeline
+} from '../types/pipeline';
+import { PipelineStatus, TestStatus, PipelineType } from '../constants';
+import { 
+  createPipelineInput, 
+  updatePipelineInput, 
+  parsePipelineConfig, 
+  toInputJsonValue 
+} from '../utils/prismaHelpers';
+
+const prisma = new PrismaClient();
 
 export class PipelineController {
-  private jenkinsService: JenkinsService;
-  private githubService: GithubService;
-  private notificationService: NotificationService;
+  private githubService: GitHubService;
 
   constructor() {
-    this.jenkinsService = new JenkinsService();
-    this.githubService = new GithubService();
-    this.notificationService = new NotificationService();
+    this.githubService = new GitHubService();
   }
 
-  async getAllPipelines(userId: string): Promise<Pipeline[]> {
-    const pipelines = await Pipeline.findAll({
-      where: { userId },
-      include: [{ model: TestRun, limit: 5, order: [['createdAt', 'DESC']] }],
+  async listPipelines(userId: string, filters?: PipelineFilters) {
+    const where = {
+      userId,
+      ...(filters?.type && { type: filters.type }),
+      ...(filters?.status && { status: filters.status })
+    };
+
+    const prismaPipelines = await prisma.pipeline.findMany({
+      where,
+      include: {
+        testRuns: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
     });
-    return pipelines;
+
+    // Convert Prisma pipelines to our Pipeline type
+    return prismaPipelines.map(pipeline => toPipeline(pipeline));
   }
 
-  async getPipelineById(id: string, userId: string): Promise<Pipeline> {
-    const pipeline = await Pipeline.findOne({
+  async getPipeline(id: string, userId: string) {
+    const prismaPipeline = await prisma.pipeline.findUnique({
       where: { id },
-      include: [{ model: TestRun, limit: 10, order: [['createdAt', 'DESC']] }],
+      include: {
+        testRuns: {
+          orderBy: { createdAt: 'desc' },
+          take: 5
+        }
+      }
     });
 
-    if (!pipeline) {
+    if (!prismaPipeline) {
       throw new NotFoundError('Pipeline not found');
     }
 
-    if (pipeline.userId !== userId) {
+    if (prismaPipeline.userId !== userId) {
       throw new AuthorizationError('Not authorized to access this pipeline');
     }
 
-    return pipeline;
+    // Convert Prisma pipeline to our Pipeline type
+    return toPipeline(prismaPipeline);
   }
 
-  async createPipeline(data: PipelineType, userId: string): Promise<Pipeline> {
-    // Validate external service connection
-    await this.validateExternalService(data);
+  async createPipeline(data: CreatePipelineDTO, userId: string) {
+    // Validate connection before creating
+    await this.githubService.validateConnection(data.config);
 
-    const pipeline = await Pipeline.create({
+    const createData = createPipelineInput({
       ...data,
       userId,
+      status: PipelineStatus.PENDING
     });
 
-    logger.info(`Pipeline created: ${pipeline.id}`);
-    return pipeline;
+    const prismaPipeline = await prisma.pipeline.create({
+      data: createData
+    });
+
+    // Convert Prisma pipeline to our Pipeline type
+    return toPipeline(prismaPipeline);
   }
 
-  async updatePipeline(id: string, data: Partial<PipelineType>, userId: string): Promise<Pipeline> {
-    const pipeline = await this.getPipelineById(id, userId);
+  async updatePipeline(id: string, data: UpdatePipelineDTO, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
 
-    // Validate external service connection if config is being updated
     if (data.config) {
-      await this.validateExternalService({ ...pipeline, ...data });
+      await this.githubService.validateConnection(data.config);
     }
 
-    await pipeline.update(data);
-    logger.info(`Pipeline updated: ${pipeline.id}`);
-    return pipeline;
+    const updateData = updatePipelineInput(data);
+
+    const prismaPipeline = await prisma.pipeline.update({
+      where: { id },
+      data: updateData
+    });
+
+    // Convert Prisma pipeline to our Pipeline type
+    return toPipeline(prismaPipeline);
   }
 
-  async deletePipeline(id: string, userId: string): Promise<void> {
-    const pipeline = await this.getPipelineById(id, userId);
-    await pipeline.destroy();
-    logger.info(`Pipeline deleted: ${id}`);
+  async deletePipeline(id: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+
+    await prisma.pipeline.delete({
+      where: { id }
+    });
   }
 
-  async runPipeline(id: string, userId: string): Promise<TestRun> {
-    const pipeline = await this.getPipelineById(id, userId);
-    
-    let testRun: TestRun;
+  async startPipeline(id: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+
     try {
-      // Start pipeline execution based on type
+      // Start pipeline based on type
+      let testRun;
+
       switch (pipeline.type) {
-        case 'jenkins':
-          testRun = await this.jenkinsService.startPipeline(pipeline);
-          break;
-        case 'github-actions':
+        case PipelineType.GITHUB_ACTIONS:
           testRun = await this.githubService.startPipeline(pipeline);
-          break;
-        case 'custom':
-          testRun = await this.runCustomPipeline(pipeline);
           break;
         default:
           throw new Error(`Unsupported pipeline type: ${pipeline.type}`);
       }
 
-      // Send notifications if enabled
-      if (pipeline.notifications?.enabled) {
-        await this.notificationService.sendPipelineStartNotification(pipeline, testRun);
-      }
+      // Update pipeline status
+      await prisma.pipeline.update({
+        where: { id },
+        data: { status: 'RUNNING' }
+      });
 
-      logger.info(`Pipeline run started: ${testRun.id}`);
       return testRun;
-
     } catch (error) {
-      logger.error(`Failed to run pipeline: ${pipeline.id}`, error);
+      await prisma.pipeline.update({
+        where: { id },
+        data: { status: 'FAILURE' }
+      });
       throw error;
     }
   }
 
-  async getPipelineRuns(id: string, userId: string): Promise<TestRun[]> {
-    const pipeline = await this.getPipelineById(id, userId);
-    return TestRun.findAll({
+  async getTestRuns(id: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+
+    const testRuns = await prisma.testRun.findMany({
       where: { pipelineId: pipeline.id },
-      order: [['createdAt', 'DESC']],
-    });
-  }
-
-  async schedulePipeline(id: string, schedule: Schedule, userId: string): Promise<Pipeline> {
-    const pipeline = await this.getPipelineById(id, userId);
-    await pipeline.update({ schedule });
-    logger.info(`Pipeline scheduled: ${pipeline.id}`);
-    return pipeline;
-  }
-
-  async getPipelineMetrics(id: string, userId: string): Promise<any> {
-    const pipeline = await this.getPipelineById(id, userId);
-    const runs = await TestRun.findAll({
-      where: { pipelineId: pipeline.id },
-      order: [['createdAt', 'ASC']],
+      orderBy: { createdAt: 'desc' }
     });
 
-    return this.calculateMetrics(runs);
+    return testRuns;
   }
 
-  async getSystemMetrics(): Promise<any> {
-    const runs = await TestRun.findAll({
-      order: [['createdAt', 'ASC']],
-    });
+  async schedulePipeline(id: string, schedule: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+    const currentConfig = parsePipelineConfig<Record<string, unknown>>(pipeline.config);
 
-    return this.calculateMetrics(runs);
-  }
-
-  private async validateExternalService(pipeline: PipelineType): Promise<void> {
-    try {
-      switch (pipeline.type) {
-        case 'jenkins':
-          await this.jenkinsService.validateConnection(pipeline.config);
-          break;
-        case 'github-actions':
-          await this.githubService.validateConnection(pipeline.config);
-          break;
-        case 'custom':
-          // Custom validation logic
-          break;
+    await prisma.pipeline.update({
+      where: { id },
+      data: {
+        config: toInputJsonValue({
+          ...currentConfig,
+          schedule
+        })
       }
+    });
+  }
+
+  async getFailedTests(id: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+
+    const testRuns = await prisma.testRun.findMany({
+      where: {
+        pipelineId: pipeline.id,
+        status: TestStatus.FAILED
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return testRuns;
+  }
+
+  async getFlakeyTests(id: string, userId: string) {
+    const pipeline = await this.getPipeline(id, userId);
+
+    const testRuns = await prisma.testRun.findMany({
+      where: {
+        pipelineId: pipeline.id,
+        OR: [
+          { status: TestStatus.FAILED },
+          { status: TestStatus.ERROR }
+        ]
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return testRuns;
+  }
+
+  async validatePipelineConfig(config: unknown) {
+    try {
+      await this.githubService.validateConnection(config);
+      return { valid: true };
     } catch (error) {
-      logger.error('External service validation failed:', error);
-      throw error;
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Invalid configuration'
+      };
     }
-  }
-
-  private async runCustomPipeline(pipeline: Pipeline): Promise<TestRun> {
-    // Implement custom pipeline execution logic
-    throw new Error('Custom pipeline execution not implemented');
-  }
-
-  private calculateMetrics(runs: TestRun[]): any {
-    // Calculate success rate, average duration, flaky tests, etc.
-    const totalRuns = runs.length;
-    const successfulRuns = runs.filter(run => run.status === 'success').length;
-    const failedRuns = runs.filter(run => run.status === 'failure').length;
-    const averageDuration = runs.reduce((acc, run) => acc + run.duration, 0) / totalRuns;
-
-    return {
-      totalRuns,
-      successfulRuns,
-      failedRuns,
-      successRate: (successfulRuns / totalRuns) * 100,
-      averageDuration,
-      // Add more metrics as needed
-    };
   }
 }
+
+export const pipelineController = new PipelineController();

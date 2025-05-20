@@ -1,77 +1,101 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/utils/logger';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import {
+  ApiError,
+  ValidationError,
+  NotFoundError,
+  AuthenticationError,
+  AuthorizationError
+} from '../types/error';
+import { logger } from '../utils/logger';
+import { config } from '../config';
 
-// Base Error class
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number = 500
-  ) {
-    super(message);
-    this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
+export {
+  ApiError,
+  ValidationError,
+  NotFoundError,
+  AuthenticationError,
+  AuthorizationError
+};
 
-// Specific Error types
-export class ValidationError extends ApiError {
-  constructor(message: string) {
-    super(message, 400);
-  }
-}
+type AsyncRequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<any>;
 
-export class AuthenticationError extends ApiError {
-  constructor(message: string = 'Authentication failed') {
-    super(message, 401);
-  }
-}
+export const asyncHandler = (fn: AsyncRequestHandler): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
 
-export class AuthorizationError extends ApiError {
-  constructor(message: string = 'Not authorized') {
-    super(message, 403);
-  }
-}
-
-export class NotFoundError extends ApiError {
-  constructor(message: string = 'Resource not found') {
-    super(message, 404);
-  }
-}
-
-// Error Handler Middleware
 export const errorHandler = (
   err: ApiError,
   req: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ) => {
-  const statusCode = err.statusCode || 500;
-  
-  // Log error
-  logger.error(err.message, {
-    error: err,
-    path: req.path,
-    method: req.method
+  const isDevelopment = config.env === 'development';
+
+  // Log the error
+  logger.error('API Error:', {
+    url: req.url,
+    method: req.method,
+    statusCode: err.statusCode,
+    message: err.message,
+    stack: isDevelopment ? err.stack : undefined,
+    body: isDevelopment ? req.body : undefined,
+    params: isDevelopment ? req.params : undefined,
+    query: isDevelopment ? req.query : undefined
   });
 
-  res.status(statusCode).json({
-    success: false,
-    error: {
-      message: err.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+  // Send error response
+  res.status(err.statusCode || 500).json({
+    status: 'error',
+    message: err.message || 'Internal Server Error',
+    ...(isDevelopment && {
+      stack: err.stack,
+      details: err
+    })
   });
+
+  next();
 };
 
-// Not Found Handler Middleware
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
-  next(new NotFoundError(`Route ${req.originalUrl} not found`));
+export const notFoundHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const err = new NotFoundError(`Resource not found: ${req.originalUrl}`);
+  next(err);
 };
 
-// Async Handler Wrapper
-export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+export const methodNotAllowedHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const err = new ApiError(
+    405,
+    `Method ${req.method} not allowed for ${req.originalUrl}`
+  );
+  next(err);
+};
+
+export const validationErrorHandler = (
+  err: Error,
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (err.name === 'ValidationError') {
+    res.status(400).json({
+      status: 'error',
+      message: 'Validation Error',
+      errors: err.message
+    });
+  } else {
+    next(err);
+  }
 };
