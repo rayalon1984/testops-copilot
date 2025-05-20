@@ -195,7 +195,10 @@ For more detailed troubleshooting steps, see the [Quick Start Guide](docs/quicks
 - [API Documentation](docs/api.md)
 - [Development Guide](docs/development.md)
 - [Deployment Guide](docs/deployment.md)
+- [Troubleshooting Guide](docs/troubleshooting.md)
 - [Contributing Guide](CONTRIBUTING.md)
+
+Need help? Check our [Troubleshooting Guide](docs/troubleshooting.md) for common issues and solutions.
 
 ## Features
 
@@ -220,10 +223,13 @@ For more detailed troubleshooting steps, see the [Quick Start Guide](docs/quicks
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-## Support
+## Support & Community
 
-- Documentation: [docs/README.md](docs/README.md)
-- Issues: [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
+- [Documentation](docs/README.md)
+- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
+- [Discord Community](https://discord.gg/testops-companion)
+- [Stack Overflow [testops-companion]](https://stackoverflow.com/questions/tagged/testops-companion)
+- [GitHub Discussions](https://github.com/rayalon1984/testops-companion/discussions)
 - Contact: rayalon@gmail.com
 
 ## License
