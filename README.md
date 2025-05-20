@@ -134,7 +134,7 @@ testops-companion/
 └── scripts/             # Project-level scripts
 ```
 
-## Contributing
+## Contributing               
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -146,4 +146,4 @@ testops-companion/
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Developed by Rotem Ayalon (rayalon1984) <img width="160" alt="image" src="https://github.com/user-attachments/assets/ed120d14-8b71-4cba-8739-091a0153796b" />
+## Developed by `Rotem Ayalon`
