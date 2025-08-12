@@ -9,7 +9,7 @@ jobs:
   dependencies:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -54,7 +54,7 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Run Snyk Security Scan
       uses: snyk/actions/node@master
@@ -101,7 +101,7 @@ jobs:
   license-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
