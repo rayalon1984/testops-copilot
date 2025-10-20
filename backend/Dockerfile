@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 # Base stage for both development and production
-FROM node:18-alpine AS base
+FROM node:25-alpine AS base
 WORKDIR /app
 ENV NODE_ENV=production
 
