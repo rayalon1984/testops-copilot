@@ -137,6 +137,7 @@ User.init(
 // Hooks
 User.beforeCreate(async (user: User) => {
   if (!user.id) {
+    // @ts-expect-error - Sequelize DataTypes assignment type issue
     user.id = DataTypes.UUIDV4;
   }
 });

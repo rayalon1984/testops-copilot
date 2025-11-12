@@ -3,6 +3,7 @@ import { asyncHandler } from '@/middleware/errorHandler';
 import { authenticate, authorize } from '@/middleware/auth';
 import { validateNotificationPreferences } from '@/middleware/validation';
 import { NotificationController } from '@/controllers/notification.controller';
+import { UserRole } from '@/constants';
 
 const router: Router = Router();
 const notificationController = new NotificationController();
@@ -105,7 +106,7 @@ router.get(
 );
 
 // Admin only routes
-router.use(authorize('admin'));
+router.use(authorize(UserRole.ADMIN));
 
 // @route   GET /api/v1/notifications/metrics
 // @desc    Get notification delivery metrics

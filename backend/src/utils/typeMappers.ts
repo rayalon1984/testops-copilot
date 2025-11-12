@@ -1,4 +1,4 @@
-import { PipelineType as PrismaType } from '@prisma/client';
+import { PipelineType as PrismaType } from '../types/prisma-types';
 import { PipelineType, TestStatus } from '../constants';
 
 export function mapPipelineType(type: PrismaType): PipelineType {
@@ -17,11 +17,11 @@ export function mapPipelineType(type: PrismaType): PipelineType {
 export function mapPrismaType(type: PipelineType): PrismaType {
   switch (type) {
     case PipelineType.JENKINS:
-      return 'JENKINS';
+      return PrismaType.JENKINS;
     case PipelineType.GITHUB_ACTIONS:
-      return 'GITHUB_ACTIONS';
+      return PrismaType.GITHUB_ACTIONS;
     case PipelineType.CUSTOM:
-      return 'CUSTOM';
+      return PrismaType.CUSTOM;
     default:
       throw new Error(`Unknown pipeline type: ${type}`);
   }

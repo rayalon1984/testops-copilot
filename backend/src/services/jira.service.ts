@@ -103,13 +103,13 @@ export class JiraService {
         id: issue.id,
         key: issue.key,
         fields: {
-          summary: issue.fields.summary,
-          description: issue.fields.description,
+          summary: issue.fields.summary ?? '',
+          description: issue.fields.description ?? '',
           status: {
             name: issue.fields.status.name
           },
           issuetype: {
-            name: issue.fields.issuetype.name
+            name: issue.fields.issuetype?.name ?? 'Unknown'
           },
           labels: issue.fields.labels || [],
           ...issue.fields

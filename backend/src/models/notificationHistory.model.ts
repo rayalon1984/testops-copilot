@@ -150,6 +150,7 @@ NotificationHistory.init(
 // Hooks
 NotificationHistory.beforeCreate(async (notification: NotificationHistory) => {
   if (!notification.id) {
+    // @ts-expect-error - Sequelize DataTypes assignment type issue
     notification.id = DataTypes.UUIDV4;
   }
 });

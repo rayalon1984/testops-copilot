@@ -216,6 +216,7 @@ TestRun.init(
 // Hooks
 TestRun.beforeCreate(async (testRun: TestRun) => {
   if (!testRun.id) {
+    // @ts-expect-error - Sequelize DataTypes assignment type issue
     testRun.id = DataTypes.UUIDV4;
   }
 });
