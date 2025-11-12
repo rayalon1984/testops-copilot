@@ -1,5 +1,6 @@
-import { Router, Request, Response } from 'express';
-import { authController } from '../controllers/auth.controller';
+import { Request, Response } from 'express';
+import { authRouter as router } from './index';
+import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { JwtService } from '../services/jwt.service';
@@ -9,7 +10,7 @@ interface TypedRequest<T> extends Request {
   body: T;
 }
 
-const router: Router = Router();
+const authController = new AuthController();
 
 // Register new user
 router.post(
@@ -107,4 +108,4 @@ router.put(
   })
 );
 
-export { router as authRouter };
+// Routes are registered to the authRouter imported from index

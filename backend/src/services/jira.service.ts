@@ -13,24 +13,46 @@ import {
 const prisma = new PrismaClient();
 
 export class JiraService {
-  private client: JiraClient;
-  private projectKey: string;
+  private client: JiraClient | null = null;
+  private projectKey: string = '';
+  private enabled: boolean = false;
 
   constructor() {
-    this.client = new JiraClient({
-      protocol: 'https',
-      host: new URL(config.jira.baseUrl).hostname,
-      apiVersion: '2',
-      strictSSL: true,
-      bearer: config.jira.apiToken,
-    });
-    this.projectKey = config.jira.projectKey;
+    if (!config.jira) {
+      logger.warn('Jira integration is not configured. Jira features will be disabled.');
+      this.enabled = false;
+      return;
+    }
+
+    try {
+      this.client = new JiraClient({
+        protocol: 'https',
+        host: new URL(config.jira.baseUrl).hostname,
+        apiVersion: '2',
+        strictSSL: true,
+        bearer: config.jira.apiToken,
+      });
+      this.projectKey = config.jira.projectKey;
+      this.enabled = true;
+      logger.info('Jira integration initialized successfully');
+    } catch (error) {
+      logger.error('Failed to initialize Jira client:', error);
+      this.enabled = false;
+    }
+  }
+
+  private checkEnabled() {
+    if (!this.enabled || !this.client) {
+      throw new Error('Jira integration is not enabled or configured');
+    }
   }
 
   async createIssue(data: CreateIssueDTO): Promise<string> {
+    this.checkEnabled();
+
     try {
       // Create issue in Jira
-      const issue = await this.client.addNewIssue({
+      const issue = await this.client!.addNewIssue({
         fields: {
           project: { key: this.projectKey },
           summary: data.summary,
@@ -63,9 +85,11 @@ export class JiraService {
   }
 
   async updateIssue(issueKey: string, data: UpdateIssueDTO): Promise<void> {
+    this.checkEnabled();
+
     try {
       // Update issue in Jira
-      await this.client.updateIssue(issueKey, {
+      await this.client!.updateIssue(issueKey, {
         fields: {
           ...(data.summary && { summary: data.summary }),
           ...(data.description && { description: data.description }),
@@ -97,8 +121,10 @@ export class JiraService {
   }
 
   async getIssue(issueKey: string): Promise<JiraIssueResponse> {
+    this.checkEnabled();
+
     try {
-      const issue = await this.client.findIssue(issueKey);
+      const issue = await this.client!.findIssue(issueKey);
       return {
         id: issue.id,
         key: issue.key,
@@ -139,7 +165,7 @@ export class JiraService {
       });
 
       // Add comment to Jira issue
-      await this.client.addComment(issueKey, {
+      await this.client!.addComment(issueKey, {
         body: `Linked to test run: ${testRunId}`,
       });
 
@@ -151,9 +177,11 @@ export class JiraService {
   }
 
   private async transitionIssue(issueKey: string, status: JiraIssueStatus): Promise<void> {
+    this.checkEnabled();
+
     try {
       // Get available transitions
-      const transitions = await this.client.listTransitions(issueKey);
+      const transitions = await this.client!.listTransitions(issueKey);
       
       // Map our status to Jira transition
       const transitionMap: Record<JiraIssueStatus, string> = {
@@ -172,7 +200,7 @@ export class JiraService {
       }
 
       // Perform the transition
-      await this.client.transitionIssue(issueKey, {
+      await this.client!.transitionIssue(issueKey, {
         transition: { id: targetTransition.id },
       });
 

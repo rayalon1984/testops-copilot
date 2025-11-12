@@ -30,15 +30,15 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   
-  // GitHub
-  GITHUB_TOKEN: z.string(),
+  // GitHub (optional)
+  GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().default('https://api.github.com'),
-  GITHUB_WEBHOOK_SECRET: z.string(),
-  
-  // Jira
-  JIRA_BASE_URL: z.string(),
-  JIRA_API_TOKEN: z.string(),
-  JIRA_PROJECT_KEY: z.string(),
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+
+  // Jira (optional)
+  JIRA_BASE_URL: z.string().optional(),
+  JIRA_API_TOKEN: z.string().optional(),
+  JIRA_PROJECT_KEY: z.string().optional(),
   JIRA_DEFAULT_ISSUE_TYPE: z.string().default('Bug'),
   JIRA_DEBUG: z.string().transform(val => val === 'true').default('false'),
   
@@ -76,9 +76,9 @@ const env = envSchema.parse(process.env);
 
 // Export configuration object
 export interface GitHubConfig {
-  token: string;
+  token?: string;
   apiUrl: string;
-  webhookSecret: string;
+  webhookSecret?: string;
 }
 
 export interface Config {
@@ -105,7 +105,7 @@ export interface Config {
     refreshExpiresIn: string;
   };
   github: GitHubConfig;
-  jira: {
+  jira?: {
     baseUrl: string;
     apiToken: string;
     projectKey: string;
@@ -167,13 +167,15 @@ export const config: Config = {
     refreshSecret: env.JWT_REFRESH_SECRET,
     refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
   },
-  jira: {
-    baseUrl: env.JIRA_BASE_URL,
-    apiToken: env.JIRA_API_TOKEN,
-    projectKey: env.JIRA_PROJECT_KEY,
-    defaultIssueType: env.JIRA_DEFAULT_ISSUE_TYPE,
-    debug: env.JIRA_DEBUG,
-  },
+  ...(env.JIRA_BASE_URL && env.JIRA_API_TOKEN && env.JIRA_PROJECT_KEY && {
+    jira: {
+      baseUrl: env.JIRA_BASE_URL,
+      apiToken: env.JIRA_API_TOKEN,
+      projectKey: env.JIRA_PROJECT_KEY,
+      defaultIssueType: env.JIRA_DEFAULT_ISSUE_TYPE,
+      debug: env.JIRA_DEBUG,
+    },
+  }),
   github: {
     token: env.GITHUB_TOKEN,
     apiUrl: env.GITHUB_API_URL,
