@@ -31,7 +31,7 @@
       "@config/*": ["src/config/*"],
       "@constants/*": ["src/constants/*"]
     },
-    "types": ["vite/client", "vitest", "node", "jest"]
+    "types": ["vite/client", "vitest", "node", "jest", "@testing-library/jest-dom"]
   },
   "include": [
     "src/**/*.ts",
