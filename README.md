@@ -1,149 +1,540 @@
 # TestOps Companion
 
-A comprehensive test operations companion for managing test pipelines and results.
+> A comprehensive test operations platform for managing CI/CD pipelines, tracking test results, and analyzing failures across your entire testing infrastructure.
 
-## Features
+[![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
 
-- Pipeline management for various CI/CD systems (GitHub Actions, Jenkins)
-- Test run tracking and analysis
-- Failure analysis and trend reporting
-- Integrations with issue tracking systems (Jira)
-- Notification system (Email, Slack)
-- User authentication and authorization
+## 📋 Table of Contents
 
-## Getting Started
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Development](#-development)
+- [Testing](#-testing)
+- [Integrations](#-integrations)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+## ✨ Features
+
+### Core Capabilities
+
+- **🔄 Multi-Pipeline Management**
+  - Support for GitHub Actions, Jenkins, and custom CI/CD systems
+  - Real-time pipeline status monitoring
+  - Automated test run tracking and historical analysis
+
+- **📊 Advanced Test Analytics**
+  - Comprehensive test run tracking and visualization
+  - Failure analysis with trends and patterns
+  - Flaky test detection and reporting
+  - Performance metrics and regression tracking
+
+- **🔍 Intelligent Failure Analysis**
+  - Automatic failure categorization
+  - Root cause analysis suggestions
+  - Historical failure pattern matching
+  - Log aggregation and smart search
+
+- **🔗 Powerful Integrations**
+  - **Jira**: Automatic issue creation and synchronization
+  - **GitHub**: Workflow triggers and status updates
+  - **Slack**: Real-time notifications and alerts
+  - **Email**: Customizable notification templates
+  - **Pushover**: Mobile push notifications
+
+- **👥 User Management**
+  - Role-based access control (Admin, Developer, Viewer)
+  - JWT-based authentication
+  - User preferences and notification settings
+  - Team collaboration features
+
+- **⚡ Real-time Updates**
+  - WebSocket-based live updates
+  - Dashboard auto-refresh
+  - Live test execution monitoring
+
+## 🛠 Tech Stack
+
+### Backend
+- **Runtime**: Node.js 18+ with TypeScript
+- **Framework**: Express.js with Helmet security
+- **Database**: PostgreSQL 14+ with Prisma ORM
+- **Authentication**: JWT with refresh tokens
+- **Validation**: Zod schema validation
+- **Testing**: Jest with supertest
+- **Logging**: Winston
+
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **UI Library**: Material-UI (MUI) v5
+- **State Management**: Zustand
+- **Data Fetching**: TanStack Query (React Query)
+- **Charts**: Chart.js with react-chartjs-2
+- **Forms**: React Hook Form with Zod validation
+- **Testing**: Vitest with Testing Library
+- **Build Tool**: Vite
+
+### DevOps
+- **Containerization**: Docker with multi-stage builds
+- **CI/CD**: GitHub Actions
+- **Linting**: ESLint with TypeScript rules
+- **Code Quality**: Prettier, Husky pre-commit hooks
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm (v9 or higher)
-- PostgreSQL (v14 or higher)
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+- **PostgreSQL**: v14.0 or higher
+- **Redis** (optional): For caching and session management
 
-### Installation
+### Quick Setup (Recommended)
 
-The project includes a comprehensive setup script that handles all dependencies and database setup:
+The automated setup script handles all installation and configuration:
 
 ```bash
 # Clone the repository
 git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 
-# Run the setup script
+# Run the automated setup
 npm run setup
 ```
 
-The setup script performs the following actions:
-1. Cleans any existing node_modules directories
-2. Installs all dependencies (root, frontend, backend)
-3. Sets up environment files with guided prompts
-4. Creates and configures the database
+The setup script will:
+1. Clean any existing installations
+2. Install all dependencies (root, frontend, backend)
+3. Guide you through environment configuration
+4. Set up and migrate the PostgreSQL database
+5. Generate Prisma client
 
 ### Manual Setup
 
-If you prefer to set up manually:
+If you prefer manual configuration:
 
-1. Install dependencies:
-   ```bash
-   npm install
-   cd frontend && npm install
-   cd ../backend && npm install
-   ```
-
-2. Create `.env` files in both frontend and backend directories (use the `.env.example` files as templates)
-
-3. Set up the database:
-   ```bash
-   cd backend
-   npx prisma generate
-   npx prisma migrate deploy
-   ```
-
-## Development
-
-Start the development servers:
+#### 1. Install Dependencies
 
 ```bash
-# Start both frontend and backend
-npm run dev
+# Install root dependencies
+npm install
 
-# Start only backend
-npm run dev:backend
+# Install backend dependencies
+cd backend && npm install
 
-# Start only frontend
-npm run dev:frontend
+# Install frontend dependencies
+cd ../frontend && npm install
 ```
 
-## Integrations
+#### 2. Configure Environment Variables
+
+Create `.env` files in both backend and frontend directories:
+
+**Backend** (`backend/.env`):
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=3000
+HOST=localhost
+
+# Database
+DATABASE_URL=postgresql://testops:testops@localhost:5432/testops_companion
+
+# Authentication
+JWT_SECRET=your-secret-key-here
+JWT_REFRESH_SECRET=your-refresh-secret-here
+JWT_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+
+# Optional Integrations
+JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_API_TOKEN=your-jira-token
+GITHUB_TOKEN=your-github-token
+SLACK_WEBHOOK_URL=your-slack-webhook
+```
+
+**Frontend** (`frontend/.env`):
+```env
+VITE_API_URL=http://localhost:3000/api
+VITE_WS_URL=ws://localhost:3000
+```
+
+#### 3. Database Setup
+
+```bash
+cd backend
+
+# Generate Prisma client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate deploy
+
+# (Optional) Seed the database
+npx prisma db seed
+```
+
+#### 4. Verify Installation
+
+```bash
+# Run linting
+npm run lint
+
+# Run type checking
+npm run typecheck
+
+# Run tests
+npm run test
+```
+
+## 💻 Development
+
+### Starting Development Servers
+
+```bash
+# Start both frontend and backend concurrently
+npm run start
+
+# Or start individually:
+npm run start:backend    # Backend on http://localhost:3000
+npm run start:frontend   # Frontend on http://localhost:5173
+```
+
+### Development Commands
+
+```bash
+# Linting
+npm run lint              # Lint both frontend and backend
+npm run lint:backend      # Lint backend only
+npm run lint:frontend     # Lint frontend only
+
+# Type Checking
+npm run typecheck         # Type check both projects
+npm run typecheck:backend # Type check backend
+npm run typecheck:frontend # Type check frontend
+
+# Building
+npm run build             # Build both projects
+npm run build:backend     # Build backend
+npm run build:frontend    # Build frontend
+
+# Database Management
+cd backend
+npm run db:migrate        # Run migrations
+npm run db:generate       # Generate Prisma client
+npm run db:seed           # Seed database
+npm run db:studio         # Open Prisma Studio
+npm run db:reset          # Reset database (caution!)
+```
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Backend tests
+npm run test:backend
+npm run test:backend -- --watch      # Watch mode
+npm run test:backend -- --coverage   # With coverage
+
+# Frontend tests
+npm run test:frontend
+npm run test:frontend -- --watch     # Watch mode
+npm run test:frontend -- --coverage  # With coverage
+npm run test:frontend -- --ui        # UI mode
+```
+
+### Test Configuration
+
+- **Backend**: Jest with ts-jest preset
+  - Configuration: `backend/jest.config.js`
+  - Tests: `backend/src/**/*.test.ts`
+
+- **Frontend**: Vitest with jsdom environment
+  - Configuration: `frontend/vitest.config.ts`
+  - Tests: `frontend/src/**/*.test.{ts,tsx}`
+  - Setup: `frontend/src/test/setup.ts`
+
+## 🔗 Integrations
 
 ### Jira Integration
 
-TestOps Companion integrates with Jira to provide seamless issue tracking and test result management. See [Jira Integration Documentation](docs/integrations/jira.md) for details.
+Seamlessly integrate with Jira for issue tracking and test management.
 
-Key features:
-- Create Jira issues from failed test runs
-- Link test runs to existing Jira issues
-- Synchronize test status with Jira
-- View Jira issue details within TestOps Companion
+**Features:**
+- Automatic issue creation from failed tests
+- Link test runs to existing issues
+- Bi-directional status synchronization
+- Custom field mapping
 
-#### Configuration
-
-Add the following to your `backend/.env`:
-
+**Configuration:**
 ```env
-# Jira Configuration
 JIRA_BASE_URL=https://your-domain.atlassian.net
+JIRA_EMAIL=your-email@example.com
 JIRA_API_TOKEN=your-api-token
 JIRA_PROJECT_KEY=PROJ
 JIRA_DEFAULT_ISSUE_TYPE=Bug
-JIRA_DEBUG=false
 ```
+
+📖 [Full Jira Integration Guide](docs/integrations/jira.md)
 
 ### GitHub Integration
 
-TestOps Companion integrates with GitHub to trigger and monitor workflows:
+Trigger and monitor GitHub Actions workflows directly from TestOps Companion.
 
+**Features:**
+- Workflow triggering
+- Status monitoring
+- PR status checks integration
+- Commit status updates
+
+**Configuration:**
 ```env
-# GitHub Configuration
-GITHUB_TOKEN=your-github-token
+GITHUB_TOKEN=ghp_your_personal_access_token
 GITHUB_API_URL=https://api.github.com
 GITHUB_WEBHOOK_SECRET=your-webhook-secret
 ```
 
-## Project Structure
+### Notification Integrations
+
+**Slack:**
+```env
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+```
+
+**Email (SMTP):**
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=TestOps Companion <noreply@example.com>
+```
+
+**Pushover:**
+```env
+PUSHOVER_USER_KEY=your-user-key
+PUSHOVER_API_TOKEN=your-api-token
+```
+
+## 📁 Project Structure
 
 ```
 testops-companion/
-├── backend/             # Backend API server
-│   ├── prisma/          # Database schema and migrations
-│   ├── scripts/         # Setup and utility scripts
-│   └── src/             # Source code
-│       ├── controllers/ # API controllers
-│       ├── middleware/  # Express middleware
-│       ├── routes/      # API routes
-│       ├── services/    # Business logic
-│       ├── types/       # TypeScript type definitions
-│       └── utils/       # Utility functions
-├── frontend/            # React frontend application
-│   ├── public/          # Static assets
-│   └── src/             # Source code
-│       ├── components/  # React components
-│       ├── contexts/    # React contexts
-│       ├── hooks/       # Custom React hooks
-│       └── pages/       # Page components
-├── docs/                # Documentation
-└── scripts/             # Project-level scripts
+├── backend/                    # Backend API server
+│   ├── prisma/
+│   │   ├── schema.prisma      # Database schema
+│   │   ├── migrations/        # Database migrations
+│   │   └── seed.ts            # Database seeding
+│   ├── scripts/
+│   │   └── db-setup.js        # Database setup script
+│   ├── src/
+│   │   ├── controllers/       # Route controllers
+│   │   ├── middleware/        # Express middleware
+│   │   │   ├── auth.ts        # Authentication middleware
+│   │   │   ├── errorHandler.ts
+│   │   │   └── validation.ts  # Request validation
+│   │   ├── routes/            # API routes
+│   │   ├── services/          # Business logic
+│   │   │   ├── github.service.ts
+│   │   │   ├── jenkins.service.ts
+│   │   │   ├── jira.service.ts
+│   │   │   └── notification.service.ts
+│   │   ├── types/             # TypeScript definitions
+│   │   ├── utils/             # Utility functions
+│   │   ├── config.ts          # Configuration
+│   │   └── index.ts           # Entry point
+│   ├── jest.config.js         # Jest configuration
+│   ├── tsconfig.json          # TypeScript config
+│   └── package.json
+│
+├── frontend/                   # React frontend
+│   ├── public/                # Static assets
+│   ├── src/
+│   │   ├── components/        # Reusable components
+│   │   │   ├── ConfirmDialog/
+│   │   │   ├── FormField/
+│   │   │   ├── LogViewer/
+│   │   │   ├── NotificationBadge/
+│   │   │   ├── PageHeader/
+│   │   │   └── SearchField/
+│   │   ├── contexts/          # React contexts
+│   │   ├── hooks/             # Custom hooks
+│   │   ├── pages/             # Page components
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── PipelineList.tsx
+│   │   │   ├── PipelineDetail.tsx
+│   │   │   ├── TestRunList.tsx
+│   │   │   ├── TestRunDetail.tsx
+│   │   │   ├── Settings.tsx
+│   │   │   └── NotificationList.tsx
+│   │   ├── services/          # API clients
+│   │   ├── test/              # Test utilities
+│   │   │   ├── setup.ts       # Test setup
+│   │   │   └── vitest.d.ts    # Type definitions
+│   │   ├── types/             # TypeScript definitions
+│   │   ├── utils/             # Utility functions
+│   │   ├── App.tsx            # Root component
+│   │   └── main.tsx           # Entry point
+│   ├── vitest.config.ts       # Vitest configuration
+│   ├── tsconfig.json          # TypeScript config
+│   └── package.json
+│
+├── docs/                       # Documentation
+│   ├── api/                   # API documentation
+│   ├── integrations/          # Integration guides
+│   └── setup/                 # Setup guides
+│
+├── scripts/                    # Project scripts
+│   └── setup-env.js           # Environment setup
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml             # Continuous Integration
+│       ├── dependencies.yml   # Dependency management
+│       └── release.yml        # Release automation
+│
+├── docker-compose.yml         # Docker composition
+├── package.json               # Root package.json
+└── README.md                  # This file
 ```
 
-## Contributing               
+## 📚 API Documentation
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Authentication Endpoints
 
-## License
+```
+POST   /api/auth/register     # Register new user
+POST   /api/auth/login        # Login
+POST   /api/auth/refresh      # Refresh access token
+POST   /api/auth/logout       # Logout
+GET    /api/auth/me           # Get current user
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Pipeline Endpoints
 
-## Developed by `Rotem Ayalon`
+```
+GET    /api/pipelines         # List all pipelines
+POST   /api/pipelines         # Create pipeline
+GET    /api/pipelines/:id     # Get pipeline details
+PUT    /api/pipelines/:id     # Update pipeline
+DELETE /api/pipelines/:id     # Delete pipeline
+POST   /api/pipelines/:id/trigger  # Trigger pipeline
+```
+
+### Test Run Endpoints
+
+```
+GET    /api/test-runs         # List test runs
+POST   /api/test-runs         # Create test run
+GET    /api/test-runs/:id     # Get test run details
+PUT    /api/test-runs/:id     # Update test run
+GET    /api/test-runs/:id/logs # Get test logs
+```
+
+### Notification Endpoints
+
+```
+GET    /api/notifications     # List notifications
+POST   /api/notifications     # Create notification
+PUT    /api/notifications/:id # Mark as read
+DELETE /api/notifications/:id # Delete notification
+```
+
+📖 For complete API documentation, see [API Reference](docs/api/README.md)
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+   ```bash
+   git fork https://github.com/rayalon1984/testops-companion.git
+   ```
+
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+3. **Make your changes**
+   - Write tests for new features
+   - Ensure all tests pass
+   - Follow the existing code style
+   - Update documentation as needed
+
+4. **Commit your changes**
+   ```bash
+   git commit -m 'feat: add amazing feature'
+   ```
+
+   We follow [Conventional Commits](https://www.conventionalcommits.org/):
+   - `feat:` New features
+   - `fix:` Bug fixes
+   - `docs:` Documentation changes
+   - `style:` Code style changes
+   - `refactor:` Code refactoring
+   - `test:` Test changes
+   - `chore:` Build process or auxiliary tool changes
+
+5. **Push to your fork**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+
+6. **Open a Pull Request**
+
+### Development Guidelines
+
+- **Code Style**: We use ESLint and Prettier for consistent code formatting
+- **Testing**: All new features must include tests
+- **Type Safety**: Maintain strict TypeScript typing
+- **Documentation**: Update docs for any API or feature changes
+- **Commits**: Use conventional commit messages
+
+### Running Quality Checks
+
+Before submitting a PR, ensure all checks pass:
+
+```bash
+npm run lint           # Linting
+npm run typecheck      # Type checking
+npm run test           # All tests
+npm run build          # Build verification
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Rotem Ayalon**
+
+- GitHub: [@rayalon1984](https://github.com/rayalon1984)
+
+## 🙏 Acknowledgments
+
+- Built with [Express.js](https://expressjs.com/) and [React](https://react.dev/)
+- UI components from [Material-UI](https://mui.com/)
+- Database ORM by [Prisma](https://www.prisma.io/)
+- State management with [Zustand](https://github.com/pmndrs/zustand)
+- Data fetching with [TanStack Query](https://tanstack.com/query)
+
+---
+
+**⭐ If you find this project useful, please consider giving it a star!**
+
+For questions, issues, or feature requests, please [open an issue](https://github.com/rayalon1984/testops-companion/issues).
