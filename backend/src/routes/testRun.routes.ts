@@ -3,6 +3,7 @@ import { asyncHandler } from '@/middleware/errorHandler';
 import { authenticate, authorize } from '@/middleware/auth';
 import { validateTestRunInput } from '@/middleware/validation';
 import { TestRunController } from '@/controllers/testRun.controller';
+import { UserRole } from '@/constants';
 
 const router: Router = Router();
 const testRunController = new TestRunController();
@@ -131,7 +132,7 @@ router.get(
 );
 
 // Admin only routes
-router.use(authorize('admin'));
+router.use(authorize(UserRole.ADMIN));
 
 // @route   GET /api/v1/test-runs/metrics/system
 // @desc    Get system-wide test metrics

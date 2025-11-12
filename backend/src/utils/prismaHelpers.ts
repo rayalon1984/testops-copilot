@@ -1,4 +1,4 @@
-import { Prisma, PipelineStatus as PrismaStatus, PipelineType as PrismaType } from '@prisma/client';
+import { Prisma, PipelineStatus as PrismaStatus, PipelineType as PrismaType } from '../types/prisma-types';
 import { PipelineType, PipelineStatus } from '../constants';
 
 interface BasePipelineData {
@@ -19,11 +19,11 @@ interface UpdatePipelineData extends Partial<BasePipelineData> {
 function mapPipelineType(type: PipelineType): PrismaType {
   switch (type) {
     case PipelineType.JENKINS:
-      return 'JENKINS';
+      return PrismaType.JENKINS;
     case PipelineType.GITHUB_ACTIONS:
-      return 'GITHUB_ACTIONS';
+      return PrismaType.GITHUB_ACTIONS;
     case PipelineType.CUSTOM:
-      return 'CUSTOM';
+      return PrismaType.CUSTOM;
     default:
       throw new Error(`Unknown pipeline type: ${type}`);
   }
@@ -32,17 +32,17 @@ function mapPipelineType(type: PipelineType): PrismaType {
 function mapPipelineStatus(status: PipelineStatus): PrismaStatus {
   switch (status) {
     case PipelineStatus.PENDING:
-      return 'PENDING';
+      return PrismaStatus.PENDING;
     case PipelineStatus.RUNNING:
-      return 'RUNNING';
+      return PrismaStatus.RUNNING;
     case PipelineStatus.SUCCESS:
-      return 'SUCCESS';
+      return PrismaStatus.SUCCESS;
     case PipelineStatus.FAILURE:
-      return 'FAILURE';
+      return PrismaStatus.FAILURE;
     case PipelineStatus.CANCELLED:
-      return 'CANCELLED';
+      return PrismaStatus.CANCELLED;
     case PipelineStatus.TIMEOUT:
-      return 'TIMEOUT';
+      return PrismaStatus.TIMEOUT;
     default:
       throw new Error(`Unknown pipeline status: ${status}`);
   }
@@ -86,7 +86,7 @@ export function createPipelineInput(data: CreatePipelineData): Prisma.PipelineCr
   return {
     name: data.name,
     type: mapPipelineType(data.type),
-    status: data.status ? mapPipelineStatus(data.status) : 'PENDING',
+    status: data.status ? mapPipelineStatus(data.status) : PrismaStatus.PENDING,
     config: toInputJsonValue(data.config),
     user: {
       connect: {

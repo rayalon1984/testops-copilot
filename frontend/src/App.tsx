@@ -7,8 +7,8 @@ import { SnackbarProvider } from 'notistack';
 import { theme } from './theme';
 
 // Components
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout/Layout';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 // Pages
 import Login from './pages/Login';

@@ -27,11 +27,9 @@ import {
   ArrowBack as BackIcon,
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Schedule as PendingIcon,
   AccessTime as TimeIcon,
   BugReport as ErrorsIcon,
-  Photo as ScreenshotIcon,
 } from '@mui/icons-material';
 
 interface TestRun {

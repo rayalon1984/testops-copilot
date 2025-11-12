@@ -2,17 +2,20 @@ import { Application, Router, IRouter } from 'express';
 import { jiraController } from '../controllers/jira.controller';
 
 // Create and export routers
+export const authRouter: IRouter = Router();
 export const pipelineRouter: IRouter = Router();
 export const testRunRouter: IRouter = Router();
 export const notificationRouter: IRouter = Router();
 
 // Import route handlers
+import './auth.routes';
 import './pipeline.routes';
 import './testRun.routes';
 import './notification.routes';
 
 export function registerRoutes(app: Application): void {
   // API routes
+  app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/pipelines', pipelineRouter);
   app.use('/api/v1/test-runs', testRunRouter);
   app.use('/api/v1/notifications', notificationRouter);

@@ -1,11 +1,9 @@
 /// <reference types="vitest" />
-import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers';
+/// <reference types="@testing-library/jest-dom/vitest" />
 
 declare global {
   namespace Vi {
-    interface JestAssertion<T = any>
-      extends jest.Matchers<void, T>,
-        TestingLibraryMatchers<T, void> {}
+    interface JestAssertion<T = any> extends jest.Matchers<void, T> {}
   }
 
   interface Window {
@@ -40,11 +38,6 @@ interface ResizeObserverEntry {
 interface ResizeObserverSize {
   readonly inlineSize: number;
   readonly blockSize: number;
-}
-
-// Extend expect matchers
-declare module 'vitest' {
-  interface Assertion<T = any> extends TestingLibraryMatchers<T, void> {}
 }
 
 // Extend window object

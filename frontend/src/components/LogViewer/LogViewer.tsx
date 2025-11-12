@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Paper,
   Box,
@@ -165,7 +165,7 @@ export default function LogViewer({
         </Typography>
         {searchTerm && (
           <Typography variant="caption" color="text.secondary">
-            Filtered by: "{searchTerm}"
+            Filtered by: &quot;{searchTerm}&quot;
           </Typography>
         )}
       </Toolbar>

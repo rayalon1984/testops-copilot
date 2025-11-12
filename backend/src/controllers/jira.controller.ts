@@ -53,7 +53,7 @@ router.post(
 );
 
 // Error handling middleware
-router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+router.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
   if (err instanceof z.ZodError) {
     return res.status(400).json({
       message: 'Validation error',
@@ -61,7 +61,7 @@ router.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  next(err);
+  return next(err);
 });
 
 export const jiraController: Router = router;

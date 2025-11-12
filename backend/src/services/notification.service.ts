@@ -32,6 +32,7 @@ export class NotificationService {
     if (config.notifications?.pushover?.appToken) {
       this.pushover = new Pushover({
         token: config.notifications.pushover.appToken,
+        user: config.notifications.pushover.userKey || '',
       });
     }
 
@@ -169,7 +170,6 @@ ${testRun.error ? `\nError: ${testRun.error}` : ''}`;
     try {
       await new Promise((resolve, reject) => {
         this.pushover!.send({
-          user: config.notifications!.pushover!.userKey!,
           message: message,
           title: 'Pipeline Notification',
           priority: 0,

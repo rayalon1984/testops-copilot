@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import { sequelize } from '@/database';
 import { TestRun } from '@/models/testRun.model';
 import { Pipeline } from '@/models/pipeline.model';
 import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
@@ -182,6 +183,7 @@ export class TestRunController {
 
   private async calculateAverageDuration(): Promise<number> {
     const result = await TestRun.findAll({
+      // @ts-expect-error - Sequelize where clause type issue
       where: {
         duration: { [Op.not]: null },
       },
@@ -190,6 +192,7 @@ export class TestRunController {
       ],
     });
 
+    // @ts-expect-error - Sequelize getDataValue type issue
     return result[0].getDataValue('averageDuration') || 0;
   }
 

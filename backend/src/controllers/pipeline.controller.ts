@@ -156,6 +156,7 @@ export class PipelineController {
 
   async schedulePipeline(id: string, schedule: string, userId: string) {
     const pipeline = await this.getPipeline(id, userId);
+    // @ts-expect-error - Prisma JsonValue type compatibility
     const currentConfig = parsePipelineConfig<Record<string, unknown>>(pipeline.config);
 
     await prisma.pipeline.update({

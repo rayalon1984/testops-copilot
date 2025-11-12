@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Container,
-  Paper,
   Typography,
   Box,
   Button,
@@ -12,7 +11,6 @@ import {
   CardContent,
   CardHeader,
   IconButton,
-  Divider,
   List,
   ListItem,
   ListItemText,
@@ -43,7 +41,7 @@ interface Pipeline {
   status: 'success' | 'failed' | 'running' | 'pending';
   lastRun: string;
   successRate: number;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 interface TestRun {
