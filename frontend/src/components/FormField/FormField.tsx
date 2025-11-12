@@ -1,6 +1,5 @@
 import {
   TextField,
-  TextFieldProps,
   FormControl,
   FormHelperText,
   InputLabel,

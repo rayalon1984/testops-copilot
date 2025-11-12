@@ -31,7 +31,6 @@ import {
   PlayArrow as RunIcon,
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 
@@ -42,13 +41,13 @@ interface Pipeline {
   status: 'success' | 'failed' | 'running' | 'pending';
   lastRun: string;
   successRate: number;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 interface PipelineFormData {
   name: string;
   type: 'jenkins' | 'github-actions';
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export default function PipelineList() {

@@ -12,6 +12,7 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
     "db:setup": "node scripts/db-setup.js",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",

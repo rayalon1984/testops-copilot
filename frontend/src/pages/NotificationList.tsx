@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -12,13 +11,11 @@ import {
   ListItemIcon,
   ListItemSecondaryAction,
   IconButton,
-  Chip,
   CircularProgress,
   FormControlLabel,
   Switch,
   Divider,
   Button,
-  Alert,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -41,7 +38,6 @@ interface Notification {
 }
 
 export default function NotificationList() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showUndeliveredOnly, setShowUndeliveredOnly] = useState(false);
 
@@ -95,16 +91,6 @@ export default function NotificationList() {
       default:
         return <NotificationsIcon />;
     }
-  };
-
-  const getStatusChip = (status: string) => {
-    return (
-      <Chip
-        size="small"
-        label={status}
-        color={status === 'delivered' ? 'success' : 'default'}
-      />
-    );
   };
 
   if (isLoading) {

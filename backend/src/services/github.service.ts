@@ -100,6 +100,7 @@ export class GitHubService {
     pipeline: Pipeline
   ): Promise<void> {
     try {
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const runs = await this.octokit.actions.listWorkflowRuns({
           owner: config.owner,

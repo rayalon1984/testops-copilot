@@ -28,7 +28,6 @@ import {
   Search as SearchIcon,
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
-  Warning as WarningIcon,
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 
@@ -83,18 +82,18 @@ export default function TestRunList() {
 
   const getStatusChip = (status: string) => {
     const statusProps = {
-      success: { color: 'success', label: 'Success' },
-      failed: { color: 'error', label: 'Failed' },
-      running: { color: 'info', label: 'Running' },
-      pending: { color: 'default', label: 'Pending' },
-    }[status] || { color: 'default', label: status };
+      success: { color: 'success' as const, label: 'Success' },
+      failed: { color: 'error' as const, label: 'Failed' },
+      running: { color: 'info' as const, label: 'Running' },
+      pending: { color: 'default' as const, label: 'Pending' },
+    }[status] || { color: 'default' as const, label: status };
 
     return (
       <Chip
         size="small"
         icon={getStatusIcon(status)}
         label={statusProps.label}
-        color={statusProps.color as any}
+        color={statusProps.color}
       />
     );
   };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   TextField,
   InputAdornment,
@@ -43,8 +43,8 @@ export default function SearchField({
   }, [externalValue]);
 
   // Debounced onChange handler
-  const debouncedOnChange = useCallback(
-    debounce((value: string) => {
+  const debouncedOnChange = useMemo(
+    () => debounce((value: string) => {
       onChange(value);
     }, debounceMs),
     [onChange, debounceMs]

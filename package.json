@@ -22,7 +22,10 @@
     "setup:db": "cd backend && npm run db:setup",
     "lint": "concurrently \"npm run lint:backend\" \"npm run lint:frontend\"",
     "lint:backend": "cd backend && npm run lint",
-    "lint:frontend": "cd frontend && npm run lint"
+    "lint:frontend": "cd frontend && npm run lint",
+    "typecheck": "concurrently \"npm run typecheck:backend\" \"npm run typecheck:frontend\"",
+    "typecheck:backend": "cd backend && npm run typecheck",
+    "typecheck:frontend": "cd frontend && npm run typecheck"
   },
   "keywords": [
     "test",

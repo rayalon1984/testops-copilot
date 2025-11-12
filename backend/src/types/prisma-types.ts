@@ -64,6 +64,7 @@ export enum JiraIssueStatus {
 }
 
 // Prisma namespace with minimal types
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Prisma {
   export type InputJsonValue = string | number | boolean | null | InputJsonObject | InputJsonArray;
   export type InputJsonObject = { [key: string]: InputJsonValue };
