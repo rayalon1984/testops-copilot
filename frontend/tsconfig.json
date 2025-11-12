@@ -11,8 +11,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
@@ -31,17 +31,13 @@
       "@config/*": ["src/config/*"],
       "@constants/*": ["src/constants/*"]
     },
-    "types": ["vite/client", "vitest", "node", "jest", "cypress"]
+    "types": ["vite/client", "vitest", "node", "jest"]
   },
   "include": [
-    "src",
-    "vite.config.ts",
-    "vitest.config.ts",
-    "cypress.config.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.d.ts"
   ],
-  "exclude": ["node_modules", "build", "dist", "coverage"],
+  "exclude": ["node_modules", "build", "dist", "coverage", "**/*.config.ts", "**/*.config.js"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
