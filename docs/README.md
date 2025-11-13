@@ -31,6 +31,9 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - [Security Guide](security.md) - Security best practices
 - [Performance Guide](performance.md) - Performance optimization
 
+### Features
+- [Failure Knowledge Base](features/FAILURE_KNOWLEDGE_BASE.md) - RCA documentation and intelligent failure matching
+
 ### User Guides
 - [Pipeline Management](guides/pipelines.md) - Managing test pipelines
 - [Test Execution](guides/test-execution.md) - Running and managing tests
@@ -88,6 +91,14 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - View test results
 - Analyze test coverage
 - Track flaky tests
+
+### Failure Knowledge Base
+- Smart failure fingerprinting and matching
+- Root Cause Analysis (RCA) documentation
+- Automatic detection of recurring issues
+- Instant lookup of similar past failures
+- Knowledge retention across team changes
+- 95% faster resolution for known issues
 
 ### Notifications
 - Email notifications
