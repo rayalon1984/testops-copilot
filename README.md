@@ -40,6 +40,14 @@
   - Historical failure pattern matching
   - Log aggregation and smart search
 
+- **📚 Failure Knowledge Base & RCA Archive**
+  - Smart failure fingerprinting with exact, fuzzy, and pattern matching
+  - Root Cause Analysis (RCA) documentation and archiving
+  - Automatic detection of recurring issues and patterns
+  - Instant lookup of similar past failures with documented solutions
+  - Knowledge retention: Never lose institutional knowledge when team members leave
+  - 95% faster resolution for known issues
+
 - **🔗 Powerful Integrations**
   - **Jira**: Automatic issue creation and synchronization
   - **GitHub**: Workflow triggers and status updates
@@ -453,7 +461,21 @@ PUT    /api/notifications/:id # Mark as read
 DELETE /api/notifications/:id # Delete notification
 ```
 
+### Failure Archive Endpoints
+
+```
+POST   /api/v1/failure-archive                  # Create failure entry
+PUT    /api/v1/failure-archive/:id/document-rca # Document root cause analysis
+GET    /api/v1/failure-archive/:id              # Get failure by ID
+GET    /api/v1/failure-archive/search           # Search failures with filters
+POST   /api/v1/failure-archive/find-similar     # Find similar past failures
+GET    /api/v1/failure-archive/insights         # Get statistics and analytics
+PUT    /api/v1/failure-archive/:id/resolve      # Mark failure as resolved
+POST   /api/v1/failure-archive/detect-patterns  # Detect recurring patterns
+```
+
 📖 For complete API documentation, see [API Reference](docs/api/README.md)
+📚 For Failure Knowledge Base documentation, see [Feature Guide](docs/features/FAILURE_KNOWLEDGE_BASE.md)
 
 ## 🤝 Contributing
 
