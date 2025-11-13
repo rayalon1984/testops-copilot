@@ -71,6 +71,21 @@ enum JiraIssueStatus {
   CUSTOM
 }
 
+enum FailureStatus {
+  NEW
+  INVESTIGATING
+  DOCUMENTED
+  RESOLVED
+  RECURRING
+}
+
+enum FailureSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
@@ -166,9 +181,99 @@ model JiraIssue {
   testRunId     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   pipeline      Pipeline? @relation(fields: [pipelineId], references: [id])
   testRun       TestRun?  @relation(fields: [testRunId], references: [id])
+  failureArchives FailureArchive[]
 
   @@index([issueKey])
+}
+
+model FailureArchive {
+  id                    String           @id @default(uuid())
+  testRunId             String
+  testCaseId            String?
+  testName              String
+  failureSignature      String           // Smart hash for pattern matching
+
+  // Failure details
+  errorMessage          String           @db.Text
+  errorType             String?
+  stackTrace            String?          @db.Text
+  logSnippet            String?          @db.Text
+  screenshots           String[]         @default([])
+
+  // Temporal data
+  occurredAt            DateTime         @default(now())
+  environment           String?
+  buildNumber           String?
+  commitSha             String?
+  branch                String?
+
+  // RCA Documentation (the gold!)
+  rootCause             String?          @db.Text
+  detailedAnalysis      String?          @db.Text
+  solution              String?          @db.Text
+  preventionSteps       String?          @db.Text
+  workaround            String?          @db.Text
+  relatedDocumentation  String[]         @default([])
+
+  // Resolution tracking
+  status                FailureStatus    @default(NEW)
+  resolvedAt            DateTime?
+  resolvedBy            String?
+  timeToResolve         Int?             // in minutes
+
+  // Integration links
+  jiraIssueId           String?
+  jiraIssueKey          String?
+  prUrl                 String?
+
+  // Pattern detection
+  isRecurring           Boolean          @default(false)
+  firstSeenAt           DateTime         @default(now())
+  lastSeenAt            DateTime         @default(now())
+  occurrenceCount       Int              @default(1)
+  recurrencePattern     String?
+
+  // Metadata
+  tags                  String[]         @default([])
+  severity              FailureSeverity  @default(MEDIUM)
+  isKnownIssue          Boolean          @default(false)
+
+  // Timestamps
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // Relations
+  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
+  relatedFailures       FailureArchive[] @relation("RelatedFailures")
+  relatedTo             FailureArchive[] @relation("RelatedFailures")
+
+  @@index([failureSignature])
+  @@index([testName])
+  @@index([occurredAt])
+  @@index([status])
+  @@index([isRecurring])
+}
+
+model FailurePattern {
+  id                    String    @id @default(uuid())
+  signature             String    @unique
+  patternName           String
+  description           String    @db.Text
+  affectedTests         String[]
+  commonRootCause       String?   @db.Text
+  matchCount            Int       @default(0)
+  lastMatched           DateTime  @default(now())
+  recurrenceRule        String?   // e.g., "Every Friday 5pm"
+  confidence            Float     @default(0.0)
+
+  // Metadata
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([signature])
+  @@index([isActive])
 }

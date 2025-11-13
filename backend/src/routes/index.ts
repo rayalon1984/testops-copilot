@@ -1,5 +1,6 @@
 import { Application, Router, IRouter } from 'express';
 import { jiraController } from '../controllers/jira.controller';
+import failureArchiveRouter from './failure-archive.routes';
 
 // Create and export routers
 export const authRouter: IRouter = Router();
@@ -20,6 +21,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/test-runs', testRunRouter);
   app.use('/api/v1/notifications', notificationRouter);
   app.use('/api/v1/jira', jiraController);
+  app.use('/api/v1/failure-archive', failureArchiveRouter);
 }
 
 export default registerRoutes;
