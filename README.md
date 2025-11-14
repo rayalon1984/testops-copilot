@@ -8,6 +8,7 @@
 
 ## 📋 Table of Contents
 
+- [Screenshots & Demo](#-screenshots--demo)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
@@ -18,6 +19,17 @@
 - [API Documentation](#-api-documentation)
 - [Contributing](#-contributing)
 - [License](#-license)
+
+## 📸 Screenshots & Demo
+
+Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEMO.md)** with:
+- 🎨 Interactive UI mockups using Mermaid diagrams
+- 📊 Dashboard and analytics visualizations
+- 🔍 Failure Knowledge Base in action
+- 📚 RCA documentation workflow
+- 🎬 User journey flows and scenarios
+
+**[View Demo & Screenshots →](DEMO.md)**
 
 ## ✨ Features
 
