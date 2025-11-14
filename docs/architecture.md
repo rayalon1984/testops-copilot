@@ -54,9 +54,9 @@ graph TD
 
 - **Express.js**: Main web framework
 - **TypeScript**: For type safety and better developer experience
-- **Sequelize**: ORM for database interactions
+- **Prisma**: ORM for database interactions with type-safe queries
 - **PostgreSQL**: Primary database
-- **Redis**: For caching and rate limiting
+- **Redis**: For caching and rate limiting (optional)
 - **Jest**: For unit and integration testing
 
 ## Data Flow
@@ -118,6 +118,66 @@ sequenceDiagram
 - Cache invalidation on data mutations
 - Configurable cache timeouts
 
+## Failure Knowledge Base Architecture
+
+The Failure Knowledge Base is a critical component for institutional knowledge retention and intelligent failure matching.
+
+```mermaid
+graph TD
+    TestFail[Test Failure] --> Archive[Failure Archive Service]
+    Archive --> Generate[Generate Failure Signature]
+    Generate --> Normalize[Normalize Error Messages]
+    Normalize --> Search[Search Similar Failures]
+    Search --> Exact[Exact Match]
+    Search --> Fuzzy[Fuzzy Match 80%+]
+    Search --> Pattern[Pattern Match]
+    Search --> Display[Display Similar Past Failures]
+    Display --> RCA[Show RCA Documentation]
+    Archive --> DB[(FailureArchive Table)]
+    DB --> Patterns[(FailurePattern Table)]
+```
+
+### Failure Matching Flow
+
+```mermaid
+sequenceDiagram
+    participant Test
+    participant API
+    participant Service
+    participant Database
+    participant Frontend
+
+    Test->>API: POST /failure-archive (new failure)
+    API->>Service: Create failure entry
+    Service->>Service: Generate signature (hash)
+    Service->>Service: Normalize error message
+    Service->>Database: Check for similar failures
+    Database-->>Service: Return matches (exact, fuzzy, pattern)
+    Service-->>API: Failure created + similar failures
+    API-->>Frontend: Display alert with past solutions
+    Frontend->>Frontend: Show RCA from similar failure
+    Frontend-->>Test: Resolution in 5 minutes instead of 2 hours
+```
+
+### Smart Matching Algorithm
+
+1. **Signature Generation**:
+   - Hash of test name + normalized error + stack trace
+   - Removes timestamps, UUIDs, IDs, line numbers
+   - Creates consistent fingerprint for matching
+
+2. **Three-Strategy Search**:
+   - **Exact Match**: Identical signature (100% match)
+   - **Fuzzy Match**: Levenshtein distance ≥80% similarity
+   - **Pattern Match**: Known recurring patterns
+
+3. **Knowledge Retention**:
+   - Root cause analysis documentation
+   - Solutions and workarounds
+   - Related Jira tickets and PRs
+   - Time to resolve tracking
+   - Tag-based organization
+
 ## External Integrations
 
 ### CI/CD Systems
@@ -130,10 +190,10 @@ sequenceDiagram
 - Email notifications
 - Pushover notifications
 
-### Test Management
-- TestRail integration
-- Xray integration
-- Custom test result parsers
+### Issue Tracking
+- Jira integration with automatic issue creation
+- Link failures to existing issues
+- Bi-directional status synchronization
 
 ## Monitoring and Logging
 
@@ -177,22 +237,48 @@ graph TD
 - Caching strategy
 - Message queues (future)
 
+## Database Schema Highlights
+
+### Core Tables
+- **User**: Authentication and user management
+- **Pipeline**: CI/CD pipeline configurations
+- **TestRun**: Test execution records
+- **TestResult**: Individual test results
+- **Notification**: Notification history and settings
+
+### Failure Knowledge Base Tables
+- **FailureArchive**: Complete failure records with RCA
+  - Indexed on: `failureSignature`, `testName`, `occurredAt`, `status`, `isRecurring`
+  - Stores: error messages, stack traces, RCA documentation, solutions
+
+- **FailurePattern**: Detected recurring patterns
+  - Indexed on: `signature`
+  - Stores: pattern descriptions, affected tests, confidence scores
+
+### Relationships
+- User → Pipeline (one-to-many)
+- Pipeline → TestRun (one-to-many)
+- TestRun → TestResult (one-to-many)
+- TestRun → FailureArchive (one-to-many)
+- FailureArchive → FailurePattern (many-to-one via signature matching)
+
 ## Future Architecture Considerations
 
-1. **Microservices Evolution**
+1. **Enhanced AI/ML Integration**
+   - Automated RCA suggestions using LLMs
+   - Improved pattern detection with machine learning
+   - Predictive test failure analysis
+   - Anomaly detection improvements
+
+2. **Real-time Features**
+   - WebSocket integration for live updates (already implemented)
+   - Event-driven architecture expansion
+   - Real-time collaborative RCA documentation
+
+3. **Microservices Evolution**
    - Split into smaller, focused services
    - Service mesh implementation
    - API gateway introduction
-
-2. **Real-time Features**
-   - WebSocket integration
-   - Event-driven architecture
-   - Real-time analytics
-
-3. **Machine Learning Integration**
-   - Test failure prediction
-   - Anomaly detection
-   - Performance forecasting
 
 4. **Mobile Support**
    - React Native application
