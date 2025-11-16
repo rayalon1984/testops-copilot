@@ -31,7 +31,7 @@
     "backend"
   ],
   "author": "Rotem Ayalon",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@octokit/rest": "^22.0.1",
     "@prisma/client": "^5.22.0",

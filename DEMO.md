@@ -179,10 +179,56 @@ graph LR
         Slack[✅ Slack Notifications Active]
         GitHub2[✅ GitHub Actions Linked]
         Email[✅ Email Alerts On]
+        Grafana[✅ Grafana Metrics Enabled]
+        Monday[✅ Monday.com Synced]
     end
 ```
 
 **Placeholder:** `screenshots/notifications.png`
+
+---
+
+### 7. Grafana Metrics Dashboard
+
+```mermaid
+graph TB
+    subgraph GrafanaDashboard["Grafana - TestOps Overview Dashboard"]
+        Header[TestOps Companion Metrics]
+        TimeRange[Time Range: Last 6 hours | Auto-refresh: 30s]
+        Row1[Top Row - Key Metrics]
+        Row2[Middle Row - Trends]
+        Row3[Bottom Row - Performance]
+    end
+
+    Row1 --> Stat1["Total Test Runs<br/>1,245<br/>↑ 12% this week"]
+    Row1 --> Gauge1["Pass Rate<br/>94.2%<br/>🟢 Healthy"]
+    Row1 --> Stat2["Failures Archived<br/>347 failures<br/>298 with RCA"]
+    Row1 --> Gauge2["RCA Coverage<br/>86%<br/>🟡 Good"]
+
+    Row2 --> LineChart["Test Runs Over Time<br/>Passed: Green line trending up<br/>Failed: Red line stable"]
+    Row2 --> PieChart["Top Failing Tests<br/>DB Timeout: 35%<br/>Auth Error: 25%<br/>Memory: 15%<br/>Other: 25%"]
+
+    Row3 --> PerfChart["Execution Time Percentiles<br/>P50: 2.3s | P95: 5.1s | P99: 8.7s<br/>Time series showing stable performance"]
+```
+
+**Metrics Dashboard Panels:**
+1. **Total Test Runs** - Stat panel showing cumulative count with trend
+2. **Pass Rate Gauge** - Visual health indicator (green >90%, yellow 70-90%, red <70%)
+3. **Failures Archived** - Knowledge base size with RCA documentation count
+4. **RCA Coverage** - Percentage of failures with documented root causes
+5. **Test Runs Over Time** - Time series comparing passed vs failed tests
+6. **Top Failing Tests** - Pie chart of most common failures
+7. **Execution Time Percentiles** - P50, P95, P99 performance tracking
+
+**Prometheus Metrics Exposed:**
+- `testops_test_runs_total` - Total number of test runs
+- `testops_pass_rate_percent` - Current pass rate (0-100%)
+- `testops_execution_time_p95_seconds` - 95th percentile execution time
+- `testops_rca_coverage_percent` - RCA documentation coverage
+- `testops_test_failures_count{test_name="..."}` - Per-test failure counts
+- And 15+ more metrics for comprehensive monitoring
+
+**Placeholder:** `screenshots/grafana-dashboard.png`
 
 ---
 
@@ -342,9 +388,11 @@ When creating actual demo videos, cover these scenarios:
 ### 3. **Integration Demo (2 minutes)**
 - Configure Jira integration
 - Configure Slack notifications
+- Set up Grafana dashboard
 - Test fails → Jira ticket auto-created
 - Team receives Slack alert
 - Similar failure alert shows up
+- Metrics update in real-time on Grafana
 
 ### 4. **Knowledge Base Tour (3 minutes)**
 - Browse archived failures
@@ -352,6 +400,14 @@ When creating actual demo videos, cover these scenarios:
 - View statistics and insights
 - See recurring failure patterns
 - Export data
+
+### 5. **Grafana Metrics Demo (2 minutes)**
+- View real-time test metrics dashboard
+- Explore pass rate trends over time
+- Check execution time percentiles (P50, P95, P99)
+- Review RCA coverage gauge
+- See top failing tests breakdown
+- Configure custom alerts for failure spikes
 
 ---
 
@@ -370,13 +426,19 @@ When capturing actual screenshots, include:
 - [ ] Pipeline management page
 - [ ] Notification center
 - [ ] Settings page with integrations
+- [ ] Grafana metrics dashboard (full view)
+- [ ] Grafana pass rate gauge
+- [ ] Grafana execution time trends
 
 ### Feature Highlights:
 - [ ] Smart matching in action (side-by-side comparison)
 - [ ] Jira integration working (ticket creation)
+- [ ] Monday.com integration (item creation)
 - [ ] Slack notification example
 - [ ] Search and filter functionality
 - [ ] Pattern detection results
+- [ ] Grafana real-time metrics update
+- [ ] Prometheus metrics endpoint response
 - [ ] Mobile responsive views
 
 ### Before/After Comparisons:
@@ -461,11 +523,22 @@ screenshots/
 ├── integrations/
 │   ├── jira-config.png
 │   ├── slack-notification.png
-│   └── github-actions.png
+│   ├── monday-config.png
+│   ├── github-actions.png
+│   └── grafana-datasource.png
+├── grafana/
+│   ├── dashboard-overview.png
+│   ├── pass-rate-gauge.png
+│   ├── test-trends-graph.png
+│   ├── execution-time-percentiles.png
+│   ├── top-failures-piechart.png
+│   ├── rca-coverage-gauge.png
+│   └── prometheus-metrics-endpoint.png
 ├── workflows/
 │   ├── investigation-flow.gif
 │   ├── documentation-flow.gif
-│   └── resolution-flow.gif
+│   ├── resolution-flow.gif
+│   └── metrics-monitoring-flow.gif
 └── mobile/
     ├── dashboard-mobile.png
     ├── notifications-mobile.png

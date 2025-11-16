@@ -37,7 +37,7 @@
     "dashboard"
   ],
   "author": "Rotem Ayalon",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
