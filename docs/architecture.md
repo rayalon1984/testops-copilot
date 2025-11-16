@@ -196,6 +196,13 @@ sequenceDiagram
 - Link failures to existing issues
 - Search and prevent duplicate entries
 
+### Monitoring & Observability
+- **Prometheus**: Metrics endpoint at `/metrics` in standard Prometheus format
+- **Grafana**: Pre-built dashboards for test metrics visualization
+- Real-time metrics export
+- Custom alerting rules
+- Performance tracking and analysis
+
 ## Monitoring and Logging
 
 - Structured logging with Winston
