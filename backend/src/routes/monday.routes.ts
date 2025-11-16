@@ -4,10 +4,10 @@
  * API routes for Monday.com integration
  */
 
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { MondayController } from '../controllers/monday.controller';
 
-const router = Router();
+const router: RouterType = Router();
 
 // Board routes
 router.get('/boards', MondayController.getBoards);

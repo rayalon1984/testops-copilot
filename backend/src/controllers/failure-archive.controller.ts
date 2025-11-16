@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express';
 import { FailureArchiveService } from '../services/failure-archive.service';
+import { FailureStatus, FailureSeverity } from '../types/failure-archive';
 import { z } from 'zod';
 
 // Validation schemas
@@ -60,7 +61,11 @@ export class FailureArchiveController {
    */
   static async createFailure(req: Request, res: Response): Promise<void> {
     try {
-      const data = createFailureSchema.parse(req.body);
+      const parsed = createFailureSchema.parse(req.body);
+      const data = {
+        ...parsed,
+        severity: parsed.severity as FailureSeverity | undefined
+      };
       const failure = await FailureArchiveService.createFailure(data);
 
       // Find similar failures for immediate feedback
@@ -165,6 +170,8 @@ export class FailureArchiveController {
 
       const result = await FailureArchiveService.searchFailures({
         ...query,
+        status: query.status as FailureStatus | undefined,
+        severity: query.severity as FailureSeverity | undefined,
         startDate: query.startDate ? new Date(query.startDate) : undefined,
         endDate: query.endDate ? new Date(query.endDate) : undefined
       });

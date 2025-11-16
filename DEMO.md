@@ -44,21 +44,17 @@ graph TD
 ```mermaid
 graph LR
     subgraph TestRunPage["Test Run Detail Page"]
-        Header[Test Run #423 - Login Suite]
-        Status[Status: FAILED - 2/15 tests failed]
-        Timeline[Execution Timeline]
+        Header[Test Run 423 Login Suite]
+        Status[Status: FAILED]
         FailedTests[Failed Tests List]
         Logs[Test Logs]
     end
 
-    FailedTests --> Test1[❌ test_login_with_invalid_credentials]
-    FailedTests --> Test2[❌ test_login_timeout]
-
-    Test1 --> Error1[Error: Connection timeout after 30s]
-    Test1 --> Stack1[Stack Trace]
-    Test1 --> SimilarAlert[🔍 Found 3 similar past failures!]
-
-    SimilarAlert --> PastFix[Last seen: 2 months ago<br/>Root Cause: DB connection pool exhausted<br/>Solution: Increase max_connections to 200]
+    FailedTests --> Test1[test_login_with_invalid_credentials]
+    FailedTests --> Test2[test_login_timeout]
+    Test1 --> Error1[Connection timeout error]
+    Test1 --> SimilarAlert[3 similar past failures found]
+    SimilarAlert --> PastFix[See RCA from 2 months ago]
 ```
 
 **Placeholder:** `screenshots/test-run-detail.png`
@@ -70,8 +66,8 @@ graph LR
 ```mermaid
 graph TD
     subgraph KnowledgeBase["Failure Knowledge Base"]
-        Header[📚 Failure Archive]
-        Search[Search & Filters]
+        Header[Failure Archive]
+        Search[Search and Filters]
         Stats2[Quick Statistics]
         FailureList[Archived Failures]
     end
@@ -81,11 +77,10 @@ graph TD
     Stats2 --> Recurring[Recurring Issues: 23]
     Stats2 --> AvgTime[Avg Resolution: 12 min]
 
-    FailureList --> Failure1["Database Connection Timeout<br/>Occurrences: 8 | Last: 2 days ago<br/>Status: DOCUMENTED"]
-    FailureList --> Failure2["Login API 500 Error<br/>Occurrences: 15 | Last: 1 week ago<br/>Status: RESOLVED"]
-    FailureList --> Failure3["Memory Leak in Payment Service<br/>Occurrences: 3 | Last: 3 weeks ago<br/>Status: INVESTIGATING"]
-
-    Failure1 --> RCA1[Root Cause Analysis Available ✅]
+    FailureList --> Failure1[Database Connection Timeout]
+    FailureList --> Failure2[Login API 500 Error]
+    FailureList --> Failure3[Memory Leak in Payment Service]
+    Failure1 --> RCA1[RCA Available]
 ```
 
 **Placeholder:** `screenshots/knowledge-base.png`
@@ -127,9 +122,9 @@ graph LR
         TopMatch[Top Match: 95% similarity]
     end
 
-    TopMatch --> Details["Failure from 2 months ago<br/>Test: test_database_connection<br/>Error: Connection timeout<br/>Status: RESOLVED"]
+    TopMatch --> Details[Failure from 2 months ago]
 
-    Details --> RCAPreview["✅ Root Cause Documented<br/>Connection pool exhausted<br/>Solution: Increase max_connections"]
+    Details --> RCAPreview[Root Cause Documented]
 
     RCAPreview --> Actions[View Full RCA | Mark as Same Issue]
 
@@ -150,9 +145,9 @@ graph TD
         Filters[Filters: All | GitHub Actions | Jenkins]
     end
 
-    List --> P1["🟢 Main CI Pipeline<br/>GitHub Actions | Last run: 5 min ago<br/>Status: PASSING"]
-    List --> P2["🔴 E2E Test Suite<br/>Jenkins | Last run: 1 hour ago<br/>Status: FAILING - 8 tests"]
-    List --> P3["🟡 Performance Tests<br/>GitHub Actions | Last run: 2 hours ago<br/>Status: FLAKY"]
+    List --> P1[Main CI Pipeline - PASSING]
+    List --> P2[E2E Test Suite - FAILING]
+    List --> P3[Performance Tests - FLAKY]
 
     P2 --> Actions[View Results | Re-run | Configure]
 ```
@@ -170,9 +165,9 @@ graph LR
         List2[Notification List]
     end
 
-    List2 --> N1["Test Run #423 Failed<br/>2 tests failed in Login Suite<br/>5 minutes ago"]
-    List2 --> N2["Similar Failure Detected<br/>DB timeout - see RCA from XYZ-456<br/>10 minutes ago"]
-    List2 --> N3["Jira Issue Created<br/>BUG-789: Login timeout investigation<br/>15 minutes ago"]
+    List2 --> N1[Test Run 423 Failed]
+    List2 --> N2[Similar Failure Detected]
+    List2 --> N3[Jira Issue Created]
 
     subgraph Integrations["Integration Status"]
         Jira[✅ Jira Connected]
@@ -192,23 +187,21 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph GrafanaDashboard["Grafana - TestOps Overview Dashboard"]
-        Header[TestOps Companion Metrics]
-        TimeRange[Time Range: Last 6 hours | Auto-refresh: 30s]
-        Row1[Top Row - Key Metrics]
-        Row2[Middle Row - Trends]
-        Row3[Bottom Row - Performance]
+    subgraph GrafanaDashboard["Grafana TestOps Overview Dashboard"]
+        Row1[Key Metrics Row]
+        Row2[Trends Row]
+        Row3[Performance Row]
     end
 
-    Row1 --> Stat1["Total Test Runs<br/>1,245<br/>↑ 12% this week"]
-    Row1 --> Gauge1["Pass Rate<br/>94.2%<br/>🟢 Healthy"]
-    Row1 --> Stat2["Failures Archived<br/>347 failures<br/>298 with RCA"]
-    Row1 --> Gauge2["RCA Coverage<br/>86%<br/>🟡 Good"]
+    Row1 --> Stat1[Total Test Runs: 1245]
+    Row1 --> Gauge1[Pass Rate: 94.2%]
+    Row1 --> Stat2[Failures Archived: 347]
+    Row1 --> Gauge2[RCA Coverage: 86%]
 
-    Row2 --> LineChart["Test Runs Over Time<br/>Passed: Green line trending up<br/>Failed: Red line stable"]
-    Row2 --> PieChart["Top Failing Tests<br/>DB Timeout: 35%<br/>Auth Error: 25%<br/>Memory: 15%<br/>Other: 25%"]
+    Row2 --> LineChart[Test Runs Over Time]
+    Row2 --> PieChart[Top Failing Tests]
 
-    Row3 --> PerfChart["Execution Time Percentiles<br/>P50: 2.3s | P95: 5.1s | P99: 8.7s<br/>Time series showing stable performance"]
+    Row3 --> PerfChart[Execution Time Percentiles]
 ```
 
 **Metrics Dashboard Panels:**
@@ -252,7 +245,7 @@ sequenceDiagram
     KnowledgeBase->>User: "🔍 3 similar failures found!"
     User->>RCA: Clicks "View RCA"
     RCA->>User: Shows previous solution
-    Note over User,RCA: Resolution in 5 minutes<br/>instead of 2 hours!
+    Note over User,RCA: Resolution in 5 minutes instead of 2 hours
 ```
 
 **Placeholder:** `screenshots/workflow-investigation.png`
@@ -302,7 +295,7 @@ graph TB
     Title --> Day6["Sat: 98% pass"]
     Title --> Day7["Sun: 95% pass"]
 
-    Day3 --> Insight[Insight: Wednesday spike in failures<br/>Pattern: Weekly data refresh job]
+    Day3 --> Insight[Insight: Wednesday spike in failures]
 ```
 
 **Placeholder:** `screenshots/test-trends.png`
