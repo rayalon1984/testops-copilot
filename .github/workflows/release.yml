@@ -21,34 +21,64 @@ jobs:
       id: get_version
       run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-    - name: Generate changelog
+    - name: Extract release notes from CHANGELOG
       id: changelog
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const { data: commits } = await github.rest.repos.compareCommits({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            base: 'v${{ steps.get_version.outputs.version }}^',
-            head: 'v${{ steps.get_version.outputs.version }}'
-          });
-          
-          const changelog = commits.commits
-            .map(commit => `- ${commit.commit.message}`)
-            .join('\n');
-          
-          return changelog;
+      run: |
+        VERSION="${{ steps.get_version.outputs.version }}"
+
+        # Extract release notes from CHANGELOG.md for this version
+        awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | \
+          sed '/## \[/d' | \
+          sed '/^$/d' | \
+          head -n -1 > release_notes.txt
+
+        # If no release notes found in CHANGELOG, generate from commits
+        if [ ! -s release_notes.txt ]; then
+          echo "**Changes in this release:**" > release_notes.txt
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> release_notes.txt
+        fi
+
+        # Save for next step
+        cat release_notes.txt
+        {
+          echo "RELEASE_NOTES<<EOF"
+          cat release_notes.txt
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
 
     - name: Create Release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.get_version.outputs.version }}
-        body: ${{ steps.changelog.outputs.result }}
+        name: TestOps Companion v${{ steps.get_version.outputs.version }}
+        body: |
+          ## 🎉 TestOps Companion v${{ steps.get_version.outputs.version }}
+
+          ${{ steps.changelog.outputs.RELEASE_NOTES }}
+
+          ### 📦 Installation
+
+          ```bash
+          git clone https://github.com/${{ github.repository }}.git
+          cd testops-companion
+          git checkout v${{ steps.get_version.outputs.version }}
+          npm run setup
+          ```
+
+          ### 🐳 Docker Images
+
+          ```bash
+          docker pull ghcr.io/${{ github.repository }}/backend:${{ steps.get_version.outputs.version }}
+          docker pull ghcr.io/${{ github.repository }}/frontend:${{ steps.get_version.outputs.version }}
+          ```
+
+          ### 📖 Documentation
+
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/CHANGELOG.md) for complete details.
         draft: false
-        prerelease: false
+        prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
+        generate_release_notes: true
 
   docker:
     name: Build and Push Docker Images

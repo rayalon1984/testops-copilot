@@ -187,8 +187,9 @@ Break-even: Less than 1 week
 
 **Step 1: Connect Your Tools**
 - Plug in your GitHub/Jenkins (where tests run)
-- Add your Jira (where bugs go)
+- Add your Jira or Monday.com (where bugs and tasks go)
 - Connect Slack/Email (where alerts go)
+- Set up Grafana (where you visualize trends)
 
 **Step 2: Tests Run Automatically**
 - Your existing tests keep running like normal
@@ -206,10 +207,44 @@ Break-even: Less than 1 week
 
 ---
 
+---
+
+## 🎯 Key Integrations
+
+**TestOps Companion works with the tools you already use:**
+
+### CI/CD Platforms
+- GitHub Actions - Automatic test result collection
+- Jenkins - Full pipeline integration
+
+### Work Management
+- **Jira** - Auto-create tickets from failures
+- **Monday.com** - Work OS integration for task tracking
+
+### Notifications
+- **Slack** - Instant failure alerts to channels
+- **Email** - Customizable email notifications
+- **Pushover** - Mobile push notifications
+
+### Monitoring & Observability
+- **Grafana & Prometheus** - Real-time metrics visualization
+  - Pre-built dashboards for test health
+  - 20+ metrics: pass rates, execution times, RCA coverage
+  - Custom alerting for failure spikes
+  - Performance trend analysis
+
+### Knowledge Management
+- **Failure Knowledge Base** - Never re-investigate the same issue
+  - 95% faster resolution for known problems
+  - Smart failure matching
+  - Root cause documentation
+
+---
+
 ## 🤝 Common Questions
 
 ### "Isn't this just another tool to learn?"
-**No!** It works with your existing tools. Your team keeps using GitHub, Jira, Slack - TestOps Companion just connects them together so information flows automatically.
+**No!** It works with your existing tools. Your team keeps using GitHub, Jira, Monday.com, Slack, and Grafana - TestOps Companion just connects them together so information flows automatically.
 
 ### "How long until we see results?"
 **Day 1.** The first time a test fails and your team gets an instant alert with all the details, they'll get it.
@@ -234,8 +269,9 @@ After implementing TestOps Companion, measure these:
 - Time to detect test failures: **4-8 hours → 5 minutes**
 - Time to file bug tickets: **30 min/bug → automatic**
 - Team asking "are tests passing?": **5x/day → never**
-- Test failure investigation time: **1-2 hours → 15 minutes**
+- Test failure investigation time: **2 hours → 5 minutes** (95% faster with Knowledge Base)
 - Bugs caught before production: **70% → 95%**
+- Visibility into test trends: **None → Real-time Grafana dashboards**
 
 ---
 

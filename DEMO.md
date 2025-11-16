@@ -44,21 +44,17 @@ graph TD
 ```mermaid
 graph LR
     subgraph TestRunPage["Test Run Detail Page"]
-        Header[Test Run #423 - Login Suite]
-        Status[Status: FAILED - 2/15 tests failed]
-        Timeline[Execution Timeline]
+        Header[Test Run 423 Login Suite]
+        Status[Status: FAILED]
         FailedTests[Failed Tests List]
         Logs[Test Logs]
     end
 
-    FailedTests --> Test1[❌ test_login_with_invalid_credentials]
-    FailedTests --> Test2[❌ test_login_timeout]
-
-    Test1 --> Error1[Error: Connection timeout after 30s]
-    Test1 --> Stack1[Stack Trace]
-    Test1 --> SimilarAlert[🔍 Found 3 similar past failures!]
-
-    SimilarAlert --> PastFix[Last seen: 2 months ago<br/>Root Cause: DB connection pool exhausted<br/>Solution: Increase max_connections to 200]
+    FailedTests --> Test1[test_login_with_invalid_credentials]
+    FailedTests --> Test2[test_login_timeout]
+    Test1 --> Error1[Connection timeout error]
+    Test1 --> SimilarAlert[3 similar past failures found]
+    SimilarAlert --> PastFix[See RCA from 2 months ago]
 ```
 
 **Placeholder:** `screenshots/test-run-detail.png`
@@ -70,8 +66,8 @@ graph LR
 ```mermaid
 graph TD
     subgraph KnowledgeBase["Failure Knowledge Base"]
-        Header[📚 Failure Archive]
-        Search[Search & Filters]
+        Header[Failure Archive]
+        Search[Search and Filters]
         Stats2[Quick Statistics]
         FailureList[Archived Failures]
     end
@@ -81,11 +77,10 @@ graph TD
     Stats2 --> Recurring[Recurring Issues: 23]
     Stats2 --> AvgTime[Avg Resolution: 12 min]
 
-    FailureList --> Failure1["Database Connection Timeout<br/>Occurrences: 8 | Last: 2 days ago<br/>Status: DOCUMENTED"]
-    FailureList --> Failure2["Login API 500 Error<br/>Occurrences: 15 | Last: 1 week ago<br/>Status: RESOLVED"]
-    FailureList --> Failure3["Memory Leak in Payment Service<br/>Occurrences: 3 | Last: 3 weeks ago<br/>Status: INVESTIGATING"]
-
-    Failure1 --> RCA1[Root Cause Analysis Available ✅]
+    FailureList --> Failure1[Database Connection Timeout]
+    FailureList --> Failure2[Login API 500 Error]
+    FailureList --> Failure3[Memory Leak in Payment Service]
+    Failure1 --> RCA1[RCA Available]
 ```
 
 **Placeholder:** `screenshots/knowledge-base.png`
@@ -127,9 +122,9 @@ graph LR
         TopMatch[Top Match: 95% similarity]
     end
 
-    TopMatch --> Details["Failure from 2 months ago<br/>Test: test_database_connection<br/>Error: Connection timeout<br/>Status: RESOLVED"]
+    TopMatch --> Details[Failure from 2 months ago]
 
-    Details --> RCAPreview["✅ Root Cause Documented<br/>Connection pool exhausted<br/>Solution: Increase max_connections"]
+    Details --> RCAPreview[Root Cause Documented]
 
     RCAPreview --> Actions[View Full RCA | Mark as Same Issue]
 
@@ -150,9 +145,9 @@ graph TD
         Filters[Filters: All | GitHub Actions | Jenkins]
     end
 
-    List --> P1["🟢 Main CI Pipeline<br/>GitHub Actions | Last run: 5 min ago<br/>Status: PASSING"]
-    List --> P2["🔴 E2E Test Suite<br/>Jenkins | Last run: 1 hour ago<br/>Status: FAILING - 8 tests"]
-    List --> P3["🟡 Performance Tests<br/>GitHub Actions | Last run: 2 hours ago<br/>Status: FLAKY"]
+    List --> P1[Main CI Pipeline - PASSING]
+    List --> P2[E2E Test Suite - FAILING]
+    List --> P3[Performance Tests - FLAKY]
 
     P2 --> Actions[View Results | Re-run | Configure]
 ```
@@ -170,19 +165,63 @@ graph LR
         List2[Notification List]
     end
 
-    List2 --> N1["Test Run #423 Failed<br/>2 tests failed in Login Suite<br/>5 minutes ago"]
-    List2 --> N2["Similar Failure Detected<br/>DB timeout - see RCA from XYZ-456<br/>10 minutes ago"]
-    List2 --> N3["Jira Issue Created<br/>BUG-789: Login timeout investigation<br/>15 minutes ago"]
+    List2 --> N1[Test Run 423 Failed]
+    List2 --> N2[Similar Failure Detected]
+    List2 --> N3[Jira Issue Created]
 
     subgraph Integrations["Integration Status"]
         Jira[✅ Jira Connected]
         Slack[✅ Slack Notifications Active]
         GitHub2[✅ GitHub Actions Linked]
         Email[✅ Email Alerts On]
+        Grafana[✅ Grafana Metrics Enabled]
+        Monday[✅ Monday.com Synced]
     end
 ```
 
 **Placeholder:** `screenshots/notifications.png`
+
+---
+
+### 7. Grafana Metrics Dashboard
+
+```mermaid
+graph TB
+    subgraph GrafanaDashboard["Grafana TestOps Overview Dashboard"]
+        Row1[Key Metrics Row]
+        Row2[Trends Row]
+        Row3[Performance Row]
+    end
+
+    Row1 --> Stat1[Total Test Runs: 1245]
+    Row1 --> Gauge1[Pass Rate: 94.2%]
+    Row1 --> Stat2[Failures Archived: 347]
+    Row1 --> Gauge2[RCA Coverage: 86%]
+
+    Row2 --> LineChart[Test Runs Over Time]
+    Row2 --> PieChart[Top Failing Tests]
+
+    Row3 --> PerfChart[Execution Time Percentiles]
+```
+
+**Metrics Dashboard Panels:**
+1. **Total Test Runs** - Stat panel showing cumulative count with trend
+2. **Pass Rate Gauge** - Visual health indicator (green >90%, yellow 70-90%, red <70%)
+3. **Failures Archived** - Knowledge base size with RCA documentation count
+4. **RCA Coverage** - Percentage of failures with documented root causes
+5. **Test Runs Over Time** - Time series comparing passed vs failed tests
+6. **Top Failing Tests** - Pie chart of most common failures
+7. **Execution Time Percentiles** - P50, P95, P99 performance tracking
+
+**Prometheus Metrics Exposed:**
+- `testops_test_runs_total` - Total number of test runs
+- `testops_pass_rate_percent` - Current pass rate (0-100%)
+- `testops_execution_time_p95_seconds` - 95th percentile execution time
+- `testops_rca_coverage_percent` - RCA documentation coverage
+- `testops_test_failures_count{test_name="..."}` - Per-test failure counts
+- And 15+ more metrics for comprehensive monitoring
+
+**Placeholder:** `screenshots/grafana-dashboard.png`
 
 ---
 
@@ -206,7 +245,7 @@ sequenceDiagram
     KnowledgeBase->>User: "🔍 3 similar failures found!"
     User->>RCA: Clicks "View RCA"
     RCA->>User: Shows previous solution
-    Note over User,RCA: Resolution in 5 minutes<br/>instead of 2 hours!
+    Note over User,RCA: Resolution in 5 minutes instead of 2 hours
 ```
 
 **Placeholder:** `screenshots/workflow-investigation.png`
@@ -256,7 +295,7 @@ graph TB
     Title --> Day6["Sat: 98% pass"]
     Title --> Day7["Sun: 95% pass"]
 
-    Day3 --> Insight[Insight: Wednesday spike in failures<br/>Pattern: Weekly data refresh job]
+    Day3 --> Insight[Insight: Wednesday spike in failures]
 ```
 
 **Placeholder:** `screenshots/test-trends.png`
@@ -342,9 +381,11 @@ When creating actual demo videos, cover these scenarios:
 ### 3. **Integration Demo (2 minutes)**
 - Configure Jira integration
 - Configure Slack notifications
+- Set up Grafana dashboard
 - Test fails → Jira ticket auto-created
 - Team receives Slack alert
 - Similar failure alert shows up
+- Metrics update in real-time on Grafana
 
 ### 4. **Knowledge Base Tour (3 minutes)**
 - Browse archived failures
@@ -352,6 +393,14 @@ When creating actual demo videos, cover these scenarios:
 - View statistics and insights
 - See recurring failure patterns
 - Export data
+
+### 5. **Grafana Metrics Demo (2 minutes)**
+- View real-time test metrics dashboard
+- Explore pass rate trends over time
+- Check execution time percentiles (P50, P95, P99)
+- Review RCA coverage gauge
+- See top failing tests breakdown
+- Configure custom alerts for failure spikes
 
 ---
 
@@ -370,13 +419,19 @@ When capturing actual screenshots, include:
 - [ ] Pipeline management page
 - [ ] Notification center
 - [ ] Settings page with integrations
+- [ ] Grafana metrics dashboard (full view)
+- [ ] Grafana pass rate gauge
+- [ ] Grafana execution time trends
 
 ### Feature Highlights:
 - [ ] Smart matching in action (side-by-side comparison)
 - [ ] Jira integration working (ticket creation)
+- [ ] Monday.com integration (item creation)
 - [ ] Slack notification example
 - [ ] Search and filter functionality
 - [ ] Pattern detection results
+- [ ] Grafana real-time metrics update
+- [ ] Prometheus metrics endpoint response
 - [ ] Mobile responsive views
 
 ### Before/After Comparisons:
@@ -461,11 +516,22 @@ screenshots/
 ├── integrations/
 │   ├── jira-config.png
 │   ├── slack-notification.png
-│   └── github-actions.png
+│   ├── monday-config.png
+│   ├── github-actions.png
+│   └── grafana-datasource.png
+├── grafana/
+│   ├── dashboard-overview.png
+│   ├── pass-rate-gauge.png
+│   ├── test-trends-graph.png
+│   ├── execution-time-percentiles.png
+│   ├── top-failures-piechart.png
+│   ├── rca-coverage-gauge.png
+│   └── prometheus-metrics-endpoint.png
 ├── workflows/
 │   ├── investigation-flow.gif
 │   ├── documentation-flow.gif
-│   └── resolution-flow.gif
+│   ├── resolution-flow.gif
+│   └── metrics-monitoring-flow.gif
 └── mobile/
     ├── dashboard-mobile.png
     ├── notifications-mobile.png

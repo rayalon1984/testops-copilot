@@ -63,6 +63,7 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 - **🔗 Powerful Integrations**
   - **Jira**: Automatic issue creation and synchronization
   - **Monday.com**: Work OS integration for task management
+  - **Grafana & Prometheus**: Metrics visualization and alerting
   - **GitHub**: Workflow triggers and status updates
   - **Slack**: Real-time notifications and alerts
   - **Email**: Customizable notification templates
@@ -328,6 +329,35 @@ MONDAY_WORKSPACE_ID=987654321                # Optional: Workspace
 ```
 
 📖 [Full Monday.com Integration Guide](docs/integrations/monday.md)
+
+### Grafana & Prometheus Integration
+
+Visualize test metrics and set up alerts with industry-standard monitoring tools.
+
+**Features:**
+- Prometheus metrics endpoint at `/metrics`
+- Pre-built Grafana dashboards
+- Real-time test metrics visualization
+- Custom alerting rules
+- Performance tracking and analysis
+
+**Configuration:**
+```bash
+# Metrics are automatically exposed at:
+http://localhost:3000/metrics
+
+# Configure Prometheus to scrape metrics
+# See docs/integrations/grafana.md for setup
+```
+
+**Metrics Exposed:**
+- Test run counts and rates
+- Pass/fail percentages
+- Execution time percentiles
+- RCA coverage statistics
+- Integration metrics (Jira, Monday, notifications)
+
+📖 [Full Grafana Integration Guide](docs/integrations/grafana.md)
 
 ### GitHub Integration
 
