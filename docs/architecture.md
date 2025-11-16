@@ -190,10 +190,11 @@ sequenceDiagram
 - Email notifications
 - Pushover notifications
 
-### Issue Tracking
-- Jira integration with automatic issue creation
+### Issue Tracking & Project Management
+- **Jira**: Automatic issue creation, bi-directional sync, custom field mapping
+- **Monday.com**: Work OS integration, automatic item creation from failures, GraphQL API
 - Link failures to existing issues
-- Bi-directional status synchronization
+- Search and prevent duplicate entries
 
 ## Monitoring and Logging
 

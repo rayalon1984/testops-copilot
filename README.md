@@ -62,6 +62,7 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 
 - **🔗 Powerful Integrations**
   - **Jira**: Automatic issue creation and synchronization
+  - **Monday.com**: Work OS integration for task management
   - **GitHub**: Workflow triggers and status updates
   - **Slack**: Real-time notifications and alerts
   - **Email**: Customizable notification templates
@@ -308,6 +309,25 @@ JIRA_DEFAULT_ISSUE_TYPE=Bug
 ```
 
 📖 [Full Jira Integration Guide](docs/integrations/jira.md)
+
+### Monday.com Integration
+
+Integrate with Monday.com Work OS to manage test failures and track issues.
+
+**Features:**
+- Automatic item creation from test failures
+- Add detailed failure information as updates
+- Search and link similar issues
+- Bi-directional sync with test status
+
+**Configuration:**
+```env
+MONDAY_API_TOKEN=your_monday_api_token
+MONDAY_BOARD_ID=123456789                    # Optional: Default board
+MONDAY_WORKSPACE_ID=987654321                # Optional: Workspace
+```
+
+📖 [Full Monday.com Integration Guide](docs/integrations/monday.md)
 
 ### GitHub Integration
 
