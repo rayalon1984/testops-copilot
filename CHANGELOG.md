@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Demo guide with visual mockups
 - Quickstart guide improvements
 
-## [1.1.0] - 2025-11-16
+## [2.5.0] - 2025-11-16
 
 ### Added
 - **Grafana & Prometheus Integration**: Complete monitoring and metrics visualization

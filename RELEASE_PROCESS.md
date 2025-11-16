@@ -11,7 +11,7 @@ TestOps Companion follows [Semantic Versioning](https://semver.org/):
 
 ## Current Version
 
-**Latest Release:** v1.1.0 (2025-11-16)
+**Latest Release:** v2.5.0 (2025-11-16)
 
 ## Release Checklist
 
