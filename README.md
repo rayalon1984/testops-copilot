@@ -3,7 +3,7 @@
 > A comprehensive test operations platform for managing CI/CD pipelines, tracking test results, and analyzing failures across your entire testing infrastructure.
 
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
 
 ## 📋 Table of Contents
@@ -571,7 +571,14 @@ npm run build          # Build verification
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+Apache License 2.0 is a permissive open source license that:
+- ✅ Allows commercial use
+- ✅ Allows modification and distribution
+- ✅ Includes patent grant for protection
+- ✅ Requires preserving copyright and license notices
+- ✅ Provides clear terms for contributions
 
 ## 👨‍💻 Author
 
