@@ -2,11 +2,11 @@
  * Failure Archive Routes
  */
 
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { FailureArchiveController } from '../controllers/failure-archive.controller';
 import { asMiddleware } from '../types/middleware';
 
-const router = Router();
+const router: RouterType = Router();
 
 // Create failure archive entry
 router.post('/', asMiddleware(FailureArchiveController.createFailure));

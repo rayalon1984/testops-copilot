@@ -4,53 +4,153 @@
 
 This guide covers monitoring, logging, and observability practices for TestOps Companion.
 
-## Monitoring Stack
+## Grafana & Prometheus Integration
 
-- Prometheus for metrics collection
-- Grafana for visualization
-- Sentry for error tracking
-- Winston for logging
-- New Relic for APM (optional)
+TestOps Companion includes a **built-in Grafana and Prometheus integration** for comprehensive test metrics visualization and monitoring.
+
+### Quick Start
+
+For complete setup instructions, see the [Grafana Integration Guide](integrations/grafana.md).
+
+**Key Features:**
+- Pre-built Grafana dashboard with 7 visualization panels
+- Prometheus metrics endpoint at `/metrics`
+- 20+ test metrics automatically exposed
+- Real-time monitoring of test health and performance
+- Custom alerting for failure rate spikes
+
+### Metrics Endpoint
+
+TestOps Companion exposes test metrics in Prometheus format:
+
+```bash
+# Prometheus metrics endpoint
+curl http://localhost:3000/metrics
+```
+
+**Available Metrics:**
+- `testops_test_runs_total` - Total number of test runs
+- `testops_pass_rate_percent` - Current pass rate (0-100%)
+- `testops_failed_tests_total` - Total failed tests
+- `testops_flaky_tests_total` - Total flaky tests
+- `testops_execution_time_p50_seconds` - 50th percentile execution time
+- `testops_execution_time_p95_seconds` - 95th percentile execution time
+- `testops_execution_time_p99_seconds` - 99th percentile execution time
+- `testops_rca_coverage_percent` - RCA documentation coverage
+- `testops_test_failures_count{test_name="..."}` - Per-test failure counts
+- And more... See [full metrics list](integrations/grafana.md#available-metrics)
+
+### JSON API Endpoints
+
+In addition to Prometheus format, TestOps Companion provides JSON endpoints:
+
+```bash
+# Get metrics summary
+curl http://localhost:3000/api/v1/metrics/summary
+
+# Get top failing tests
+curl http://localhost:3000/api/v1/metrics/top-failures
+
+# Health check
+curl http://localhost:3000/api/v1/metrics/health
+```
+
+### Pre-built Dashboard
+
+Import the pre-built Grafana dashboard from `grafana-dashboards/testops-overview.json`:
+
+**Dashboard Panels:**
+1. Total Test Runs (stat with trend)
+2. Pass Rate Gauge (0-100% with thresholds)
+3. Test Runs Over Time (passed vs failed trends)
+4. Failures Archived (knowledge base size)
+5. RCA Coverage (documentation percentage)
+6. Top Failing Tests (pie chart breakdown)
+7. Execution Time Percentiles (P50, P95, P99)
+
+See [complete Grafana setup guide](integrations/grafana.md).
+
+---
+
+## Additional Monitoring Tools
+
+Beyond the built-in Grafana integration, you can enhance monitoring with:
+
+- **Sentry** for error tracking
+- **Winston** for application logging (already integrated)
+- **New Relic** for APM (optional)
+
+## Monitoring Stack
 
 ## Application Metrics
 
-### Key Metrics
+### Built-in Test Metrics
 
-1. Pipeline Metrics
+TestOps Companion automatically collects and exposes test-related metrics via the **MetricsService** (`backend/src/services/metrics.service.ts`):
+
+```typescript
+// Automatically collected metrics
+export interface TestMetrics {
+  totalTestRuns: number;
+  passedTestRuns: number;
+  failedTestRuns: number;
+  flakyTestRuns: number;
+  avgExecutionTime: number;
+  p50ExecutionTime: number;
+  p95ExecutionTime: number;
+  p99ExecutionTime: number;
+  passRate: number;
+  failureRate: number;
+  flakyTestRate: number;
+  totalFailuresArchived: number;
+  documentedRCAs: number;
+  rcaCoverageRate: number;
+  // ... and more
+}
+```
+
+### Metrics Service Implementation
+
+The MetricsService collects data from the Prisma database:
+
 ```typescript
 // backend/src/services/metrics.service.ts
-const pipelineMetrics = {
-  executionTime: new Gauge({
-    name: 'pipeline_execution_time_seconds',
-    help: 'Pipeline execution time in seconds',
-    labelNames: ['pipeline_id', 'type']
-  }),
-  successRate: new Gauge({
-    name: 'pipeline_success_rate_percent',
-    help: 'Pipeline success rate percentage',
-    labelNames: ['pipeline_id']
-  })
-};
+export class MetricsService {
+  // Collect global metrics
+  static async getGlobalMetrics(timeRange?: MetricsTimeRange): Promise<TestMetrics>
+
+  // Export in Prometheus format
+  static async exportPrometheusMetrics(options: PrometheusExportOptions): Promise<string>
+
+  // Get top failing tests
+  static async getTopFailingTests(limit: number = 10): Promise<FailureMetric[]>
+}
 ```
 
-2. Test Metrics
+### Metrics Controller
+
+Access metrics via REST API (`backend/src/controllers/metrics.controller.ts`):
+
 ```typescript
-const testMetrics = {
-  testCount: new Counter({
-    name: 'test_total_count',
-    help: 'Total number of tests executed',
-    labelNames: ['status']
-  }),
-  flakyTests: new Gauge({
-    name: 'test_flaky_count',
-    help: 'Number of flaky tests',
-    labelNames: ['pipeline_id']
-  })
-};
+// GET /metrics - Prometheus format
+MetricsController.getPrometheusMetrics()
+
+// GET /api/v1/metrics/summary - JSON format
+MetricsController.getMetricsSummary()
+
+// GET /api/v1/metrics/top-failures - Top failing tests
+MetricsController.getTopFailures()
+
+// GET /api/v1/metrics/health - Health check
+MetricsController.getHealth()
 ```
 
-3. API Metrics
+### Custom Metrics (Optional)
+
+You can extend the metrics system with custom application metrics:
+
 ```typescript
+// Example: Custom API metrics
 const apiMetrics = {
   requestDuration: new Histogram({
     name: 'http_request_duration_seconds',
@@ -63,25 +163,6 @@ const apiMetrics = {
     labelNames: ['method', 'route', 'status_code']
   })
 };
-```
-
-### Metric Collection
-
-```typescript
-// Middleware for collecting HTTP metrics
-app.use((req, res, next) => {
-  const start = process.hrtime();
-  
-  res.on('finish', () => {
-    const duration = process.hrtime(start);
-    apiMetrics.requestDuration.observe(
-      { method: req.method, route: req.route?.path, status_code: res.statusCode },
-      duration[0] + duration[1] / 1e9
-    );
-  });
-  
-  next();
-});
 ```
 
 ## Logging
@@ -206,34 +287,55 @@ newrelic.recordMetric('Custom/Tests/FlakyCount', flakyTests.length);
 
 ## Alerting
 
-### Alert Rules
+### Pre-configured Alert Examples
 
-1. Pipeline Failures
+TestOps Companion documentation includes alert examples for common scenarios. See [Grafana integration guide - Alerting](integrations/grafana.md#alerting-configuration).
+
+**Example Alerts:**
+
+1. **High Failure Rate Alert**
 ```yaml
-# prometheus/alerts/pipeline.yml
+# Alert when pass rate drops below 80%
 groups:
-  - name: pipeline
+  - name: testops_alerts
     rules:
-      - alert: HighPipelineFailureRate
-        expr: pipeline_success_rate_percent < 80
-        for: 1h
+      - alert: HighTestFailureRate
+        expr: testops_pass_rate_percent < 80
+        for: 15m
         labels:
           severity: warning
         annotations:
-          summary: High pipeline failure rate
+          summary: "Test pass rate below 80%"
+          description: "Current pass rate: {{ $value }}%"
 ```
 
-2. API Health
+2. **RCA Coverage Alert**
 ```yaml
-groups:
-  - name: api
-    rules:
-      - alert: HighErrorRate
-        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.1
-        for: 5m
-        labels:
-          severity: critical
+# Alert when RCA documentation coverage is low
+- alert: LowRCACoverage
+  expr: testops_rca_coverage_percent < 70
+  for: 1h
+  labels:
+    severity: warning
+  annotations:
+    summary: "Low RCA documentation coverage"
+    description: "Only {{ $value }}% of failures have documented RCAs"
 ```
+
+3. **Performance Degradation Alert**
+```yaml
+# Alert when P95 execution time increases significantly
+- alert: TestPerformanceDegradation
+  expr: testops_execution_time_p95_seconds > 10
+  for: 30m
+  labels:
+    severity: critical
+  annotations:
+    summary: "Test execution time degradation"
+    description: "P95 execution time: {{ $value }}s (threshold: 10s)"
+```
+
+See [complete alerting guide](integrations/grafana.md#alerting-configuration) for more examples.
 
 ### Alert Channels
 
@@ -264,33 +366,59 @@ const sendEmailAlert = async (alert: Alert) => {
 
 ## Dashboards
 
-### Grafana Dashboards
+### Pre-built Grafana Dashboard
 
-1. Pipeline Overview
-- Success rate over time
-- Average execution time
-- Test results distribution
-- Flaky test trends
+TestOps Companion includes a **pre-built Grafana dashboard** at `grafana-dashboards/testops-overview.json`.
 
-2. API Performance
-- Request rate
-- Response times
-- Error rates
-- Status code distribution
+**Import Instructions:**
+1. Open Grafana
+2. Go to Dashboards → Import
+3. Upload `grafana-dashboards/testops-overview.json`
+4. Select your Prometheus datasource
+5. Click Import
 
-3. System Health
-- CPU usage
-- Memory usage
-- Database connections
-- Cache hit rates
+**Dashboard Includes:**
+1. **Test Health Overview**
+   - Total test runs with trend indicator
+   - Pass rate gauge (0-100%)
+   - Test runs over time (passed vs failed)
+
+2. **Failure Analysis**
+   - Failures archived count
+   - RCA coverage percentage
+   - Top failing tests breakdown (pie chart)
+
+3. **Performance Metrics**
+   - Execution time percentiles (P50, P95, P99)
+   - Performance trends over time
+
+**Auto-refresh:** 30 seconds
+**Time range:** Last 6 hours (configurable)
+
+See [complete dashboard documentation](integrations/grafana.md#pre-built-dashboard).
+
+### Custom Dashboards
+
+Create custom dashboards using PromQL queries:
+
+```promql
+# Example: Pass rate over time
+testops_pass_rate_percent
+
+# Example: P95 execution time
+testops_execution_time_p95_seconds
+
+# Example: RCA coverage trend
+testops_rca_coverage_percent
+```
 
 ### Dashboard Export
 
 ```bash
-# Export dashboard
+# Export custom dashboard
 curl -H "Authorization: Bearer ${GRAFANA_API_KEY}" \
      http://localhost:3000/api/dashboards/uid/${DASHBOARD_UID} \
-     > dashboards/pipeline-overview.json
+     > dashboards/custom-dashboard.json
 ```
 
 ## Health Checks

@@ -1,6 +1,6 @@
 {
   "name": "testops-companion",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A comprehensive test operations companion for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,7 @@
     "dashboard"
   ],
   "author": "Rotem Ayalon",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",

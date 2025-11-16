@@ -22,7 +22,9 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### API & Integration
 - [API Documentation](api.md) - REST API reference
-- [Integration Guide](integration.md) - Third-party integrations
+- [Jira Integration](integrations/jira.md) - Jira ticket creation and tracking
+- [Monday.com Integration](integrations/monday.md) - Monday.com Work OS integration
+- [Grafana Integration](integrations/grafana.md) - Prometheus metrics and Grafana dashboards
 - [Authentication](authentication.md) - Authentication and authorization
 
 ### Operations
@@ -114,12 +116,26 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - Performance metrics
 - Custom reports
 
-### Integration
+### Integrations
+
+#### CI/CD Platforms
 - Jenkins integration
 - GitHub Actions
-- Custom CI/CD systems
-- Test management tools
-- Notification services
+
+#### Work Management
+- **Jira** - Automatic issue creation and tracking
+- **Monday.com** - Work OS integration for task management
+
+#### Monitoring & Observability
+- **Grafana & Prometheus** - Real-time metrics visualization and alerting
+  - Pre-built dashboards
+  - 20+ test metrics
+  - Custom alerting rules
+
+#### Notifications
+- Email notifications
+- Slack integration
+- Pushover alerts
 
 ## 🔧 Configuration
 
