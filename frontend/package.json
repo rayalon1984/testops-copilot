@@ -78,6 +78,10 @@
     ]
   },
   "resolutions": {
-    "vite": "^4.5.2"
+    "vite": "^4.5.2",
+    "eslint": "^8.56.0"
+  },
+  "overrides": {
+    "eslint": "^8.56.0"
   }
 }
