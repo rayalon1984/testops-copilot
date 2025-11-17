@@ -330,6 +330,27 @@ MONDAY_WORKSPACE_ID=987654321                # Optional: Workspace
 
 📖 [Full Monday.com Integration Guide](docs/integrations/monday.md)
 
+### TestRail Integration
+
+Integrate with TestRail test case management system for automated test result synchronization.
+
+**Features:**
+- Automatic test run creation in TestRail
+- Sync test results (pass/fail status, execution time, errors)
+- Link test executions to test cases
+- Support for test suites, milestones, and projects
+- Bi-directional test case mapping
+
+**Configuration:**
+```env
+TESTRAIL_BASE_URL=https://your-company.testrail.io
+TESTRAIL_USERNAME=your-email@example.com
+TESTRAIL_API_KEY=your-api-key
+TESTRAIL_PROJECT_ID=1                             # Optional: Default project
+```
+
+📖 [Full TestRail Integration Guide](docs/integrations/testrail.md)
+
 ### Grafana & Prometheus Integration
 
 Visualize test metrics and set up alerts with industry-standard monitoring tools.

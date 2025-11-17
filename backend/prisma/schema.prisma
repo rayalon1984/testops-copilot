@@ -277,3 +277,45 @@ model FailurePattern {
   @@index([signature])
   @@index([isActive])
 }
+
+// TestRail Integration Models
+model TestRailConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  username      String
+  apiKey        String
+  projectId     Int?
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model TestRailRun {
+  id              String    @id @default(uuid())
+  testRunId       String    @unique    // Our internal test run ID
+  testRailRunId   Int                  // TestRail's run ID
+  projectId       Int
+  suiteId         Int
+  name            String
+  description     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([testRunId])
+  @@index([testRailRunId])
+}
+
+model TestRailSync {
+  id              String    @id @default(uuid())
+  testRunId       String
+  testRailRunId   Int
+  syncedAt        DateTime  @default(now())
+  status          String    // 'success', 'failed', 'partial'
+  resultCount     Int       @default(0)
+  error           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([testRunId])
+  @@index([syncedAt])
+}

@@ -41,6 +41,12 @@ const envSchema = z.object({
   JIRA_PROJECT_KEY: z.string().optional(),
   JIRA_DEFAULT_ISSUE_TYPE: z.string().default('Bug'),
   JIRA_DEBUG: z.string().transform(val => val === 'true').default('false'),
+
+  // TestRail (optional)
+  TESTRAIL_BASE_URL: z.string().optional(),
+  TESTRAIL_USERNAME: z.string().optional(),
+  TESTRAIL_API_KEY: z.string().optional(),
+  TESTRAIL_PROJECT_ID: z.string().transform(Number).optional(),
   
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
@@ -112,6 +118,12 @@ export interface Config {
     defaultIssueType: string;
     debug: boolean;
   };
+  testrail?: {
+    baseUrl: string;
+    username: string;
+    apiKey: string;
+    projectId?: number;
+  };
   log: {
     level: string;
     format: string;
@@ -174,6 +186,14 @@ export const config: Config = {
       projectKey: env.JIRA_PROJECT_KEY,
       defaultIssueType: env.JIRA_DEFAULT_ISSUE_TYPE,
       debug: env.JIRA_DEBUG,
+    },
+  }),
+  ...(env.TESTRAIL_BASE_URL && env.TESTRAIL_USERNAME && env.TESTRAIL_API_KEY && {
+    testrail: {
+      baseUrl: env.TESTRAIL_BASE_URL,
+      username: env.TESTRAIL_USERNAME,
+      apiKey: env.TESTRAIL_API_KEY,
+      projectId: env.TESTRAIL_PROJECT_ID,
     },
   }),
   github: {
