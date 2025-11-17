@@ -24,7 +24,7 @@ jobs:
         cd ../frontend && ncu > frontend-updates.txt || echo "No updates available" > frontend-updates.txt
 
     - name: Upload dependency check results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dependency-updates
         path: |
@@ -64,7 +64,7 @@ jobs:
 
     - name: Upload security report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: security-report
         path: security-report.md
@@ -114,7 +114,7 @@ jobs:
         echo "\`\`\`" >> license-report.md
 
     - name: Upload License Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: license-report
         path: license-report.md
