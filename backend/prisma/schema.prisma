@@ -319,3 +319,47 @@ model TestRailSync {
   @@index([testRunId])
   @@index([syncedAt])
 }
+
+// Confluence Integration Models
+model ConfluenceConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  username      String
+  apiToken      String
+  spaceKey      String?
+  parentPageId  String?
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model ConfluencePage {
+  id              String    @id @default(uuid())
+  pageId          String    @unique    // Confluence page ID
+  title           String
+  spaceKey        String
+  url             String
+  type            String                // 'rca_document', 'test_report', 'failure_pattern'
+  sourceId        String                // ID of the source entity (failureArchiveId, testRunId, etc.)
+  lastSyncedAt    DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([pageId])
+  @@index([sourceId])
+  @@index([type])
+}
+
+model ConfluencePublishLog {
+  id              String    @id @default(uuid())
+  pageId          String?
+  sourceId        String
+  sourceType      String    // 'failure_archive', 'test_run', 'failure_pattern'
+  action          String    // 'created', 'updated', 'failed'
+  success         Boolean
+  error           String?
+  publishedAt     DateTime  @default(now())
+
+  @@index([sourceId])
+  @@index([publishedAt])
+}
