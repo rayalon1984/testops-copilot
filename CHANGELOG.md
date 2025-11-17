@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.2] - 2025-11-17
+
+### Added
+- **Confluence Integration**: Automated documentation publishing to Atlassian Confluence
+  - Publish Root Cause Analysis documents from Failure Knowledge Base to Confluence
+  - Generate automated test execution reports with statistics and failure details
+  - Link Confluence pages to Jira issues for complete traceability
+  - Organize documentation with spaces, parent pages, and labels
+  - Track publishing history and automatically update existing pages
+  - ConfluenceService with full REST API v2 support
+  - Database models for Confluence configuration, page tracking, and publish logs
+  - Environment variable configuration for Confluence credentials
+  - Support for custom spaces and parent page organization
+
+### Documentation
+- Added comprehensive Confluence integration guide (`docs/integrations/confluence.md`)
+- Updated README with Confluence integration section
+- Added Confluence configuration to environment examples
+- Included API reference and usage examples for Confluence publishing
+
+### Backend
+- Confluence service implementation with Basic authentication
+- Confluence types and interfaces for type-safe integration
+- Database schema updates for Confluence models (Config, Page, PublishLog)
+- Configuration support for Confluence credentials and settings
+- RCA document publishing with rich HTML formatting
+- Test report publishing with customizable detail levels
+
 ## [2.5.1] - 2025-11-17
 
 ### Added

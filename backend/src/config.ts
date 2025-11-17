@@ -47,7 +47,14 @@ const envSchema = z.object({
   TESTRAIL_USERNAME: z.string().optional(),
   TESTRAIL_API_KEY: z.string().optional(),
   TESTRAIL_PROJECT_ID: z.string().transform(Number).optional(),
-  
+
+  // Confluence (optional)
+  CONFLUENCE_BASE_URL: z.string().optional(),
+  CONFLUENCE_USERNAME: z.string().optional(),
+  CONFLUENCE_API_TOKEN: z.string().optional(),
+  CONFLUENCE_SPACE_KEY: z.string().optional(),
+  CONFLUENCE_PARENT_PAGE_ID: z.string().optional(),
+
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
   LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('combined'),
@@ -124,6 +131,13 @@ export interface Config {
     apiKey: string;
     projectId?: number;
   };
+  confluence?: {
+    baseUrl: string;
+    username: string;
+    apiToken: string;
+    spaceKey?: string;
+    parentPageId?: string;
+  };
   log: {
     level: string;
     format: string;
@@ -194,6 +208,15 @@ export const config: Config = {
       username: env.TESTRAIL_USERNAME,
       apiKey: env.TESTRAIL_API_KEY,
       projectId: env.TESTRAIL_PROJECT_ID,
+    },
+  }),
+  ...(env.CONFLUENCE_BASE_URL && env.CONFLUENCE_USERNAME && env.CONFLUENCE_API_TOKEN && {
+    confluence: {
+      baseUrl: env.CONFLUENCE_BASE_URL,
+      username: env.CONFLUENCE_USERNAME,
+      apiToken: env.CONFLUENCE_API_TOKEN,
+      spaceKey: env.CONFLUENCE_SPACE_KEY,
+      parentPageId: env.CONFLUENCE_PARENT_PAGE_ID,
     },
   }),
   github: {

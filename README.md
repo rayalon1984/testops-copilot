@@ -63,6 +63,8 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 - **🔗 Powerful Integrations**
   - **Jira**: Automatic issue creation and synchronization
   - **Monday.com**: Work OS integration for task management
+  - **TestRail**: Test case management and result synchronization
+  - **Confluence**: Automated RCA documentation and test reporting
   - **Grafana & Prometheus**: Metrics visualization and alerting
   - **GitHub**: Workflow triggers and status updates
   - **Slack**: Real-time notifications and alerts
@@ -350,6 +352,34 @@ TESTRAIL_PROJECT_ID=1                             # Optional: Default project
 ```
 
 📖 [Full TestRail Integration Guide](docs/integrations/testrail.md)
+
+### Confluence Integration
+
+Integrate with Atlassian Confluence to automatically publish test documentation and RCA reports.
+
+**Features:**
+- Publish Root Cause Analysis documents from Failure Knowledge Base
+- Generate automated test execution reports
+- Link documentation to Jira issues for traceability
+- Organize pages with spaces, parent pages, and labels
+- Track publishing history and update existing pages
+
+**Configuration:**
+```env
+CONFLUENCE_BASE_URL=https://your-domain.atlassian.net
+CONFLUENCE_USERNAME=your-email@example.com
+CONFLUENCE_API_TOKEN=your-api-token
+CONFLUENCE_SPACE_KEY=TEST                         # Optional: Default space
+CONFLUENCE_PARENT_PAGE_ID=123456                  # Optional: Parent page
+```
+
+**Use Cases:**
+- **RCA Documentation**: Automatically publish detailed failure analysis with root cause, solutions, and prevention steps
+- **Test Reports**: Generate comprehensive test execution reports with statistics and failure details
+- **Knowledge Sharing**: Create searchable documentation for team collaboration
+- **Traceability**: Link Confluence pages to Jira issues and test runs
+
+📖 [Full Confluence Integration Guide](docs/integrations/confluence.md)
 
 ### Grafana & Prometheus Integration
 
