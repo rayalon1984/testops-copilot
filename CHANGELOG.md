@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2025-11-17
+
+### Added
+- **TestRail Integration**: Complete test case management integration
+  - Automatic test run creation in TestRail from CI/CD executions
+  - Bi-directional test result synchronization
+  - Support for test suites, milestones, and projects
+  - Test case mapping between TestOps Companion and TestRail
+  - Comprehensive TestRail integration guide with API documentation
+  - TestRailService with full API support (runs, results, cases, projects)
+  - Database models for TestRail configuration and run mapping
+  - Environment variable configuration for TestRail credentials
+
+### Documentation
+- Added complete TestRail integration guide (`docs/integrations/testrail.md`)
+- Updated README with TestRail integration section
+- Added TestRail configuration to environment examples
+- Included API reference and usage examples for TestRail
+
+### Backend
+- TestRail service implementation with authentication and API client
+- TestRail types and interfaces for type-safe integration
+- Database schema updates for TestRail models (Config, Run, Sync)
+- Configuration support for TestRail credentials and settings
+
+## [2.5.0] - 2025-11-16
+
 ### Added
 - Grafana & Prometheus integration for metrics visualization and monitoring
 - Prometheus metrics exporter with 20+ test metrics at `/metrics` endpoint
