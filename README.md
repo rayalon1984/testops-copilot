@@ -2,6 +2,22 @@
 
 > A comprehensive test operations platform for managing CI/CD pipelines, tracking test results, and analyzing failures across your entire testing infrastructure.
 
+---
+
+<div align="center">
+
+### 🚀 **Early Access Beta Program Now Open!**
+
+**TestOps Companion is actively developed and we're looking for QA/Test Automation teams to join our beta program.**
+
+**[📝 Apply for Early Access →](https://forms.gle/YOUR_FORM_ID)** | **[📖 Learn More](BETA.md)**
+
+*Get priority support, direct feedback channels, and help shape the future of TestOps*
+
+</div>
+
+---
+
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
