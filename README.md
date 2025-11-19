@@ -10,7 +10,7 @@
 
 **TestOps Companion is actively developed and we're looking for QA/Test Automation teams to join our beta program.**
 
-**[📝 Apply for Early Access →](https://forms.gle/YOUR_FORM_ID)** | **[📖 Learn More](BETA.md)**
+**[📝 Apply for Early Access →](https://forms.gle/dmeKzseAbhPA6KLq8)** | **[📖 Learn More](BETA.md)**
 
 *Get priority support, direct feedback channels, and help shape the future of TestOps*
 
