@@ -62,13 +62,16 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
   - Flaky test detection and reporting
   - Performance metrics and regression tracking
 
-- **🤖 AI-Powered Analysis** *(New in v2.5.3)*
+- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4)*
   - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
-  - **Multi-Provider Support**: Anthropic Claude, OpenAI GPT-4, with Google Gemini and Azure coming soon
+  - **Automated Failure Categorization**: AI-powered classification into 6 categories (bug_critical, bug_minor, environment, flaky, configuration, unknown) with confidence scoring and suggested actions *(v2.5.4)*
+  - **Intelligent Log Summarization**: AI analysis of test logs with root cause extraction, error location identification, and suggested fixes *(v2.5.4)*
+  - **Multi-Provider Support**: Anthropic Claude Sonnet 4.5, OpenAI GPT-4 Turbo, Google Gemini (1M token context), Azure OpenAI
   - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
   - **Semantic Search**: Find similar failures even with different error messages
   - **AI-Enhanced Explanations**: Get detailed analysis of why failures are similar and suggested fixes
   - **Resolution Tracking**: Build organizational knowledge by storing solutions for future reference
+  - **Provider Comparison**: From ultra-cheap Gemini Flash ($0.375/1M tokens) to enterprise Azure with SLAs
   - CLI & API access for all AI features
 
 - **🔍 Intelligent Failure Analysis**
@@ -117,7 +120,12 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 - **Validation**: Zod schema validation
 - **Testing**: Jest with supertest
 - **Logging**: Winston
-- **AI Services**: Anthropic Claude SDK, OpenAI SDK, Weaviate vector database
+- **AI Services** *(v2.5.3-v2.5.4)*:
+  - Anthropic Claude SDK (@anthropic-ai/sdk)
+  - OpenAI SDK (openai)
+  - Google Generative AI SDK (@google/generative-ai) *(v2.5.4)*
+  - Azure OpenAI SDK (@azure/openai) *(v2.5.4)*
+  - Weaviate vector database (weaviate-ts-client)
 - **Caching**: Redis with ioredis for AI response caching
 
 ### Frontend
@@ -206,6 +214,20 @@ JWT_REFRESH_EXPIRATION=7d
 
 # CORS
 CORS_ORIGIN=http://localhost:5173
+
+# AI Configuration (Optional - v2.5.3+)
+AI_ENABLED=true
+AI_PROVIDER=anthropic                          # anthropic, openai, google, or azure
+AI_MODEL=claude-sonnet-4.5                     # Provider-specific model name
+ANTHROPIC_API_KEY=your-anthropic-key           # For Claude
+OPENAI_API_KEY=your-openai-key                 # For GPT-4
+GOOGLE_API_KEY=your-google-key                 # For Gemini (v2.5.4)
+AZURE_OPENAI_ENDPOINT=https://your.openai.azure.com  # For Azure (v2.5.4)
+AZURE_OPENAI_KEY=your-azure-key                # For Azure (v2.5.4)
+AZURE_DEPLOYMENT_NAME=your-deployment          # For Azure (v2.5.4)
+WEAVIATE_URL=http://localhost:8081             # Vector database
+AI_FEATURE_CATEGORIZATION=true                 # Enable failure categorization (v2.5.4)
+AI_FEATURE_LOG_SUMMARY=true                    # Enable log summarization (v2.5.4)
 
 # Optional Integrations
 JIRA_BASE_URL=https://your-domain.atlassian.net
@@ -614,6 +636,26 @@ POST   /api/v1/failure-archive/find-similar     # Find similar past failures
 GET    /api/v1/failure-archive/insights         # Get statistics and analytics
 PUT    /api/v1/failure-archive/:id/resolve      # Mark failure as resolved
 POST   /api/v1/failure-archive/detect-patterns  # Detect recurring patterns
+```
+
+### AI Endpoints *(v2.5.3-v2.5.4)*
+
+```
+# RCA Matching (v2.5.3)
+POST   /api/ai/rca/similar          # Find similar historical failures
+POST   /api/ai/rca/store            # Store failure for future matching
+PUT    /api/ai/rca/:id/resolve      # Mark failure as resolved
+
+# Categorization (v2.5.4)
+POST   /api/ai/categorize           # Categorize test failure with AI
+
+# Log Summarization (v2.5.4)
+POST   /api/ai/summarize            # Summarize test logs with AI
+
+# Monitoring & Stats
+GET    /api/ai/health               # Check AI services health
+GET    /api/ai/costs                # Get cost summary and usage stats
+GET    /api/ai/stats                # Get overall AI statistics
 ```
 
 📖 For complete API documentation, see [API Reference](docs/api/README.md)
