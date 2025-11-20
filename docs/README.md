@@ -16,8 +16,8 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### Development
 - [Development Guide](development.md) - Guide for developers
-- [Contributing Guide](../CONTRIBUTING.md) - How to contribute
-- [Code of Conduct](../CODE_OF_CONDUCT.md) - Community guidelines
+- [Contributing Guide](project/CONTRIBUTING.md) - How to contribute
+- [Code of Conduct](project/CODE_OF_CONDUCT.md) - Community guidelines
 - [Testing Guide](testing.md) - Testing practices and procedures
 
 ### API & Integration
@@ -49,11 +49,16 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - [CLI Commands](reference/cli-commands.md) - Command line interface
 - [Error Codes](reference/error-codes.md) - Error code reference
 
-### Project Information
-- [Changelog](../CHANGELOG.md) - Version history
-- [Roadmap](../ROADMAP.md) - Future plans
-- [License](../LICENSE) - Project license
-- [Security Policy](../SECURITY.md) - Security information
+### Project Management
+- [Changelog](project/CHANGELOG.md) - Version history
+- [Roadmap](project/ROADMAP.md) - Future plans
+- [Contributing Guide](project/CONTRIBUTING.md) - How to contribute
+- [Code of Conduct](project/CODE_OF_CONDUCT.md) - Community guidelines
+- [Release Process](project/RELEASE_PROCESS.md) - Release procedures
+- [Security Policy](project/SECURITY.md) - Security information
+
+### Technical Specifications
+- [AI Integration Spec](specs/ai-integration/) - Complete AI feature specification
 
 ## 🚀 Quick Links
 
@@ -68,8 +73,9 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - [Development Setup](development.md#development-environment-setup)
 - [Coding Standards](development.md#coding-standards)
 - [Testing](testing.md)
-- [Contributing](../CONTRIBUTING.md)
+- [Contributing](project/CONTRIBUTING.md)
 - [API Reference](api.md)
+- [Technical Specs](specs/) - Feature specifications
 
 ### For Operations
 - [Deployment Options](deployment.md)
