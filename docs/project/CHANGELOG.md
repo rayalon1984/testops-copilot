@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.4] - 2025-11-20
+
+### Added
+- **AI Integration - Phase 2 Complete**: Extended AI capabilities with new features and providers
+  - **Automated Failure Categorization**: AI-powered classification of test failures
+    - 6 failure categories: bug_critical, bug_minor, environment, flaky, configuration, unknown
+    - Confidence scoring (0-1) for each categorization
+    - Detailed reasoning explaining the categorization
+    - Suggested actions for each category
+    - Related issues identification
+    - Batch categorization support for multiple failures
+    - src/services/ai/features/categorization.ts (296 lines)
+  - **Log Summarization**: AI-powered analysis of test logs
+    - Intelligent log preprocessing (handles up to 50k characters)
+    - Brief summaries (2-3 sentences) of failure context
+    - Root cause analysis extraction
+    - Error location identification (file, line, code snippet)
+    - Key log lines with relevance scoring (high/medium/low)
+    - Suggested fixes based on log analysis
+    - Confidence scoring for summaries
+    - SHA-256 log hashing for efficient caching
+    - src/services/ai/features/log-summary.ts (304 lines)
+  - **Google Gemini Provider**: Full support for Google's AI models
+    - Models: gemini-pro, gemini-1.5-pro, gemini-1.5-flash
+    - **1M token context window** for gemini-1.5-pro and gemini-1.5-flash
+    - Embedding support with text-embedding-004
+    - Extremely cost-effective (gemini-1.5-flash: $0.075/$0.30 per 1M tokens)
+    - Chat history and system instruction support
+    - Generation config (maxTokens, temperature, topP, stopSequences)
+    - src/services/ai/providers/google.provider.ts (198 lines)
+  - **Azure OpenAI Provider**: Enterprise-ready Azure integration
+    - Support for all Azure OpenAI deployments
+    - Flexible configuration (endpoint, deployment name, API version)
+    - Models: gpt-4, gpt-4-32k, gpt-35-turbo, gpt-35-turbo-16k
+    - Embedding support (text-embedding-ada-002, text-embedding-3-small/large)
+    - Region-specific pricing
+    - Azure-specific error handling
+    - src/services/ai/providers/azure.provider.ts (223 lines)
+  - **API Endpoints**: REST API for new features
+    - `POST /api/ai/categorize` - Categorize test failures
+    - `POST /api/ai/summarize` - Summarize test logs
+    - Both endpoints respect feature flags and provide detailed responses
+  - **CLI Commands**: Command-line access to new features
+    - `testops ai categorize <test-id>` - Categorize a test failure
+    - `testops ai summarize <test-name>` - Summarize test logs from file or text
+    - Both commands support rich options and formatted output
+  - **Updated AI Manager**: Integrated new services
+    - Added `categorizeFailure()` method with options
+    - Added `summarizeLogs()` method with preprocessing
+    - Automatic cost tracking for new features
+    - Feature-gated initialization
+
+### Testing
+- Comprehensive unit tests for Phase 2 features
+  - Categorization service tests with mock provider
+  - Log summarization tests with preprocessing validation
+  - Google and Azure provider tests with pricing/limits validation
+  - Provider cost comparison tests
+  - Context window comparison tests
+  - tests/ai/unit/phase2-features.test.ts (340 lines)
+  - tests/ai/unit/phase2-providers.test.ts (280 lines)
+
+### Technical Details
+- **Phase 2 Code**: 1,974 new lines across 6 files
+- **Combined Phase 1 + 2**: ~6,200 lines of AI infrastructure
+- **4 AI Providers**: Anthropic Claude, OpenAI GPT-4, Google Gemini, Azure OpenAI
+- **3 AI Features**: RCA Matching, Categorization, Log Summarization
+- **Provider Comparison**:
+  - Cheapest: Google Gemini 1.5 Flash ($0.375 per 1M tokens)
+  - Largest Context: Google Gemini 1.5 Pro/Flash (1M tokens)
+  - Most Accurate: Anthropic Claude Sonnet 4.5
+  - Enterprise: Azure OpenAI with SLA guarantees
+
+### Configuration
+All features respect existing feature flags:
+- `AI_ENABLED`: Master switch for all AI features
+- `AI_FEATURE_CATEGORIZATION`: Enable/disable categorization
+- `AI_FEATURE_LOG_SUMMARY`: Enable/disable log summarization
+- `AI_PROVIDER`: Select provider (anthropic/openai/google/azure)
+- `AI_MODEL`: Select specific model per provider
+
+New environment variables:
+- `GOOGLE_API_KEY`: Google Gemini API key
+- `AZURE_OPENAI_ENDPOINT`: Azure endpoint URL
+- `AZURE_OPENAI_KEY`: Azure API key
+- `AZURE_DEPLOYMENT_NAME`: Azure deployment name
+- `AZURE_API_VERSION`: Azure API version (optional)
+
 ## [2.5.3] - 2025-11-20
 
 ### Added

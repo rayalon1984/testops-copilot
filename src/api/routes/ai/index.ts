@@ -9,6 +9,8 @@ import { Router, Request, Response } from 'express';
 import { getAIManager } from '../../../services/ai';
 import { TestFailure } from '../../../services/ai/types';
 import { RCAMatchingOptions } from '../../../services/ai/features/rca-matching';
+import { CategorizationOptions } from '../../../services/ai/features/categorization';
+import { SummarizationOptions } from '../../../services/ai/features/log-summary';
 
 const router = Router();
 
@@ -224,6 +226,96 @@ router.get('/stats', async (req: Request, res: Response) => {
     console.error('Failed to get stats:', error);
     res.status(500).json({
       error: 'Failed to get stats',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /api/ai/categorize
+ * Categorize a test failure
+ */
+router.post('/categorize', async (req: Request, res: Response) => {
+  try {
+    const aiManager = getAIManager();
+
+    if (!aiManager.isFeatureEnabled('categorization')) {
+      return res.status(403).json({
+        error: 'Categorization is not enabled',
+      });
+    }
+
+    const failure: TestFailure = req.body.failure;
+    const options: CategorizationOptions = req.body.options || {};
+
+    if (!failure || !failure.testId || !failure.errorMessage) {
+      return res.status(400).json({
+        error: 'Invalid failure data. Required: testId, errorMessage',
+      });
+    }
+
+    const categorization = await aiManager.categorizeFailure(failure, options);
+
+    res.json({
+      testId: failure.testId,
+      testName: failure.testName,
+      category: categorization.category,
+      confidence: categorization.confidence,
+      reasoning: categorization.reasoning,
+      suggestedAction: categorization.suggestedAction,
+      relatedIssues: categorization.relatedIssues,
+    });
+  } catch (error) {
+    console.error('Categorization failed:', error);
+    res.status(500).json({
+      error: 'Categorization failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /api/ai/summarize
+ * Summarize test failure logs
+ */
+router.post('/summarize', async (req: Request, res: Response) => {
+  try {
+    const aiManager = getAIManager();
+
+    if (!aiManager.isFeatureEnabled('logSummary')) {
+      return res.status(403).json({
+        error: 'Log summarization is not enabled',
+      });
+    }
+
+    const { logs, testName, errorMessage, options } = req.body;
+
+    if (!logs || !testName || !errorMessage) {
+      return res.status(400).json({
+        error: 'Required fields: logs, testName, errorMessage',
+      });
+    }
+
+    const summary = await aiManager.summarizeLogs(
+      logs,
+      testName,
+      errorMessage,
+      options as SummarizationOptions
+    );
+
+    res.json({
+      testName,
+      summary: summary.summary,
+      rootCause: summary.rootCause,
+      errorLocation: summary.errorLocation,
+      keyLogLines: summary.keyLogLines,
+      suggestedFix: summary.suggestedFix,
+      confidence: summary.confidence,
+    });
+  } catch (error) {
+    console.error('Log summarization failed:', error);
+    res.status(500).json({
+      error: 'Log summarization failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
