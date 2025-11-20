@@ -32,7 +32,7 @@ import {
   Error as ErrorIcon,
   Repeat as RepeatIcon
 } from '@mui/icons-material';
-import { PageHeader } from '../components/PageHeader/PageHeader';
+import PageHeader from '../components/PageHeader/PageHeader';
 
 interface FailureInsights {
   totalFailures: number;
@@ -68,7 +68,7 @@ export const FailureKnowledgeBase: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
-  const [showRecurringOnly, setShowRecurringOnly] = useState(false);
+  const [showRecurringOnly, _setShowRecurringOnly] = useState(false);
 
   useEffect(() => {
     loadData();

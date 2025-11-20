@@ -27,7 +27,7 @@ jobs:
         VERSION="${{ steps.get_version.outputs.version }}"
 
         # Extract release notes from CHANGELOG.md for this version
-        awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | \
+        awk "/## \[${VERSION}\]/,/## \[/" docs/project/CHANGELOG.md | \
           sed '/## \[/d' | \
           sed '/^$/d' | \
           head -n -1 > release_notes.txt
@@ -75,7 +75,7 @@ jobs:
 
           ### 📖 Documentation
 
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/CHANGELOG.md) for complete details.
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/docs/project/CHANGELOG.md) for complete details.
         draft: false
         prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
         generate_release_notes: true
