@@ -48,9 +48,16 @@ We're seeking **5-10 teams** that:
 ### Immediate Access To:
 
 - ✅ Full TestOps Companion platform
+- ✅ **AI-Powered Features** *(NEW in v2.5.3-v2.5.4)*:
+  - 🤖 Smart RCA Matching with semantic search
+  - 🏷️ Automated Failure Categorization (6 categories with confidence scoring)
+  - 📝 Intelligent Log Summarization with root cause extraction
+  - 🔌 Multi-Provider Support (Claude, GPT-4, Gemini, Azure OpenAI)
+  - 💰 Cost tracking and intelligent caching
 - ✅ All integrations (Jira, Confluence, TestRail, Monday.com, etc.)
 - ✅ Failure Knowledge Base with RCA tracking
 - ✅ Multi-pipeline dashboard
+- ✅ Grafana & Prometheus metrics
 - ✅ Real-time notifications
 - ✅ Complete documentation
 
