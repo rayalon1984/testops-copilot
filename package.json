@@ -1,6 +1,6 @@
 {
   "name": "testops-companion",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "A comprehensive test operations companion for managing test pipelines and results",
   "main": "index.js",
   "scripts": {

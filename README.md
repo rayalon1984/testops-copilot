@@ -62,6 +62,15 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
   - Flaky test detection and reporting
   - Performance metrics and regression tracking
 
+- **🤖 AI-Powered Analysis** *(New in v2.5.3)*
+  - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
+  - **Multi-Provider Support**: Anthropic Claude, OpenAI GPT-4, with Google Gemini and Azure coming soon
+  - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
+  - **Semantic Search**: Find similar failures even with different error messages
+  - **AI-Enhanced Explanations**: Get detailed analysis of why failures are similar and suggested fixes
+  - **Resolution Tracking**: Build organizational knowledge by storing solutions for future reference
+  - CLI & API access for all AI features
+
 - **🔍 Intelligent Failure Analysis**
   - Automatic failure categorization
   - Root cause analysis suggestions
@@ -108,6 +117,8 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 - **Validation**: Zod schema validation
 - **Testing**: Jest with supertest
 - **Logging**: Winston
+- **AI Services**: Anthropic Claude SDK, OpenAI SDK, Weaviate vector database
+- **Caching**: Redis with ioredis for AI response caching
 
 ### Frontend
 - **Framework**: React 18 with TypeScript
@@ -132,7 +143,9 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 - **PostgreSQL**: v14.0 or higher
-- **Redis** (optional): For caching and session management
+- **Redis** (optional): For caching, session management, and AI response caching
+- **Weaviate** (optional): For AI-powered semantic search (docker-compose includes it)
+- **AI Provider API Key** (optional): Anthropic or OpenAI API key for AI features
 
 ### Quick Setup (Recommended)
 
