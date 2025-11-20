@@ -40,10 +40,12 @@ jobs:
 
         # Save for next step
         cat release_notes.txt
+        # Use a random delimiter to avoid conflicts with content
+        delimiter="ghadelimiter_$RANDOM"
         {
-          echo "RELEASE_NOTES<<EOF"
+          echo "RELEASE_NOTES<<${delimiter}"
           cat release_notes.txt
-          echo "EOF"
+          echo "${delimiter}"
         } >> $GITHUB_OUTPUT
 
     - name: Create Release
