@@ -1,0 +1,68 @@
+# AI Integration Configuration
+#
+# This file contains configuration for AI-powered features.
+# Copy this to config/ai.yml and update with your settings.
+
+ai:
+  # Enable/disable AI features globally
+  enabled: false
+
+  # AI Provider: anthropic | openai | google | azure
+  provider: anthropic
+
+  # Model to use (provider-specific)
+  model: claude-sonnet-4-20250514
+
+  # Feature flags - enable/disable specific AI features
+  features:
+    rca_matching: true          # Smart RCA matching with embeddings
+    categorization: true        # Automated failure categorization
+    log_summary: true          # Log summarization
+    nl_queries: false          # Natural language queries (beta)
+    ticket_generation: true    # Intelligent ticket creation
+
+  # Cost management
+  cost:
+    monthly_budget_usd: 100           # Monthly spending limit
+    alert_threshold_percent: 80       # Alert when budget % reached
+    alert_email: null                 # Email for budget alerts
+
+  # Caching configuration
+  cache:
+    enabled: true
+    ttl_seconds: 604800  # 7 days
+
+  # Rate limiting
+  rate_limit:
+    per_minute: 100      # Max requests per minute
+    per_day: 10000       # Max requests per day
+
+  # Vector database configuration
+  vector_db:
+    url: http://localhost:8080
+    index_name: testops_failures
+    api_key: null  # Optional
+
+# Provider-specific settings
+# Uncomment and configure the provider you're using
+
+# Anthropic Claude
+# anthropic:
+#   api_key: ${ANTHROPIC_API_KEY}
+#   # For embeddings (Anthropic doesn't have native embeddings)
+#   voyage_api_key: ${VOYAGE_API_KEY}
+
+# OpenAI
+# openai:
+#   api_key: ${OPENAI_API_KEY}
+#   organization_id: ${OPENAI_ORG_ID}  # Optional
+
+# Google Gemini
+# google:
+#   api_key: ${GOOGLE_API_KEY}
+
+# Azure OpenAI
+# azure:
+#   endpoint: ${AZURE_OPENAI_ENDPOINT}
+#   api_key: ${AZURE_OPENAI_KEY}
+#   deployment_name: ${AZURE_DEPLOYMENT_NAME}
