@@ -287,10 +287,29 @@ export interface CostSummary {
  */
 export interface HealthStatus {
   healthy: boolean;
-  provider: AIProviderName;
-  latencyMs: number;
+  provider?: AIProviderName;
+  latencyMs?: number;
   error?: string;
-  lastChecked: Date;
+  lastChecked?: Date;
+  services?: {
+    provider?: {
+      healthy: boolean;
+      name?: string;
+      error?: string;
+    };
+    vectorDB?: {
+      healthy: boolean;
+      error?: string;
+    };
+    cache?: {
+      healthy: boolean;
+      stats?: {
+        hits: number;
+        misses: number;
+        hitRate: number;
+      };
+    };
+  };
 }
 
 /**

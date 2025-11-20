@@ -121,7 +121,7 @@ export class WeaviateVectorClient {
         .creator()
         .withClassName(className)
         .withProperties(properties)
-        .withVector(vector.values);
+        .withVector(vector as any);
 
       if (id) {
         creator.withId(id);
@@ -152,7 +152,7 @@ export class WeaviateVectorClient {
         const weaviateObj: any = {
           class: className,
           properties: obj.properties,
-          vector: obj.vector.values,
+          vector: obj.vector as any,
         };
 
         if (obj.id) {
@@ -182,7 +182,7 @@ export class WeaviateVectorClient {
       let query = this.client.graphql
         .get()
         .withClassName(className)
-        .withNearVector({ vector: vector.values })
+        .withNearVector({ vector: vector as any })
         .withLimit(limit)
         .withFields('_additional { id distance }');
 
