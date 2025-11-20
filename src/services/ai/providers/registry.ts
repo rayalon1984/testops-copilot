@@ -9,6 +9,8 @@ import { AIProviderName } from '../types';
 import { BaseProvider, ProviderConfig } from './base.provider';
 import { AnthropicProvider } from './anthropic.provider';
 import { OpenAIProvider } from './openai.provider';
+import { GoogleProvider } from './google.provider';
+import { AzureProvider } from './azure.provider';
 
 export type ProviderFactory = (config: ProviderConfig) => BaseProvider;
 
@@ -29,7 +31,8 @@ class ProviderRegistry {
   private registerDefaultProviders(): void {
     this.register('anthropic', (config) => new AnthropicProvider(config));
     this.register('openai', (config) => new OpenAIProvider(config));
-    // TODO: Add Google and Azure providers in future phases
+    this.register('google', (config) => new GoogleProvider(config));
+    this.register('azure', (config) => new AzureProvider(config as any));
   }
 
   /**

@@ -12,10 +12,14 @@ import { createProviderFromEnv } from './providers/registry';
 import { WeaviateVectorClient, getVectorClient } from './vector/client';
 import { initializeSchemas } from './vector/schema';
 import { RCAMatchingService } from './features/rca-matching';
+import { CategorizationService } from './features/categorization';
+import { LogSummarizationService } from './features/log-summary';
 import { AICache, getCache } from './cache';
 import { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
-import { TestFailure, SimilarFailure, HealthStatus } from './types';
+import { TestFailure, SimilarFailure, HealthStatus, FailureCategorization, LogSummary } from './types';
 import { RCAMatchingOptions } from './features/rca-matching';
+import { CategorizationOptions } from './features/categorization';
+import { SummarizationOptions } from './features/log-summary';
 
 export interface AIManagerConfig {
   db: Pool;
@@ -32,6 +36,8 @@ export class AIManager {
   private cache: AICache;
   private costTracker: CostTracker;
   private rcaMatching: RCAMatchingService | null = null;
+  private categorization: CategorizationService | null = null;
+  private logSummarization: LogSummarizationService | null = null;
   private initialized: boolean = false;
   private db: Pool;
 
@@ -74,6 +80,18 @@ export class AIManager {
       // Initialize AI provider
       this.provider = createProviderFromEnv();
       console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
+
+      // Initialize categorization service (always available)
+      if (this.configManager.isFeatureEnabled('categorization')) {
+        this.categorization = new CategorizationService(this.provider);
+        console.log('✅ Categorization service initialized');
+      }
+
+      // Initialize log summarization service (always available)
+      if (this.configManager.isFeatureEnabled('logSummary')) {
+        this.logSummarization = new LogSummarizationService(this.provider);
+        console.log('✅ Log summarization service initialized');
+      }
 
       // Initialize vector database
       if (this.configManager.isFeatureEnabled('rcaMatching')) {
@@ -201,6 +219,93 @@ export class AIManager {
     }
 
     await this.rcaMatching.markAsResolved(failureId, resolution, resolvedBy, ticketUrl);
+  }
+
+  /**
+   * Categorize a test failure
+   */
+  async categorizeFailure(
+    failure: TestFailure,
+    options?: CategorizationOptions
+  ): Promise<FailureCategorization> {
+    this.ensureInitialized();
+    this.ensureFeatureEnabled('categorization');
+
+    if (!this.categorization) {
+      throw new Error('Categorization service not initialized');
+    }
+
+    try {
+      const result = await this.categorization.categorizeFailure(failure, options);
+
+      // Record usage
+      if (this.provider) {
+        const record: UsageRecord = {
+          timestamp: new Date(),
+          provider: this.provider.getName(),
+          model: this.configManager.getModel(),
+          feature: 'categorization',
+          inputTokens: this.estimateTokens(this.failureToText(failure)),
+          outputTokens: this.estimateTokens(result.reasoning),
+          totalTokens: this.estimateTokens(this.failureToText(failure) + result.reasoning),
+          costUSD: 0.001, // Rough estimate
+          cached: false,
+        };
+        await this.costTracker.recordUsage(record);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Categorization failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Summarize test failure logs
+   */
+  async summarizeLogs(
+    logs: string,
+    testName: string,
+    errorMessage: string,
+    options?: SummarizationOptions
+  ): Promise<LogSummary> {
+    this.ensureInitialized();
+    this.ensureFeatureEnabled('logSummary');
+
+    if (!this.logSummarization) {
+      throw new Error('Log summarization service not initialized');
+    }
+
+    try {
+      const result = await this.logSummarization.summarizeLogs(
+        logs,
+        testName,
+        errorMessage,
+        options
+      );
+
+      // Record usage
+      if (this.provider) {
+        const record: UsageRecord = {
+          timestamp: new Date(),
+          provider: this.provider.getName(),
+          model: this.configManager.getModel(),
+          feature: 'log_summary',
+          inputTokens: this.estimateTokens(logs.substring(0, 10000)),
+          outputTokens: this.estimateTokens(result.summary + result.rootCause),
+          totalTokens: this.estimateTokens(logs.substring(0, 10000) + result.summary),
+          costUSD: 0.002, // Rough estimate
+          cached: false,
+        };
+        await this.costTracker.recordUsage(record);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Log summarization failed:', error);
+      throw error;
+    }
   }
 
   /**
