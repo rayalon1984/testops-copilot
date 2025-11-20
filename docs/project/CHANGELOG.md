@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.3] - 2025-11-20
+
+### Added
+- **AI Integration - Phase 1**: Complete AI-powered test failure analysis infrastructure
+  - **Provider Abstraction Layer**: Support for multiple AI providers (Anthropic Claude, OpenAI GPT-4)
+    - BaseProvider abstract class with unified interface
+    - AnthropicProvider with Claude Sonnet 4.5 support
+    - OpenAIProvider with GPT-4 Turbo and GPT-3.5 support
+    - Provider registry with automatic detection from environment variables
+    - Cost calculation, token estimation, and health checks
+  - **Vector Database Integration**: Weaviate for semantic search
+    - Full CRUD operations for test failure embeddings
+    - Semantic similarity search with configurable thresholds
+    - Schema management for TestFailure and LogSummary collections
+    - Batch operations and advanced filtering
+    - Statistics and cleanup operations
+  - **RCA (Root Cause Analysis) Matching**: AI-powered failure analysis
+    - Automatic embedding generation for test failures
+    - Semantic search across historical failures
+    - AI-enhanced explanations of failure similarity
+    - Resolution tracking for knowledge building
+    - Configurable similarity thresholds and filters
+  - **Configuration Management**: Flexible configuration system
+    - YAML configuration file support (config/ai.yml)
+    - Environment variable overrides
+    - Feature flags for gradual rollout
+    - Configuration validation and error reporting
+  - **Caching Layer**: 3-tier Redis-based caching
+    - Response cache for full AI responses
+    - Embedding cache for computed embeddings
+    - Summary cache for log summaries
+    - Cache hit rate tracking and statistics
+    - Configurable TTL (default: 7 days)
+  - **Cost Tracking**: PostgreSQL-based usage monitoring
+    - Track AI usage by provider, model, and feature
+    - Budget alerts and threshold monitoring (default: 80% of $100/month)
+    - Monthly cost summaries and projections
+    - Top cost driver analysis
+    - Cache hit rate impact on costs
+  - **AI Service Manager**: Central orchestration
+    - Initialize and manage all AI services
+    - Health monitoring across components
+    - Feature-gated access control
+    - Graceful initialization and shutdown
+  - **REST API Endpoints**: Full AI feature access via REST
+    - `POST /api/ai/rca/similar` - Find similar failures
+    - `POST /api/ai/rca/store` - Store failure for future matching
+    - `PUT /api/ai/rca/:id/resolve` - Mark failure as resolved
+    - `GET /api/ai/costs` - Cost summary and usage statistics
+    - `GET /api/ai/stats` - Overall AI statistics
+    - `GET /api/ai/health` - Health check for all AI services
+  - **CLI Commands**: Command-line AI tools
+    - `testops ai health` - Check AI services health
+    - `testops ai costs` - View cost summary with date filtering
+    - `testops ai stats` - View overall statistics
+    - `testops ai rca <test-id>` - Find similar failures with options
+  - **Testing Infrastructure**: Comprehensive test coverage
+    - Unit tests for providers and configuration
+    - Integration tests for RCA matching workflow
+    - Test coverage for cost tracking and caching
+
+### Dependencies
+- Added `@anthropic-ai/sdk` ^0.70.0 - Anthropic Claude SDK
+- Added `openai` ^6.9.1 - OpenAI GPT SDK
+- Added `@google/generative-ai` ^0.24.1 - Google Gemini SDK (for future Phase 2)
+- Added `@azure/openai` ^2.0.0 - Azure OpenAI SDK (for future Phase 2)
+- Added `weaviate-ts-client` ^2.2.0 - Weaviate vector database client
+- Added `js-yaml` - YAML configuration parsing
+- Added `zod`, `p-queue`, `p-retry`, `bull`, `ioredis` - Supporting libraries
+
+### Documentation
+- Added comprehensive AI service documentation in `src/services/ai/README.md`
+- Added testing guide in `tests/ai/README.md`
+- Updated main exports in `src/services/ai/index.ts`
+- Created example configuration files (`.env.example`, `config/ai.example.yml`)
+
+### Infrastructure
+- Updated `docker-compose.yml` with Weaviate service on port 8081
+- Database schema for AI usage tracking
+- Redis integration for caching
+
+### Technical Details
+- **File Structure**: Organized AI services in `src/services/ai/` with clear separation:
+  - `providers/` - AI provider implementations
+  - `vector/` - Vector database operations
+  - `features/` - AI-powered features (RCA matching, categorization, etc.)
+  - Configuration, caching, cost tracking, and manager at root level
+- **Provider Pricing**: Accurate cost tracking for Claude Sonnet 4.5 ($3/M input, $15/M output) and GPT-4 Turbo ($10/M input, $30/M output)
+- **Rate Limits**: Configurable per-minute and per-day limits (default: 100/min, 10,000/day)
+- **Embedding Models**: Support for provider-specific embeddings (OpenAI text-embedding-3-small, Voyage AI for Anthropic)
+
+### Coming in Phase 2
+- Automated failure categorization (Bug/Environment/Flaky)
+- Log summarization with AI
+- Google Gemini provider implementation
+- Azure OpenAI provider implementation
+- Natural language queries over test data
+- Intelligent ticket generation
+
 ## [2.5.2] - 2025-11-17
 
 ### Added
