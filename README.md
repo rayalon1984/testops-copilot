@@ -38,6 +38,14 @@
 
 ## 📸 Screenshots & Demo
 
+### AI-Powered Dashboard
+
+![TestOps Companion Dashboard](testops_dashboard.svg)
+
+*Real-time AI-powered failure analysis with multi-provider support, automated categorization, and intelligent cost optimization*
+
+---
+
 Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEMO.md)** with:
 - 🎨 Interactive UI mockups using Mermaid diagrams
 - 📊 Dashboard and analytics visualizations

@@ -1,0 +1,321 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#0f172a"/>
+
+  <!-- Header -->
+  <rect width="1200" height="70" fill="#1e293b"/>
+  <text x="30" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff">
+    TestOps Companion
+  </text>
+  <text x="1050" y="35" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    AI Provider
+  </text>
+
+  <!-- AI Provider Dropdown -->
+  <rect x="1020" y="42" width="160" height="20" rx="4" fill="#334155" stroke="#475569" stroke-width="1"/>
+  <text x="1030" y="56" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    🤖 Claude Sonnet 4.5
+  </text>
+  <polygon points="1170,50 1165,54 1175,54" fill="#94a3b8"/>
+
+  <!-- Main Dashboard Title -->
+  <text x="30" y="110" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#f1f5f9">
+    AI-Powered Failure Analysis Dashboard
+  </text>
+  <text x="30" y="135" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">
+    Real-time insights • Last 24 hours • 2,847 tests analyzed
+  </text>
+
+  <!-- Stats Cards Row 1 -->
+  <!-- Card 1: Total Tests -->
+  <rect x="30" y="160" width="270" height="120" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="50" y="190" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">
+    Total Tests Analyzed
+  </text>
+  <text x="50" y="230" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#10b981">
+    2,847
+  </text>
+  <text x="50" y="260" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    ↑ 12% from yesterday
+  </text>
+
+  <!-- Card 2: Failures Auto-Categorized -->
+  <rect x="320" y="160" width="270" height="120" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="340" y="190" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">
+    Failures Auto-Categorized
+  </text>
+  <text x="340" y="230" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#f59e0b">
+    147
+  </text>
+  <text x="340" y="260" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    100% categorization rate
+  </text>
+
+  <!-- Card 3: Time Saved -->
+  <rect x="610" y="160" width="270" height="120" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="630" y="190" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">
+    Time Saved (AI Analysis)
+  </text>
+  <text x="630" y="230" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#3b82f6">
+    18.4h
+  </text>
+  <text x="630" y="260" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    vs manual analysis
+  </text>
+
+  <!-- Card 4: AI Cost -->
+  <rect x="900" y="160" width="270" height="120" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="920" y="190" font-family="Arial, sans-serif" font-size="13" fill="#94a3b8">
+    AI Cost (with caching)
+  </text>
+  <text x="920" y="230" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#8b5cf6">
+    $2.34
+  </text>
+  <text x="920" y="260" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    82% savings • 847 cache hits
+  </text>
+
+  <!-- Failure Categories Section -->
+  <rect x="30" y="300" width="570" height="280" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="50" y="330" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f1f5f9">
+    Failure Categories Breakdown
+  </text>
+  <text x="50" y="350" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    AI-powered classification with confidence scoring
+  </text>
+
+  <!-- Category Bars -->
+  <!-- Bug Critical -->
+  <text x="50" y="385" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    🔴 Bug Critical
+  </text>
+  <rect x="180" y="370" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="370" width="156" height="20" rx="10" fill="#ef4444"/>
+  <text x="490" y="385" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    26 (17.7%)
+  </text>
+
+  <!-- Bug Minor -->
+  <text x="50" y="420" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    🟡 Bug Minor
+  </text>
+  <rect x="180" y="405" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="405" width="198" height="20" rx="10" fill="#f59e0b"/>
+  <text x="490" y="420" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    33 (22.4%)
+  </text>
+
+  <!-- Environment -->
+  <text x="50" y="455" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    🌐 Environment
+  </text>
+  <rect x="180" y="440" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="440" width="240" height="20" rx="10" fill="#3b82f6"/>
+  <text x="490" y="455" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    40 (27.2%)
+  </text>
+
+  <!-- Flaky -->
+  <text x="50" y="490" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    ⚡ Flaky Test
+  </text>
+  <rect x="180" y="475" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="475" width="135" height="20" rx="10" fill="#8b5cf6"/>
+  <text x="490" y="490" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    23 (15.6%)
+  </text>
+
+  <!-- Configuration -->
+  <text x="50" y="525" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    ⚙️ Configuration
+  </text>
+  <rect x="180" y="510" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="510" width="108" height="20" rx="10" fill="#10b981"/>
+  <text x="490" y="525" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    18 (12.2%)
+  </text>
+
+  <!-- Unknown -->
+  <text x="50" y="560" font-family="Arial, sans-serif" font-size="13" fill="#e2e8f0">
+    ❓ Unknown
+  </text>
+  <rect x="180" y="545" width="300" height="20" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <rect x="180" y="545" width="21" height="20" rx="10" fill="#64748b"/>
+  <text x="490" y="560" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    7 (4.9%)
+  </text>
+
+  <!-- Recent AI Analysis -->
+  <rect x="620" y="300" width="550" height="280" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="640" y="330" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f1f5f9">
+    Recent AI Failure Analysis
+  </text>
+  <text x="640" y="350" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Intelligent log summarization with root cause detection
+  </text>
+
+  <!-- Analysis Entry 1 -->
+  <rect x="640" y="365" width="510" height="60" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+  <circle cx="660" cy="387" r="8" fill="#ef4444"/>
+  <text x="680" y="380" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e2e8f0">
+    GPU Memory Allocation Failed
+  </text>
+  <text x="680" y="395" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8">
+    Root Cause: CUDA out of memory error in kernel execution
+  </text>
+  <text x="680" y="410" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
+    Confidence: 94% • Similar: 3 past cases • test_gpu_compute.py:142
+  </text>
+  <rect x="1060" y="375" width="75" height="18" rx="4" fill="#334155"/>
+  <text x="1070" y="387" font-family="Arial, sans-serif" font-size="10" fill="#f59e0b">
+    Bug Critical
+  </text>
+
+  <!-- Analysis Entry 2 -->
+  <rect x="640" y="435" width="510" height="60" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+  <circle cx="660" cy="457" r="8" fill="#3b82f6"/>
+  <text x="680" y="450" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e2e8f0">
+    Database Connection Timeout
+  </text>
+  <text x="680" y="465" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8">
+    Root Cause: PostgreSQL max_connections exceeded during load test
+  </text>
+  <text x="680" y="480" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
+    Confidence: 89% • Similar: 12 past cases • test_db_stress.py:89
+  </text>
+  <rect x="1060" y="445" width="75" height="18" rx="4" fill="#334155"/>
+  <text x="1070" y="457" font-family="Arial, sans-serif" font-size="10" fill="#3b82f6">
+    Environment
+  </text>
+
+  <!-- Analysis Entry 3 -->
+  <rect x="640" y="505" width="510" height="60" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+  <circle cx="660" cy="527" r="8" fill="#8b5cf6"/>
+  <text x="680" y="520" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#e2e8f0">
+    Assertion Failed: Expected 200, Got 503
+  </text>
+  <text x="680" y="535" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8">
+    Root Cause: Intermittent API service unavailability (timing issue)
+  </text>
+  <text x="680" y="550" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
+    Confidence: 82% • Similar: 8 past cases • test_api_health.py:56
+  </text>
+  <rect x="1060" y="515" width="75" height="18" rx="4" fill="#334155"/>
+  <text x="1070" y="527" font-family="Arial, sans-serif" font-size="10" fill="#8b5cf6">
+    Flaky Test
+  </text>
+
+  <!-- Bottom Stats -->
+  <rect x="30" y="600" width="370" height="180" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="50" y="630" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f1f5f9">
+    AI Performance Metrics
+  </text>
+
+  <text x="50" y="660" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Average Analysis Time:
+  </text>
+  <text x="300" y="660" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#10b981">
+    2.3 seconds
+  </text>
+
+  <text x="50" y="685" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Categorization Accuracy:
+  </text>
+  <text x="300" y="685" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#10b981">
+    96.8%
+  </text>
+
+  <text x="50" y="710" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Similar Failures Found:
+  </text>
+  <text x="300" y="710" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#3b82f6">
+    89 matches
+  </text>
+
+  <text x="50" y="735" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Cache Hit Rate:
+  </text>
+  <text x="300" y="735" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#8b5cf6">
+    82.4%
+  </text>
+
+  <text x="50" y="760" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Monthly AI Budget Used:
+  </text>
+  <text x="300" y="760" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#f59e0b">
+    $47.20 / $100
+  </text>
+
+  <!-- Provider Comparison -->
+  <rect x="420" y="600" width="750" height="180" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="440" y="630" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f1f5f9">
+    AI Provider Comparison
+  </text>
+  <text x="440" y="650" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    Multi-provider support with intelligent cost optimization
+  </text>
+
+  <!-- Provider headers -->
+  <text x="520" y="680" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#94a3b8">
+    Provider
+  </text>
+  <text x="740" y="680" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#94a3b8">
+    Cost/1M
+  </text>
+  <text x="860" y="680" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#94a3b8">
+    Context
+  </text>
+  <text x="1000" y="680" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#94a3b8">
+    Speed
+  </text>
+
+  <!-- Claude -->
+  <circle cx="455" cy="707" r="6" fill="#10b981"/>
+  <text x="475" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    Claude Sonnet 4.5
+  </text>
+  <text x="740" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    $9.00
+  </text>
+  <text x="860" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    200K
+  </text>
+  <text x="1000" y="712" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    ⚡⚡⚡
+  </text>
+
+  <!-- GPT-4 -->
+  <circle cx="455" cy="732" r="6" fill="#64748b"/>
+  <text x="475" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    GPT-4 Turbo
+  </text>
+  <text x="740" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    $20.00
+  </text>
+  <text x="860" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    128K
+  </text>
+  <text x="1000" y="737" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
+    ⚡⚡
+  </text>
+
+  <!-- Gemini -->
+  <circle cx="455" cy="757" r="6" fill="#64748b"/>
+  <text x="475" y="762" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
+    Gemini 1.5 Flash
+  </text>
+  <text x="740" y="762" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    $0.375
+  </text>
+  <text x="860" y="762" font-family="Arial, sans-serif" font-size="12" fill="#3b82f6">
+    1M
+  </text>
+  <text x="1000" y="762" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    ⚡⚡⚡
+  </text>
+
+  <!-- Footer -->
+  <text x="30" y="795" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
+    TestOps Companion v2.5.4 • AI-Powered Test Operations Platform • Open Source
+  </text>
+</svg>
