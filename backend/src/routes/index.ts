@@ -3,6 +3,7 @@ import { jiraController } from '../controllers/jira.controller';
 import failureArchiveRouter from './failure-archive.routes';
 import mondayRouter from './monday.routes';
 import metricsRouter from './metrics.routes';
+import aiRouter from './ai';
 import { MetricsController } from '../controllers/metrics.controller';
 
 // Create and export routers
@@ -30,6 +31,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/failure-archive', failureArchiveRouter);
   app.use('/api/v1/monday', mondayRouter);
   app.use('/api/v1/metrics', metricsRouter);
+  app.use('/api/ai', aiRouter);
 }
 
 export default registerRoutes;
