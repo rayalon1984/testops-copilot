@@ -72,7 +72,7 @@ jobs:
     - name: Run Snyk Security Scan
       if: ${{ secrets.SNYK_TOKEN != '' }}
       continue-on-error: true
-      uses: snyk/actions/node@master
+      uses: snyk/actions/node@0.4.0
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
