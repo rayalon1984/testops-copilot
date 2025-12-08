@@ -33,7 +33,7 @@
   "author": "Rotem Ayalon",
   "license": "Apache-2.0",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.0",
+    "@anthropic-ai/sdk": "^0.71.2",
     "@azure/openai": "^2.0.0",
     "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^22.0.1",
