@@ -111,7 +111,7 @@ jobs:
     - name: Run Snyk to check for vulnerabilities
       if: ${{ secrets.SNYK_TOKEN != '' }}
       continue-on-error: true
-      uses: snyk/actions/node@0.4.0
+      uses: snyk/actions/node@v1.0.0
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
