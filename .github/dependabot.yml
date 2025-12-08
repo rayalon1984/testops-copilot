@@ -11,9 +11,6 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "rayalon1984"
-    labels:
-      - "dependencies"
-      - "backend"
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -41,9 +38,6 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "rayalon1984"
-    labels:
-      - "dependencies"
-      - "frontend"
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -68,28 +62,17 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
-    labels:
-      - "dependencies"
-      - "docker"
-      - "backend"
 
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
       interval: "weekly"
-    labels:
-      - "dependencies"
-      - "docker"
-      - "frontend"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    labels:
-      - "dependencies"
-      - "github-actions"
     commit-message:
       prefix: "ci"
       include: "scope"
