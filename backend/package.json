@@ -60,7 +60,7 @@
     "sequelize": "^6.37.7",
     "weaviate-ts-client": "^2.2.0",
     "winston": "^3.19.0",
-    "zod": "^3.22.4"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
