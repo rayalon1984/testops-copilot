@@ -11,52 +11,59 @@ declare module '@mui/material/styles' {
 
 export const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#2196f3',
-      light: '#64b5f6',
-      dark: '#1976d2',
+      main: '#3b82f6',
+      light: '#60a5fa',
+      dark: '#2563eb',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#f50057',
-      light: '#ff4081',
-      dark: '#c51162',
+      main: '#8b5cf6',
+      light: '#a78bfa',
+      dark: '#7c3aed',
       contrastText: '#fff',
     },
     neutral: {
-      main: '#64748B',
-      light: '#94A3B8',
+      main: '#64748b',
+      light: '#94a3b8',
       dark: '#475569',
       contrastText: '#fff',
     },
     error: {
-      main: '#d32f2f',
-      light: '#ef5350',
-      dark: '#c62828',
+      main: '#ef4444',
+      light: '#f87171',
+      dark: '#dc2626',
       contrastText: '#fff',
     },
     warning: {
-      main: '#ed6c02',
-      light: '#ff9800',
-      dark: '#e65100',
+      main: '#f59e0b',
+      light: '#fbbf24',
+      dark: '#d97706',
       contrastText: '#fff',
     },
     info: {
-      main: '#0288d1',
-      light: '#03a9f4',
-      dark: '#01579b',
+      main: '#3b82f6',
+      light: '#60a5fa',
+      dark: '#2563eb',
       contrastText: '#fff',
     },
     success: {
-      main: '#2e7d32',
-      light: '#4caf50',
-      dark: '#1b5e20',
+      main: '#10b981',
+      light: '#34d399',
+      dark: '#059669',
       contrastText: '#fff',
     },
     background: {
-      default: '#f8fafc',
-      paper: '#ffffff',
+      default: '#0f172a',
+      paper: '#1e293b',
     },
+    text: {
+      primary: '#f1f5f9',
+      secondary: '#94a3b8',
+      disabled: '#64748b',
+    },
+    divider: '#334155',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -118,22 +125,50 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+          borderRadius: 8,
+          backgroundColor: '#1e293b',
+          border: '1px solid #334155',
+          boxShadow: 'none',
         },
       },
     },
     MuiCardHeader: {
       styleOverrides: {
         root: {
-          padding: '24px',
+          padding: '20px',
         },
       },
     },
     MuiCardContent: {
       styleOverrides: {
         root: {
-          padding: '24px',
+          padding: '20px',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          backgroundColor: '#1e293b',
+          border: '1px solid #334155',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#1e293b',
+          backgroundImage: 'none',
+          borderBottom: '1px solid #334155',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#1e293b',
+          borderRight: '1px solid #334155',
         },
       },
     },
