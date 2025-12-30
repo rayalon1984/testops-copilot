@@ -102,6 +102,43 @@ else
 fi
 echo ""
 
+# Create backend .env if it doesn't exist
+if [ ! -f "backend/.env" ]; then
+    echo "⚙️  Creating backend .env file..."
+    cat > backend/.env << 'EOF'
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/testops"
+
+# Server
+PORT=4000
+NODE_ENV=development
+
+# Security (auto-generated)
+JWT_SECRET="$(openssl rand -base64 32 2>/dev/null || echo 'dev-secret-change-in-production')"
+JWT_REFRESH_SECRET="$(openssl rand -base64 32 2>/dev/null || echo 'dev-refresh-secret-change-in-production')"
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Weaviate
+WEAVIATE_HOST=http://localhost:8081
+EOF
+    echo -e "${GREEN}✅ Backend .env created${NC}"
+    echo ""
+fi
+
+# Create frontend .env if it doesn't exist
+if [ ! -f "frontend/.env" ]; then
+    echo "⚙️  Creating frontend .env file..."
+    cat > frontend/.env << 'EOF'
+VITE_API_URL=http://localhost:4000
+VITE_WEBSOCKET_URL=ws://localhost:4000
+EOF
+    echo -e "${GREEN}✅ Frontend .env created${NC}"
+    echo ""
+fi
+
 # Run database setup
 echo "📊 Setting up database..."
 cd backend
