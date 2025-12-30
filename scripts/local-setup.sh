@@ -32,6 +32,29 @@ fi
 echo -e "${GREEN}✅ Docker is installed and running${NC}"
 echo ""
 
+# Install dependencies if node_modules don't exist
+if [ ! -d "node_modules" ] || [ ! -d "backend/node_modules" ] || [ ! -d "frontend/node_modules" ]; then
+    echo "📦 Installing dependencies..."
+
+    if [ ! -d "node_modules" ]; then
+        echo "Installing root dependencies..."
+        npm install
+    fi
+
+    if [ ! -d "backend/node_modules" ]; then
+        echo "Installing backend dependencies..."
+        cd backend && npm install && cd ..
+    fi
+
+    if [ ! -d "frontend/node_modules" ]; then
+        echo "Installing frontend dependencies..."
+        cd frontend && npm install && cd ..
+    fi
+
+    echo -e "${GREEN}✅ Dependencies installed${NC}"
+    echo ""
+fi
+
 # Stop any existing containers
 echo "🛑 Stopping existing containers..."
 docker-compose down 2>/dev/null || true

@@ -210,6 +210,11 @@ model FailureArchive {
   commitSha             String?
   branch                String?
 
+  // AI Categorization
+  category              String?          // AI-determined category: bug_critical, bug_minor, environment, flaky, configuration, unknown
+  categoryConfidence    Float?           // Confidence score 0.0-1.0
+  filePath              String?          // File path where failure occurred
+
   // RCA Documentation (the gold!)
   rootCause             String?          @db.Text
   detailedAnalysis      String?          @db.Text

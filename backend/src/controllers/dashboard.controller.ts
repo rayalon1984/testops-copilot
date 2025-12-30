@@ -196,7 +196,7 @@ export class DashboardController {
           occurredAt: {
             gte: startDate,
           },
-          category: {
+          errorType: {
             not: null,
           },
         },
@@ -214,7 +214,7 @@ export class DashboardController {
     try {
       const failures = await prisma.failureArchive.findMany({
         where: {
-          category: {
+          errorType: {
             not: null,
           },
         },
@@ -227,24 +227,39 @@ export class DashboardController {
           testName: true,
           errorMessage: true,
           rootCause: true,
-          category: true,
-          categoryConfidence: true,
-          filePath: true,
+          errorType: true,
+          severity: true,
+          stackTrace: true,
           occurredAt: true,
         },
       });
 
-      return failures.map(failure => ({
-        id: failure.id,
-        testName: failure.testName,
-        errorMessage: failure.errorMessage.substring(0, 100),
-        rootCause: failure.rootCause,
-        category: (failure.category as FailureCategory) || 'unknown',
-        confidence: failure.categoryConfidence || 0,
-        similarCount: 0, // Would query vector DB for similar failures
-        filePath: failure.filePath,
-        timestamp: failure.occurredAt.toISOString(),
-      }));
+      return failures.map(failure => {
+        // Extract file path from stack trace
+        const filePathMatch = failure.stackTrace?.match(/at\s+(?:.*?\s+)?\(?(\/[^:)]+):\d+:\d+/);
+        const filePath = filePathMatch ? filePathMatch[1] : null;
+
+        // Map severity to category
+        const categoryMap: Record<string, FailureCategory> = {
+          'CRITICAL': 'bug_critical',
+          'HIGH': 'bug_critical',
+          'MEDIUM': 'bug_minor',
+          'LOW': 'bug_minor',
+        };
+        const category = failure.severity ? categoryMap[failure.severity] || 'unknown' : 'unknown';
+
+        return {
+          id: failure.id,
+          testName: failure.testName,
+          errorMessage: failure.errorMessage.substring(0, 100),
+          rootCause: failure.rootCause,
+          category,
+          confidence: 0.85, // Default confidence since we don't have AI scoring yet
+          similarCount: 0, // Would query vector DB for similar failures
+          filePath,
+          timestamp: failure.occurredAt.toISOString(),
+        };
+      });
     } catch (error) {
       console.error('Failed to get recent failures:', error);
       return [];
@@ -310,22 +325,23 @@ export class DashboardController {
     startDate: Date
   ): Promise<DashboardMetrics['failureCategories']> {
     try {
-      const categoryCounts = await prisma.failureArchive.groupBy({
-        by: ['category'],
+      // Group by severity since we don't have category field yet
+      const severityCounts = await prisma.failureArchive.groupBy({
+        by: ['severity'],
         where: {
           occurredAt: {
             gte: startDate,
           },
-          category: {
+          severity: {
             not: null,
           },
         },
         _count: {
-          category: true,
+          severity: true,
         },
       });
 
-      const total = categoryCounts.reduce((sum, item) => sum + item._count.category, 0);
+      const total = severityCounts.reduce((sum, item) => sum + (item._count?.severity || 0), 0);
 
       const categoryColors: Record<FailureCategory, string> = {
         bug_critical: '#ef4444',
@@ -336,12 +352,24 @@ export class DashboardController {
         unknown: '#64748b',
       };
 
-      return categoryCounts.map(item => ({
-        category: (item.category as FailureCategory) || 'unknown',
-        count: item._count.category,
-        percentage: total > 0 ? (item._count.category / total) * 100 : 0,
-        color: categoryColors[(item.category as FailureCategory) || 'unknown'],
-      })).sort((a, b) => b.count - a.count);
+      // Map severity to category
+      const categoryMap: Record<string, FailureCategory> = {
+        'CRITICAL': 'bug_critical',
+        'HIGH': 'bug_critical',
+        'MEDIUM': 'bug_minor',
+        'LOW': 'bug_minor',
+      };
+
+      return severityCounts.map(item => {
+        const category = item.severity ? categoryMap[item.severity] || 'unknown' : 'unknown';
+        const count = item._count?.severity || 0;
+        return {
+          category,
+          count,
+          percentage: total > 0 ? (count / total) * 100 : 0,
+          color: categoryColors[category],
+        };
+      }).sort((a, b) => b.count - a.count);
     } catch (error) {
       console.error('Failed to get failure categories breakdown:', error);
       return [];

@@ -8,12 +8,7 @@
 ## Setup Commands (Run Once)
 
 ```bash
-# 1. Install dependencies
-npm install
-cd backend && npm install && cd ..
-cd frontend && npm install && cd ..
-
-# 2. Run automated setup (handles Docker, DB, everything)
+# Run automated setup (handles dependencies, Docker, DB, everything)
 npm run local:setup
 
 # During setup, press Enter to skip optional integrations (GitHub, Jira)
