@@ -3,6 +3,7 @@ import { jiraController } from '../controllers/jira.controller';
 import failureArchiveRouter from './failure-archive.routes';
 import mondayRouter from './monday.routes';
 import metricsRouter from './metrics.routes';
+import dashboardRouter from './dashboard.routes';
 import aiRouter from './ai';
 import { MetricsController } from '../controllers/metrics.controller';
 
@@ -24,6 +25,7 @@ export function registerRoutes(app: Application): void {
 
   // API routes
   app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/dashboard', dashboardRouter);
   app.use('/api/v1/pipelines', pipelineRouter);
   app.use('/api/v1/test-runs', testRunRouter);
   app.use('/api/v1/notifications', notificationRouter);

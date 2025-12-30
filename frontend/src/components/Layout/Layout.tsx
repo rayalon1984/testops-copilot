@@ -15,6 +15,9 @@ import {
   Divider,
   useTheme,
   useMediaQuery,
+  Select,
+  MenuItem,
+  FormControl,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -24,6 +27,7 @@ import {
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
+  SmartToy as AIIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -38,6 +42,7 @@ const menuItems = [
 
 export default function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [aiProvider, setAIProvider] = useState('claude-sonnet-4.5');
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -101,9 +106,37 @@ export default function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             TestOps Companion
           </Typography>
+
+          {/* AI Provider Selector */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
+              AI Provider
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <Select
+                value={aiProvider}
+                onChange={(e) => setAIProvider(e.target.value)}
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '0.875rem',
+                  '& .MuiSelect-icon': {
+                    color: 'text.secondary',
+                  },
+                  '& .MuiOutline-notchedOutline': {
+                    borderColor: '#475569',
+                  },
+                }}
+                startAdornment={<AIIcon sx={{ mr: 1, fontSize: 18, color: 'text.secondary' }} />}
+              >
+                <MenuItem value="claude-sonnet-4.5">🤖 Claude Sonnet 4.5</MenuItem>
+                <MenuItem value="gpt-4-turbo">🤖 GPT-4 Turbo</MenuItem>
+                <MenuItem value="gemini-flash">🤖 Gemini 1.5 Flash</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
         </Toolbar>
       </AppBar>
       <Box
