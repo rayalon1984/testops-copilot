@@ -4,6 +4,12 @@
   "description": "A comprehensive test operations companion for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "local:setup": "bash scripts/local-setup.sh",
+    "local:start": "docker-compose up -d db redis weaviate && echo 'Services started! Run: npm run dev'",
+    "local:stop": "docker-compose down",
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd backend && npm run start",
     "start:frontend": "cd frontend && npm run start",
