@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:simple": "concurrently \"npm run dev:simple:backend\" \"npm run dev:frontend\"",
+    "dev:simple:backend": "cd backend && npm run dev:simple",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "local:setup": "bash scripts/local-setup.sh",
