@@ -9,7 +9,7 @@
     "dev:simple": "npm run dev:simple:setup && nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "dev:simple:setup": "npm run dev:simple:generate && npm run dev:simple:migrate && npm run dev:simple:seed",
     "dev:simple:generate": "prisma generate --schema=prisma/schema.dev.prisma",
-    "dev:simple:migrate": "prisma migrate deploy --schema=prisma/schema.dev.prisma || prisma db push --schema=prisma/schema.dev.prisma --accept-data-loss",
+    "dev:simple:migrate": "rm -f prisma/dev.db && prisma db push --schema=prisma/schema.dev.prisma --accept-data-loss --force-reset",
     "dev:simple:seed": "node prisma/seed.dev.js",
     "build": "tsc && tsc-alias",
     "test": "jest",
