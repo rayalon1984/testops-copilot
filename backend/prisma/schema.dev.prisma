@@ -107,3 +107,40 @@ model AIUsage {
   @@index([provider])
   @@index([createdAt])
 }
+
+// Jira integration models (optional for demo)
+model JiraConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   String    @default("BUG") // BUG | TASK | STORY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JiraIssue {
+  id              String            @id @default(uuid())
+  issueKey        String            @unique
+  issueType       String            // BUG | TASK | STORY
+  status          String            @default("TODO") // TODO | IN_PROGRESS | DONE
+  summary         String
+  description     String?
+  labels          String
+  pipelineId      String?
+  testRunId       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  failureArchives FailureArchive[]
+
+  @@index([issueKey])
+}
+
+// Pipeline model (stub for demo)
+model Pipeline {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
