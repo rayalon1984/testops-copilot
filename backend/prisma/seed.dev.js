@@ -3,8 +3,8 @@
  * Creates realistic test failures and AI analysis data for dashboard demo
  */
 
-// Use require for better compatibility with ts-node
-const { PrismaClient } = require('../node_modules/.prisma/client-dev');
+// Use require for better compatibility
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
