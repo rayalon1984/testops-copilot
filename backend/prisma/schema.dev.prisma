@@ -85,7 +85,6 @@ model FailureArchive {
 
   // Relations
   jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
-  jiraIssueId           String?
 
   // Timestamps
   createdAt             DateTime         @default(now())
