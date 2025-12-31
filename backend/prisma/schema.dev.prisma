@@ -83,6 +83,10 @@ model FailureArchive {
   severity              String           @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
   isKnownIssue          Boolean          @default(false)
 
+  // Relations
+  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
+  jiraIssueId           String?
+
   // Timestamps
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
