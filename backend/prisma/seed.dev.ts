@@ -3,7 +3,8 @@
  * Creates realistic test failures and AI analysis data for dashboard demo
  */
 
-import { PrismaClient } from '../node_modules/.prisma/client-dev';
+// Use require for better compatibility with ts-node
+const { PrismaClient } = require('../node_modules/.prisma/client-dev');
 
 const prisma = new PrismaClient();
 
