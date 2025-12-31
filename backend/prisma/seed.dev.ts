@@ -3,7 +3,7 @@
  * Creates realistic test failures and AI analysis data for dashboard demo
  */
 
-import { PrismaClient } from '.prisma/client-dev';
+import { PrismaClient } from '../node_modules/.prisma/client-dev';
 
 const prisma = new PrismaClient();
 
@@ -197,8 +197,8 @@ async function seedDevelopmentData() {
           solution: template.solution,
           preventionSteps: template.preventionSteps,
           workaround: i % 3 === 0 ? 'Restart the service and retry' : null,
-          status: ['NEW', 'INVESTIGATING', 'DOCUMENTED', 'RESOLVED'][Math.floor(Math.random() * 4)] as any,
-          severity: config.severity as any,
+          status: ['NEW', 'INVESTIGATING', 'DOCUMENTED', 'RESOLVED'][Math.floor(Math.random() * 4)],
+          severity: config.severity,
           isRecurring: Math.random() > 0.7,
           occurrenceCount: Math.floor(Math.random() * 10) + 1,
           isKnownIssue: Math.random() > 0.8,
