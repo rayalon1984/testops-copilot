@@ -1,0 +1,129 @@
+// SQLite Development Schema for Demo Mode
+// This is a simplified version using SQLite instead of PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client-dev"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum FailureStatus {
+  NEW
+  INVESTIGATING
+  DOCUMENTED
+  RESOLVED
+  RECURRING
+}
+
+enum FailureSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TestRun {
+  id        String   @id @default(uuid())
+  name      String
+  status    String   @default("PENDING")
+  branch    String?
+  commit    String?
+  startTime DateTime?
+  endTime   DateTime?
+  duration  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FailureArchive {
+  id                    String           @id @default(uuid())
+  testRunId             String
+  testCaseId            String?
+  testName              String
+  failureSignature      String
+
+  // Failure details
+  errorMessage          String
+  errorType             String?
+  stackTrace            String?
+  logSnippet            String?
+
+  // Temporal data
+  occurredAt            DateTime         @default(now())
+  environment           String?
+  buildNumber           String?
+  commitSha             String?
+  branch                String?
+
+  // RCA Documentation
+  rootCause             String?
+  detailedAnalysis      String?
+  solution              String?
+  preventionSteps       String?
+  workaround            String?
+
+  // Resolution tracking
+  status                FailureStatus    @default(NEW)
+  resolvedAt            DateTime?
+  resolvedBy            String?
+  timeToResolve         Int?
+
+  // Integration links
+  jiraIssueId           String?
+  jiraIssueKey          String?
+  prUrl                 String?
+
+  // Pattern detection
+  isRecurring           Boolean          @default(false)
+  firstSeenAt           DateTime         @default(now())
+  lastSeenAt            DateTime         @default(now())
+  occurrenceCount       Int              @default(1)
+  recurrencePattern     String?
+
+  // Metadata
+  severity              FailureSeverity  @default(MEDIUM)
+  isKnownIssue          Boolean          @default(false)
+
+  // Timestamps
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  @@index([failureSignature])
+  @@index([testName])
+  @@index([occurredAt])
+  @@index([status])
+}
+
+// Simplified AI usage tracking for demo
+model AIUsage {
+  id              String   @id @default(uuid())
+  provider        String   // "anthropic", "openai", "google"
+  model           String
+  tokens          Int
+  cost            Float
+  cacheHit        Boolean  @default(false)
+  responseTimeMs  Int
+  createdAt       DateTime @default(now())
+
+  @@index([provider])
+  @@index([createdAt])
+}
