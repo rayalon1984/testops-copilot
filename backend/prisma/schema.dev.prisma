@@ -129,7 +129,7 @@ model JiraIssue {
   status          String            @default("TODO") // TODO | IN_PROGRESS | DONE
   summary         String
   description     String?
-  labels          String[]
+  labels          String?           // Comma-separated string (SQLite doesn't support arrays)
   pipelineId      String?
   testRunId       String?
   createdAt       DateTime          @default(now())
