@@ -14,6 +14,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
+  password  String
   firstName String?
   lastName  String?
   role      String   @default("USER") // ADMIN | USER
@@ -22,16 +23,27 @@ model User {
 }
 
 model TestRun {
-  id        String   @id @default(uuid())
-  name      String
-  status    String   @default("PENDING")
-  branch    String?
-  commit    String?
-  startTime DateTime?
-  endTime   DateTime?
-  duration  Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(uuid())
+  pipelineId String
+  userId     String
+  name       String
+  status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | ERROR
+  branch     String?
+  commit     String?
+  startTime  DateTime?
+  endTime    DateTime?
+  duration   Int?
+  results    String?   // JSON stored as string
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
+
+  @@index([pipelineId])
+  @@index([userId])
+  @@index([status])
 }
 
 model FailureArchive {
@@ -142,13 +154,24 @@ model JiraIssue {
   @@index([issueKey])
 }
 
-// Pipeline model (stub for demo)
+// Pipeline model
 model Pipeline {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
+  type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
+  status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
+  config      String     // JSON stored as string
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  testRuns    TestRun[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
 }
 
 // Failure pattern detection

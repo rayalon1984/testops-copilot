@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../config';
 import { AuthenticationError, AuthorizationError } from './errorHandler';
-import { TokenPayload } from '../types/user';
+import { TokenPayload, User } from '../types/user';
 import { UserRole, JWT_CONFIG, ERROR_MESSAGES } from '../constants';
 
 const prisma = new PrismaClient();
@@ -32,7 +32,7 @@ export const authenticate = async (
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_TOKEN);
     }
 
-    req.user = user;
+    req.user = user as User;
     req.token = token;
     req.tokenPayload = decoded;
 
@@ -90,7 +90,7 @@ export const refreshToken = async (
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_TOKEN);
     }
 
-    req.user = user;
+    req.user = user as User;
     req.tokenPayload = decoded;
 
     next();

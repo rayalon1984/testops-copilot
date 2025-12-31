@@ -85,7 +85,12 @@ export default function Settings() {
   const { data: settings, isLoading } = useQuery<Settings>({
     queryKey: ['settings'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/settings');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/v1/settings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch settings');
       return response.json();
     },
@@ -94,10 +99,12 @@ export default function Settings() {
   // Update settings mutation
   const updateSettings = useMutation({
     mutationFn: async (newSettings: Partial<Settings>) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/v1/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(newSettings),
       });

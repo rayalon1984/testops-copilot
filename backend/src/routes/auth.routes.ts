@@ -16,17 +16,8 @@ const authController = new AuthController();
 router.post(
   '/register',
   asyncHandler(async (req: TypedRequest<CreateUserDTO>, res: Response) => {
-    const user = await authController.register(req.body);
-    res.status(201).json({ user });
-  })
-);
+    const { user, accessToken, refreshToken } = await authController.register(req.body);
 
-// Login user
-router.post(
-  '/login',
-  asyncHandler(async (req: TypedRequest<LoginDTO>, res: Response) => {
-    const { user, accessToken, refreshToken } = await authController.login(req.body);
-    
     // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -35,7 +26,25 @@ router.post(
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    res.json({ user, accessToken });
+    res.status(201).json({ data: { user, accessToken } });
+  })
+);
+
+// Login user
+router.post(
+  '/login',
+  asyncHandler(async (req: TypedRequest<LoginDTO>, res: Response) => {
+    const { user, accessToken, refreshToken } = await authController.login(req.body);
+
+    // Set refresh token in HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.json({ data: { user, accessToken } });
   })
 );
 
@@ -89,7 +98,7 @@ router.get(
     }
 
     const user = await authController.getCurrentUser(req.user.id);
-    res.json({ user });
+    res.json({ data: { user } });
   })
 );
 

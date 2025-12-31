@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Container,
@@ -10,9 +11,18 @@ import {
   CardContent,
   LinearProgress,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Divider,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
+  BugReport as BugIcon,
+  Code as CodeIcon,
+  Build as BuildIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -79,6 +89,8 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const [selectedFailure, setSelectedFailure] = useState<any>(null);
+
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ['dashboard', 'ai-metrics'],
     queryFn: async () => {
@@ -211,8 +223,8 @@ export default function Dashboard() {
               </Typography>
 
               <Box sx={{ mt: 2 }}>
-                {metrics.failureCategories.map((category) => (
-                  <Box key={category.category} sx={{ mb: 2.5 }}>
+                {metrics.failureCategories.map((category, index) => (
+                  <Box key={`${category.category}-${index}`} sx={{ mb: 2.5 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                       <Typography variant="body2" color="text.primary">
                         {categoryIcons[category.category]} {categoryLabels[category.category] || category.category}
@@ -257,10 +269,19 @@ export default function Dashboard() {
                 {metrics.recentFailures.slice(0, 3).map((failure) => (
                   <Paper
                     key={failure.id}
+                    onClick={() => setSelectedFailure(failure)}
                     sx={{
                       p: 2,
                       backgroundColor: '#0f172a',
                       border: '1px solid #334155',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        backgroundColor: '#1e293b',
+                        borderColor: '#475569',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
@@ -454,6 +475,132 @@ export default function Dashboard() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Failure Detail Modal */}
+      <Dialog
+        open={!!selectedFailure}
+        onClose={() => setSelectedFailure(null)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: '#0f172a',
+            backgroundImage: 'none',
+          }
+        }}
+      >
+        {selectedFailure && (
+          <>
+            <DialogTitle sx={{ borderBottom: '1px solid #334155', pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <BugIcon color="error" />
+                <Typography variant="h6" fontWeight="bold">
+                  Failure Analysis Detail
+                </Typography>
+              </Box>
+              <Chip
+                label={categoryLabels[selectedFailure.category] || selectedFailure.category}
+                size="small"
+                sx={{
+                  backgroundColor: metrics?.failureCategories.find(
+                    (c) => c.category === selectedFailure.category
+                  )?.color || '#64748b',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                }}
+              />
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2 }}>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Error Message
+                </Typography>
+                <Paper sx={{ p: 2, backgroundColor: '#1e293b', border: '1px solid #334155' }}>
+                  <Typography variant="body2" color="error.main" fontFamily="monospace">
+                    {selectedFailure.errorMessage}
+                  </Typography>
+                </Paper>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CodeIcon fontSize="small" />
+                  Test Name
+                </Typography>
+                <Typography variant="body2" color="text.primary" fontFamily="monospace">
+                  {selectedFailure.testName || selectedFailure.filePath || 'N/A'}
+                </Typography>
+              </Box>
+
+              <Divider sx={{ my: 2, borderColor: '#334155' }} />
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <BuildIcon fontSize="small" />
+                  AI Root Cause Analysis
+                </Typography>
+                <Paper sx={{ p: 2, backgroundColor: '#1e293b', border: '1px solid #10b981' }}>
+                  <Typography variant="body2" color="success.main">
+                    {selectedFailure.rootCause || 'Analysis in progress...'}
+                  </Typography>
+                </Paper>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  AI Confidence & Similar Cases
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Confidence Score
+                    </Typography>
+                    <Typography variant="h6" color="success.main">
+                      {(selectedFailure.confidence * 100).toFixed(0)}%
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem sx={{ borderColor: '#334155' }} />
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Similar Past Cases
+                    </Typography>
+                    <Typography variant="h6" color="info.main">
+                      {selectedFailure.similarCount}
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem sx={{ borderColor: '#334155' }} />
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      First Detected
+                    </Typography>
+                    <Typography variant="body2" color="text.primary">
+                      {new Date(selectedFailure.timestamp).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box sx={{ p: 2, backgroundColor: '#1e293b', borderRadius: 1, border: '1px solid #334155' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  💡 AI-Powered Insight
+                </Typography>
+                <Typography variant="body2" color="text.primary">
+                  This failure pattern has been automatically categorized and analyzed using advanced AI models.
+                  The root cause has been identified with high confidence based on similar historical failures.
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ borderTop: '1px solid #334155', p: 2 }}>
+              <Button onClick={() => setSelectedFailure(null)} variant="outlined">
+                Close
+              </Button>
+              <Button variant="contained" color="primary">
+                View Full Details
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Container>
   );
 }

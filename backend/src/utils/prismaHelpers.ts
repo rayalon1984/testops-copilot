@@ -1,4 +1,4 @@
-import { Prisma, PipelineStatus as PrismaStatus, PipelineType as PrismaType } from '../types/prisma-types';
+import { Prisma } from '@prisma/client';
 import { PipelineType, PipelineStatus } from '../constants';
 
 interface BasePipelineData {
@@ -16,36 +16,12 @@ interface UpdatePipelineData extends Partial<BasePipelineData> {
   id: string;
 }
 
-function mapPipelineType(type: PipelineType): PrismaType {
-  switch (type) {
-    case PipelineType.JENKINS:
-      return PrismaType.JENKINS;
-    case PipelineType.GITHUB_ACTIONS:
-      return PrismaType.GITHUB_ACTIONS;
-    case PipelineType.CUSTOM:
-      return PrismaType.CUSTOM;
-    default:
-      throw new Error(`Unknown pipeline type: ${type}`);
-  }
+function mapPipelineType(type: PipelineType): string {
+  return type;
 }
 
-function mapPipelineStatus(status: PipelineStatus): PrismaStatus {
-  switch (status) {
-    case PipelineStatus.PENDING:
-      return PrismaStatus.PENDING;
-    case PipelineStatus.RUNNING:
-      return PrismaStatus.RUNNING;
-    case PipelineStatus.SUCCESS:
-      return PrismaStatus.SUCCESS;
-    case PipelineStatus.FAILURE:
-      return PrismaStatus.FAILURE;
-    case PipelineStatus.CANCELLED:
-      return PrismaStatus.CANCELLED;
-    case PipelineStatus.TIMEOUT:
-      return PrismaStatus.TIMEOUT;
-    default:
-      throw new Error(`Unknown pipeline status: ${status}`);
-  }
+function mapPipelineStatus(status: PipelineStatus): string {
+  return status;
 }
 
 /**
@@ -86,13 +62,9 @@ export function createPipelineInput(data: CreatePipelineData): Prisma.PipelineCr
   return {
     name: data.name,
     type: mapPipelineType(data.type),
-    status: data.status ? mapPipelineStatus(data.status) : PrismaStatus.PENDING,
-    config: toInputJsonValue(data.config),
-    user: {
-      connect: {
-        id: data.userId
-      }
-    }
+    status: data.status ? mapPipelineStatus(data.status) : 'PENDING',
+    config: JSON.stringify(data.config),
+    userId: data.userId
   };
 }
 
@@ -115,7 +87,7 @@ export function updatePipelineInput(data: Partial<BasePipelineData>): Prisma.Pip
   }
 
   if (data.config !== undefined) {
-    updateData.config = toInputJsonValue(data.config);
+    updateData.config = JSON.stringify(data.config);
   }
 
   return updateData;

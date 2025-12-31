@@ -23,6 +23,15 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('accessToken');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,13 +42,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { data: userData, isLoading: isCheckingAuth } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        return null;
+      }
+
       try {
         const response = await fetch('/api/v1/auth/me', {
+          headers: getAuthHeaders(),
           credentials: 'include',
         });
-        if (!response.ok) throw new Error('Not authenticated');
+        if (!response.ok) {
+          localStorage.removeItem('accessToken');
+          throw new Error('Not authenticated');
+        }
         return response.json();
       } catch (error) {
+        localStorage.removeItem('accessToken');
         setUser(null);
         return null;
       }
@@ -69,6 +88,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return response.json();
     },
     onSuccess: (data) => {
+      // Store access token
+      localStorage.setItem('accessToken', data.data.accessToken);
       setUser(data.data.user);
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       navigate('/dashboard');
@@ -90,6 +111,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return response.json();
     },
     onSuccess: (data) => {
+      // Store access token if present
+      if (data.data.accessToken) {
+        localStorage.setItem('accessToken', data.data.accessToken);
+      }
       setUser(data.data.user);
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       navigate('/dashboard');
@@ -101,12 +126,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     mutationFn: async () => {
       const response = await fetch('/api/v1/auth/logout', {
         method: 'POST',
+        headers: getAuthHeaders(),
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Logout failed');
       return response.json();
     },
     onSuccess: () => {
+      // Clear access token
+      localStorage.removeItem('accessToken');
       setUser(null);
       queryClient.clear();
       navigate('/login');

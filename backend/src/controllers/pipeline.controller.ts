@@ -36,13 +36,40 @@ export class PipelineController {
       include: {
         testRuns: {
           orderBy: { createdAt: 'desc' },
-          take: 1
+          take: 20
         }
       }
     });
 
-    // Convert Prisma pipelines to our Pipeline type
-    return prismaPipelines.map(pipeline => toPipeline(pipeline));
+    // Transform to frontend format with calculated success rate
+    return prismaPipelines.map(pipeline => {
+      const testRuns = pipeline.testRuns || [];
+      const lastRun = testRuns.length > 0 ? testRuns[0].createdAt.toISOString() : new Date().toISOString();
+
+      // Calculate success rate
+      const totalRuns = testRuns.length;
+      const passedRuns = testRuns.filter(run => run.status === 'PASSED').length;
+      const successRate = totalRuns > 0 ? Math.round((passedRuns / totalRuns) * 100) : 0;
+
+      // Map status
+      const lastRunStatus = testRuns.length > 0 ? testRuns[0].status : 'PENDING';
+      const statusMap: Record<string, string> = {
+        'PASSED': 'success',
+        'FAILED': 'failed',
+        'RUNNING': 'running',
+        'PENDING': 'pending'
+      };
+
+      return {
+        id: pipeline.id,
+        name: pipeline.name,
+        type: pipeline.type.toLowerCase().replace('_', '-') as 'jenkins' | 'github-actions',
+        status: statusMap[lastRunStatus] || 'pending',
+        lastRun,
+        successRate,
+        config: typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config
+      };
+    });
   }
 
   async getPipeline(id: string, userId: string) {
@@ -156,13 +183,12 @@ export class PipelineController {
 
   async schedulePipeline(id: string, schedule: string, userId: string) {
     const pipeline = await this.getPipeline(id, userId);
-    // @ts-expect-error - Prisma JsonValue type compatibility
     const currentConfig = parsePipelineConfig<Record<string, unknown>>(pipeline.config);
 
     await prisma.pipeline.update({
       where: { id },
       data: {
-        config: toInputJsonValue({
+        config: JSON.stringify({
           ...currentConfig,
           schedule
         })

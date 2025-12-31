@@ -77,9 +77,13 @@ export const FailureKnowledgeBase: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
+      const token = localStorage.getItem('accessToken');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+      };
       const [insightsRes, failuresRes] = await Promise.all([
-        fetch('/api/v1/failure-archive/insights?days=30'),
-        fetch('/api/v1/failure-archive/search?limit=50')
+        fetch('/api/v1/failure-archive/insights?days=30', { headers }),
+        fetch('/api/v1/failure-archive/search?limit=50', { headers })
       ]);
 
       const insightsData = await insightsRes.json();
