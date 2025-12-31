@@ -150,9 +150,7 @@ export class FailureArchiveService {
       data: {
         ...input,
         failureSignature: signature,
-        screenshots: input.screenshots || [],
-        relatedDocumentation: [],
-        tags: input.tags || [],
+        screenshots: input.screenshots?.join(',') || null,
         severity: input.severity || FailureSeverity.MEDIUM,
         status: FailureStatus.NEW,
         isRecurring: false,
@@ -271,7 +269,7 @@ export class FailureArchiveService {
       const patterns = await prisma.failurePattern.findMany({
         where: {
           isActive: true,
-          affectedTests: { has: testName }
+          affectedTests: { contains: testName }
         },
         orderBy: { confidence: 'desc' }
       });
@@ -517,7 +515,7 @@ export class FailureArchiveService {
           data: {
             matchCount: Number(recurring.count),
             lastMatched: new Date(),
-            affectedTests: recurring.testNames
+            affectedTests: Array.isArray(recurring.testNames) ? recurring.testNames.join(',') : recurring.testNames
           }
         });
         patterns.push(updated as unknown as FailurePattern);
@@ -533,7 +531,7 @@ export class FailureArchiveService {
               signature: recurring.failureSignature,
               patternName: `Recurring: ${sampleFailure.testName}`,
               description: `Pattern detected: ${sampleFailure.errorMessage.substring(0, 200)}...`,
-              affectedTests: recurring.testNames,
+              affectedTests: Array.isArray(recurring.testNames) ? recurring.testNames.join(',') : recurring.testNames,
               matchCount: Number(recurring.count),
               confidence: 0.8,
               isActive: true
