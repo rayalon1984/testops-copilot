@@ -23,10 +23,15 @@ npm run dev:simple
 # Backend: http://localhost:4000
 ```
 
-**First time setup**:
+**First time setup** (fresh clone):
+```bash
+npm install  # Installs ALL dependencies (root, backend, frontend)
+npm run dev:simple
+```
+
+**If you already have node_modules**:
 ```bash
 git pull origin main
-npm install  # If you haven't already
 npm run dev:simple
 ```
 

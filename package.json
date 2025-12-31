@@ -4,6 +4,7 @@
   "description": "A comprehensive test operations companion for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
+    "postinstall": "npm run install:backend && npm run install:frontend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:simple": "concurrently \"npm run dev:simple:backend\" \"npm run dev:frontend\"",
     "dev:simple:backend": "cd backend && npm run dev:simple",
