@@ -46,6 +46,7 @@ model FailureArchive {
   errorType             String?
   stackTrace            String?
   logSnippet            String?
+  screenshots           String?           // Comma-separated URLs (SQLite doesn't support arrays)
 
   // Temporal data
   occurredAt            DateTime         @default(now())
@@ -146,4 +147,24 @@ model Pipeline {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Failure pattern detection
+model FailurePattern {
+  id                    String    @id @default(uuid())
+  signature             String    @unique
+  patternName           String
+  description           String
+  affectedTests         String?   // Comma-separated test names (SQLite doesn't support arrays)
+  commonRootCause       String?
+  matchCount            Int       @default(0)
+  lastMatched           DateTime  @default(now())
+  recurrenceRule        String?
+  confidence            Float     @default(0.0)
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([signature])
+  @@index([isActive])
 }
