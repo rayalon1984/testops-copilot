@@ -1,5 +1,6 @@
 // SQLite Development Schema for Demo Mode
 // This is a simplified version using SQLite instead of PostgreSQL
+// Note: SQLite doesn't support enums, so we use String with validation
 
 generator client {
   provider = "prisma-client-js"
@@ -11,32 +12,12 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-enum UserRole {
-  ADMIN
-  USER
-}
-
-enum FailureStatus {
-  NEW
-  INVESTIGATING
-  DOCUMENTED
-  RESOLVED
-  RECURRING
-}
-
-enum FailureSeverity {
-  CRITICAL
-  HIGH
-  MEDIUM
-  LOW
-}
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   firstName String?
   lastName  String?
-  role      UserRole @default(USER)
+  role      String   @default("USER") // ADMIN | USER
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -82,7 +63,7 @@ model FailureArchive {
   workaround            String?
 
   // Resolution tracking
-  status                FailureStatus    @default(NEW)
+  status                String           @default("NEW") // NEW | INVESTIGATING | DOCUMENTED | RESOLVED | RECURRING
   resolvedAt            DateTime?
   resolvedBy            String?
   timeToResolve         Int?
@@ -100,7 +81,7 @@ model FailureArchive {
   recurrencePattern     String?
 
   // Metadata
-  severity              FailureSeverity  @default(MEDIUM)
+  severity              String           @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
   isKnownIssue          Boolean          @default(false)
 
   // Timestamps
