@@ -4,7 +4,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client-dev"
 }
 
 datasource db {
@@ -47,6 +46,7 @@ model FailureArchive {
   errorType             String?
   stackTrace            String?
   logSnippet            String?
+  screenshots           String?           // Comma-separated URLs (SQLite doesn't support arrays)
 
   // Temporal data
   occurredAt            DateTime         @default(now())
@@ -84,6 +84,9 @@ model FailureArchive {
   severity              String           @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
   isKnownIssue          Boolean          @default(false)
 
+  // Relations
+  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
+
   // Timestamps
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
@@ -107,4 +110,61 @@ model AIUsage {
 
   @@index([provider])
   @@index([createdAt])
+}
+
+// Jira integration models (optional for demo)
+model JiraConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   String    @default("BUG") // BUG | TASK | STORY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JiraIssue {
+  id              String            @id @default(uuid())
+  issueKey        String            @unique
+  issueType       String            // BUG | TASK | STORY
+  status          String            @default("TODO") // TODO | IN_PROGRESS | DONE
+  summary         String
+  description     String?
+  labels          String?           // Comma-separated string (SQLite doesn't support arrays)
+  pipelineId      String?
+  testRunId       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  failureArchives FailureArchive[]
+
+  @@index([issueKey])
+}
+
+// Pipeline model (stub for demo)
+model Pipeline {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Failure pattern detection
+model FailurePattern {
+  id                    String    @id @default(uuid())
+  signature             String    @unique
+  patternName           String
+  description           String
+  affectedTests         String?   // Comma-separated test names (SQLite doesn't support arrays)
+  commonRootCause       String?
+  matchCount            Int       @default(0)
+  lastMatched           DateTime  @default(now())
+  recurrenceRule        String?
+  confidence            Float     @default(0.0)
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([signature])
+  @@index([isActive])
 }

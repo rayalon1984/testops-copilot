@@ -70,7 +70,7 @@ export class JiraService {
           status: JiraIssueStatus.TODO,
           summary: data.summary,
           description: data.description,
-          labels: data.labels || [],
+          labels: data.labels?.join(',') || null,
           ...(data.testRunId && { testRunId: data.testRunId }),
           ...(data.pipelineId && { pipelineId: data.pipelineId }),
         },
@@ -109,7 +109,7 @@ export class JiraService {
           ...(data.summary && { summary: data.summary }),
           ...(data.description && { description: data.description }),
           ...(data.status && { status: data.status }),
-          ...(data.labels && { labels: data.labels }),
+          ...(data.labels && { labels: data.labels.join(',') }),
         },
       });
 
