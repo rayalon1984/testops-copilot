@@ -332,8 +332,8 @@ export class DashboardController {
           occurredAt: {
             gte: startDate,
           },
-          severity: {
-            not: null,
+          NOT: {
+            severity: null,
           },
         },
         _count: {
@@ -341,7 +341,10 @@ export class DashboardController {
         },
       });
 
-      const total = severityCounts.reduce((sum, item) => sum + (item._count?.severity || 0), 0);
+      const total = severityCounts.reduce((sum, item) => {
+        const count = typeof item._count === 'object' && item._count.severity ? item._count.severity : 0;
+        return sum + count;
+      }, 0);
 
       const categoryColors: Record<FailureCategory, string> = {
         bug_critical: '#ef4444',
@@ -362,7 +365,7 @@ export class DashboardController {
 
       return severityCounts.map(item => {
         const category = item.severity ? categoryMap[item.severity] || 'unknown' : 'unknown';
-        const count = item._count?.severity || 0;
+        const count = typeof item._count === 'object' && item._count.severity ? item._count.severity : 0;
         return {
           category,
           count,
