@@ -83,6 +83,8 @@ model FailureArchive {
   // Metadata
   severity              String           @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
   isKnownIssue          Boolean          @default(false)
+  tags                  String?          // Comma-separated tags (SQLite doesn't support arrays)
+  relatedDocumentation  String?          // Comma-separated URLs (SQLite doesn't support arrays)
 
   // Relations
   jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
