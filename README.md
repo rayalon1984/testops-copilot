@@ -38,11 +38,11 @@
 
 ## 📸 Screenshots & Demo
 
-### 🎬 Video Demo
+### 🎬 TestOps Companion
 
 https://github.com/rayalon1984/testops-companion/blob/main/testOPS.mp4
 
-*Watch TestOps Companion in action - see how our AI-powered platform transforms test operations*
+*AI-powered test operations platform transforming how teams manage CI/CD pipelines and test failures*
 
 ---
 
