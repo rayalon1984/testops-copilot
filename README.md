@@ -40,7 +40,7 @@
 
 ### 🎬 TestOps Companion
 
-https://github.com/rayalon1984/testops-companion/blob/main/testOPS.mp4
+<video src="https://github.com/rayalon1984/testops-companion/raw/main/testOPS.mp4" controls muted autoplay loop></video>
 
 *AI-powered test operations platform transforming how teams manage CI/CD pipelines and test failures*
 
