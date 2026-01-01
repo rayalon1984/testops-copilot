@@ -74,7 +74,7 @@ export class DashboardController {
    */
   static async getDashboardMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const timeRange = req.query.timeRange || '24h';
+      const timeRange = req.query.timeRange || '30d';
       const startDate = DashboardController.getStartDate(timeRange as string);
 
       // Fetch all metrics in parallel for performance
@@ -325,26 +325,36 @@ export class DashboardController {
     startDate: Date
   ): Promise<DashboardMetrics['failureCategories']> {
     try {
-      // Group by severity since we don't have category field yet
-      const severityCounts = await prisma.failureArchive.groupBy({
-        by: ['severity'],
+      // Fetch all failures to parse category from testName
+      const failures = await prisma.failureArchive.findMany({
         where: {
           occurredAt: {
             gte: startDate,
           },
-          NOT: {
-            severity: null,
-          },
         },
-        _count: {
-          severity: true,
+        select: {
+          testName: true,
         },
       });
 
-      const total = severityCounts.reduce((sum, item) => {
-        const count = typeof item._count === 'object' && item._count.severity ? item._count.severity : 0;
-        return sum + count;
-      }, 0);
+      // Parse category from testName format: TestName_category_index
+      const categoryCounts: Record<string, number> = {};
+
+      failures.forEach(failure => {
+        const parts = failure.testName.split('_');
+        // Format: TestName_category_parts_index
+        // First part is testName (may contain dots), last part is index
+        // Everything in between is the category (may have underscores like bug_critical)
+        if (parts.length >= 3) {
+          const categoryParts = parts.slice(1, -1); // Remove first (testName) and last (index)
+          const category = categoryParts.join('_');
+          categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        } else {
+          categoryCounts['unknown'] = (categoryCounts['unknown'] || 0) + 1;
+        }
+      });
+
+      const total = failures.length;
 
       const categoryColors: Record<FailureCategory, string> = {
         bug_critical: '#ef4444',
@@ -355,22 +365,13 @@ export class DashboardController {
         unknown: '#64748b',
       };
 
-      // Map severity to category
-      const categoryMap: Record<string, FailureCategory> = {
-        'CRITICAL': 'bug_critical',
-        'HIGH': 'bug_critical',
-        'MEDIUM': 'bug_minor',
-        'LOW': 'bug_minor',
-      };
-
-      return severityCounts.map(item => {
-        const category = item.severity ? categoryMap[item.severity] || 'unknown' : 'unknown';
-        const count = typeof item._count === 'object' && item._count.severity ? item._count.severity : 0;
+      // Convert to array and sort by count
+      return Object.entries(categoryCounts).map(([category, count]) => {
         return {
-          category,
+          category: category as FailureCategory,
           count,
           percentage: total > 0 ? (count / total) * 100 : 0,
-          color: categoryColors[category],
+          color: categoryColors[category as FailureCategory] || '#64748b',
         };
       }).sort((a, b) => b.count - a.count);
     } catch (error) {
@@ -440,7 +441,7 @@ export class DashboardController {
       case '30d':
         return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       default:
-        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
   }
 
@@ -458,7 +459,7 @@ export class DashboardController {
       case '30d':
         return 'Last 30 days';
       default:
-        return 'Last 24 hours';
+        return 'Last 30 days';
     }
   }
 }

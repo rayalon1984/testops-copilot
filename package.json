@@ -6,10 +6,11 @@
   "scripts": {
     "postinstall": "npm run install:backend && npm run install:frontend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:simple": "concurrently \"npm run dev:simple:backend\" \"npm run dev:frontend\"",
+    "dev:simple": "concurrently \"npm run dev:simple:backend\" \"npm run dev:frontend\" \"npm run dev:browser\"",
     "dev:simple:backend": "cd backend && npm run dev:simple",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "dev:browser": "node scripts/open-browser.js http://localhost:5173 8000",
     "local:setup": "bash scripts/local-setup.sh",
     "local:start": "docker-compose up -d db redis weaviate && echo 'Services started! Run: npm run dev'",
     "local:stop": "docker-compose down",

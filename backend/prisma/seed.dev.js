@@ -6,13 +6,14 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Dramatically increased counts for demo impact
+// Dramatically increased counts for demo impact - ALL 6 CATEGORIES
 const FAILURE_CATEGORIES = {
   bug_critical: { severity: 'CRITICAL', count: 280 },
   bug_minor: { severity: 'MEDIUM', count: 420 },
   environment: { severity: 'HIGH', count: 190 },
   flaky: { severity: 'LOW', count: 315 },
   configuration: { severity: 'MEDIUM', count: 245 },
+  unknown: { severity: 'MEDIUM', count: 150 }, // NEW: For unclassified failures
 };
 
 const SAMPLE_FAILURES = [
@@ -105,6 +106,33 @@ const SAMPLE_FAILURES = [
     rootCause: 'Load balancer timeout shorter than application keepalive interval',
     solution: 'Reduce WebSocket ping interval to 20s and configure LB timeout to 60s',
     preventionSteps: 'Add automated tests for long-lived WebSocket connections',
+  },
+  {
+    testName: 'ThirdPartyAPI.fetchUserData',
+    errorType: 'UnknownError',
+    errorMessage: 'Unexpected response format from external API - unable to parse',
+    stackTrace: `at APIClient.parseResponse (src/integrations/api-client.ts:198:11)\nat ThirdPartyService.getUserInfo (src/services/third-party.ts:89:20)\nat UserController.syncExternalData (src/controllers/user.ts:156:14)`,
+    rootCause: 'External API changed response schema without notice',
+    solution: 'Add response validation and fallback handling for schema mismatches',
+    preventionSteps: 'Implement contract testing with external API providers',
+  },
+  {
+    testName: 'ReportGenerator.createPDF',
+    errorType: 'UnknownError',
+    errorMessage: 'Phantom process exited with code 139 (SIGSEGV)',
+    stackTrace: `at ChildProcess.exithandler (child_process.js:290:12)\nat ChildProcess.emit (events.js:315:20)\nat Process.ChildProcess._handle.onexit (internal/child_process.js:275:12)`,
+    rootCause: 'Segmentation fault in headless browser - cause unclear',
+    solution: 'Update to latest Chrome driver, add memory limits, enable crash reporting',
+    preventionSteps: 'Monitor crash reports, add health checks for browser processes',
+  },
+  {
+    testName: 'CacheService.retrieve',
+    errorType: 'UnknownError',
+    errorMessage: 'Redis connection intermittently returns READONLY - replica mode unexpected',
+    stackTrace: `at RedisClient.handleReply (redis/lib/parser/javascript.js:68:14)\nat CacheService.get (src/services/cache.ts:134:19)\nat middleware/cache.ts:45:12`,
+    rootCause: 'Redis failover causing temporary readonly state - root cause under investigation',
+    solution: 'Add retry logic with exponential backoff, investigate Redis cluster health',
+    preventionSteps: 'Set up Redis monitoring, add alerts for failover events',
   },
 ];
 
