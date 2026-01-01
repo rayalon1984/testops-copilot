@@ -39,9 +39,15 @@
 
 ## 📸 Screenshots & Demo
 
-### 🎬 TestOps Companion
+### 🎬 TestOps Companion Demo Video
 
-<video src="https://github.com/rayalon1984/testops-companion/raw/main/testOPS.mp4" controls muted autoplay loop></video>
+> **Note:** To see the video embedded with autoplay, please upload `testOPS.mp4` via GitHub's web interface:
+> 1. Open any [GitHub issue comment box](https://github.com/rayalon1984/testops-companion/issues/new)
+> 2. Drag and drop the video file
+> 3. GitHub will generate a URL starting with `https://github.com/user-attachments/assets/`
+> 4. Replace the link below with that URL (the video will then autoplay!)
+
+**[📹 Click to Watch Demo Video](https://github.com/rayalon1984/testops-companion/raw/main/testOPS.mp4)**
 
 *AI-powered test operations platform transforming how teams manage CI/CD pipelines and test failures*
 
