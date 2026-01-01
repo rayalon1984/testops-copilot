@@ -48,20 +48,9 @@ export class NotificationService {
   }
 
   async sendPipelineStartNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
-    // @ts-ignore - Dynamic property on pipeline? Or fetched pipeline needs include?
-    // Assuming pipeline has notifications config, but Prisma model Pipeline has `config` string.
-    // We need to parse config to get notifications preference if stored there.
-    // Or if `notifications` was a field on Pipeline model?
-    // Checking schema: Pipeline model has `config String` and `description String?`. No notifications field.
-    // The previous code `pipeline.notifications` implies `notifications` was a virtual field or relation in Sequelize.
-    // Or it's stored in `config` JSON.
-
-    // We'll try to parse it from config if possible, or assume it's missing for now.
-    // This part of refactor depends on where notifications config lives.
-    // Assuming it's inside `config` JSON for now.
-
     let notificationConfig: NotificationConfig | undefined;
     try {
+      // @ts-ignore
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {
@@ -73,12 +62,13 @@ export class NotificationService {
     }
 
     const message = this.formatStartMessage(pipeline, testRun);
-    await this.sendNotifications(notificationConfig, message);
+    await this.sendNotifications(notificationConfig, message, { pipeline, testRun });
   }
 
   async sendPipelineCompletionNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
     let notificationConfig: NotificationConfig | undefined;
     try {
+      // @ts-ignore
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {
@@ -90,19 +80,14 @@ export class NotificationService {
     }
 
     const message = this.formatCompletionMessage(pipeline, testRun);
-    await this.sendNotifications(notificationConfig, message);
+    await this.sendNotifications(notificationConfig, message, { pipeline, testRun });
   }
 
   private shouldSendNotification(
     config: NotificationConfig | undefined,
     condition: string
   ): boolean {
-    // Mapping testRun status to condition
-    // conditions: 'success' | 'failure' | 'started' | 'completed'
-    // condition passed in is 'started' or testRun.status (PASSED, FAILED, etc)
     const normalizedCondition = condition.toLowerCase();
-
-    // Map PASSED -> success, FAILED -> failure
     let checkCondition = normalizedCondition;
     if (normalizedCondition === 'passed') checkCondition = 'success';
     if (normalizedCondition === 'failed') checkCondition = 'failure';
@@ -114,61 +99,34 @@ export class NotificationService {
   }
 
   private formatStartMessage(pipeline: Pipeline, testRun: TestRun): string {
-    return `🚀 Pipeline Started
-Pipeline: ${pipeline.name}
-Branch: ${testRun.branch || 'default'}
-Run ID: ${testRun.id}
-Started At: ${testRun.startTime?.toISOString()}`;
+    return `🚀 Pipeline Started\nPipeline: ${pipeline.name}\nBranch: ${testRun.branch || 'default'}\nRun ID: ${testRun.id}\nStarted At: ${testRun.startTime?.toISOString()}`;
   }
 
   private formatCompletionMessage(pipeline: Pipeline, testRun: TestRun): string {
     const statusIcon = testRun.status === 'PASSED' ? '✅' : '❌';
-    const duration = testRun.duration ? `${testRun.duration} seconds` : 'N/A';
-
-    let resultsText = '';
-    if (testRun.results) {
-      try {
-        const results = JSON.parse(testRun.results);
-        resultsText = `
-Tests: ${results.total}
-✅ Passed: ${results.passed}
-❌ Failed: ${results.failed}
-⏭️ Skipped: ${results.skipped}`;
-      } catch (e) {
-        resultsText = ' (Results parsing failed)';
-      }
-    }
-
-    return `${statusIcon} Pipeline ${testRun.status}
-Pipeline: ${pipeline.name}
-Branch: ${testRun.branch || 'default'}
-Run ID: ${testRun.id}
-Duration: ${duration}${resultsText}
-${testRun.error ? `\nError: ${testRun.error}` : ''}`;
+    const duration = testRun.duration ? `${testRun.duration}s` : 'N/A';
+    return `${statusIcon} Pipeline ${testRun.status}\nPipeline: ${pipeline.name}\nBranch: ${testRun.branch || 'default'}\nDuration: ${duration}`;
   }
 
   // Public for controller usage (broadcasting)
-  async sendNotifications(config: NotificationConfig | { enabled: boolean; channels: string[]; message: string; userId?: string }, message: string): Promise<void> {
-    // Overloading: config can be NotificationConfig or { ... } from controller
-    // If message is passed as second arg, use it.
-
+  async sendNotifications(
+    config: NotificationConfig | { enabled: boolean; channels: string[]; message?: string; userId?: string },
+    message: string,
+    context?: { pipeline?: Pipeline; testRun?: TestRun }
+  ): Promise<void> {
     const enabled = 'enabled' in config ? config.enabled : false;
     if (!enabled) return;
 
     const channels = 'channels' in config ? config.channels : [];
-    const text = message;
-
-    // Note: The previous implementation had user-specific logic that we might need to preserve/adapt.
-    // But for broad pipeline notifications:
 
     const promises = channels.map((channel: string) => {
       switch (channel) {
         case 'slack':
-          return this.sendSlackNotification(text);
+          return this.sendSlackNotification(message, context);
         case 'email':
-          return this.sendEmailNotification(text);
+          return this.sendEmailNotification(message);
         case 'pushover':
-          return this.sendPushoverNotification(text);
+          return this.sendPushoverNotification(message);
         default:
           return Promise.resolve();
       }
@@ -181,23 +139,79 @@ ${testRun.error ? `\nError: ${testRun.error}` : ''}`;
     }
   }
 
-  // Helper for controller verification
   async verifyChannelConfig(channelConfig: any): Promise<void> {
-    // Simple mock verification based on presence of fields
     if (!channelConfig) throw new Error('Invalid config');
   }
 
-  private async sendSlackNotification(message: string): Promise<void> {
+  private async sendSlackNotification(message: string, context?: { pipeline?: Pipeline; testRun?: TestRun }): Promise<void> {
     if (!this.slackClient || !config.notifications?.slack?.channel) {
       return;
     }
 
     try {
-      await this.slackClient.chat.postMessage({
-        channel: config.notifications.slack.channel,
-        text: message,
-        mrkdwn: true,
-      });
+      // If we have context, build rich blocks
+      if (context?.pipeline && context?.testRun) {
+        const { pipeline, testRun } = context;
+        const isSuccess = testRun.status === 'PASSED';
+        const color = isSuccess ? '#10b981' : '#ef4444'; // Green or Red
+        const statusText = isSuccess ? 'SUCCESS' : 'FAILURE';
+        const duration = testRun.duration ? `${testRun.duration}s` : 'N/A';
+
+        let statsField = '*Stats:* N/A';
+        if (testRun.results) {
+          try {
+            const r = JSON.parse(testRun.results);
+            statsField = `*Stats:* ✅ ${r.passed} | ❌ ${r.failed} | ⏭️ ${r.skipped}`;
+          } catch (e) { }
+        }
+
+        await this.slackClient.chat.postMessage({
+          channel: config.notifications.slack.channel,
+          text: message, // Fallback
+          blocks: [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: `${isSuccess ? '✅' : '❌'} Pipeline ${statusText}: ${pipeline.name}`,
+                emoji: true
+              }
+            },
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*Branch:*\n${testRun.branch || 'default'}` },
+                { type: 'mrkdwn', text: `*Duration:*\n${duration}` },
+                { type: 'mrkdwn', text: `*Run ID:*\n\`${testRun.id.substring(0, 8)}\`` },
+                { type: 'mrkdwn', text: statsField }
+              ]
+            },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'View Test Run' },
+                  url: `${config.api.prefix.replace('/api/v1', '')}/test-runs/${testRun.id}`,
+                  style: isSuccess ? 'primary' : 'danger'
+                },
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: 'Download Logs' },
+                  url: `${config.api.prefix.replace('/api/v1', '')}/api/v1/test-runs/${testRun.id}/logs/download`
+                }
+              ]
+            }
+          ]
+        });
+      } else {
+        // Fallback to simple text
+        await this.slackClient.chat.postMessage({
+          channel: config.notifications.slack.channel,
+          text: message,
+          mrkdwn: true,
+        });
+      }
     } catch (error) {
       logger.error('Failed to send Slack notification:', error);
     }

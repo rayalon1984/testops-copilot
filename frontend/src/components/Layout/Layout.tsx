@@ -28,7 +28,11 @@ import {
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
   SmartToy as AIIcon,
+  Brush as DesignIcon,
+  Restore as LegacyIcon,
 } from '@mui/icons-material';
+import { Tooltip } from '@mui/material';
+import { useDesignMode } from '../../contexts/DesignModeContext';
 
 const drawerWidth = 240;
 
@@ -46,6 +50,7 @@ export default function Layout() {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode: designMode, toggleMode } = useDesignMode();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -109,6 +114,24 @@ export default function Layout() {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             TestOps Companion
           </Typography>
+
+          {/* Design Mode Toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
+            <Tooltip title={designMode === 'modern' ? 'Switch to Legacy Design' : 'Switch to Modern Design'}>
+              <IconButton
+                color="inherit"
+                onClick={toggleMode}
+                size="small"
+                sx={{
+                  bgcolor: designMode === 'modern' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                {designMode === 'modern' ? <DesignIcon fontSize="small" /> : <LegacyIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           {/* AI Provider Selector */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
