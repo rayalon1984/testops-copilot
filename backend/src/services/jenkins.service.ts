@@ -1,7 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
-import { Pipeline } from '@/models/pipeline.model';
-import { TestRun } from '@/models/testRun.model';
+import { Pipeline, TestRun, PrismaClient } from '@prisma/client';
 import { logger } from '@/utils/logger';
+
+const prisma = new PrismaClient();
 
 interface JenkinsConfig {
   url: string;
@@ -63,19 +64,23 @@ export class JenkinsService {
   }
 
   async startPipeline(pipeline: Pipeline): Promise<TestRun> {
-    const { config } = pipeline;
+    // @ts-ignore
+    const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
     const buildParams: JenkinsBuildParams = {
       branch: config.branch,
     };
 
     try {
       // Create test run record
-      const testRun = await TestRun.create({
-        pipelineId: pipeline.id,
-        userId: pipeline.userId,
-        status: 'pending',
-        branch: config.branch,
-        startTime: new Date(),
+      const testRun = await prisma.testRun.create({
+        data: {
+          pipelineId: pipeline.id,
+          userId: pipeline.userId,
+          status: 'PENDING',
+          branch: config.branch,
+          startTime: new Date(),
+          name: pipeline.name,
+        }
       });
 
       // Trigger Jenkins build
@@ -98,15 +103,18 @@ export class JenkinsService {
       const buildDetails = await this.waitForBuildStart(queueUrl, config.credentials);
 
       // Update test run with build details
-      await testRun.update({
-        status: 'running',
-        parameters: buildParams,
+      const updatedTestRun = await prisma.testRun.update({
+        where: { id: testRun.id },
+        data: {
+          status: 'RUNNING',
+          // parameters: JSON.stringify(buildParams),
+        }
       });
 
       // Start monitoring build progress
-      this.monitorBuildProgress(buildDetails.url, config.credentials, testRun);
+      this.monitorBuildProgress(buildDetails.url, config.credentials, updatedTestRun);
 
-      return testRun;
+      return updatedTestRun;
     } catch (error) {
       logger.error('Failed to start Jenkins pipeline:', error);
       throw error;
@@ -168,30 +176,47 @@ export class JenkinsService {
         elapsed += pollInterval;
         if (elapsed >= maxDuration) {
           clearInterval(intervalId);
-          await testRun.update({
-            status: 'timeout',
-            error: 'Build exceeded maximum duration',
+          await prisma.testRun.update({
+            where: { id: testRun.id },
+            data: {
+              status: 'TIMEOUT',
+              error: 'Build exceeded maximum duration',
+            }
           });
         }
       } catch (error) {
         logger.error('Error monitoring build progress:', error);
         clearInterval(intervalId);
-        await testRun.update({
-          status: 'failure',
-          error: `Failed to monitor build: ${(error as Error).message}`,
+        await prisma.testRun.update({
+          where: { id: testRun.id },
+          data: {
+            status: 'FAILED',
+            error: `Failed to monitor build: ${(error as Error).message}`,
+          }
         });
       }
     }, pollInterval);
   }
 
   private async processBuildCompletion(buildData: JenkinsBuildResponse, testRun: TestRun): Promise<void> {
-    const status = buildData.result?.toLowerCase() === 'success' ? 'success' : 'failure';
-    
-    await testRun.update({
-      status,
-      endTime: new Date(buildData.timestamp + buildData.duration),
-      duration: Math.floor(buildData.duration / 1000),
-      results: await this.fetchTestResults(buildData.url, testRun.pipeline!.config.credentials),
+    const status = buildData.result?.toLowerCase() === 'success' ? 'PASSED' : 'FAILED';
+
+    // Fetch pipeline to get config
+    const pipeline = await prisma.pipeline.findUnique({ where: { id: testRun.pipelineId } });
+    if (!pipeline) return;
+
+    // @ts-ignore
+    const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
+    const results = await this.fetchTestResults(buildData.url, config.credentials);
+
+    await prisma.testRun.update({
+      where: { id: testRun.id },
+      data: {
+        status,
+        endTime: new Date(buildData.timestamp + buildData.duration),
+        duration: Math.floor(buildData.duration / 1000),
+        results: results ? JSON.stringify(results) : null,
+      },
     });
   }
 
@@ -209,7 +234,7 @@ export class JenkinsService {
         passed: testReport.passCount,
         failed: testReport.failCount,
         skipped: testReport.skipCount,
-        flaky: 0, // Determine flaky tests based on test history
+        flaky: 0,
         reportUrl: `${buildUrl}/testReport`,
       };
     } catch (error) {

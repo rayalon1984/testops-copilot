@@ -202,11 +202,10 @@ export class TestRailService {
         await prisma.testRailRun.create({
           data: {
             testRunId: data.testRunId,
-            testRailRunId: testRun.id,
+            runId: testRun.id,
             projectId: projectId,
             suiteId: data.suiteId,
-            name: data.name,
-            description: data.description,
+            status: 'active',
           },
         });
       }
@@ -361,17 +360,19 @@ export class TestRailService {
       }
 
       // Convert our test results to TestRail format
-      const results: AddTestResultDTO[] = testRun.testResults.map(result => ({
-        testId: parseInt(result.testCaseId), // Assuming testCaseId contains TestRail case ID
-        statusId: this.mapStatusToTestRail(result.status),
-        comment: result.error || result.message || '',
-        elapsed: result.duration ? `${result.duration}s` : undefined,
-      }));
+      const results: AddTestResultDTO[] = testRun.testResults
+        .filter(result => result.testCaseId) // Only include results with testCaseId
+        .map(result => ({
+          testId: parseInt(result.testCaseId!),
+          statusId: this.mapStatusToTestRail(result.status),
+          comment: result.error || result.message || '',
+          elapsed: result.duration ? `${result.duration}s` : undefined,
+        }));
 
       // Send results to TestRail
-      await this.addTestResults(testRailMapping.testRailRunId, results);
+      await this.addTestResults(testRailMapping.runId, results);
 
-      logger.info(`Synced ${results.length} test results from test run ${testRunId} to TestRail run ${testRailMapping.testRailRunId}`);
+      logger.info(`Synced ${results.length} test results from test run ${testRunId} to TestRail run ${testRailMapping.runId}`);
     } catch (error) {
       logger.error(`Failed to sync test run ${testRunId} to TestRail:`, error);
       throw new Error('Failed to sync test results to TestRail');

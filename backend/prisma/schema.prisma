@@ -20,6 +20,9 @@ model User {
   role      String   @default("USER") // ADMIN | USER
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  notifications Notification[]
+  testRuns      TestRun[]
 }
 
 model TestRun {
@@ -40,6 +43,8 @@ model TestRun {
 
   // Relations
   pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+  testResults TestResult[]
 
   @@index([pipelineId])
   @@index([userId])
@@ -192,4 +197,63 @@ model FailurePattern {
 
   @@index([signature])
   @@index([isActive])
+}
+
+// Added during Refactor for missing models
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  data      String?  // JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+model TestRailRun {
+  id          String   @id @default(uuid())
+  testRunId   String   @unique
+  runId       Int      // TestRail Run ID
+  projectId   Int
+  suiteId     Int
+  status      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ConfluencePage {
+  id          String   @id @default(uuid())
+  pageId      String
+  title       String
+  spaceKey    String
+  version     Int
+  url         String
+  testRunId   String?
+  type        String?
+  sourceId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TestResult {
+  id          String   @id @default(uuid())
+  testRunId   String
+  testName    String
+  testCaseId  String?
+  message     String?
+  status      String
+  duration    Int?
+  error       String?
+  stackTrace  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  @@index([testRunId])
 }

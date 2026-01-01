@@ -1,205 +1,104 @@
-import { Op } from 'sequelize';
-import { sequelize } from '@/database';
-import { TestRun } from '@/models/testRun.model';
-import { Pipeline } from '@/models/pipeline.model';
-import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
+import { Request, Response, NextFunction } from 'express';
+import { TestRunService, CreateTestRunDTO } from '@/services/testRun.service';
 import { logger } from '@/utils/logger';
-import { TestRun as TestRunType } from '@/middleware/validation';
 
-interface TestRunFilters {
-  pipelineId?: string;
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  branch?: string;
-  tags?: string[];
-}
+const testRunService = new TestRunService();
 
 export class TestRunController {
-  async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<TestRun[]> {
-    const where: any = { userId };
+  async getAllTestRuns(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // @ts-ignore - User attached by auth middleware
+      const userId = req.user.id;
+      const filters = {
+        pipelineId: req.query.pipelineId as string,
+        status: req.query.status as string,
+        branch: req.query.branch as string,
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
+      };
 
-    if (filters.pipelineId) {
-      where.pipelineId = filters.pipelineId;
+      const testRuns = await testRunService.getAllTestRuns(userId, filters);
+      res.json(testRuns);
+    } catch (error) {
+      next(error);
     }
-
-    if (filters.status) {
-      where.status = filters.status;
-    }
-
-    if (filters.branch) {
-      where.branch = filters.branch;
-    }
-
-    if (filters.tags) {
-      where.tags = { [Op.overlap]: filters.tags };
-    }
-
-    if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        where.createdAt[Op.gte] = new Date(filters.startDate);
-      }
-      if (filters.endDate) {
-        where.createdAt[Op.lte] = new Date(filters.endDate);
-      }
-    }
-
-    const testRuns = await TestRun.findAll({
-      where,
-      include: [{ model: Pipeline, as: 'pipeline' }],
-      order: [['createdAt', 'DESC']],
-    });
-
-    return testRuns;
   }
 
-  async getTestRunById(id: string, userId: string): Promise<TestRun> {
-    const testRun = await TestRun.findOne({
-      where: { id },
-      include: [{ model: Pipeline, as: 'pipeline' }],
-    });
+  async getTestRunById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // @ts-ignore
+      const userId = req.user.id;
+      const { id } = req.params;
 
-    if (!testRun) {
-      throw new NotFoundError('Test run not found');
+      const testRun = await testRunService.getTestRunById(id, userId);
+      res.json(testRun);
+    } catch (error) {
+      next(error);
     }
+  }
 
-    if (testRun.userId !== userId) {
-      throw new AuthorizationError('Not authorized to access this test run');
+  async createTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // @ts-ignore
+      const userId = req.user.id;
+      const data: CreateTestRunDTO = req.body;
+
+      const testRun = await testRunService.createTestRun(data, userId);
+      res.status(201).json(testRun);
+    } catch (error) {
+      next(error);
     }
-
-    return testRun;
   }
 
-  async createTestRun(data: TestRunType, userId: string): Promise<TestRun> {
-    // Verify pipeline exists and user has access
-    const pipeline = await Pipeline.findOne({
-      where: { id: data.pipelineId, userId },
-    });
+  async cancelTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // @ts-ignore
+      const userId = req.user.id;
+      const { id } = req.params;
 
-    if (!pipeline) {
-      throw new NotFoundError('Pipeline not found');
+      const testRun = await testRunService.cancelTestRun(id, userId);
+      res.json(testRun);
+    } catch (error) {
+      next(error);
     }
-
-    const testRun = await TestRun.create({
-      ...data,
-      userId,
-      status: 'pending',
-      startTime: new Date(),
-    });
-
-    logger.info(`Test run created: ${testRun.id}`);
-    return testRun;
   }
 
-  async cancelTestRun(id: string, userId: string): Promise<TestRun> {
-    const testRun = await this.getTestRunById(id, userId);
+  async retryTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // @ts-ignore
+      const userId = req.user.id;
+      const { id } = req.params;
 
-    if (!['pending', 'running'].includes(testRun.status)) {
-      throw new Error('Can only cancel pending or running test runs');
+      const testRun = await testRunService.retryTestRun(id, userId);
+      res.status(201).json(testRun);
+    } catch (error) {
+      next(error);
     }
-
-    await testRun.update({
-      status: 'cancelled',
-      endTime: new Date(),
-    });
-
-    logger.info(`Test run cancelled: ${testRun.id}`);
-    return testRun;
   }
 
-  async retryTestRun(id: string, userId: string): Promise<TestRun> {
-    const originalRun = await this.getTestRunById(id, userId);
+  async getTestRunLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO: Implement log storage in service
+    res.status(501).json({ message: 'Not implemented yet' });
+  }
 
-    if (!['failure', 'cancelled', 'timeout'].includes(originalRun.status)) {
-      throw new Error('Can only retry failed, cancelled, or timed out test runs');
+  async getTestRunArtifacts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO: Implement artifact storage in service
+    res.status(501).json({ message: 'Not implemented yet' });
+  }
+
+  async deleteTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      await testRunService.deleteTestRun(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
     }
-
-    if (originalRun.retryCount >= 5) {
-      throw new Error('Maximum retry attempts reached');
-    }
-
-    const newTestRun = await TestRun.create({
-      pipelineId: originalRun.pipelineId,
-      userId,
-      status: 'pending',
-      startTime: new Date(),
-      branch: originalRun.branch,
-      parameters: originalRun.parameters,
-      retryCount: (originalRun.retryCount || 0) + 1,
-      tags: originalRun.tags,
-    });
-
-    logger.info(`Test run retry created: ${newTestRun.id}`);
-    return newTestRun;
   }
 
-  async getTestRunLogs(id: string, userId: string): Promise<string> {
-    const testRun = await this.getTestRunById(id, userId);
-    return testRun.logs || '';
-  }
-
-  async getTestRunArtifacts(id: string, userId: string): Promise<any[]> {
-    const testRun = await this.getTestRunById(id, userId);
-    
-    // TODO: Implement artifact storage and retrieval
-    return [];
-  }
-
-  async deleteTestRun(id: string): Promise<void> {
-    const testRun = await TestRun.findByPk(id);
-    if (!testRun) {
-      throw new NotFoundError('Test run not found');
-    }
-
-    await testRun.destroy();
-    logger.info(`Test run deleted: ${id}`);
-  }
-
-  async getSystemMetrics(): Promise<any> {
-    const [
-      totalRuns,
-      successfulRuns,
-      failedRuns,
-      averageDuration,
-      flakyTests,
-    ] = await Promise.all([
-      TestRun.count(),
-      TestRun.count({ where: { status: 'success' } }),
-      TestRun.count({ where: { status: 'failure' } }),
-      this.calculateAverageDuration(),
-      this.identifyFlakyTests(),
-    ]);
-
-    return {
-      totalRuns,
-      successfulRuns,
-      failedRuns,
-      successRate: (successfulRuns / totalRuns) * 100,
-      averageDuration,
-      flakyTests,
-    };
-  }
-
-  private async calculateAverageDuration(): Promise<number> {
-    const result = await TestRun.findAll({
-      // @ts-expect-error - Sequelize where clause type issue
-      where: {
-        duration: { [Op.not]: null },
-      },
-      attributes: [
-        [sequelize.fn('AVG', sequelize.col('duration')), 'averageDuration'],
-      ],
-    });
-
-    // @ts-expect-error - Sequelize getDataValue type issue
-    return result[0].getDataValue('averageDuration') || 0;
-  }
-
-  private async identifyFlakyTests(): Promise<any[]> {
-    // TODO: Implement flaky test detection logic
-    // This would involve analyzing test results across multiple runs
-    // to identify tests that alternate between passing and failing
-    return [];
+  async getSystemMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO: Move to a Statistics Service or similar
+    res.status(501).json({ message: 'Not implemented yet' });
   }
 }

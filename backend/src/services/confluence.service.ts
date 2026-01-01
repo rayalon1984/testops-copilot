@@ -371,7 +371,7 @@ export class ConfluenceService {
       const labels = [
         'rca',
         'test-failure',
-        failure.severity.toLowerCase(),
+        (failure.severity || 'info').toLowerCase(),
         ...(options.addLabels || []),
       ];
       await this.addLabels(page.id, labels);
@@ -385,6 +385,7 @@ export class ConfluenceService {
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           type: 'rca_document',
           sourceId: failureArchiveId,
+          version: page.version.number,
         },
       });
 
@@ -411,7 +412,7 @@ export class ConfluenceService {
         where: { id: testRunId },
         include: {
           pipeline: true,
-          testCases: true,
+          testResults: true,
           user: true,
         },
       });
@@ -453,6 +454,7 @@ export class ConfluenceService {
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           type: 'test_report',
           sourceId: testRunId,
+          version: page.version.number,
         },
       });
 
@@ -562,11 +564,17 @@ export class ConfluenceService {
   /**
    * Build test report content
    */
+  /**
+   * Build test report content
+   */
   private buildTestReportContent(testRun: any, includeFailureDetails: boolean): string {
-    const totalTests = testRun.testCases?.length || 0;
-    const passedTests = testRun.testCases?.filter((tc: any) => tc.status === 'PASSED').length || 0;
-    const failedTests = testRun.testCases?.filter((tc: any) => tc.status === 'FAILED').length || 0;
-    const skippedTests = testRun.testCases?.filter((tc: any) => tc.status === 'SKIPPED').length || 0;
+    // Adapter for testResults vs testCases naming (Prisma model uses testResults)
+    const cases = testRun.testResults || testRun.testCases || [];
+
+    const totalTests = cases.length;
+    const passedTests = cases.filter((tc: any) => tc.status === 'PASSED').length;
+    const failedTests = cases.filter((tc: any) => tc.status === 'FAILED').length;
+    const skippedTests = cases.filter((tc: any) => tc.status === 'SKIPPED').length;
     const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(2) : '0';
 
     let html = `
@@ -598,14 +606,14 @@ ${testRun.duration ? `<p><strong>Duration:</strong> ${this.formatDuration(testRu
 <table>
   <tr><th>Test Name</th><th>Error</th><th>Duration</th></tr>
 `;
-      testRun.testCases
+      cases
         .filter((tc: any) => tc.status === 'FAILED')
         .forEach((tc: any) => {
           html += `
   <tr>
-    <td>${this.escapeHtml(tc.name)}</td>
-    <td>${this.escapeHtml(tc.error || 'No error message')}</td>
-    <td>${tc.duration ? `${tc.duration}s` : 'N/A'}</td>
+    <td>${this.escapeHtml(tc.testName || tc.name)}</td>
+    <td>${this.escapeHtml(tc.error || tc.message || 'No error message')}</td>
+    <td>${tc.duration ? `${tc.duration}ms` : 'N/A'}</td>
   </tr>
 `;
         });

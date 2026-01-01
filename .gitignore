@@ -19,6 +19,7 @@ out/
 .env.test.local
 .env.production.local
 .env.prod
+.env.full
 
 # IDE
 .idea/
