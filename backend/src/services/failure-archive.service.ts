@@ -151,6 +151,8 @@ export class FailureArchiveService {
         ...input,
         failureSignature: signature,
         screenshots: input.screenshots?.join(',') || null,
+        relatedDocumentation: null,
+        tags: input.tags?.join(',') || null,
         severity: input.severity || FailureSeverity.MEDIUM,
         status: FailureStatus.NEW,
         isRecurring: false,

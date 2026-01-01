@@ -65,17 +65,27 @@ export default function PipelineDetail() {
   const { data: pipeline, isLoading: isPipelineLoading } = useQuery<Pipeline>({
     queryKey: ['pipeline', id],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/pipelines/${id}`);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/v1/pipelines/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch pipeline');
       return response.json();
     },
   });
 
   // Fetch recent test runs
-  const { data: testRuns, isLoading: isTestRunsLoading } = useQuery<TestRun[]>({
+  const { data: testRuns, isLoading: isTestRunsLoading} = useQuery<TestRun[]>({
     queryKey: ['pipeline', id, 'test-runs'],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/pipelines/${id}/test-runs`);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/v1/pipelines/${id}/test-runs`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch test runs');
       return response.json();
     },
@@ -84,10 +94,12 @@ export default function PipelineDetail() {
   // Update pipeline mutation
   const updatePipeline = useMutation({
     mutationFn: async (data: Partial<Pipeline>) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/v1/pipelines/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -106,8 +118,12 @@ export default function PipelineDetail() {
   // Delete pipeline mutation
   const deletePipeline = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/v1/pipelines/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (!response.ok) throw new Error('Failed to delete pipeline');
     },

@@ -41,7 +41,12 @@ export default function NotificationBadge() {
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['notifications', 'unread'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/notifications/unread');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/v1/notifications/unread', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch notifications');
       return response.json();
     },
@@ -51,8 +56,12 @@ export default function NotificationBadge() {
   // Mark notification as read mutation
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/v1/notifications/${id}/read`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (!response.ok) throw new Error('Failed to mark notification as read');
     },
@@ -64,8 +73,12 @@ export default function NotificationBadge() {
   // Mark all as read mutation
   const markAllAsRead = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/v1/notifications/mark-all-read', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (!response.ok) throw new Error('Failed to mark all notifications as read');
     },

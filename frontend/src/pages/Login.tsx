@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -17,10 +17,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +24,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      // Navigation is handled by AuthContext
     } catch (err) {
       setError('Invalid email or password');
     }

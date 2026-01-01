@@ -65,7 +65,12 @@ export default function PipelineList() {
   const { data: pipelines, isLoading } = useQuery<Pipeline[]>({
     queryKey: ['pipelines'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/pipelines');
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/v1/pipelines', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch pipelines');
       return response.json();
     },
@@ -74,10 +79,12 @@ export default function PipelineList() {
   // Create pipeline mutation
   const createPipeline = useMutation({
     mutationFn: async (data: PipelineFormData) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/v1/pipelines', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -97,8 +104,12 @@ export default function PipelineList() {
   // Delete pipeline mutation
   const deletePipeline = useMutation({
     mutationFn: async (id: string) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/v1/pipelines/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (!response.ok) throw new Error('Failed to delete pipeline');
     },
@@ -160,7 +171,17 @@ export default function PipelineList() {
           </TableHead>
           <TableBody>
             {pipelines?.map((pipeline) => (
-              <TableRow key={pipeline.id}>
+              <TableRow
+                key={pipeline.id}
+                hover
+                onClick={() => navigate(`/pipelines/${pipeline.id}`)}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  }
+                }}
+              >
                 <TableCell>{pipeline.name}</TableCell>
                 <TableCell>
                   <Chip
@@ -177,16 +198,25 @@ export default function PipelineList() {
                 <TableCell align="right">
                   <IconButton
                     color="primary"
-                    onClick={() => navigate(`/pipelines/${pipeline.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/pipelines/${pipeline.id}`);
+                    }}
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="primary">
+                  <IconButton
+                    color="primary"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <RunIcon />
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => deletePipeline.mutate(pipeline.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletePipeline.mutate(pipeline.id);
+                    }}
                   >
                     <DeleteIcon />
                   </IconButton>

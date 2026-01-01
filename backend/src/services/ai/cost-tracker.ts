@@ -222,6 +222,10 @@ export class CostTracker {
       totalTokens: row.total_tokens,
       costUSD: parseFloat(row.cost_usd),
       cached: row.cached,
+      userId: row.user_id || 'system',
+      teamId: row.team_id || 'system',
+      responseTimeMs: row.response_time_ms || 0,
+      cacheHit: row.cache_hit || false,
     }));
   }
 

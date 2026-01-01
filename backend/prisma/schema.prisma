@@ -1,192 +1,49 @@
-// This is your Prisma schema file
+// SQLite Development Schema for Demo Mode
+// This is a simplified version using SQLite instead of PostgreSQL
+// Note: SQLite doesn't support enums, so we use String with validation
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  ADMIN
-  USER
-}
-
-enum PipelineType {
-  JENKINS
-  GITHUB_ACTIONS
-  CUSTOM
-}
-
-enum PipelineStatus {
-  PENDING
-  RUNNING
-  SUCCESS
-  FAILURE
-  CANCELLED
-  TIMEOUT
-}
-
-enum TestStatus {
-  PENDING
-  RUNNING
-  PASSED
-  FAILED
-  SKIPPED
-  ERROR
-}
-
-enum TestResult {
-  PASS
-  FAIL
-  SKIP
-  ERROR
-}
-
-enum NotificationType {
-  EMAIL
-  SLACK
-  PUSHOVER
-}
-
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
-}
-
-enum JiraIssueType {
-  BUG
-  TASK
-  STORY
-  EPIC
-}
-
-enum JiraIssueStatus {
-  TODO
-  IN_PROGRESS
-  DONE
-  CUSTOM
-}
-
-enum FailureStatus {
-  NEW
-  INVESTIGATING
-  DOCUMENTED
-  RESOLVED
-  RECURRING
-}
-
-enum FailureSeverity {
-  CRITICAL
-  HIGH
-  MEDIUM
-  LOW
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String
-  firstName     String?
-  lastName      String?
-  role          UserRole       @default(USER)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  pipelines     Pipeline[]
-  testRuns      TestRun[]
-  notifications Notification[]
-}
-
-model Pipeline {
-  id            String         @id @default(uuid())
-  name          String
-  type          PipelineType
-  config        Json
-  status        PipelineStatus @default(PENDING)
-  userId        String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  user          User           @relation(fields: [userId], references: [id])
-  testRuns      TestRun[]
-  jiraIssues    JiraIssue[]
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      String   @default("USER") // ADMIN | USER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TestRun {
-  id            String         @id @default(uuid())
-  pipelineId    String
-  userId        String
-  status        TestStatus     @default(PENDING)
-  branch        String?
-  commit        String?
-  startTime     DateTime?
-  endTime       DateTime?
-  duration      Int?
-  results       Json?
-  error         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  pipeline      Pipeline       @relation(fields: [pipelineId], references: [id])
-  user          User           @relation(fields: [userId], references: [id])
-  testCases     TestCase[]
-  jiraIssues    JiraIssue[]
-}
+  id         String    @id @default(uuid())
+  pipelineId String
+  userId     String
+  name       String
+  status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | ERROR
+  branch     String?
+  commit     String?
+  startTime  DateTime?
+  endTime    DateTime?
+  duration   Int?
+  results    String?   // JSON stored as string
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-model TestCase {
-  id            String      @id @default(uuid())
-  testRunId     String
-  name          String
-  status        TestStatus  @default(PENDING)
-  duration      Int?
-  error         String?
-  stackTrace    String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  testRun       TestRun     @relation(fields: [testRunId], references: [id])
-}
+  // Relations
+  pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
 
-model Notification {
-  id            String             @id @default(uuid())
-  userId        String
-  type          NotificationType
-  status        NotificationStatus @default(PENDING)
-  content       Json
-  error         String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  user          User               @relation(fields: [userId], references: [id])
-}
-
-model JiraConfig {
-  id            String    @id @default(uuid())
-  baseUrl       String
-  apiToken      String
-  projectKey    String
-  defaultType   JiraIssueType @default(BUG)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model JiraIssue {
-  id            String    @id @default(uuid())
-  issueKey      String    @unique
-  issueType     JiraIssueType
-  status        JiraIssueStatus @default(TODO)
-  summary       String
-  description   String?
-  labels        String[]
-  pipelineId    String?
-  testRunId     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  pipeline      Pipeline? @relation(fields: [pipelineId], references: [id])
-  testRun       TestRun?  @relation(fields: [testRunId], references: [id])
-  failureArchives FailureArchive[]
-
-  @@index([issueKey])
+  @@index([pipelineId])
+  @@index([userId])
+  @@index([status])
 }
 
 model FailureArchive {
@@ -194,14 +51,14 @@ model FailureArchive {
   testRunId             String
   testCaseId            String?
   testName              String
-  failureSignature      String           // Smart hash for pattern matching
+  failureSignature      String
 
   // Failure details
-  errorMessage          String           @db.Text
+  errorMessage          String
   errorType             String?
-  stackTrace            String?          @db.Text
-  logSnippet            String?          @db.Text
-  screenshots           String[]         @default([])
+  stackTrace            String?
+  logSnippet            String?
+  screenshots           String?           // Comma-separated URLs (SQLite doesn't support arrays)
 
   // Temporal data
   occurredAt            DateTime         @default(now())
@@ -210,19 +67,18 @@ model FailureArchive {
   commitSha             String?
   branch                String?
 
-  // RCA Documentation (the gold!)
-  rootCause             String?          @db.Text
-  detailedAnalysis      String?          @db.Text
-  solution              String?          @db.Text
-  preventionSteps       String?          @db.Text
-  workaround            String?          @db.Text
-  relatedDocumentation  String[]         @default([])
+  // RCA Documentation
+  rootCause             String?
+  detailedAnalysis      String?
+  solution              String?
+  preventionSteps       String?
+  workaround            String?
 
   // Resolution tracking
-  status                FailureStatus    @default(NEW)
+  status                String           @default("NEW") // NEW | INVESTIGATING | DOCUMENTED | RESOLVED | RECURRING
   resolvedAt            DateTime?
   resolvedBy            String?
-  timeToResolve         Int?             // in minutes
+  timeToResolve         Int?
 
   // Integration links
   jiraIssueId           String?
@@ -237,129 +93,103 @@ model FailureArchive {
   recurrencePattern     String?
 
   // Metadata
-  tags                  String[]         @default([])
-  severity              FailureSeverity  @default(MEDIUM)
+  severity              String?          @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
   isKnownIssue          Boolean          @default(false)
+  tags                  String?          // Comma-separated tags (SQLite doesn't support arrays)
+  relatedDocumentation  String?          // Comma-separated URLs (SQLite doesn't support arrays)
+
+  // Relations
+  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
 
   // Timestamps
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
-  // Relations
-  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
-  relatedFailures       FailureArchive[] @relation("RelatedFailures")
-  relatedTo             FailureArchive[] @relation("RelatedFailures")
-
   @@index([failureSignature])
   @@index([testName])
   @@index([occurredAt])
   @@index([status])
-  @@index([isRecurring])
 }
 
+// Simplified AI usage tracking for demo
+model AIUsage {
+  id              String   @id @default(uuid())
+  provider        String   // "anthropic", "openai", "google"
+  model           String
+  tokens          Int
+  cost            Float
+  cacheHit        Boolean  @default(false)
+  responseTimeMs  Int
+  createdAt       DateTime @default(now())
+
+  @@index([provider])
+  @@index([createdAt])
+}
+
+// Jira integration models (optional for demo)
+model JiraConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   String    @default("BUG") // BUG | TASK | STORY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model JiraIssue {
+  id              String            @id @default(uuid())
+  issueKey        String            @unique
+  issueType       String            // BUG | TASK | STORY
+  status          String            @default("TODO") // TODO | IN_PROGRESS | DONE
+  summary         String
+  description     String?
+  labels          String?           // Comma-separated string (SQLite doesn't support arrays)
+  pipelineId      String?
+  testRunId       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  failureArchives FailureArchive[]
+
+  @@index([issueKey])
+}
+
+// Pipeline model
+model Pipeline {
+  id          String     @id @default(uuid())
+  name        String
+  type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
+  status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
+  config      String     // JSON stored as string
+  description String?
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  testRuns    TestRun[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+}
+
+// Failure pattern detection
 model FailurePattern {
   id                    String    @id @default(uuid())
   signature             String    @unique
   patternName           String
-  description           String    @db.Text
-  affectedTests         String[]
-  commonRootCause       String?   @db.Text
+  description           String
+  affectedTests         String?   // Comma-separated test names (SQLite doesn't support arrays)
+  commonRootCause       String?
   matchCount            Int       @default(0)
   lastMatched           DateTime  @default(now())
-  recurrenceRule        String?   // e.g., "Every Friday 5pm"
+  recurrenceRule        String?
   confidence            Float     @default(0.0)
-
-  // Metadata
   isActive              Boolean   @default(true)
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@index([signature])
   @@index([isActive])
-}
-
-// TestRail Integration Models
-model TestRailConfig {
-  id            String    @id @default(uuid())
-  baseUrl       String
-  username      String
-  apiKey        String
-  projectId     Int?
-  enabled       Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model TestRailRun {
-  id              String    @id @default(uuid())
-  testRunId       String    @unique    // Our internal test run ID
-  testRailRunId   Int                  // TestRail's run ID
-  projectId       Int
-  suiteId         Int
-  name            String
-  description     String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([testRunId])
-  @@index([testRailRunId])
-}
-
-model TestRailSync {
-  id              String    @id @default(uuid())
-  testRunId       String
-  testRailRunId   Int
-  syncedAt        DateTime  @default(now())
-  status          String    // 'success', 'failed', 'partial'
-  resultCount     Int       @default(0)
-  error           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([testRunId])
-  @@index([syncedAt])
-}
-
-// Confluence Integration Models
-model ConfluenceConfig {
-  id            String    @id @default(uuid())
-  baseUrl       String
-  username      String
-  apiToken      String
-  spaceKey      String?
-  parentPageId  String?
-  enabled       Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model ConfluencePage {
-  id              String    @id @default(uuid())
-  pageId          String    @unique    // Confluence page ID
-  title           String
-  spaceKey        String
-  url             String
-  type            String                // 'rca_document', 'test_report', 'failure_pattern'
-  sourceId        String                // ID of the source entity (failureArchiveId, testRunId, etc.)
-  lastSyncedAt    DateTime  @default(now())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([pageId])
-  @@index([sourceId])
-  @@index([type])
-}
-
-model ConfluencePublishLog {
-  id              String    @id @default(uuid())
-  pageId          String?
-  sourceId        String
-  sourceType      String    // 'failure_archive', 'test_run', 'failure_pattern'
-  action          String    // 'created', 'updated', 'failed'
-  success         Boolean
-  error           String?
-  publishedAt     DateTime  @default(now())
-
-  @@index([sourceId])
-  @@index([publishedAt])
 }

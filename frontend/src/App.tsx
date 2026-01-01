@@ -6,6 +6,9 @@ import { SnackbarProvider } from 'notistack';
 // Theme and Styles
 import { theme } from './theme';
 
+// Context
+import { AuthProvider } from './contexts/AuthContext';
+
 // Components
 import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
@@ -46,7 +49,8 @@ function App() {
           }}
         >
           <Router>
-            <Routes>
+            <AuthProvider>
+              <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -74,6 +78,7 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </AuthProvider>
           </Router>
         </SnackbarProvider>
       </ThemeProvider>

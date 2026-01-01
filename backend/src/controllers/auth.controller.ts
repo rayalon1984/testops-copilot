@@ -15,7 +15,7 @@ import {
 const prisma = new PrismaClient();
 
 export class AuthController {
-  async register(data: CreateUserDTO): Promise<UserResponse> {
+  async register(data: CreateUserDTO) {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email }
     });
@@ -37,7 +37,15 @@ export class AuthController {
       }
     });
 
-    return this.mapUserToResponse(user);
+    const tokenPayload: TokenPayload = {
+      userId: user.id,
+      role: user.role as UserRole
+    };
+
+    return {
+      user: this.mapUserToResponse(user),
+      ...JwtService.generateTokenPair(tokenPayload)
+    };
   }
 
   async login(data: LoginDTO) {
@@ -56,7 +64,7 @@ export class AuthController {
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
-      role: user.role
+      role: user.role as UserRole
     };
 
     return {

@@ -77,7 +77,12 @@ export default function TestRunDetail() {
   const { data: testRun, isLoading } = useQuery<TestRun>({
     queryKey: ['test-run', id],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/test-runs/${id}`);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/v1/test-runs/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch test run');
       return response.json();
     },

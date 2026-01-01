@@ -1,10 +1,11 @@
-import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { pipelineController } from '../controllers/pipeline.controller';
 import { UserRole } from '../constants';
+import { pipelineRouter as router } from './index';
+import { PrismaClient } from '@prisma/client';
 
-const router: Router = Router();
+const prisma = new PrismaClient();
 
 // Apply authentication to all routes
 router.use(authenticate);
@@ -46,8 +47,27 @@ router.post(
       return;
     }
 
-    const pipeline = await pipelineController.createPipeline(req.body, req.user.id);
-    res.status(201).json(pipeline);
+    const { name, type, config } = req.body;
+
+    const pipeline = await prisma.pipeline.create({
+      data: {
+        name,
+        type: type === 'jenkins' ? 'JENKINS' : type === 'github-actions' ? 'GITHUB_ACTIONS' : 'CUSTOM',
+        status: 'PENDING',
+        config: JSON.stringify(config || {}),
+        userId: req.user.id,
+      }
+    });
+
+    res.status(201).json({
+      id: pipeline.id,
+      name: pipeline.name,
+      type: type,
+      status: 'pending',
+      lastRun: new Date().toISOString(),
+      successRate: 0,
+      config: config || {}
+    });
   })
 );
 
@@ -78,7 +98,10 @@ router.delete(
       return;
     }
 
-    await pipelineController.deletePipeline(req.params.id, req.user.id);
+    await prisma.pipeline.delete({
+      where: { id: req.params.id }
+    });
+
     res.status(204).send();
   })
 );
@@ -106,8 +129,32 @@ router.get(
       return;
     }
 
-    const runs = await pipelineController.getTestRuns(req.params.id, req.user.id);
-    res.json(runs);
+    const runs = await prisma.testRun.findMany({
+      where: { pipelineId: req.params.id, userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+
+    const statusMap: Record<string, string> = {
+      'PASSED': 'success',
+      'FAILED': 'failed',
+      'RUNNING': 'running',
+      'PENDING': 'pending'
+    };
+
+    const formattedRuns = runs.map(run => {
+      const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results;
+      return {
+        id: run.id,
+        status: statusMap[run.status] || 'pending',
+        startTime: run.startTime?.toISOString() || run.createdAt.toISOString(),
+        endTime: run.endTime?.toISOString() || run.createdAt.toISOString(),
+        duration: run.duration || 0,
+        errorCount: (results as any)?.failed || 0
+      };
+    });
+
+    res.json(formattedRuns);
   })
 );
 
@@ -168,5 +215,3 @@ router.post(
 
 // Admin routes
 router.use(authorize(UserRole.ADMIN));
-
-export { router as pipelineRouter };

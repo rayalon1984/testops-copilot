@@ -61,7 +61,12 @@ export default function TestRunList() {
         ...(searchQuery && { search: searchQuery }),
       });
 
-      const response = await fetch(`/api/v1/test-runs?${params}`);
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/v1/test-runs?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Failed to fetch test runs');
       return response.json();
     },
@@ -166,7 +171,17 @@ export default function TestRunList() {
           </TableHead>
           <TableBody>
             {data?.map((testRun) => (
-              <TableRow key={testRun.id}>
+              <TableRow
+                key={testRun.id}
+                hover
+                onClick={() => navigate(`/test-runs/${testRun.id}`)}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  }
+                }}
+              >
                 <TableCell>{testRun.pipelineName}</TableCell>
                 <TableCell>{getStatusChip(testRun.status)}</TableCell>
                 <TableCell>{new Date(testRun.startTime).toLocaleString()}</TableCell>
@@ -175,7 +190,10 @@ export default function TestRunList() {
                 <TableCell align="right">
                   <IconButton
                     color="primary"
-                    onClick={() => navigate(`/test-runs/${testRun.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/test-runs/${testRun.id}`);
+                    }}
                   >
                     <ViewIcon />
                   </IconButton>
