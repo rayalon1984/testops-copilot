@@ -24,6 +24,7 @@ import {
   Select,
   MenuItem,
   InputLabel,
+  CircularProgress,
 } from '@mui/material';
 import {
   AttachMoney as MoneyIcon,
@@ -251,7 +252,7 @@ export default function CostTracker() {
                         size="small"
                         color={
                           row.provider === 'Anthropic' ? 'primary' :
-                          row.provider === 'OpenAI' ? 'secondary' : 'success'
+                            row.provider === 'OpenAI' ? 'secondary' : 'success'
                         }
                       />
                     </TableCell>

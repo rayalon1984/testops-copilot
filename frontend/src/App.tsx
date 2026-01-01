@@ -23,7 +23,7 @@ import TestRunList from './pages/TestRunList';
 import TestRunDetail from './pages/TestRunDetail';
 import NotificationList from './pages/NotificationList';
 import Settings from './pages/Settings';
-import FailureKnowledgeBase from './pages/FailureKnowledgeBase';
+import { FailureKnowledgeBase } from './pages/FailureKnowledgeBase';
 import CostTracker from './pages/CostTracker';
 import NotFound from './pages/NotFound';
 
@@ -53,37 +53,37 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+                {/* Public Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
 
-                {/* Pipelines */}
-                <Route path="/pipelines" element={<PipelineList />} />
-                <Route path="/pipelines/:id" element={<PipelineDetail />} />
+                  {/* Pipelines */}
+                  <Route path="/pipelines" element={<PipelineList />} />
+                  <Route path="/pipelines/:id" element={<PipelineDetail />} />
 
-                {/* Test Runs */}
-                <Route path="/test-runs" element={<TestRunList />} />
-                <Route path="/test-runs/:id" element={<TestRunDetail />} />
+                  {/* Test Runs */}
+                  <Route path="/test-runs" element={<TestRunList />} />
+                  <Route path="/test-runs/:id" element={<TestRunDetail />} />
 
-                {/* AI Features */}
-                <Route path="/failure-knowledge-base" element={<FailureKnowledgeBase />} />
-                <Route path="/cost-tracker" element={<CostTracker />} />
+                  {/* AI Features */}
+                  <Route path="/failure-knowledge-base" element={<FailureKnowledgeBase />} />
+                  <Route path="/cost-tracker" element={<CostTracker />} />
 
-                {/* Notifications */}
-                <Route path="/notifications" element={<NotificationList />} />
+                  {/* Notifications */}
+                  <Route path="/notifications" element={<NotificationList />} />
 
-                {/* Settings */}
-                <Route path="/settings" element={<Settings />} />
-              </Route>
+                  {/* Settings */}
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </AuthProvider>
           </Router>
         </SnackbarProvider>
