@@ -28,6 +28,7 @@
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
+- [Demo Mode vs Production Mode](#-demo-mode-vs-production-mode)
 - [Development](#-development)
 - [Testing](#-testing)
 - [Integrations](#-integrations)
@@ -286,17 +287,112 @@ npm run typecheck
 npm run test
 ```
 
+## 🎨 Demo Mode vs Production Mode
+
+TestOps Companion supports two operational modes to suit different needs:
+
+### 🚀 Demo Mode (Quick Start - Recommended for Evaluation)
+
+Perfect for **evaluating the platform visually** or quick demonstrations without complex infrastructure setup.
+
+**Features:**
+- **SQLite Database**: In-memory or file-based (no PostgreSQL required)
+- **Pre-seeded Data**: Massive demo dataset with 1,600+ test failures across all 6 categories
+- **Auto-open Browser**: Automatically launches your browser on startup
+- **Simplified Setup**: No external dependencies except Node.js
+- **Full UI/UX**: Experience the complete interface with realistic data
+- **All 6 Failure Categories**: bug_critical, bug_minor, environment, flaky, configuration, unknown
+- **18 Notifications**: Diverse notification examples across pipelines
+- **Ready-to-use Credentials**: `demo@testops.ai` / `demo123`
+
+**Quick Start:**
+```bash
+# Clone and enter directory
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion
+
+# Install dependencies
+npm install
+
+# Start in demo mode (automatically opens browser)
+npm run dev:simple
+```
+
+**What happens:**
+1. Backend starts with SQLite and seeds 1,600 failures, 150 test runs, 15 pipelines
+2. Frontend starts on port 5173 (or 5174 if 5173 is busy)
+3. Browser automatically opens to http://localhost:5173
+4. Login with: `demo@testops.ai` / `demo123`
+5. Dashboard shows populated data with all 6 categories and full analytics
+
+**Demo Mode URLs:**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:4000/api/v1
+- Login: `demo@testops.ai` / `demo123`
+
+**Perfect for:**
+- 🎬 Quick visual demonstrations
+- 📊 Evaluating UI/UX and features
+- 🏃 Testing without infrastructure setup
+- 🎓 Training and tutorials
+- 💡 Proof of concept presentations
+
+### 🏭 Production Mode (Full Infrastructure)
+
+For **production deployments** with enterprise features and scalability.
+
+**Features:**
+- **PostgreSQL Database**: Production-grade relational database
+- **Redis Caching**: Performance optimization and session management
+- **Weaviate Vector DB**: AI-powered semantic search for failure matching
+- **Docker Compose**: Full infrastructure orchestration
+- **Real Integrations**: Jira, Slack, GitHub, TestRail, Confluence, etc.
+- **AI Provider Support**: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI
+- **Horizontal Scaling**: Load balancing and distributed architecture
+- **Monitoring**: Prometheus metrics and Grafana dashboards
+
+**Setup:**
+```bash
+# Clone repository
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion
+
+# Run automated setup (configures everything)
+npm run setup
+
+# Start infrastructure services
+npm run local:start
+
+# Start application
+npm run dev
+```
+
+**See [Quick Setup](#quick-setup-recommended) section above for detailed production setup instructions.**
+
+**Perfect for:**
+- 🏢 Enterprise production deployments
+- 🔄 CI/CD pipeline integration
+- 📈 High-volume test data
+- 🤖 AI-powered features at scale
+- 🔗 Full integration ecosystem
+
+---
+
 ## 💻 Development
 
 ### Starting Development Servers
 
+**Demo Mode (Simplified):**
 ```bash
-# Start both frontend and backend concurrently
-npm run start
+npm run dev:simple    # SQLite + auto-open browser
+```
 
+**Production Mode (Full Stack):**
+```bash
+npm run dev           # PostgreSQL + Redis + Weaviate
 # Or start individually:
-npm run start:backend    # Backend on http://localhost:3000
-npm run start:frontend   # Frontend on http://localhost:5173
+npm run dev:backend   # Backend on http://localhost:3000
+npm run dev:frontend  # Frontend on http://localhost:5173
 ```
 
 ### Development Commands
