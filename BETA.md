@@ -2,6 +2,14 @@
 
 Welcome to the TestOps Companion Early Access Beta Program! We're excited to have you join us in shaping the future of test operations management.
 
+## 🎬 See TestOps Companion in Action
+
+https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
+
+*AI-powered test operations platform transforming how teams manage CI/CD pipelines and test failures*
+
+---
+
 ## 📋 What is This Program?
 
 TestOps Companion is in **active beta development**, and we're looking for **QA Managers and Test Automation teams** to test the platform in real-world scenarios and provide valuable feedback.
