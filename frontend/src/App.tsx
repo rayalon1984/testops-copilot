@@ -23,6 +23,8 @@ import TestRunList from './pages/TestRunList';
 import TestRunDetail from './pages/TestRunDetail';
 import NotificationList from './pages/NotificationList';
 import Settings from './pages/Settings';
+import FailureKnowledgeBase from './pages/FailureKnowledgeBase';
+import CostTracker from './pages/CostTracker';
 import NotFound from './pages/NotFound';
 
 // Create Query Client
@@ -59,18 +61,22 @@ function App() {
               <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                
+
                 {/* Pipelines */}
                 <Route path="/pipelines" element={<PipelineList />} />
                 <Route path="/pipelines/:id" element={<PipelineDetail />} />
-                
+
                 {/* Test Runs */}
                 <Route path="/test-runs" element={<TestRunList />} />
                 <Route path="/test-runs/:id" element={<TestRunDetail />} />
-                
+
+                {/* AI Features */}
+                <Route path="/failure-knowledge-base" element={<FailureKnowledgeBase />} />
+                <Route path="/cost-tracker" element={<CostTracker />} />
+
                 {/* Notifications */}
                 <Route path="/notifications" element={<NotificationList />} />
-                
+
                 {/* Settings */}
                 <Route path="/settings" element={<Settings />} />
               </Route>
