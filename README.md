@@ -38,6 +38,14 @@
 
 ## 📸 Screenshots & Demo
 
+### 🎬 Video Demo
+
+https://github.com/rayalon1984/testops-companion/blob/main/testOPS.mp4
+
+*Watch TestOps Companion in action - see how our AI-powered platform transforms test operations*
+
+---
+
 ### AI-Powered Dashboard
 
 ![TestOps Companion Dashboard](testops_dashboard.svg)
