@@ -1,81 +1,107 @@
-# ⚡ QUICKSTART - Get Running in 5 Minutes
+# TestOps Companion - Quick Start Guide
 
-## Prerequisites (One-Time Setup)
-1. **Install Docker Desktop**: https://www.docker.com/products/docker-desktop
-2. **Start Docker Desktop** (make sure it's running)
-3. **Have Node.js 18+** installed
-
-## Setup Commands (Run Once)
-
-```bash
-# Run automated setup (handles dependencies, Docker, DB, everything)
-npm run local:setup
-
-# During setup, press Enter to skip optional integrations (GitHub, Jira)
-# unless you need them
-```
-
-## Start Development
-
-```bash
-# Start both frontend + backend
-npm run dev
-```
-
-**Done!** Open http://localhost:5173 to see your beautiful AI-powered dashboard! 🎨✨
+Get TestOps Companion running in minutes with this step-by-step guide.
 
 ---
 
-## If Something Goes Wrong
+## Choose Your Installation Mode
 
-### Docker not running?
+### 🚀 Demo Mode (Fastest - No Database Setup)
+
+**Best for**: Trying out the UI, demos, proof-of-concepts
+
+**Time**: ~5 minutes
+
 ```bash
-# 1. Start Docker Desktop app
-# 2. Wait for it to fully start
-# 3. Run: npm run local:setup
+# 1. Clone repository
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion
+
+# 2. Install dependencies
+npm install
+
+# 3. Start in demo mode (auto-opens browser)
+npm run dev:simple
 ```
 
-### Port conflicts?
-```bash
-# Stop everything and restart
-npm run local:stop
-npm run local:start
-npm run dev
-```
-
-### Want to start fresh?
-```bash
-npm run local:stop
-rm -rf node_modules backend/node_modules frontend/node_modules
-rm backend/.env frontend/.env
-npm run local:setup
-```
+**That's it!** The app will:
+- Start backend with SQLite (in-memory)
+- Load 1,600+ demo test failures
+- Open browser to http://localhost:5173
+- **Login**: \`demo@testops.ai\` / \`demo123\`
 
 ---
 
-## What's Running?
+### 🏭 Production Mode (Full Features)
 
-- **Frontend**: http://localhost:5173 (Your beautiful dashboard)
-- **Backend**: http://localhost:4000 (API server)
-- **DB Admin**: http://localhost:8080 (View your data)
-  - Server: `db`
-  - Username: `postgres`
-  - Password: `postgres`
-  - Database: `testops`
+**Best for**: Actual use, team collaboration, production deployments
+
+**Time**: ~15 minutes
+
+**Prerequisites**:
+- Node.js >= 18.0.0
+- PostgreSQL >= 14 (or Docker)
+- npm >= 9.0.0
+
+#### Option A: Automated Setup (Recommended)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion
+
+# 2. Run validated setup script
+bash scripts/setup-validated.sh
+```
+
+The script will:
+- ✅ Check prerequisites (Node, npm, PostgreSQL)
+- ✅ Install all dependencies
+- ✅ Generate secure JWT secrets
+- ✅ Create .env files
+- ✅ Set up database
+- ✅ Run migrations
+- ✅ Verify installation
 
 ---
 
-## Daily Workflow
+## Access the Application
 
+| Service | URL | Notes |
+|---------|-----|-------|
+| **Frontend** | http://localhost:5173 | React app |
+| **Backend API** | http://localhost:3000/api/v1 | REST API |
+| **Adminer** (Docker) | http://localhost:8080 | Database admin |
+
+---
+
+## Troubleshooting
+
+### Backend won't start
+
+**Error**: \`Error: connect ECONNREFUSED 127.0.0.1:5432\`
+
+**Solution**: PostgreSQL is not running
 ```bash
-# Morning: Start Docker services
-npm run local:start
-
-# Start coding
-npm run dev
-
-# Evening: Stop Docker services (optional - saves battery)
-npm run local:stop
+# Using Docker
+docker-compose up -d db
 ```
 
-That's it! See [LOCAL_SETUP.md](./LOCAL_SETUP.md) for detailed docs.
+### Frontend can't connect to backend
+
+**Check**:
+1. Backend is running: \`curl http://localhost:3000/health\`
+2. Port matches in \`frontend/.env\`: Should be \`VITE_API_URL=http://localhost:3000\`
+
+---
+
+## Next Steps
+
+1. Explore the Dashboard
+2. Try AI Features (if configured)
+3. Set Up Integrations (Jira, Slack, etc.)
+4. Read [README.md](README.md) for full documentation
+
+---
+
+**Happy Testing! 🚀**
