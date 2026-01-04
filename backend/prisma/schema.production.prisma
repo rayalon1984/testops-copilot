@@ -1,0 +1,245 @@
+// Production PostgreSQL Schema
+// This schema uses PostgreSQL with proper enums and features
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications Notification[]
+  testRuns      TestRun[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model TestRun {
+  id         String   @id @default(uuid()) @db.Uuid
+  pipelineId String   @db.Uuid
+  userId     String   @db.Uuid
+  name       String
+  status     TestStatus
+  startedAt  DateTime @default(now())
+  completedAt DateTime?
+  duration   Int?
+  totalTests Int      @default(0)
+  passed     Int      @default(0)
+  failed     Int      @default(0)
+  skipped    Int      @default(0)
+  flaky      Int      @default(0)
+  branch     String?
+  commit     String?
+  buildNumber String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pipeline    Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  results     TestResult[]
+  notifications Notification[]
+
+  @@index([userId])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("test_runs")
+}
+
+enum TestStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  SKIPPED
+  FLAKY
+}
+
+model Pipeline {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String
+  type        PipelineType
+  repository  String?
+  branch      String?
+  config      Json?
+  enabled     Boolean      @default(true)
+  lastRunAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  testRuns    TestRun[]
+
+  @@map("pipelines")
+}
+
+enum PipelineType {
+  GITHUB_ACTIONS
+  JENKINS
+  CUSTOM
+}
+
+model TestResult {
+  id          String   @id @default(uuid()) @db.Uuid
+  testRunId   String   @db.Uuid
+  name        String
+  className   String?
+  status      TestStatus
+  duration    Int?
+  error       String?
+  stackTrace  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
+  @@index([testRunId])
+  @@index([status])
+  @@map("test_results")
+}
+
+model Notification {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @db.Uuid
+  testRunId String?           @db.Uuid
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testRun   TestRun?          @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  TEST_FAILED
+  TEST_PASSED
+  PIPELINE_FAILED
+  PIPELINE_PASSED
+  SYSTEM
+}
+
+model FailureArchive {
+  id              String    @id @default(uuid()) @db.Uuid
+  testName        String
+  errorMessage    String
+  stackTrace      String?
+  category        String?
+  severity        String?
+  rcaDocumented   Boolean   @default(false)
+  rootCause       String?
+  solution        String?
+  prevention      String?
+  relatedJiraIssue String?
+  tags            String[]
+  metadata        Json?
+  firstOccurrence DateTime  @default(now())
+  lastOccurrence  DateTime  @default(now())
+  occurrenceCount Int       @default(1)
+  resolved        Boolean   @default(false)
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([testName])
+  @@index([category])
+  @@index([resolved])
+  @@map("failure_archive")
+}
+
+model AIUsage {
+  id            String   @id @default(uuid()) @db.Uuid
+  provider      String
+  model         String
+  feature       String
+  promptTokens  Int
+  completionTokens Int
+  totalTokens   Int
+  cost          Float
+  userId        String?  @db.Uuid
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([provider])
+  @@index([feature])
+  @@index([createdAt])
+  @@map("ai_usage")
+}
+
+model JiraIssue {
+  id              String    @id @default(uuid()) @db.Uuid
+  jiraKey         String    @unique
+  jiraId          String
+  projectKey      String
+  summary         String
+  description     String?
+  issueType       String
+  status          String
+  priority        String?
+  assignee        String?
+  reporter        String?
+  testRunId       String?   @db.Uuid
+  failureArchiveId String?  @db.Uuid
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([jiraKey])
+  @@index([projectKey])
+  @@map("jira_issues")
+}
+
+model ConfluencePage {
+  id              String    @id @default(uuid()) @db.Uuid
+  pageId          String    @unique
+  spaceKey        String
+  title           String
+  url             String
+  failureArchiveId String?  @db.Uuid
+  publishedBy     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([spaceKey])
+  @@map("confluence_pages")
+}
+
+model TestRailRun {
+  id              String    @id @default(uuid()) @db.Uuid
+  testRailRunId   Int       @unique
+  projectId       Int
+  suiteId         Int?
+  name            String
+  description     String?
+  testRunId       String?   @db.Uuid
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([projectId])
+  @@map("testrail_runs")
+}
