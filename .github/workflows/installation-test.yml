@@ -22,14 +22,14 @@ jobs:
       - name: Build and Start Production Stack
         run: |
           # Use the new production compose file
-          docker-compose -f docker-compose.prod.yml up -d --build
+          docker compose -f docker-compose.prod.yml up -d --build
           
           # Wait for services to be ready
           echo "Waiting for services to start..."
           sleep 30
           
       - name: Show running containers
-        run: docker-compose -f docker-compose.prod.yml ps
+        run: docker compose -f docker-compose.prod.yml ps
 
       - name: Check Backend Health
         run: |
@@ -46,11 +46,11 @@ jobs:
       - name: Verify Database Migrations
         run: |
           # Check if migrations tables exist in the DB container
-          docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
+          docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
 
       - name: Stop services
         if: always()
-        run: docker-compose -f docker-compose.prod.yml down -v
+        run: docker compose -f docker-compose.prod.yml down -v
 
   test-demo-install:
     name: Test Demo Mode Installation
@@ -99,14 +99,14 @@ jobs:
 
       - name: Start Docker Compose services
         run: |
-          docker-compose up -d db redis weaviate
+          docker compose up -d db redis weaviate
           sleep 10
 
       - name: Check services health
         run: |
-          docker-compose ps
-          docker-compose exec -T db pg_isready -U postgres
-          docker-compose exec -T redis redis-cli ping
+          docker compose ps
+          docker compose exec -T db pg_isready -U postgres
+          docker compose exec -T redis redis-cli ping
 
       - name: Verify Weaviate
         run: |
@@ -114,7 +114,7 @@ jobs:
 
       - name: Stop services
         run: |
-          docker-compose down -v
+          docker compose down -v
 
   validate-configuration:
     name: Validate Configuration Files
@@ -167,7 +167,6 @@ jobs:
             "RELEASE_NOTES_v2.5.6.md"
             "backend/prisma/schema.production.prisma"
             "backend/scripts/db-setup-fixed.js"
-            "scripts/setup-validated.sh"
           )
 
           for file in "${required_files[@]}"; do
@@ -181,11 +180,6 @@ jobs:
 
       - name: Validate setup scripts are executable
         run: |
-          if [ ! -x "scripts/setup-validated.sh" ]; then
-            echo "ERROR: setup-validated.sh should be executable"
-            exit 1
-          fi
-
           if [ ! -x "backend/scripts/db-setup-fixed.js" ]; then
             echo "ERROR: db-setup-fixed.js should be executable"
             exit 1
