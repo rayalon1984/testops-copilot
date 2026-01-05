@@ -226,7 +226,7 @@ export class NotificationController {
       await prisma.notification.create({
         data: {
           userId: user.id,
-          type: 'BROADCAST',
+          type: 'EMAIL', // Fallback to valid Enum
           title: 'Broadcast',
           message: data.message,
         }

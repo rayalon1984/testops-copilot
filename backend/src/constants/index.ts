@@ -24,7 +24,8 @@ export enum TestStatus {
   PASSED = 'PASSED',
   FAILED = 'FAILED',
   SKIPPED = 'SKIPPED',
-  ERROR = 'ERROR'
+  FLAKY = 'FLAKY',
+  ERROR = 'ERROR' // Keeping ERROR for now but FLAKY is preferred
 }
 
 export enum NotificationType {

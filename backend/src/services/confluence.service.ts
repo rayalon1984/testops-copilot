@@ -322,9 +322,7 @@ export class ConfluenceService {
       // Get failure archive entry
       const failure = await prisma.failureArchive.findUnique({
         where: { id: failureArchiveId },
-        include: {
-          jiraIssue: true,
-        },
+        // include: { jiraIssue: true } // Removed
       });
 
       if (!failure) {
@@ -383,12 +381,11 @@ export class ConfluenceService {
           title: page.title,
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          // type: 'rca_document', // Removed
-          sourceId: failureArchiveId,
-          // version: page.version.number, // Removed
+          // sourceId: failureArchiveId, // Removed
           metadata: {
             version: page.version.number,
-            type: 'rca_document'
+            type: 'rca_document',
+            sourceId: failureArchiveId // Moved to metadata
           } as any
         },
       });

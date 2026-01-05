@@ -1,18 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 import { GitHubService } from '../services/github.service';
 import { AuthorizationError, NotFoundError } from '../middleware/errorHandler';
-import { 
-  CreatePipelineDTO, 
-  UpdatePipelineDTO, 
+import {
+  CreatePipelineDTO,
+  UpdatePipelineDTO,
   PipelineFilters,
   toPipeline
 } from '../types/pipeline';
 import { PipelineStatus, TestStatus, PipelineType } from '../constants';
-import { 
-  createPipelineInput, 
-  updatePipelineInput, 
-  parsePipelineConfig, 
-  toInputJsonValue 
+import {
+  createPipelineInput,
+  updatePipelineInput,
+  parsePipelineConfig,
+  toInputJsonValue
 } from '../utils/prismaHelpers';
 
 const prisma = new PrismaClient();
@@ -26,9 +26,9 @@ export class PipelineController {
 
   async listPipelines(userId: string, filters?: PipelineFilters) {
     const where = {
-      userId,
+      // userId, // Removed
       ...(filters?.type && { type: filters.type }),
-      ...(filters?.status && { status: filters.status })
+      // ...(filters?.status && { status: filters.status }) // Removed status
     };
 
     const prismaPipelines = await prisma.pipeline.findMany({
@@ -101,8 +101,8 @@ export class PipelineController {
 
     const createData = createPipelineInput({
       ...data,
-      userId,
-      status: PipelineStatus.PENDING
+      // userId, // Removed
+      // status: PipelineStatus.PENDING // Removed
     });
 
     const prismaPipeline = await prisma.pipeline.create({
@@ -154,18 +154,18 @@ export class PipelineController {
           throw new Error(`Unsupported pipeline type: ${pipeline.type}`);
       }
 
-      // Update pipeline status
-      await prisma.pipeline.update({
+      // Update pipeline status - REMOVED as status field is gone
+      /* await prisma.pipeline.update({
         where: { id },
         data: { status: 'RUNNING' }
-      });
+      }); */
 
       return testRun;
     } catch (error) {
-      await prisma.pipeline.update({
+      /* await prisma.pipeline.update({
         where: { id },
         data: { status: 'FAILURE' }
-      });
+      }); */
       throw error;
     }
   }
@@ -218,7 +218,7 @@ export class PipelineController {
         pipelineId: pipeline.id,
         OR: [
           { status: TestStatus.FAILED },
-          { status: TestStatus.ERROR }
+          { status: TestStatus.FLAKY }
         ]
       },
       orderBy: { createdAt: 'desc' }

@@ -9,7 +9,7 @@ interface BasePipelineData {
 }
 
 interface CreatePipelineData extends BasePipelineData {
-  userId: string;
+  // userId: string; // Removed
 }
 
 interface UpdatePipelineData extends Partial<BasePipelineData> {

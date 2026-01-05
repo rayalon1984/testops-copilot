@@ -9,7 +9,7 @@ export interface Pipeline {
   config: JsonValue;
   createdAt: Date;
   updatedAt: Date;
-  userId: string;
+  userId?: string; // Optional now
   testRuns?: TestRun[];
 }
 
@@ -96,7 +96,8 @@ export function toPipeline(prismaPipeline: any): Pipeline {
   return {
     ...prismaPipeline,
     type: prismaPipeline.type as PipelineType,
-    status: prismaPipeline.status as PipelineStatus
+    status: (prismaPipeline.status || PipelineStatus.PENDING) as PipelineStatus,
+    userId: prismaPipeline.userId || '' // Default or empty if missing
   };
 }
 
@@ -104,6 +105,10 @@ export function toPipeline(prismaPipeline: any): Pipeline {
 export function toTestRun(prismaTestRun: any): TestRun {
   return {
     ...prismaTestRun,
-    status: prismaTestRun.status as TestStatus
+    status: prismaTestRun.status as TestStatus,
+    startTime: prismaTestRun.startedAt || prismaTestRun.startTime,
+    endTime: prismaTestRun.completedAt || prismaTestRun.endTime,
+    results: prismaTestRun.results || {}, // Ensure generic JSON
+    error: prismaTestRun.metadata?.error || prismaTestRun.error || null
   };
 }
