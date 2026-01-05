@@ -26,7 +26,7 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN cp prisma/schema.production.prisma prisma/schema.prisma
-RUN npx prisma generate
+RUN npx prisma@5 generate
 RUN npm run build
 
 # Production stage
@@ -38,8 +38,8 @@ COPY package*.json ./
 # Copy migration files
 COPY prisma ./prisma/
 
-# Install Prisma CLI for migrations
-RUN npm install -g prisma
+# Install Prisma CLI for migrations (pin to v5 to avoid v7 breaking changes)
+RUN npm install -g prisma@5
 
 # Ensure production schema is used
 RUN cp prisma/schema.production.prisma prisma/schema.prisma
