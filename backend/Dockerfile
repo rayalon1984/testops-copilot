@@ -3,6 +3,8 @@
 # Base stage for both development and production
 FROM node:20-alpine AS base
 WORKDIR /app
+# Install OpenSSL for Prisma compatibility
+RUN apk add --no-cache openssl openssl-dev
 ENV NODE_ENV=production
 
 # Development stage
