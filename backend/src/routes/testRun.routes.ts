@@ -27,15 +27,22 @@ router.get(
 
     // Transform to frontend format
     const formattedRuns = testRuns.map(run => {
-      const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results;
-      const failed = (results as any)?.failed || 0;
+      // Handle legacy string results or new relation (if included) - code assumes results is loaded if needed or falls back
+      // Since include: { pipeline: true } only, results might be missing?
+      // But typically we don't return full results in list view.
+      // Let's use metadata counters if available or default to 0
+
+      const failed = run.failed || 0; // Prod schema has 'failed' Int column
+      const passed = run.passed || 0;
 
       // Map status
       const statusMap: Record<string, string> = {
         'PASSED': 'success',
         'FAILED': 'failed',
         'RUNNING': 'running',
-        'PENDING': 'pending'
+        'PENDING': 'pending',
+        'SKIPPED': 'skipped',
+        'FLAKY': 'flaky'
       };
 
       return {
@@ -43,8 +50,8 @@ router.get(
         pipelineId: run.pipelineId,
         pipelineName: run.pipeline?.name || 'Unknown Pipeline',
         status: statusMap[run.status] || 'pending',
-        startTime: run.startTime?.toISOString() || run.createdAt.toISOString(),
-        endTime: run.endTime?.toISOString() || run.createdAt.toISOString(),
+        startTime: run.startedAt?.toISOString() || run.createdAt.toISOString(),
+        endTime: run.completedAt?.toISOString() || run.createdAt.toISOString(),
         duration: run.duration || 0,
         errorCount: failed,
         screenshots: []
@@ -77,24 +84,28 @@ router.get(
       return;
     }
 
-    const results = typeof testRun.results === 'string' ? JSON.parse(testRun.results) : testRun.results;
+    const failed = testRun.failed || 0;
     const statusMap: Record<string, string> = {
       'PASSED': 'success',
       'FAILED': 'failed',
       'RUNNING': 'running',
-      'PENDING': 'pending'
+      'PENDING': 'pending',
+      'SKIPPED': 'skipped',
+      'FLAKY': 'flaky'
     };
+
+    const error = (testRun.metadata as any)?.error || null;
 
     res.status(200).json({
       id: testRun.id,
       pipelineId: testRun.pipelineId,
       pipelineName: testRun.pipeline?.name || 'Unknown Pipeline',
       status: statusMap[testRun.status] || 'pending',
-      startTime: testRun.startTime?.toISOString() || testRun.createdAt.toISOString(),
-      endTime: testRun.endTime?.toISOString() || testRun.createdAt.toISOString(),
+      startTime: testRun.startedAt?.toISOString() || testRun.createdAt.toISOString(),
+      endTime: testRun.completedAt?.toISOString() || testRun.createdAt.toISOString(),
       duration: testRun.duration || 0,
-      errorCount: (results as any)?.failed || 0,
-      errorLogs: testRun.error ? [testRun.error] : [],
+      errorCount: failed,
+      errorLogs: error ? [error] : [],
       screenshots: []
     });
   })

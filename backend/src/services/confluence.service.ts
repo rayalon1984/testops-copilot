@@ -389,7 +389,7 @@ export class ConfluenceService {
           metadata: {
             version: page.version.number,
             type: 'rca_document'
-          }
+          } as any
         },
       });
 
@@ -460,23 +460,12 @@ export class ConfluenceService {
           title: page.title,
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          // type: 'test_report', // Removed 'type' as it might not be in the model or is wrong type?
-          // Checking schema.dev.prisma (Step 1753): model ConfluencePage { ... type String? ... }
-          // Checking schema.production.prisma (Step 1697): model ConfluencePage { ... No type field? ... Wait. }
-          // Step 1697 ConfluencePage: id, pageId, spaceKey, title, url, failureArchiveId, publishedBy, metadata, createdAt, updatedAt.
-          // PROD SCHEMA DOES NOT HAVE 'type' field in ConfluencePage!
-          // DEV SCHEMA DOES HAVE 'type' field.
-          // Another mismatch. I must remove 'type' usage to match Prod.
-          sourceId: testRunId,
-          // version: page.version.number, // Prod ConfluencePage doesn't have 'version' field?
-          // Step 1697: NO version field.
-          // DEV schema has version.
-          // I must remove 'type' and 'version' from create data for PROD compatibility.
-          // Store version in metadata?
+          // sourceId: testRunId, // Removed as not in Prod schema
           metadata: {
             version: page.version.number,
-            type: 'test_report'
-          }
+            type: 'test_report',
+            sourceId: testRunId // Stored in metadata
+          } as any
         },
       });
 

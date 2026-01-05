@@ -148,7 +148,7 @@ export class FailureArchiveService {
     return prisma.failureArchive.create({
       data: {
         ...input,
-        screenshots: null, // Prod schema doesn't have screenshots field? Check.. Dev schema removed it? I should check. Prod schema does NOT have screenshots.
+        // screenshots: null, // Removed
         relatedDocumentation: null, // Prod schema does NOT have relatedDocumentation.
         tags: input.tags?.join(',') || null,
         severity: input.severity || FailureSeverity.MEDIUM,
