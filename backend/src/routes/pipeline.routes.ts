@@ -135,7 +135,8 @@ router.get(
     const runs = await prisma.testRun.findMany({
       where: { pipelineId: req.params.id, userId: req.user.id },
       orderBy: { createdAt: 'desc' },
-      take: 20
+      take: 20,
+      include: { results: true }
     });
 
     const statusMap: Record<string, string> = {
@@ -146,8 +147,8 @@ router.get(
     };
 
     const formattedRuns = runs.map(run => {
-      // const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results;
-      const failed = run.failed || 0;
+      // Count failed results
+      const failed = run.results?.filter(r => r.status === 'FAILED').length || 0;
       return {
         id: run.id,
         status: statusMap[run.status] || 'pending',

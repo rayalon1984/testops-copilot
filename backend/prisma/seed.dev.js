@@ -240,10 +240,10 @@ async function seedDevelopmentData() {
         status,
         branch: Math.random() > 0.7 ? 'main' : Math.random() > 0.5 ? 'develop' : `feature/test-${i}`,
         commit: `${Math.random().toString(36).substring(2, 9)}`,
-        startTime,
-        endTime,
+        startedAt: startTime,
+        completedAt: endTime,
         duration,
-        results: JSON.stringify({ passed, failed, skipped: Math.floor(Math.random() * 10) }),
+        // results removed - use TestResult relation instead
       },
     });
     testRuns.push(run);
@@ -261,30 +261,29 @@ async function seedDevelopmentData() {
 
       const failure = await prisma.failureArchive.create({
         data: {
-          testRunId: testRuns[Math.floor(Math.random() * testRuns.length)].id,
+          // testRunId removed - not in Dev schema
           testName: `${template.testName}_${category}_${i}`,
-          failureSignature: `${category}_${template.errorType}_${i % 20}`,
+          // failureSignature removed - not in Dev schema
           errorMessage: template.errorMessage,
-          errorType: template.errorType,
+          category: template.errorType, // Use category field
           stackTrace: template.stackTrace,
-          logSnippet: `[ERROR] ${template.errorMessage}\n[INFO] Stack trace follows...`,
-          occurredAt,
-          environment: ['production', 'staging', 'development'][Math.floor(Math.random() * 3)],
-          buildNumber: `${Math.floor(Math.random() * 5000) + 1000}`,
-          commitSha: `${Math.random().toString(36).substring(2, 9)}`,
-          branch: ['main', 'develop', 'feature/xyz'][Math.floor(Math.random() * 3)],
+          // logSnippet removed - not in Dev schema
+          // occurredAt -> use firstOccurrence/lastOccurrence
+          // environment, buildNumber, commitSha, branch removed - not in Dev schema
           rootCause: template.rootCause,
-          detailedAnalysis: `AI Analysis: ${template.rootCause}. This failure pattern has been observed ${Math.floor(Math.random() * 15) + 1} times in the past 30 days with similar characteristics.`,
+          // detailedAnalysis removed - not in Dev schema
           solution: template.solution,
-          preventionSteps: template.preventionSteps,
-          workaround: i % 3 === 0 ? 'Restart the service and retry the operation' : null,
-          status: ['NEW', 'INVESTIGATING', 'DOCUMENTED', 'RESOLVED'][Math.floor(Math.random() * 4)],
+          prevention: template.preventionSteps,
+          // workaround removed - not in Dev schema
+          // status removed - use resolved boolean
           severity: config.severity,
-          isRecurring: Math.random() > 0.6,
+          // isRecurring removed - check occurrenceCount instead
           occurrenceCount: Math.floor(Math.random() * 25) + 1,
-          isKnownIssue: Math.random() > 0.75,
-          firstSeenAt: new Date(occurredAt.getTime() - Math.random() * 14 * 86400000),
-          lastSeenAt: occurredAt,
+          // isKnownIssue removed - not in Dev schema
+          firstOccurrence: new Date(occurredAt.getTime() - Math.random() * 14 * 86400000),
+          lastOccurrence: occurredAt,
+          rcaDocumented: Math.random() > 0.5,
+          resolved: Math.random() > 0.7,
         },
       });
       failures.push(failure);
