@@ -22,6 +22,14 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
 
+---
+
+> **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](QUICKSTART.md)**!
+>
+> **Latest Release**: [v2.5.6](RELEASE_NOTES_v2.5.6.md) - Critical installation fixes | [What's New →](INSTALLATION_FIXES_SUMMARY.md)
+
+---
+
 ## 📋 Table of Contents
 
 - [Screenshots & Demo](#-screenshots--demo)
@@ -174,16 +182,27 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEM
 
 ### Quick Setup (Recommended)
 
-The automated setup script handles all installation and configuration:
+**Use our validated setup script** for a smooth installation experience:
 
 ```bash
 # Clone the repository
 git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 
-# Run the automated setup
-npm run setup
+# Run the validated setup script
+bash scripts/setup-validated.sh
 ```
+
+This script will:
+- ✅ Validate prerequisites (Node.js, npm, PostgreSQL)
+- ✅ Install all dependencies
+- ✅ Generate secure JWT secrets automatically
+- ✅ Create .env configuration files
+- ✅ Set up and test database connectivity
+- ✅ Run migrations or db push
+- ✅ Provide clear error messages if anything fails
+
+**See the [Quick Start Guide](QUICKSTART.md) for detailed instructions.**
 
 The setup script will:
 1. Clean any existing installations
