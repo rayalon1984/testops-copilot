@@ -25,6 +25,7 @@ ENV NODE_ENV=development
 COPY package*.json ./
 RUN npm install
 COPY . .
+RUN cp prisma/schema.production.prisma prisma/schema.prisma
 RUN npx prisma generate
 RUN npm run build
 
@@ -39,6 +40,10 @@ COPY prisma ./prisma/
 
 # Install Prisma CLI for migrations
 RUN npm install -g prisma
+
+# Ensure production schema is used
+RUN cp prisma/schema.production.prisma prisma/schema.prisma
+RUN prisma generate
 
 # Copy startup script
 COPY start.sh ./start.sh
