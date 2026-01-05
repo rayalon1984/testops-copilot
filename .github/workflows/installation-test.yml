@@ -48,6 +48,10 @@ jobs:
           # Check if migrations tables exist in the DB container
           docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
 
+      - name: Print Container Logs
+        if: failure()
+        run: docker compose -f docker-compose.prod.yml logs backend db
+
       - name: Stop services
         if: always()
         run: docker compose -f docker-compose.prod.yml down -v
