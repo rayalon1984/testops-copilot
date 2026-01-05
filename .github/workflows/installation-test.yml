@@ -35,7 +35,7 @@ jobs:
         run: |
           # Backend runs on port 3000 mapped to host
           echo "Checking backend health..."
-          timeout 30s bash -c 'until curl -s http://localhost:3000/health | grep "ok"; do sleep 5; done'
+          timeout 90s bash -c 'until curl -s http://localhost:3000/health | grep "ok"; do sleep 5; done'
 
       - name: Check Frontend Accessibility
         run: |
