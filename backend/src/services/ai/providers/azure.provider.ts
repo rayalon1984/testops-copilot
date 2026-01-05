@@ -2,7 +2,7 @@
  * AI Providers - Azure OpenAI Implementation
  */
 
-// @ts-ignore - Azure OpenAI SDK v2 has different exports
+// @ts-expect-error - Azure OpenAI SDK v2 has different exports
 import { AzureOpenAI } from '@azure/openai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage } from '../types';

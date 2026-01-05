@@ -49,7 +49,7 @@ export class TestRunService {
         if (filters.tags && filters.tags.length > 0) {
             // Simple implementation for comma-separated string tags
             // This is a limitation of the current schema design for SQLite
-            // @ts-ignore - OR usage matches Prisma generic types but strict TS might complain
+            // @ts-expect-error - OR usage matches Prisma generic types but strict TS might complain
             where.OR = filters.tags.map(tag => ({
                 tags: { contains: tag }
             }));
@@ -58,11 +58,11 @@ export class TestRunService {
         if (filters.startDate || filters.endDate) {
             where.createdAt = {};
             if (filters.startDate) {
-                // @ts-ignore
+                // @ts-expect-error
                 where.createdAt.gte = new Date(filters.startDate);
             }
             if (filters.endDate) {
-                // @ts-ignore
+                // @ts-expect-error
                 where.createdAt.lte = new Date(filters.endDate);
             }
         }

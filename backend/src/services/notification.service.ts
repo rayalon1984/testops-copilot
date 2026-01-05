@@ -6,7 +6,7 @@ import { config } from '@/config';
 import { Pipeline, TestRun, PrismaClient } from '@prisma/client';
 import { logger } from '@/utils/logger';
 
-// @ts-ignore - Prisma types compatibility
+// @ts-expect-error - Prisma types compatibility
 interface NotificationConfig {
   enabled: boolean;
   channels: Array<'slack' | 'email' | 'pushover'>;
@@ -50,11 +50,11 @@ export class NotificationService {
   async sendPipelineStartNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
     let notificationConfig: NotificationConfig | undefined;
     try {
-      // @ts-ignore
+      // @ts-expect-error
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {
-      // ignore
+      // Intentionally ignoring parse errors - notifications are optional and shouldn't break pipeline execution
     }
 
     if (!notificationConfig || !this.shouldSendNotification(notificationConfig, 'started')) {
@@ -68,11 +68,11 @@ export class NotificationService {
   async sendPipelineCompletionNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
     let notificationConfig: NotificationConfig | undefined;
     try {
-      // @ts-ignore
+      // @ts-expect-error
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {
-      // ignore
+      // Intentionally ignoring parse errors - notifications are optional and shouldn't break pipeline execution
     }
 
     if (!notificationConfig || !this.shouldSendNotification(notificationConfig, testRun.status)) {
@@ -162,7 +162,9 @@ export class NotificationService {
           try {
             const r = JSON.parse(testRun.results);
             statsField = `*Stats:* ✅ ${r.passed} | ❌ ${r.failed} | ⏭️ ${r.skipped}`;
-          } catch (e) { }
+          } catch (e) {
+            // Intentionally ignoring parse errors - invalid results format should fallback to 'N/A'
+          }
         }
 
         await this.slackClient.chat.postMessage({

@@ -136,7 +136,7 @@ async function checkRedis(): Promise<ServiceStatus | undefined> {
 
   try {
     // Dynamically import Redis (if available)
-    const Redis = require('ioredis');
+    const { default: Redis } = await import('ioredis');
     const redis = new Redis(process.env.REDIS_URL);
 
     await redis.ping();
