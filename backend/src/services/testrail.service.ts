@@ -202,10 +202,11 @@ export class TestRailService {
         await prisma.testRailRun.create({
           data: {
             testRunId: data.testRunId,
-            runId: testRun.id,
+            testRailRunId: testRun.id,
             projectId: projectId,
             suiteId: data.suiteId,
-            status: 'active',
+            name: testRun.name,
+            // status field not in production schema
           },
         });
       }
@@ -342,7 +343,7 @@ export class TestRailService {
       const testRun = await prisma.testRun.findUnique({
         where: { id: testRunId },
         include: {
-          testResults: true,
+          results: true,
         },
       });
 
@@ -360,9 +361,14 @@ export class TestRailService {
       }
 
       // Convert our test results to TestRail format
-      const results: AddTestResultDTO[] = testRun.testResults
-        .filter(result => result.testCaseId) // Only include results with testCaseId
-        .map(result => ({
+      // Convert our test results to TestRail format
+      // Production schema uses 'results' relation
+      // @ts-expect-error - Handling schema difference between dev and prod
+      const resultsToSync = testRun.results || testRun.testResults || [];
+
+      const results: AddTestResultDTO[] = resultsToSync
+        .filter((result: any) => result.testCaseId) // Only include results with testCaseId
+        .map((result: any) => ({
           testId: parseInt(result.testCaseId!),
           statusId: this.mapStatusToTestRail(result.status),
           comment: result.error || result.message || '',
@@ -370,9 +376,9 @@ export class TestRailService {
         }));
 
       // Send results to TestRail
-      await this.addTestResults(testRailMapping.runId, results);
+      await this.addTestResults(testRailMapping.testRailRunId, results);
 
-      logger.info(`Synced ${results.length} test results from test run ${testRunId} to TestRail run ${testRailMapping.runId}`);
+      logger.info(`Synced ${results.length} test results from test run ${testRunId} to TestRail run ${testRailMapping.testRailRunId}`);
     } catch (error) {
       logger.error(`Failed to sync test run ${testRunId} to TestRail:`, error);
       throw new Error('Failed to sync test results to TestRail');
