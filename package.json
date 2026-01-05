@@ -1,6 +1,6 @@
 {
   "name": "testops-companion",
-  "version": "2.5.5",
+  "version": "2.5.6",
   "description": "A comprehensive test operations companion for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
@@ -35,7 +35,10 @@
     "lint:frontend": "cd frontend && npm run lint",
     "typecheck": "concurrently \"npm run typecheck:backend\" \"npm run typecheck:frontend\"",
     "typecheck:backend": "cd backend && npm run typecheck",
-    "typecheck:frontend": "cd frontend && npm run typecheck"
+    "typecheck:frontend": "cd frontend && npm run typecheck",
+    "validate": "npm run validate:env && npm run validate:schema",
+    "validate:env": "node scripts/validate-env.js",
+    "validate:schema": "node scripts/validate-schema.js"
   },
   "keywords": [
     "test",

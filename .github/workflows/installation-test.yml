@@ -1,0 +1,255 @@
+name: Installation Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-production-install:
+    name: Test Production Installation
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testops
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Run validated setup script
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testops
+          CI: true
+        run: |
+          # Create backend .env for testing
+          cat > backend/.env << EOF
+          NODE_ENV=test
+          PORT=3000
+          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testops
+          JWT_SECRET=test-secret-for-ci-do-not-use-in-production
+          JWT_REFRESH_SECRET=test-refresh-secret-for-ci-do-not-use
+          CORS_ORIGIN=http://localhost:5173
+          LOG_LEVEL=error
+          EOF
+
+          # Create frontend .env for testing
+          cat > frontend/.env << EOF
+          VITE_API_URL=http://localhost:3000
+          VITE_WEBSOCKET_URL=ws://localhost:3000
+          EOF
+
+          # Install dependencies
+          cd backend && npm ci && cd ..
+          cd frontend && npm ci && cd ..
+
+      - name: Generate Prisma Client
+        run: |
+          cd backend
+          npx prisma generate
+
+      - name: Run database migrations
+        run: |
+          cd backend
+          npx prisma db push --accept-data-loss
+
+      - name: Type check backend
+        run: |
+          cd backend
+          npm run typecheck
+
+      - name: Type check frontend
+        run: |
+          cd frontend
+          npm run typecheck
+
+      - name: Lint backend
+        run: |
+          cd backend
+          npm run lint
+
+      - name: Lint frontend
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Test backend start
+        run: |
+          cd backend
+          timeout 30s npm start &
+          sleep 10
+          curl --fail http://localhost:3000/health || exit 1
+
+  test-demo-install:
+    name: Test Demo Mode Installation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci && cd ..
+          cd frontend && npm ci && cd ..
+
+      - name: Test demo mode setup
+        run: |
+          cd backend
+          npm run dev:simple:setup
+
+      - name: Verify demo database
+        run: |
+          cd backend
+          test -f prisma/dev.db && echo "Demo database created successfully"
+
+      - name: Type check (demo mode)
+        run: |
+          cd backend
+          npm run typecheck
+          cd ../frontend
+          npm run typecheck
+
+  test-docker-compose:
+    name: Test Docker Compose Setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start Docker Compose services
+        run: |
+          docker-compose up -d db redis weaviate
+          sleep 10
+
+      - name: Check services health
+        run: |
+          docker-compose ps
+          docker-compose exec -T db pg_isready -U postgres
+          docker-compose exec -T redis redis-cli ping
+
+      - name: Verify Weaviate
+        run: |
+          curl --fail http://localhost:8081/v1/.well-known/ready || exit 1
+
+      - name: Stop services
+        run: |
+          docker-compose down -v
+
+  validate-configuration:
+    name: Validate Configuration Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check port consistency
+        run: |
+          # Check backend .env.example
+          if ! grep -q "^PORT=3000" backend/.env.example; then
+            echo "ERROR: Backend port should be 3000 in .env.example"
+            exit 1
+          fi
+
+          # Check frontend .env.example
+          if ! grep -q "VITE_API_URL=http://localhost:3000" frontend/.env.example; then
+            echo "ERROR: Frontend API URL should point to port 3000"
+            exit 1
+          fi
+
+          echo "✅ Port configuration is consistent"
+
+      - name: Validate Prisma schema
+        run: |
+          cd backend
+
+          # Check production schema datasource
+          if ! head -20 prisma/schema.production.prisma | grep -q 'provider = "postgresql"'; then
+            echo "ERROR: Production schema should use PostgreSQL"
+            exit 1
+          fi
+
+          # Check dev schema datasource
+          if ! head -20 prisma/schema.dev.prisma | grep -q 'provider = "sqlite"'; then
+            echo "ERROR: Dev schema should use SQLite"
+            exit 1
+          fi
+
+          echo "✅ Prisma schemas are correctly configured"
+
+      - name: Check required files exist
+        run: |
+          required_files=(
+            "QUICKSTART.md"
+            "INSTALLATION_FIXES_SUMMARY.md"
+            "INSTALLATION_ISSUES_REPORT.md"
+            "RELEASE_NOTES_v2.5.6.md"
+            "backend/prisma/schema.production.prisma"
+            "backend/scripts/db-setup-fixed.js"
+            "scripts/setup-validated.sh"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Required file missing: $file"
+              exit 1
+            fi
+          done
+
+          echo "✅ All required files exist"
+
+      - name: Validate setup scripts are executable
+        run: |
+          if [ ! -x "scripts/setup-validated.sh" ]; then
+            echo "ERROR: setup-validated.sh should be executable"
+            exit 1
+          fi
+
+          if [ ! -x "backend/scripts/db-setup-fixed.js" ]; then
+            echo "ERROR: db-setup-fixed.js should be executable"
+            exit 1
+          fi
+
+          echo "✅ Scripts are executable"
