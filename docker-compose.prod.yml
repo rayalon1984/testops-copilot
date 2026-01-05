@@ -26,6 +26,7 @@ services:
       - PORT=3000
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/testops
       - JWT_SECRET=change_this_secret_in_production
+      - JWT_REFRESH_SECRET=change_this_refresh_secret_in_production
       - LOG_LEVEL=info
     depends_on:
       db:
@@ -49,7 +50,7 @@ services:
     networks:
       - testops-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,7 +65,7 @@ services:
     networks:
       - testops-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,6 +91,7 @@ volumes:
   postgres_data:
   redis_data:
   weaviate_data:
+
 
 networks:
   testops-network:
