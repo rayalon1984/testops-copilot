@@ -1,0 +1,101 @@
+# TestOps Companion - Production Deployment (Pre-built Images)
+# Uses pre-built images from GitHub Container Registry
+#
+# Usage:
+#   1. Copy .env.production.example to .env.production
+#   2. Fill in your secrets in .env.production
+#   3. Run: docker compose -f docker-compose.ghcr.yml up -d
+#
+# To update:
+#   docker compose -f docker-compose.ghcr.yml pull
+#   docker compose -f docker-compose.ghcr.yml up -d
+
+services:
+  frontend:
+    image: ghcr.io/rayalon1984/testops-companion/frontend:latest
+    ports:
+      - "80:80"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - testops-network
+
+  backend:
+    image: ghcr.io/rayalon1984/testops-companion/backend:latest
+    ports:
+      - "3000:3000"
+    restart: always
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - testops-network
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=testops
+    networks:
+      - testops-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - testops-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=20
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=none
+      - ENABLE_MODULES=
+      - CLUSTER_HOSTNAME=node1
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - testops-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  weaviate_data:
+
+
+networks:
+  testops-network:
+    driver: bridge
