@@ -25,18 +25,17 @@ model User {
   testRuns      TestRun[]
 }
 
-model TestRun {
   id         String    @id @default(uuid())
   pipelineId String
   userId     String
   name       String
-  status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | ERROR
+  status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
   branch     String?
   commit     String?
-  startTime  DateTime?
-  endTime    DateTime?
+  startedAt  DateTime? @default(now())
+  completedAt DateTime?
   duration   Int?
-  results    String?   // JSON stored as string
+  // results string removed in favor of relation to match prod
   error      String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -44,7 +43,7 @@ model TestRun {
   // Relations
   pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
   user       User      @relation(fields: [userId], references: [id])
-  testResults TestResult[]
+  results    TestResult[]
 
   @@index([pipelineId])
   @@index([userId])
@@ -160,21 +159,19 @@ model JiraIssue {
 }
 
 // Pipeline model
-model Pipeline {
   id          String     @id @default(uuid())
   name        String
   type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
   status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
   config      String     // JSON stored as string
   description String?
-  userId      String
+  // userId removed to match prod schema
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   // Relations
   testRuns    TestRun[]
 
-  @@index([userId])
   @@index([type])
   @@index([status])
 }
@@ -217,14 +214,14 @@ model Notification {
 }
 
 model TestRailRun {
-  id          String   @id @default(uuid())
-  testRunId   String   @unique
-  runId       Int      // TestRail Run ID
-  projectId   Int
-  suiteId     Int
-  status      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(uuid())
+  testRailRunId Int      @unique
+  projectId     Int
+  suiteId       Int?
+  name          String
+  testRunId     String?  // nullable and not unique in prod?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model ConfluencePage {

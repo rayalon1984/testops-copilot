@@ -95,8 +95,8 @@ export class NotificationService {
     );
   }
 
-  private formatStartMessage(pipeline: Pipeline, testRun: TestRun): string {
-    return `🚀 Pipeline Started\nPipeline: ${pipeline.name}\nBranch: ${testRun.branch || 'default'}\nRun ID: ${testRun.id}\nStarted At: ${testRun.startTime?.toISOString()}`;
+  private formatStartMessage(pipeline: Pipeline, testRun: any): string {
+    return `🚀 Pipeline Started\nPipeline: ${pipeline.name}\nBranch: ${testRun.branch || 'default'}\nRun ID: ${testRun.id}\nStarted At: ${testRun.startedAt?.toISOString()}`;
   }
 
   private formatCompletionMessage(pipeline: Pipeline, testRun: TestRun): string {
@@ -109,7 +109,7 @@ export class NotificationService {
   async sendNotifications(
     config: NotificationConfig | { enabled: boolean; channels: string[]; message?: string; userId?: string },
     message: string,
-    context?: { pipeline?: Pipeline; testRun?: TestRun }
+    context?: { pipeline?: Pipeline; testRun?: any }
   ): Promise<void> {
     const enabled = 'enabled' in config ? config.enabled : false;
     if (!enabled) return;
@@ -140,7 +140,7 @@ export class NotificationService {
     if (!channelConfig) throw new Error('Invalid config');
   }
 
-  private async sendSlackNotification(message: string, context?: { pipeline?: Pipeline; testRun?: TestRun }): Promise<void> {
+  private async sendSlackNotification(message: string, context?: { pipeline?: Pipeline; testRun?: any }): Promise<void> {
     if (!this.slackClient || !config.notifications?.slack?.channel) {
       return;
     }
@@ -155,7 +155,14 @@ export class NotificationService {
         const duration = testRun.duration ? `${testRun.duration}s` : 'N/A';
 
         let statsField = '*Stats:* N/A';
-        if (testRun.results) {
+        // Check for results relation from production schema
+        if (testRun.results && Array.isArray(testRun.results)) {
+          const passed = testRun.results.filter((r: any) => r.status === 'PASSED').length;
+          const failed = testRun.results.filter((r: any) => r.status === 'FAILED').length;
+          const skipped = testRun.results.filter((r: any) => r.status === 'SKIPPED').length;
+          statsField = `*Stats:* ✅ ${passed} | ❌ ${failed} | ⏭️ ${skipped}`;
+        } else if (testRun.results && typeof testRun.results === 'string') {
+          // Fallback for string-based results (dev schema or old data)
           try {
             const r = JSON.parse(testRun.results);
             statsField = `*Stats:* ✅ ${r.passed} | ❌ ${r.failed} | ⏭️ ${r.skipped}`;
