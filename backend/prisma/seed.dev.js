@@ -208,7 +208,7 @@ async function seedDevelopmentData() {
           triggers: ['push', 'pull_request'],
           notifications: { email: true, slack: true }
         }),
-        userId: admin.id,
+        // userId: admin.id, // Removed for Prod schema alignment
         description: template.description,
       },
     });
@@ -235,7 +235,7 @@ async function seedDevelopmentData() {
     const run = await prisma.testRun.create({
       data: {
         pipelineId: pipeline.id,
-        userId: admin.id,
+        // userId: admin.id,
         name: `${pipeline.name} - Run #${i + 1}`,
         status,
         branch: Math.random() > 0.7 ? 'main' : Math.random() > 0.5 ? 'develop' : `feature/test-${i}`,
