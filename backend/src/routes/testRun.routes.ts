@@ -20,7 +20,7 @@ router.get(
     // Get test runs from database with pipeline info
     const testRuns = await prisma.testRun.findMany({
       where: { userId: req.user.id },
-      include: { pipeline: true },
+      include: { pipeline: true, results: true },
       orderBy: { createdAt: 'desc' },
       take: 100
     });
@@ -32,8 +32,9 @@ router.get(
       // But typically we don't return full results in list view.
       // Let's use metadata counters if available or default to 0
 
-      const failed = run.failed || 0; // Prod schema has 'failed' Int column
-      const passed = run.passed || 0;
+      // Count from included results (Dev schema doesn't have failed/passed columns)
+      const failed = run.results?.filter((r: any) => r.status === 'FAILED').length || 0;
+      const passed = run.results?.filter((r: any) => r.status === 'PASSED').length || 0;
 
       // Map status
       const statusMap: Record<string, string> = {
@@ -76,7 +77,7 @@ router.get(
 
     const testRun = await prisma.testRun.findFirst({
       where: { id: req.params.id, userId: req.user.id },
-      include: { pipeline: true }
+      include: { pipeline: true, results: true }
     });
 
     if (!testRun) {
@@ -84,7 +85,7 @@ router.get(
       return;
     }
 
-    const failed = testRun.failed || 0;
+    const failed = (testRun as any).results?.filter((r: any) => r.status === 'FAILED').length || 0;
     const statusMap: Record<string, string> = {
       'PASSED': 'success',
       'FAILED': 'failed',
@@ -94,7 +95,7 @@ router.get(
       'FLAKY': 'flaky'
     };
 
-    const error = (testRun.metadata as any)?.error || null;
+    const error = (testRun as any).error || null;
 
     res.status(200).json({
       id: testRun.id,

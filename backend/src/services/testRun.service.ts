@@ -38,8 +38,7 @@ export class TestRunService {
         }
 
         if (filters.status) {
-            // @ts-expect-error - casting string to enum
-            where.status = filters.status;
+            where.status = filters.status as any;
         }
 
         if (filters.branch) {

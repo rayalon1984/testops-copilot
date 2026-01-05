@@ -179,10 +179,10 @@ export class JenkinsService {
             where: { id: testRun.id },
             data: {
               status: 'FAILED', // Mapped TIMEOUT -> FAILED
-              // error: 'Build exceeded maximum duration', // Stored in metadata if possible or logged
-              metadata: { error: 'Build exceeded maximum duration' }
+              // error field not in Prod schema - logged instead
             }
           });
+          logger.error('Build exceeded maximum duration for test run:', testRun.id);
         }
       } catch (error) {
         logger.error('Error monitoring build progress:', error);
@@ -191,9 +191,10 @@ export class JenkinsService {
           where: { id: testRun.id },
           data: {
             status: 'FAILED',
-            metadata: { error: `Failed to monitor build: ${(error as Error).message}` }
+            // error field not in Prod schema - logged instead
           }
         });
+        logger.error(`Failed to monitor build: ${(error as Error).message}`, { testRunId: testRun.id });
       }
     }, pollInterval);
   }
@@ -214,7 +215,7 @@ export class JenkinsService {
         status,
         completedAt: new Date(buildData.timestamp + buildData.duration), // completedAt
         duration: Math.floor(buildData.duration / 1000),
-        metadata: results ? { jenkinsResults: results } : undefined, // Store results in metadata
+        // metadata removed - not in Dev schema
       },
     });
   }
