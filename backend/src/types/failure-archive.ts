@@ -101,6 +101,7 @@ export interface CreateFailureArchiveInput {
   testCaseId?: string;
   testName: string;
   errorMessage: string;
+  category?: string;
   stackTrace?: string;
   severity?: string;
   tags?: string[];

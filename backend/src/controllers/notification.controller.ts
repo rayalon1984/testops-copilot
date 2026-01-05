@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, NotificationType, UserRole } from '@prisma/client';
 import { NotFoundError } from '@/middleware/errorHandler';
 import { NotificationService } from '@/services/notification.service';
 import { logger } from '@/utils/logger';
@@ -96,10 +96,10 @@ export class NotificationController {
     await prisma.notification.create({
       data: {
         userId,
-        type: 'TEST',
+        type: NotificationType.SYSTEM,
         title: 'Test Notification',
         message: testMessage,
-        data: JSON.stringify({ status: 'sent' }),
+
       }
     });
 
@@ -212,7 +212,7 @@ export class NotificationController {
     channels: string[];
     userGroups?: string[];
   }): Promise<void> {
-    const where = data.userGroups ? { role: { in: data.userGroups } } : {};
+    const where = data.userGroups ? { role: { in: data.userGroups as UserRole[] } } : {};
     const users = await prisma.user.findMany({ where });
 
     for (const user of users) {
@@ -226,7 +226,7 @@ export class NotificationController {
       await prisma.notification.create({
         data: {
           userId: user.id,
-          type: 'EMAIL', // Fallback to valid Enum
+          type: NotificationType.SYSTEM, // Fallback to valid Enum
           title: 'Broadcast',
           message: data.message,
         }

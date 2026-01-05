@@ -30,6 +30,6 @@ router.get('/insights', asMiddleware(FailureArchiveController.getInsights));
 router.put('/:id/resolve', asMiddleware(FailureArchiveController.markResolved));
 
 // Detect patterns
-router.post('/detect-patterns', asMiddleware(FailureArchiveController.detectPatterns));
+// router.post('/detect-patterns', asMiddleware(FailureArchiveController.detectPatterns));
 
 export default router;

@@ -14,7 +14,7 @@ const createFailureSchema = z.object({
   testCaseId: z.string().uuid().optional(),
   testName: z.string().min(1),
   errorMessage: z.string().min(1),
-  errorType: z.string().optional(),
+  category: z.string().optional(),
   stackTrace: z.string().optional(),
   logSnippet: z.string().optional(),
   screenshots: z.array(z.string()).optional(),
@@ -260,22 +260,5 @@ export class FailureArchiveController {
     }
   }
 
-  /**
-   * POST /api/failure-archive/detect-patterns
-   * Detect and create patterns from recurring failures
-   */
-  static async detectPatterns(req: Request, res: Response): Promise<void> {
-    try {
-      const patterns = await FailureArchiveService.detectPatterns();
 
-      res.json({
-        patterns,
-        count: patterns.length,
-        message: `Detected ${patterns.length} recurring patterns`
-      });
-    } catch (error) {
-      console.error('Error detecting patterns:', error);
-      res.status(500).json({ error: 'Failed to detect patterns' });
-    }
-  }
 }

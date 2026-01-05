@@ -152,7 +152,7 @@ export class DashboardController {
       // For now, return a realistic number
       const count = await prisma.failureArchive.count({
         where: {
-          occurredAt: {
+          lastOccurrence: {
             gte: startDate,
           },
         },
@@ -173,7 +173,7 @@ export class DashboardController {
     try {
       const total = await prisma.failureArchive.count({
         where: {
-          occurredAt: {
+          lastOccurrence: {
             gte: startDate,
           },
         },
@@ -193,10 +193,10 @@ export class DashboardController {
     try {
       return await prisma.failureArchive.count({
         where: {
-          occurredAt: {
+          lastOccurrence: {
             gte: startDate,
           },
-          errorType: {
+          category: {
             not: null,
           },
         },
@@ -214,12 +214,12 @@ export class DashboardController {
     try {
       const failures = await prisma.failureArchive.findMany({
         where: {
-          errorType: {
+          category: {
             not: null,
           },
         },
         orderBy: {
-          occurredAt: 'desc',
+          lastOccurrence: 'desc',
         },
         take: 10,
         select: {
@@ -227,10 +227,10 @@ export class DashboardController {
           testName: true,
           errorMessage: true,
           rootCause: true,
-          errorType: true,
+          category: true,
           severity: true,
           stackTrace: true,
-          occurredAt: true,
+          lastOccurrence: true,
         },
       });
 
@@ -257,7 +257,7 @@ export class DashboardController {
           confidence: 0.85, // Default confidence since we don't have AI scoring yet
           similarCount: 0, // Would query vector DB for similar failures
           filePath,
-          timestamp: failure.occurredAt.toISOString(),
+          timestamp: failure.lastOccurrence.toISOString(),
         };
       });
     } catch (error) {
@@ -328,7 +328,7 @@ export class DashboardController {
       // Fetch all failures to parse category from testName
       const failures = await prisma.failureArchive.findMany({
         where: {
-          occurredAt: {
+          lastOccurrence: {
             gte: startDate,
           },
         },

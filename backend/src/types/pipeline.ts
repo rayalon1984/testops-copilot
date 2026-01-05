@@ -16,13 +16,17 @@ export interface Pipeline {
 export interface TestRun {
   id: string;
   pipelineId: string;
-  userId: string;
+  userId: string | null;
   status: TestStatus;
   branch: string | null;
   commit: string | null;
   startTime: Date | null;
   endTime: Date | null;
   duration: number | null;
+  passed: number;
+  failed: number;
+  skipped: number;
+  flaky: number;
   results: JsonValue;
   error: string | null;
   createdAt: Date;
