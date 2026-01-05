@@ -7,7 +7,6 @@ import { prisma } from '../lib/prisma';
 import crypto from 'crypto';
 import {
   FailureArchive,
-  FailureArchive,
   CreateFailureArchiveInput,
   DocumentRCAInput,
   SearchFailuresQuery,

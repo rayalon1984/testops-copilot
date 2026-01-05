@@ -383,9 +383,13 @@ export class ConfluenceService {
           title: page.title,
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          type: 'rca_document',
+          // type: 'rca_document', // Removed
           sourceId: failureArchiveId,
-          version: page.version.number,
+          // version: page.version.number, // Removed
+          metadata: {
+            version: page.version.number,
+            type: 'rca_document'
+          }
         },
       });
 
@@ -408,11 +412,12 @@ export class ConfluenceService {
 
     try {
       // Get test run with results
+      // Get test run with results
       const testRun = await prisma.testRun.findUnique({
         where: { id: testRunId },
         include: {
           pipeline: true,
-          testResults: true,
+          results: true, // Renamed from testResults
           user: true,
         },
       });
@@ -437,10 +442,13 @@ export class ConfluenceService {
       );
 
       // Add labels
+      // Note: testRun.status is an enum in Prod, so toString() or cast needed if strict config? 
+      // TestStatus enum values match valid labels generally.
+      const statusLabel = typeof testRun.status === 'string' ? testRun.status.toLowerCase() : String(testRun.status).toLowerCase();
       const labels = [
         'test-report',
         'automated-tests',
-        testRun.status.toLowerCase(),
+        statusLabel,
         ...(options.addLabels || []),
       ];
       await this.addLabels(page.id, labels);
@@ -452,9 +460,23 @@ export class ConfluenceService {
           title: page.title,
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          type: 'test_report',
+          // type: 'test_report', // Removed 'type' as it might not be in the model or is wrong type?
+          // Checking schema.dev.prisma (Step 1753): model ConfluencePage { ... type String? ... }
+          // Checking schema.production.prisma (Step 1697): model ConfluencePage { ... No type field? ... Wait. }
+          // Step 1697 ConfluencePage: id, pageId, spaceKey, title, url, failureArchiveId, publishedBy, metadata, createdAt, updatedAt.
+          // PROD SCHEMA DOES NOT HAVE 'type' field in ConfluencePage!
+          // DEV SCHEMA DOES HAVE 'type' field.
+          // Another mismatch. I must remove 'type' usage to match Prod.
           sourceId: testRunId,
-          version: page.version.number,
+          // version: page.version.number, // Prod ConfluencePage doesn't have 'version' field?
+          // Step 1697: NO version field.
+          // DEV schema has version.
+          // I must remove 'type' and 'version' from create data for PROD compatibility.
+          // Store version in metadata?
+          metadata: {
+            version: page.version.number,
+            type: 'test_report'
+          }
         },
       });
 
