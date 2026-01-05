@@ -25,6 +25,7 @@ model User {
   testRuns      TestRun[]
 }
 
+model TestRun {
   id         String    @id @default(uuid())
   pipelineId String
   userId     String
@@ -159,6 +160,7 @@ model JiraIssue {
 }
 
 // Pipeline model
+model Pipeline {
   id          String     @id @default(uuid())
   name        String
   type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
