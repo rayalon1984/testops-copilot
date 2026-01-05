@@ -352,7 +352,7 @@ export class TestRailService {
       }
 
       // Check if we have a TestRail run mapped
-      const testRailMapping = await prisma.testRailRun.findUnique({
+      const testRailMapping = await prisma.testRailRun.findFirst({
         where: { testRunId },
       });
 

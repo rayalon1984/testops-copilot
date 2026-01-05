@@ -52,68 +52,30 @@ model TestRun {
 }
 
 model FailureArchive {
-  id                    String           @id @default(uuid())
-  testRunId             String
-  testCaseId            String?
-  testName              String
-  failureSignature      String
+  id              String    @id @default(uuid())
+  testName        String
+  errorMessage    String
+  stackTrace      String?
+  category        String?
+  severity        String?
+  rcaDocumented   Boolean   @default(false)
+  rootCause       String?
+  solution        String?
+  prevention      String?
+  relatedJiraIssue String?
+  tags            String?   // Comma-separated string (SQLite doesn't support arrays)
+  metadata        String?   // JSON string
+  firstOccurrence DateTime  @default(now())
+  lastOccurrence  DateTime  @default(now())
+  occurrenceCount Int       @default(1)
+  resolved        Boolean   @default(false)
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  // Failure details
-  errorMessage          String
-  errorType             String?
-  stackTrace            String?
-  logSnippet            String?
-  screenshots           String?           // Comma-separated URLs (SQLite doesn't support arrays)
-
-  // Temporal data
-  occurredAt            DateTime         @default(now())
-  environment           String?
-  buildNumber           String?
-  commitSha             String?
-  branch                String?
-
-  // RCA Documentation
-  rootCause             String?
-  detailedAnalysis      String?
-  solution              String?
-  preventionSteps       String?
-  workaround            String?
-
-  // Resolution tracking
-  status                String           @default("NEW") // NEW | INVESTIGATING | DOCUMENTED | RESOLVED | RECURRING
-  resolvedAt            DateTime?
-  resolvedBy            String?
-  timeToResolve         Int?
-
-  // Integration links
-  jiraIssueId           String?
-  jiraIssueKey          String?
-  prUrl                 String?
-
-  // Pattern detection
-  isRecurring           Boolean          @default(false)
-  firstSeenAt           DateTime         @default(now())
-  lastSeenAt            DateTime         @default(now())
-  occurrenceCount       Int              @default(1)
-  recurrencePattern     String?
-
-  // Metadata
-  severity              String?          @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
-  isKnownIssue          Boolean          @default(false)
-  tags                  String?          // Comma-separated tags (SQLite doesn't support arrays)
-  relatedDocumentation  String?          // Comma-separated URLs (SQLite doesn't support arrays)
-
-  // Relations
-  jiraIssue             JiraIssue?       @relation(fields: [jiraIssueId], references: [id])
-
-  // Timestamps
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-
-  @@index([failureSignature])
   @@index([testName])
-  @@index([occurredAt])
-  @@index([status])
+  @@index([category])
+  @@index([resolved])
 }
 
 // Simplified AI usage tracking for demo
@@ -143,20 +105,25 @@ model JiraConfig {
 }
 
 model JiraIssue {
-  id              String            @id @default(uuid())
-  issueKey        String            @unique
-  issueType       String            // BUG | TASK | STORY
-  status          String            @default("TODO") // TODO | IN_PROGRESS | DONE
+  id              String    @id @default(uuid())
+  jiraKey         String    @unique
+  jiraId          String
+  projectKey      String
   summary         String
   description     String?
-  labels          String?           // Comma-separated string (SQLite doesn't support arrays)
-  pipelineId      String?
+  issueType       String
+  status          String
+  priority        String?
+  assignee        String?
+  reporter        String?
   testRunId       String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  failureArchives FailureArchive[]
+  failureArchiveId String?
+  metadata        String?   // JSON string
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  @@index([issueKey])
+  @@index([jiraKey])
+  @@index([projectKey])
 }
 
 // Pipeline model

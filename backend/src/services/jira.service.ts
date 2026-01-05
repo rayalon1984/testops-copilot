@@ -65,14 +65,18 @@ export class JiraService {
       // Store issue in our database
       await prisma.jiraIssue.create({
         data: {
-          issueKey: issue.key,
+          jiraKey: issue.key,
+          jiraId: issue.id, // Ensure ID is saved if required/available
+          projectKey: this.projectKey, // Add required projectKey
           issueType: data.type,
           status: JiraIssueStatus.TODO,
           summary: data.summary,
           description: data.description,
-          labels: data.labels?.join(',') || null,
+          // labels: data.labels?.join(',') || null, // Not in prod schema? Schema says labels string? No, prod schema doesn't have labels! Check Prod Schema (step 1521)
+          // Prod Schema: jiraKey, jiraId, projectKey, summary, description, issueType, status, priority, assignee, reporter, testRunId, failureArchiveId, metadata
+          // No labels column in Prod Schema for JiraIssue. It's in FailureArchive? Or removed?
+          // I will remove labels from data object as it's not in Prod Schema.
           ...(data.testRunId && { testRunId: data.testRunId }),
-          ...(data.pipelineId && { pipelineId: data.pipelineId }),
         },
       });
 
@@ -84,12 +88,12 @@ export class JiraService {
     }
   }
 
-  async updateIssue(issueKey: string, data: UpdateIssueDTO): Promise<void> {
+  async updateIssue(jiraKey: string, data: UpdateIssueDTO): Promise<void> {
     this.checkEnabled();
 
     try {
       // Update issue in Jira
-      await this.client!.updateIssue(issueKey, {
+      await this.client!.updateIssue(jiraKey, {
         fields: {
           ...(data.summary && { summary: data.summary }),
           ...(data.description && { description: data.description }),
@@ -99,32 +103,32 @@ export class JiraService {
 
       // If status is provided, transition the issue
       if (data.status) {
-        await this.transitionIssue(issueKey, data.status);
+        await this.transitionIssue(jiraKey, data.status);
       }
 
       // Update issue in our database
       await prisma.jiraIssue.update({
-        where: { issueKey },
+        where: { jiraKey },
         data: {
           ...(data.summary && { summary: data.summary }),
           ...(data.description && { description: data.description }),
           ...(data.status && { status: data.status }),
-          ...(data.labels && { labels: data.labels.join(',') }),
+          // labels removed
         },
       });
 
-      logger.info(`Updated Jira issue: ${issueKey}`);
+      logger.info(`Updated Jira issue: ${jiraKey}`);
     } catch (error) {
-      logger.error(`Failed to update Jira issue ${issueKey}:`, error);
+      logger.error(`Failed to update Jira issue ${jiraKey}:`, error);
       throw new Error('Failed to update Jira issue');
     }
   }
 
-  async getIssue(issueKey: string): Promise<JiraIssueResponse> {
+  async getIssue(jiraKey: string): Promise<JiraIssueResponse> {
     this.checkEnabled();
 
     try {
-      const issue = await this.client!.findIssue(issueKey);
+      const issue = await this.client!.findIssue(jiraKey);
       return {
         id: issue.id,
         key: issue.key,
@@ -142,16 +146,16 @@ export class JiraService {
         }
       };
     } catch (error) {
-      logger.error(`Failed to get Jira issue ${issueKey}:`, error);
+      logger.error(`Failed to get Jira issue ${jiraKey}:`, error);
       throw new Error('Failed to get Jira issue');
     }
   }
 
-  async linkTestRun(issueKey: string, testRunId: string): Promise<void> {
+  async linkTestRun(jiraKey: string, testRunId: string): Promise<void> {
     try {
       // Verify issue exists
       const issue = await prisma.jiraIssue.findUnique({
-        where: { issueKey },
+        where: { jiraKey },
       });
 
       if (!issue) {
@@ -160,18 +164,18 @@ export class JiraService {
 
       // Update issue with test run link
       await prisma.jiraIssue.update({
-        where: { issueKey },
+        where: { jiraKey },
         data: { testRunId },
       });
 
       // Add comment to Jira issue
-      await this.client!.addComment(issueKey, {
+      await this.client!.addComment(jiraKey, {
         body: `Linked to test run: ${testRunId}`,
       });
 
-      logger.info(`Linked test run ${testRunId} to Jira issue ${issueKey}`);
+      logger.info(`Linked test run ${testRunId} to Jira issue ${jiraKey}`);
     } catch (error) {
-      logger.error(`Failed to link test run ${testRunId} to Jira issue ${issueKey}:`, error);
+      logger.error(`Failed to link test run ${testRunId} to Jira issue ${jiraKey}:`, error);
       throw new Error('Failed to link test run to Jira issue');
     }
   }
@@ -182,7 +186,7 @@ export class JiraService {
     try {
       // Get available transitions
       const transitions = await this.client!.listTransitions(issueKey);
-      
+
       // Map our status to Jira transition
       const transitionMap: Record<JiraIssueStatus, string> = {
         [JiraIssueStatus.TODO]: 'To Do',

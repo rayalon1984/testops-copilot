@@ -24,11 +24,11 @@ export class MetricsService {
   static async getGlobalMetrics(timeRange?: MetricsTimeRange): Promise<TestMetrics> {
     const whereClause = timeRange
       ? {
-          createdAt: {
-            gte: timeRange.start,
-            lte: timeRange.end,
-          },
-        }
+        createdAt: {
+          gte: timeRange.start,
+          lte: timeRange.end,
+        },
+      }
       : {};
 
     // Note: These are placeholder queries - adjust based on your actual Prisma schema
@@ -54,7 +54,7 @@ export class MetricsService {
       prisma.failureArchive.count({
         where: {
           ...whereClause,
-          isRecurring: true,
+          occurrenceCount: { gt: 1 },
         },
       }),
     ]);
@@ -69,12 +69,12 @@ export class MetricsService {
       totalTestRuns,
       passedTestRuns,
       failedTestRuns,
-      flakyTestRuns: 0, // Calculate from your schema
+      flakyTestRuns: 0,
       totalTests,
       passedTests: passedTestRuns,
       failedTests: failedTestRuns,
       skippedTests: 0,
-      avgExecutionTime: 0, // Calculate from execution times
+      avgExecutionTime: 0,
       p50ExecutionTime: 0,
       p95ExecutionTime: 0,
       p99ExecutionTime: 0,
@@ -85,9 +85,9 @@ export class MetricsService {
       documentedRCAs,
       recurringFailures,
       rcaCoverageRate,
-      jiraIssuesCreated: 0, // Track from integration
-      mondayItemsCreated: 0, // Track from integration
-      notificationsSent: 0, // Track from notifications
+      jiraIssuesCreated: 0,
+      mondayItemsCreated: 0,
+      notificationsSent: 0,
     };
   }
 
@@ -101,7 +101,7 @@ export class MetricsService {
         testName: true,
       },
       _max: {
-        occurredAt: true,
+        lastOccurrence: true,
       },
       orderBy: {
         _count: {
@@ -114,7 +114,7 @@ export class MetricsService {
     return failures.map((failure) => ({
       testName: failure.testName,
       failureCount: failure._count.testName,
-      lastFailure: failure._max.occurredAt || new Date(),
+      lastFailure: failure._max.lastOccurrence || new Date(),
     }));
   }
 
@@ -140,8 +140,8 @@ export class MetricsService {
     ) => {
       const labelStr = Object.keys(labels).length
         ? `{${Object.entries(labels)
-            .map(([k, v]) => `${k}="${v}"`)
-            .join(',')}}`
+          .map(([k, v]) => `${k}="${v}"`)
+          .join(',')}}`
         : '';
 
       lines.push(`# HELP ${name} ${help}`);
