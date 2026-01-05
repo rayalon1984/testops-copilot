@@ -7,7 +7,7 @@ const testRunService = new TestRunService();
 export class TestRunController {
   async getAllTestRuns(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-ignore - User attached by auth middleware
+      // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
       const filters = {
         pipelineId: req.query.pipelineId as string,
@@ -27,7 +27,7 @@ export class TestRunController {
 
   async getTestRunById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-ignore
+      // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
       const { id } = req.params;
 
@@ -40,7 +40,7 @@ export class TestRunController {
 
   async createTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-ignore
+      // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
       const data: CreateTestRunDTO = req.body;
 
@@ -53,7 +53,7 @@ export class TestRunController {
 
   async cancelTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-ignore
+      // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
       const { id } = req.params;
 
@@ -66,7 +66,7 @@ export class TestRunController {
 
   async retryTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-ignore
+      // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
       const { id } = req.params;
 
