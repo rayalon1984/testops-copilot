@@ -40,17 +40,13 @@ COPY prisma ./prisma/
 # Install Prisma CLI for migrations
 RUN npm install -g prisma
 
-# Create startup script
-RUN echo "#!/bin/sh\n\
-    echo 'Running database migrations...'\n\
-    prisma migrate deploy\n\
-    echo 'Starting application...'\n\
-    node dist/server.js" > ./start.sh && \
-    chmod +x ./start.sh
+# Copy startup script
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
 
 EXPOSE 3000
-CMD ["./start.sh"]
+CMD ["/app/start.sh"]
