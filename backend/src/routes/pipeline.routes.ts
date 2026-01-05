@@ -53,9 +53,12 @@ router.post(
       data: {
         name,
         type: type === 'jenkins' ? 'JENKINS' : type === 'github-actions' ? 'GITHUB_ACTIONS' : 'CUSTOM',
-        status: 'PENDING',
+        // status: 'PENDING', // Removed as not in Prod schema
         config: JSON.stringify(config || {}),
-        userId: req.user.id,
+        // userId: req.user.id, // Removed as not in Prod schema? Wait. Dev had userId?
+        // Checking schema.dev: Pipeline has NO userId (I removed it).
+        // Checking schema.prod: Pipeline has NO userId.
+        // So create line 58 userId: req.user.id MUST BE REMOVED.
       }
     });
 
@@ -143,14 +146,15 @@ router.get(
     };
 
     const formattedRuns = runs.map(run => {
-      const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results;
+      // const results = typeof run.results === 'string' ? JSON.parse(run.results) : run.results;
+      const failed = run.failed || 0;
       return {
         id: run.id,
         status: statusMap[run.status] || 'pending',
-        startTime: run.startTime?.toISOString() || run.createdAt.toISOString(),
-        endTime: run.endTime?.toISOString() || run.createdAt.toISOString(),
+        startTime: run.startedAt?.toISOString() || run.createdAt.toISOString(),
+        endTime: run.completedAt?.toISOString() || run.createdAt.toISOString(),
         duration: run.duration || 0,
-        errorCount: (results as any)?.failed || 0
+        errorCount: failed
       };
     });
 

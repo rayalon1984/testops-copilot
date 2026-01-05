@@ -336,7 +336,7 @@ export class ConfluenceService {
       }
 
       // Generate page title
-      const date = new Date(failure.occurredAt).toISOString().split('T')[0];
+      const date = new Date(failure.lastOccurrence).toISOString().split('T')[0];
       const title = `RCA: ${failure.testName} - ${date}`;
 
       // Build Confluence content in storage format

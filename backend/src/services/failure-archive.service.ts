@@ -149,7 +149,7 @@ export class FailureArchiveService {
       data: {
         ...input,
         // screenshots: null, // Removed
-        relatedDocumentation: null, // Prod schema does NOT have relatedDocumentation.
+        // relatedDocumentation: null, // Removed
         tags: input.tags?.join(',') || null,
         severity: input.severity || FailureSeverity.MEDIUM,
         // status: FailureStatus.NEW, // Prod schema doesn't have status, uses 'resolved' boolean
