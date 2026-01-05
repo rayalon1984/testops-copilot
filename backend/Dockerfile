@@ -15,20 +15,20 @@ EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
 # Dependencies stage for production
-FROM base AS deps
+FROM base AS prod-deps
 COPY package*.json ./
 RUN npm install --production
 
 # Build stage
 FROM base AS builder
 COPY package*.json ./
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm install
 COPY . .
 RUN npm run build
 
 # Production stage
 FROM base AS production
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
 

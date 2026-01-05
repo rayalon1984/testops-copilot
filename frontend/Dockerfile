@@ -16,15 +16,10 @@ COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host"]
 
-# Dependencies stage for production
-FROM base AS deps
-COPY package*.json ./
-RUN npm install --production
-
 # Build stage
 FROM base AS builder
 COPY package*.json ./
-COPY --from=deps /app/node_modules ./node_modules
+RUN npm install
 COPY . .
 RUN npm run build
 
