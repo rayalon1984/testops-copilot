@@ -18,6 +18,7 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 # Build stage
 FROM base AS builder
+ENV NODE_ENV=development
 COPY package*.json ./
 RUN npm install
 COPY . .
