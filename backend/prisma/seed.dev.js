@@ -293,28 +293,45 @@ async function seedDevelopmentData() {
 
   console.log(`✅ Created ${failures.length} test failures across all categories`);
 
-  // Create extensive AI usage data
+  // Create extensive AI usage data - BATCHED for SQLite performance
   const aiUsages = [];
+  const BATCH_SIZE = 500;
+  let currentBatch = [];
+
+  console.log('🤖 Generating AI usage records (batched)...');
+
   for (let day = 0; day < 60; day++) {
     for (const provider of AI_PROVIDERS) {
       const callsPerDay = Math.floor(Math.random() * 120) + 40;
       for (let call = 0; call < callsPerDay; call++) {
         const cacheHit = Math.random() > 0.35; // 65% cache hit rate
-        const usage = await prisma.aIUsage.create({
-          data: {
-            provider: provider.name,
-            model: provider.model,
-            tokens: cacheHit ? 0 : provider.avgTokens + Math.floor(Math.random() * 400) - 200,
-            cost: cacheHit ? 0 : provider.avgCost * (0.7 + Math.random() * 0.6),
-            cacheHit,
-            responseTimeMs: cacheHit ? 50 + Math.floor(Math.random() * 150) : provider.avgTime + Math.floor(Math.random() * 800) - 400,
-            createdAt: new Date(now - day * 86400000 - Math.random() * 86400000),
-          },
+
+        currentBatch.push({
+          provider: provider.name,
+          model: provider.model,
+          tokens: cacheHit ? 0 : provider.avgTokens + Math.floor(Math.random() * 400) - 200,
+          cost: cacheHit ? 0 : provider.avgCost * (0.7 + Math.random() * 0.6),
+          cacheHit,
+          responseTimeMs: cacheHit ? 50 + Math.floor(Math.random() * 150) : provider.avgTime + Math.floor(Math.random() * 800) - 400,
+          createdAt: new Date(now - day * 86400000 - Math.random() * 86400000),
         });
-        aiUsages.push(usage);
+
+        if (currentBatch.length >= BATCH_SIZE) {
+          await prisma.aIUsage.createMany({ data: currentBatch });
+          aiUsages.push(...currentBatch); // Keep track for summary
+          currentBatch = [];
+          process.stdout.write('.'); // Progress indicator
+        }
       }
     }
   }
+
+  // Insert remaining
+  if (currentBatch.length > 0) {
+    await prisma.aIUsage.createMany({ data: currentBatch });
+    aiUsages.push(...currentBatch);
+  }
+  console.log(''); // New line after dots
 
   console.log(`✅ Created ${aiUsages.length} AI usage records`);
 

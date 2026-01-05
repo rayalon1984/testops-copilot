@@ -58,11 +58,9 @@ export class TestRunService {
         if (filters.startDate || filters.endDate) {
             where.createdAt = {};
             if (filters.startDate) {
-                // @ts-expect-error
                 where.createdAt.gte = new Date(filters.startDate);
             }
             if (filters.endDate) {
-                // @ts-expect-error
                 where.createdAt.lte = new Date(filters.endDate);
             }
         }

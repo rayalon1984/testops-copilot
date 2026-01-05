@@ -41,9 +41,9 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { mode } = useDesignMode();
+  const { mode, colorMode } = useDesignMode();
 
-  const theme = useMemo(() => getAppTheme(mode), [mode]);
+  const theme = useMemo(() => getAppTheme(mode, colorMode), [mode, colorMode]);
 
   return (
     <ThemeProvider theme={theme}>

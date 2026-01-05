@@ -9,8 +9,6 @@ import {
   Tooltip,
   CircularProgress,
   useTheme,
-  Switch,
-  FormControlLabel,
   Stack,
   Button,
 } from '@mui/material';

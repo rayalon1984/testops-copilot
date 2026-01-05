@@ -29,7 +29,6 @@ import {
 import {
   AttachMoney as MoneyIcon,
   TrendingDown as TrendingDownIcon,
-  TrendingUp as TrendingUpIcon,
   Savings as SavingsIcon,
   Speed as SpeedIcon,
 } from '@mui/icons-material';

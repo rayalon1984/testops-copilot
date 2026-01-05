@@ -6,7 +6,6 @@ import { config } from '@/config';
 import { Pipeline, TestRun, PrismaClient } from '@prisma/client';
 import { logger } from '@/utils/logger';
 
-// @ts-expect-error - Prisma types compatibility
 interface NotificationConfig {
   enabled: boolean;
   channels: Array<'slack' | 'email' | 'pushover'>;
@@ -50,7 +49,6 @@ export class NotificationService {
   async sendPipelineStartNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
     let notificationConfig: NotificationConfig | undefined;
     try {
-      // @ts-expect-error
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {
@@ -68,7 +66,6 @@ export class NotificationService {
   async sendPipelineCompletionNotification(pipeline: Pipeline, testRun: TestRun): Promise<void> {
     let notificationConfig: NotificationConfig | undefined;
     try {
-      // @ts-expect-error
       const parsedConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
       notificationConfig = parsedConfig.notifications;
     } catch (e) {

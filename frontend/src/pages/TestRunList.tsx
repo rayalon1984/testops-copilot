@@ -43,6 +43,9 @@ interface TestRun {
   screenshots: string[];
 }
 
+import { useDebounce } from '../hooks/useDebounce';
+import { keepPreviousData } from '@tanstack/react-query';
+
 export default function TestRunList() {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -50,15 +53,18 @@ export default function TestRunList() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Debounce search query to prevent jitter (500ms delay)
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
   // Fetch test runs
-  const { data, isLoading } = useQuery<TestRun[]>({
-    queryKey: ['test-runs', page, rowsPerPage, statusFilter, searchQuery],
+  const { data, isLoading, isFetching } = useQuery<TestRun[]>({
+    queryKey: ['test-runs', page, rowsPerPage, statusFilter, debouncedSearch],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: String(page + 1),
         limit: String(rowsPerPage),
         ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(searchQuery && { search: searchQuery }),
+        ...(debouncedSearch && { search: debouncedSearch }),
       });
 
       const token = localStorage.getItem('accessToken');
@@ -70,6 +76,7 @@ export default function TestRunList() {
       if (!response.ok) throw new Error('Failed to fetch test runs');
       return response.json();
     },
+    placeholderData: keepPreviousData, // Keep table data visible while fetching new results
   });
 
   const getStatusIcon = (status: string) => {
@@ -155,6 +162,11 @@ export default function TestRunList() {
           }}
           sx={{ flexGrow: 1 }}
         />
+        {isFetching && !isLoading && (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
       </Box>
 
       <TableContainer component={Paper}>

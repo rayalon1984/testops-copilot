@@ -8,110 +8,49 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-production-install:
-    name: Test Production Installation
+  test-docker-production-install:
+    name: Test Docker Production Installation
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testops
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Run validated setup script
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testops
-          CI: true
+      - name: Build and Start Production Stack
         run: |
-          # Create backend .env for testing
-          cat > backend/.env << EOF
-          NODE_ENV=test
-          PORT=3000
-          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testops
-          JWT_SECRET=test-secret-for-ci-do-not-use-in-production
-          JWT_REFRESH_SECRET=test-refresh-secret-for-ci-do-not-use
-          CORS_ORIGIN=http://localhost:5173
-          LOG_LEVEL=error
-          EOF
+          # Use the new production compose file
+          docker-compose -f docker-compose.prod.yml up -d --build
+          
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 30
+          
+      - name: Show running containers
+        run: docker-compose -f docker-compose.prod.yml ps
 
-          # Create frontend .env for testing
-          cat > frontend/.env << EOF
-          VITE_API_URL=http://localhost:3000
-          VITE_WEBSOCKET_URL=ws://localhost:3000
-          EOF
-
-          # Install dependencies
-          cd backend && npm ci && cd ..
-          cd frontend && npm ci && cd ..
-
-      - name: Generate Prisma Client
+      - name: Check Backend Health
         run: |
-          cd backend
-          npx prisma generate
+          # Backend runs on port 3000 mapped to host
+          echo "Checking backend health..."
+          timeout 30s bash -c 'until curl -s http://localhost:3000/health | grep "ok"; do sleep 5; done'
 
-      - name: Run database migrations
+      - name: Check Frontend Accessibility
         run: |
-          cd backend
-          npx prisma db push --accept-data-loss
+          # Frontend runs on port 80 mapped to host
+          echo "Checking frontend availability..."
+          curl --fail -I http://localhost:80
 
-      - name: Type check backend
+      - name: Verify Database Migrations
         run: |
-          cd backend
-          npm run typecheck
+          # Check if migrations tables exist in the DB container
+          docker-compose -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
 
-      - name: Type check frontend
-        run: |
-          cd frontend
-          npm run typecheck
-
-      - name: Lint backend
-        run: |
-          cd backend
-          npm run lint
-
-      - name: Lint frontend
-        run: |
-          cd frontend
-          npm run lint
-
-      - name: Build backend
-        run: |
-          cd backend
-          npm run build
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
-
-      - name: Test backend start
-        run: |
-          cd backend
-          timeout 30s npm start &
-          sleep 10
-          curl --fail http://localhost:3000/health || exit 1
+      - name: Stop services
+        if: always()
+        run: docker-compose -f docker-compose.prod.yml down -v
 
   test-demo-install:
     name: Test Demo Mode Installation

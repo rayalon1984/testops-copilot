@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import Redis from 'ioredis';
 
 const prisma = new PrismaClient();
 
@@ -88,7 +89,7 @@ export async function healthCheckFull(req: Request, res: Response): Promise<void
 
   // Return appropriate status code
   const statusCode = result.status === 'healthy' ? 200 :
-                     result.status === 'degraded' ? 200 : 503;
+    result.status === 'degraded' ? 200 : 503;
 
   res.status(statusCode).json(result);
 }
@@ -135,9 +136,8 @@ async function checkRedis(): Promise<ServiceStatus | undefined> {
   const startTime = Date.now();
 
   try {
-    // Dynamically import Redis (if available)
-    const { default: Redis } = await import('ioredis');
-    const redis = new Redis(process.env.REDIS_URL);
+    // const { default: Redis } = await import('ioredis');
+    const redis = new Redis(process.env.REDIS_URL as string);
 
     await redis.ping();
     const responseTime = Date.now() - startTime;

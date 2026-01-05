@@ -43,25 +43,35 @@ npm run dev:simple
 - PostgreSQL >= 14 (or Docker)
 - npm >= 9.0.0
 
-#### Option A: Automated Setup (Recommended)
+#### Option A: Docker Production (Recommended)
+
+**Time**: ~3 minutes
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
 
-# 2. Run validated setup script
-bash scripts/setup-validated.sh
+# 2. Start Production Stack
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-The script will:
-- ✅ Check prerequisites (Node, npm, PostgreSQL)
-- ✅ Install all dependencies
-- ✅ Generate secure JWT secrets
-- ✅ Create .env files
-- ✅ Set up database
-- ✅ Run migrations
-- ✅ Verify installation
+The stack will:
+- 🐳 Build optimized Node 20 containers
+- 🌐 Start Nginx (Frontend) on Port 80
+- ⚙️ Start Backend API on Port 3000
+- 🗄️ Setup PostgreSQL, Redis, and Weaviate
+- 🔄 Run database migrations automatically
+
+#### Stops & Updates
+```bash
+# Stop services
+docker-compose -f docker-compose.prod.yml down
+
+# Update and rebuild
+git pull
+docker-compose -f docker-compose.prod.yml up -d --build
+```
 
 ---
 
@@ -69,9 +79,11 @@ The script will:
 
 | Service | URL | Notes |
 |---------|-----|-------|
-| **Frontend** | http://localhost:5173 | React app |
-| **Backend API** | http://localhost:3000/api/v1 | REST API |
-| **Adminer** (Docker) | http://localhost:8080 | Database admin |
+| Service | URL | Notes |
+|---------|-----|-------|
+| **Frontend** | http://localhost | Production UI (Nginx) |
+| **Backend API** | http://localhost:3000/health | API Health Check |
+| **Adminer** | N/A | Not included in Prod |
 
 ---
 
@@ -79,7 +91,7 @@ The script will:
 
 ### Backend won't start
 
-**Error**: \`Error: connect ECONNREFUSED 127.0.0.1:5432\`
+**Error**: `Error: connect ECONNREFUSED 127.0.0.1:5432`
 
 **Solution**: PostgreSQL is not running
 ```bash
@@ -90,7 +102,6 @@ docker-compose up -d db
 ### Frontend can't connect to backend
 
 **Check**:
-1. Backend is running: \`curl http://localhost:3000/health\`
 2. Port matches in \`frontend/.env\`: Should be \`VITE_API_URL=http://localhost:3000\`
 
 ---

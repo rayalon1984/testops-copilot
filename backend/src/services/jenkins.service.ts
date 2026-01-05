@@ -64,7 +64,6 @@ export class JenkinsService {
   }
 
   async startPipeline(pipeline: Pipeline): Promise<TestRun> {
-    // @ts-expect-error
     const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
     const buildParams: JenkinsBuildParams = {
       branch: config.branch,
@@ -205,7 +204,6 @@ export class JenkinsService {
     const pipeline = await prisma.pipeline.findUnique({ where: { id: testRun.pipelineId } });
     if (!pipeline) return;
 
-    // @ts-expect-error
     const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
     const results = await this.fetchTestResults(buildData.url, config.credentials);
 
