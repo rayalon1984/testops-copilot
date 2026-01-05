@@ -26,7 +26,14 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](QUICKSTART.md)**!
 >
-> **Latest Release**: [v2.5.6](RELEASE_NOTES_v2.5.6.md) - Critical installation fixes | [What's New →](INSTALLATION_FIXES_SUMMARY.md)
+> **Latest Release**: [v2.5.6](RELEASE_NOTES_v2.5.6.md) - Enterprise Docker Tools | [Production Quick Start →](PRODUCTION_QUICKSTART.md)
+
+### 🔐 Default Login Credentials
+
+| Mode | Email | Password |
+|------|-------|----------|
+| **Demo** | `demo@testops.ai` | `demo123` |
+| **Production** | `rayalon@gmail.com` | `admin123` |
 
 ---
 
