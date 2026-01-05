@@ -74,10 +74,10 @@ export class JenkinsService {
       const testRun = await prisma.testRun.create({
         data: {
           pipelineId: pipeline.id,
-          userId: pipeline.userId,
+          // userId: pipeline.userId, // Removed
           status: 'PENDING',
           branch: config.branch,
-          startTime: new Date(),
+          startedAt: new Date(), // startedAt
           name: pipeline.name,
         }
       });
@@ -178,8 +178,9 @@ export class JenkinsService {
           await prisma.testRun.update({
             where: { id: testRun.id },
             data: {
-              status: 'TIMEOUT',
-              error: 'Build exceeded maximum duration',
+              status: 'FAILED', // Mapped TIMEOUT -> FAILED
+              // error: 'Build exceeded maximum duration', // Stored in metadata if possible or logged
+              metadata: { error: 'Build exceeded maximum duration' }
             }
           });
         }
@@ -190,7 +191,7 @@ export class JenkinsService {
           where: { id: testRun.id },
           data: {
             status: 'FAILED',
-            error: `Failed to monitor build: ${(error as Error).message}`,
+            metadata: { error: `Failed to monitor build: ${(error as Error).message}` }
           }
         });
       }
@@ -211,9 +212,9 @@ export class JenkinsService {
       where: { id: testRun.id },
       data: {
         status,
-        endTime: new Date(buildData.timestamp + buildData.duration),
+        completedAt: new Date(buildData.timestamp + buildData.duration), // completedAt
         duration: Math.floor(buildData.duration / 1000),
-        results: results ? JSON.stringify(results) : null,
+        metadata: results ? { jenkinsResults: results } : undefined, // Store results in metadata
       },
     });
   }

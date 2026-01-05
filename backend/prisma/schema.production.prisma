@@ -154,7 +154,7 @@ model FailureArchive {
   solution        String?
   prevention      String?
   relatedJiraIssue String?
-  tags            String[]
+  tags            String?   // Comma-separated string for compatibility
   metadata        Json?
   firstOccurrence DateTime  @default(now())
   lastOccurrence  DateTime  @default(now())
