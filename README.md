@@ -33,7 +33,8 @@
 | Mode | Email | Password |
 |------|-------|----------|
 | **Demo** | `demo@testops.ai` | `demo123` |
-| **Production** | `rayalon@gmail.com` | `admin123` |
+| **Demo** | `demo@testops.ai` | `demo123` |
+| **Production** | Defined during setup | Defined during setup |
 
 ---
 

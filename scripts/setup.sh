@@ -96,6 +96,30 @@ build_docker() {
   print_success "Docker images built successfully"
 }
 
+# Get admin credentials
+get_credentials() {
+  print_step "Configuring Admin Credentials"
+  echo "----------------------------------------"
+  echo "Please create the administrator account."
+  
+  read -p "Enter Admin Email [default: rayalon@gmail.com]: " INPUT_EMAIL
+  export ADMIN_EMAIL=${INPUT_EMAIL:-rayalon@gmail.com}
+  
+  while [ -z "$ADMIN_PASSWORD" ]; do
+    read -sp "Enter Admin Password (min 6 chars): " INPUT_PASS
+    echo
+    if [ ${#INPUT_PASS} -ge 6 ]; then
+      export ADMIN_PASSWORD=$INPUT_PASS
+    else
+      print_error "Password must be at least 6 characters. Please try again."
+      # Don't exit, just loop
+      continue
+    fi
+  done
+  
+  print_success "Credentials configured"
+}
+
 # Main setup process
 main() {
   echo "🚀 Setting up TestOps Companion..."
@@ -104,6 +128,7 @@ main() {
   check_requirements
   install_dependencies
   setup_env
+  get_credentials
   init_database
   build_docker
   
@@ -113,7 +138,10 @@ main() {
   echo "To start the development environment:"
   echo "1. Start the services: docker-compose up -d"
   echo "2. Frontend will be available at: http://localhost:3000"
-  echo "3. Backend API will be available at: http://localhost:4000"
+  echo "3. Log in with your new credentials:"
+  echo "   Email:    $ADMIN_EMAIL"
+  echo "   Password: $ADMIN_PASSWORD"
+  echo "   (Please save these credentials!)"
   echo
   echo "For more information, check the README.md file"
 }

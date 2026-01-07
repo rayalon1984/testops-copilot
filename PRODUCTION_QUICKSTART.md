@@ -39,28 +39,25 @@ open http://localhost
 
 ### Production Mode
 ### Production Mode
-If you used the setup script, a default admin user is created:
-- **Email:** `rayalon@gmail.com`
-- **Password:** `admin123`
+The installation script (`scripts/setup.sh`) will prompt you to create an admin account (email and password).
 
-> [!IMPORTANT]
-> Change this password immediately after logging in!
+**Use the credentials you defined during the setup process.**
 
-You can also create a new user via the API if needed:
+> [!NOTE]
+> The setup script will display your selected credentials at the end of the installation.
+
+If you need to create additional users later, you can use the API:
 
 ```bash
-# Register admin user
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@yourcompany.com",
-    "password": "your-secure-password",
-    "firstName": "Admin",
+    "email": "colleague@company.com",
+    "password": "secure-password",
+    "firstName": "New",
     "lastName": "User"
   }'
 ```
-
-Then login at `http://localhost` with those credentials.
 
 ---
 
