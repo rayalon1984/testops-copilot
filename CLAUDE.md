@@ -1,7 +1,7 @@
 # TestOps Companion - AI Assistant Development Guide
 
-> **Last Updated**: 2026-01-04
-> **Version**: 2.5.5
+> **Last Updated**: 2026-01-20
+> **Version**: 2.6.0
 > **Purpose**: Comprehensive guide for AI assistants working on TestOps Companion
 
 ---

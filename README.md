@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](QUICKSTART.md)**!
 >
-> **Latest Release**: [v2.5.6](RELEASE_NOTES_v2.5.6.md) - Enterprise Docker Tools | [Production Quick Start →](PRODUCTION_QUICKSTART.md)
+> **Latest Release**: [v2.6.0](RELEASE_NOTES_v2.6.0.md) - MCP Server for AI-Powered Test Analysis | [MCP Quick Start →](README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
