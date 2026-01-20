@@ -1,0 +1,45 @@
+{
+  "name": "@testops-companion/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for TestOps Companion - AI-powered test failure analysis",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "inspector": "mcp dev src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "bin": {
+    "testops-mcp": "dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "testops",
+    "ai",
+    "test-automation",
+    "failure-analysis",
+    "rca"
+  ],
+  "author": "TestOps Companion Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@prisma/client": "^6.6.0",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@types/pg": "^8.10.9",
+    "prisma": "^6.6.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
