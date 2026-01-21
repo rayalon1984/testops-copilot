@@ -142,32 +142,24 @@ export class PipelineController {
   async startPipeline(id: string, userId: string) {
     const pipeline = await this.getPipeline(id, userId);
 
-    try {
-      // Start pipeline based on type
-      let testRun;
+    // Start pipeline based on type
+    let testRun;
 
-      switch (pipeline.type) {
-        case PipelineType.GITHUB_ACTIONS:
-          testRun = await this.githubService.startPipeline(pipeline);
-          break;
-        default:
-          throw new Error(`Unsupported pipeline type: ${pipeline.type}`);
-      }
-
-      // Update pipeline status - REMOVED as status field is gone
-      /* await prisma.pipeline.update({
-        where: { id },
-        data: { status: 'RUNNING' }
-      }); */
-
-      return testRun;
-    } catch (error) {
-      /* await prisma.pipeline.update({
-        where: { id },
-        data: { status: 'FAILURE' }
-      }); */
-      throw error;
+    switch (pipeline.type) {
+      case PipelineType.GITHUB_ACTIONS:
+        testRun = await this.githubService.startPipeline(pipeline);
+        break;
+      default:
+        throw new Error(`Unsupported pipeline type: ${pipeline.type}`);
     }
+
+    // Update pipeline status - REMOVED as status field is gone
+    /* await prisma.pipeline.update({
+      where: { id },
+      data: { status: 'RUNNING' }
+    }); */
+
+    return testRun;
   }
 
   async getTestRuns(id: string, userId: string) {
