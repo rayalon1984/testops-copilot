@@ -111,7 +111,7 @@ docker-compose up -d db
 1. Explore the Dashboard
 2. Try AI Features (if configured)
 3. Set Up Integrations (Jira, Slack, etc.)
-4. Read [README.md](README.md) for full documentation
+4. Read [README.md](../README.md) for full documentation
 
 ---
 

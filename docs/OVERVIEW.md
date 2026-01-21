@@ -311,12 +311,12 @@ After implementing TestOps Companion, measure these:
 
 ## 📞 Questions?
 
-- **Technical Questions**: See the [Technical README](README.md)
-- **Setup Help**: Check the [Setup Guide](README.md#getting-started)
+- **Technical Questions**: See the [Technical README](../README.md)
+- **Setup Help**: Check the [Setup Guide](../README.md#getting-started)
 - **Want to Try It?**: Clone it and run `npm run setup` - it's that easy!
 
 ---
 
 **💡 Remember:** The best time to start automating your test operations was yesterday. The second best time is today.
 
-**Start saving your team's time → [Get Started Now](README.md#-getting-started)**
+**Start saving your team's time → [Get Started Now](../README.md#-getting-started)**

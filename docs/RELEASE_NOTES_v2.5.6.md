@@ -207,7 +207,7 @@ None at this time.
 
 If you encounter any issues:
 
-1. Review [QUICKSTART.md](QUICKSTART.md) for installation steps
+1. Review [QUICKSTART.md](quickstart.md) for installation steps
 2. Check [INSTALLATION_ISSUES_REPORT.md](INSTALLATION_ISSUES_REPORT.md) for troubleshooting
 3. Open an issue: https://github.com/rayalon1984/testops-companion/issues
 

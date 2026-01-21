@@ -261,10 +261,10 @@ curl -X PUT http://localhost:3000/api/v1/notifications/preferences \
 
 ## Next Steps
 
-1. Read the [full documentation](docs/README.md)
-2. Explore [API documentation](docs/api.md)
-3. Set up [CI/CD integration](docs/ci-cd.md)
-4. Configure [monitoring](docs/monitoring.md)
+1. Read the [full documentation](../README.md)
+2. Explore [API documentation](api.md)
+3. Set up [CI/CD integration](ci-cd.md)
+4. Configure [monitoring](monitoring.md)
 5. Join our [community](https://discord.gg/testops-companion)
 
 ## Common Issues

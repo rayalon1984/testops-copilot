@@ -97,6 +97,6 @@ See `.env.production.example` for all available options.
 
 ## 📖 Need More Help?
 
-- [Full README](README.md)
+- [Full README](../README.md)
 - [Demo Mode Guide](DEV_MODE.md)
-- [Integration Guides](docs/integrations/)
+- [Integration Guides](integrations/)

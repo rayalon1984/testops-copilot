@@ -130,13 +130,13 @@ Brief summary of the most important changes in this release.
 - Prometheus metrics exporter with 20+ test metrics
 - Pre-built Grafana dashboard with 7 visualization panels
 - Real-time monitoring of test health and performance
-- [Complete Integration Guide](docs/integrations/grafana.md)
+- [Complete Integration Guide](integrations/grafana.md)
 
 #### Monday.com Work OS Integration
 - Automatic work item creation from test failures
 - Bi-directional sync with test results
 - Custom board and column configuration
-- [Integration Documentation](docs/integrations/monday.md)
+- [Integration Documentation](integrations/monday.md)
 
 #### Failure Knowledge Base
 - Intelligent failure matching and documentation

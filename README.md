@@ -10,7 +10,7 @@
 
 **TestOps Companion is actively developed and we're looking for QA/Test Automation teams to join our beta program.**
 
-**[📝 Apply for Early Access →](https://forms.gle/dmeKzseAbhPA6KLq8)** | **[📖 Learn More](BETA.md)**
+**[📝 Apply for Early Access →](https://forms.gle/dmeKzseAbhPA6KLq8)** | **[📖 Learn More](docs/BETA.md)**
 
 *Get priority support, direct feedback channels, and help shape the future of TestOps*
 
@@ -24,9 +24,9 @@
 
 ---
 
-> **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](QUICKSTART.md)**!
+> **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.6.0](RELEASE_NOTES_v2.6.0.md) - MCP Server for AI-Powered Test Analysis | [MCP Quick Start →](README_MCP.md)
+> **Latest Release**: [v2.6.0](docs/RELEASE_NOTES_v2.6.0.md) - MCP Server for AI-Powered Test Analysis | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
@@ -65,20 +65,20 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ### AI-Powered Dashboard
 
-![TestOps Companion Dashboard](testops_dashboard.svg)
+![TestOps Companion Dashboard](docs/media/testops_dashboard.svg)
 
 *Real-time AI-powered failure analysis with multi-provider support, automated categorization, and intelligent cost optimization*
 
 ---
 
-Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](DEMO.md)** with:
+Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](docs/DEMO.md)** with:
 - 🎨 Interactive UI mockups using Mermaid diagrams
 - 📊 Dashboard and analytics visualizations
 - 🔍 Failure Knowledge Base in action
 - 📚 RCA documentation workflow
 - 🎬 User journey flows and scenarios
 
-**[View Demo & Screenshots →](DEMO.md)**
+**[View Demo & Screenshots →](docs/DEMO.md)**
 
 ## ✨ Features
 

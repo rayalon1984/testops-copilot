@@ -143,7 +143,7 @@ Annual savings: $0.54 per recurring issue (90%)
 
 - **[README.md](mcp-server/README.md)** - User documentation
 - **[SKILL.md](mcp-server/SKILL.md)** - Comprehensive developer guide
-- **[MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md)** - Integration guide
+- **[MCP_INTEGRATION.md](MCP_INTEGRATION.md)** - Integration guide
 - **[CHANGELOG.md](mcp-server/CHANGELOG.md)** - Version history
 
 ---
@@ -289,13 +289,13 @@ ps aux | grep mcp-server
 
 ## License
 
-Apache-2.0 - See [LICENSE](LICENSE)
+Apache-2.0 - See [LICENSE](../LICENSE)
 
 ---
 
 ## Support
 
-- **Documentation**: [docs/MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md)
+- **Documentation**: [docs/MCP_INTEGRATION.md](MCP_INTEGRATION.md)
 - **Issues**: https://github.com/rayalon1984/testops-companion/issues
 - **Discussions**: https://github.com/rayalon1984/testops-companion/discussions
 

@@ -122,7 +122,7 @@ Comprehensive documentation included:
 
 - **[README.md](mcp-server/README.md)** - User guide with quick start (400+ lines)
 - **[SKILL.md](mcp-server/SKILL.md)** - Complete developer guide (1,800+ lines)
-- **[MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md)** - Integration instructions (800+ lines)
+- **[MCP_INTEGRATION.md](MCP_INTEGRATION.md)** - Integration instructions (800+ lines)
 - **[README_MCP.md](README_MCP.md)** - Quick reference
 - **[MCP_SERVER_SUMMARY.md](MCP_SERVER_SUMMARY.md)** - Implementation details
 
@@ -216,7 +216,7 @@ Thank you to the community for your continued support! This release represents m
 
 ## 📞 Support
 
-- **Documentation:** [docs/MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md)
+- **Documentation:** [docs/MCP_INTEGRATION.md](MCP_INTEGRATION.md)
 - **Issues:** https://github.com/rayalon1984/testops-companion/issues
 - **Discussions:** https://github.com/rayalon1984/testops-companion/discussions
 

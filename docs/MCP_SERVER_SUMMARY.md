@@ -430,7 +430,7 @@ Before deploying to production:
 
 **Built with ❤️ for the TestOps Companion community**
 
-**Questions?** See [SKILL.md](mcp-server/SKILL.md) or [MCP_INTEGRATION.md](docs/MCP_INTEGRATION.md)
+**Questions?** See [SKILL.md](mcp-server/SKILL.md) or [MCP_INTEGRATION.md](MCP_INTEGRATION.md)
 
 ---
 
