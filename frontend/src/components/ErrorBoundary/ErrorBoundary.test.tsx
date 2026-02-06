@@ -1,9 +1,10 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '../../test/test-utils';
 import ErrorBoundary from './ErrorBoundary';
 
 // A component that throws during render
-function ThrowingComponent({ message }: { message: string }) {
+function ThrowingComponent({ message }: { message: string }): React.ReactNode {
   throw new Error(message);
 }
 
@@ -40,7 +41,7 @@ describe('ErrorBoundary', () => {
 
   it('displays a fallback message when the error has no message', () => {
     // Component that throws an error with empty message
-    function ThrowEmpty() {
+    function ThrowEmpty(): React.ReactNode {
       throw new Error('');
     }
 
