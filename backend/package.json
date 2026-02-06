@@ -1,6 +1,6 @@
 {
   "name": "testops-companion-backend",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Backend for TestOps Companion",
   "main": "dist/index.js",
   "scripts": {

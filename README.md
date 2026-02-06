@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.6.0](docs/RELEASE_NOTES_v2.6.0.md) - MCP Server for AI-Powered Test Analysis | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.7.0](docs/PRODUCTION_READINESS_ANALYSIS.md) - Production Readiness: Security, Tests, CI/CD & Deployment Hardening | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
