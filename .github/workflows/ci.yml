@@ -51,36 +51,31 @@ jobs:
         cd ../frontend && npm ci
 
     - name: Generate Prisma Client
-      continue-on-error: true
-      run: cd backend && npx prisma generate || echo "Prisma generation failed, continuing..."
+      run: cd backend && npx prisma generate
 
     - name: Run database migrations
-      continue-on-error: true
       env:
         DATABASE_URL: postgresql://testops:testops@localhost:5432/testops_companion_test
-      run: cd backend && npx prisma migrate deploy || echo "Prisma migrations failed, continuing..."
+      run: cd backend && npx prisma migrate deploy || echo "No migrations to apply"
 
     - name: Run linting
-      continue-on-error: true
       run: |
-        npm run lint:backend || echo "Backend lint warnings, continuing..."
-        npm run lint:frontend || echo "Frontend lint warnings, continuing..."
+        npm run lint:backend
+        npm run lint:frontend
 
     - name: Run type checking
-      continue-on-error: true
       run: |
-        npm run typecheck:backend || echo "Backend typecheck issues, continuing..."
-        npm run typecheck:frontend || echo "Frontend typecheck issues, continuing..."
+        npm run typecheck:backend
+        npm run typecheck:frontend
 
     - name: Run tests
-      continue-on-error: true
       env:
         DATABASE_URL: postgresql://testops:testops@localhost:5432/testops_companion_test
-        JWT_SECRET: test-secret
-        JWT_REFRESH_SECRET: test-refresh-secret
+        JWT_SECRET: test-secret-that-is-at-least-32-characters-long
+        JWT_REFRESH_SECRET: test-refresh-secret-at-least-32-characters
       run: |
-        npm run test:backend || echo "Backend tests failed, continuing..."
-        npm run test:frontend || echo "Frontend tests failed, continuing..."
+        npm run test:backend
+        npm run test:frontend
 
     - name: Upload coverage
       if: always()
@@ -104,9 +99,9 @@ jobs:
       continue-on-error: true
       run: |
         echo "Backend audit:"
-        cd backend && npm audit || true
+        cd backend && npm audit --production || true
         echo "Frontend audit:"
-        cd ../frontend && npm audit || true
+        cd ../frontend && npm audit --production || true
 
     - name: Run Snyk to check for vulnerabilities
       if: ${{ secrets.SNYK_TOKEN != '' }}
@@ -136,28 +131,23 @@ jobs:
         cd ../frontend && npm ci
 
     - name: Generate Prisma Client
-      continue-on-error: true
-      run: cd backend && npx prisma generate || echo "Prisma generation failed, continuing..."
+      run: cd backend && npx prisma generate
 
     - name: Build backend
-      continue-on-error: true
-      run: cd backend && npm run build || echo "Backend build failed, continuing..."
+      run: cd backend && npm run build
 
     - name: Build frontend
-      continue-on-error: true
-      run: cd frontend && npm run build || echo "Frontend build failed, continuing..."
+      run: cd frontend && npm run build
 
     - name: Upload backend artifact
-      continue-on-error: true
-      if: always()
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: backend-dist
         path: backend/dist
 
     - name: Upload frontend artifact
-      continue-on-error: true
-      if: always()
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: frontend-dist

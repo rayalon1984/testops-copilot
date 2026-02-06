@@ -24,6 +24,4 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  // Pass with no tests - project is in development
-  passWithNoTests: true,
 };

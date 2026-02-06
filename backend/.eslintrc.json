@@ -27,9 +27,12 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "files": ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"],
       "env": {
         "jest": true
+      },
+      "parserOptions": {
+        "project": null
       },
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
