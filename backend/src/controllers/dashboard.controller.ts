@@ -5,12 +5,9 @@
  */
 
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { AICache, getCache } from '../services/ai/cache';
+import { prisma } from '../lib/prisma';
+import { getCache } from '../services/ai/cache';
 import { FailureCategory } from '../services/ai/types';
-
-const prisma = new PrismaClient();
 
 export interface DashboardMetrics {
   // Summary stats

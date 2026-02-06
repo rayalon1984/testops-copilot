@@ -5,7 +5,7 @@
  * Compatible with Grafana, Prometheus, and other monitoring tools
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   TestMetrics,
   MetricsTimeRange,
@@ -14,8 +14,6 @@ import {
   TopFailingTest,
   PrometheusExportOptions,
 } from '../types/metrics';
-
-const prisma = new PrismaClient();
 
 export class MetricsService {
   /**

@@ -28,7 +28,7 @@ app.use(asMiddleware(cors({
   credentials: true
 })));
 
-// Rate limiting
+// Rate limiting - global
 const rateLimitMiddleware = rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.maxRequests,
@@ -42,7 +42,23 @@ const rateLimitMiddleware = rateLimit({
   }
 });
 
+// Stricter rate limiting for auth endpoints (10 requests per 15 minutes)
+const authRateLimitMiddleware = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({
+      status: 'error',
+      message: 'Too many authentication attempts, please try again later'
+    });
+  }
+});
+
 app.use(asMiddleware(rateLimitMiddleware));
+app.use('/api/v1/auth/login', asMiddleware(authRateLimitMiddleware));
+app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 
 // Body parsing middleware
 app.use(asMiddleware(express.json()));

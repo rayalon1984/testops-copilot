@@ -1,5 +1,6 @@
 
-import { PrismaClient, TestRun, Prisma } from '@prisma/client';
+import { TestRun, Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
 import { logger } from '@/utils/logger';
 
@@ -24,11 +25,6 @@ export interface TestRunFilters {
 }
 
 export class TestRunService {
-    private prisma: PrismaClient;
-
-    constructor() {
-        this.prisma = new PrismaClient();
-    }
 
     async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<TestRun[]> {
         const where: Prisma.TestRunWhereInput = { userId };
@@ -65,7 +61,7 @@ export class TestRunService {
             }
         }
 
-        return this.prisma.testRun.findMany({
+        return prisma.testRun.findMany({
             where,
             include: {
                 pipeline: true,
@@ -77,7 +73,7 @@ export class TestRunService {
     }
 
     async getTestRunById(id: string, userId: string): Promise<TestRun> {
-        const testRun = await this.prisma.testRun.findUnique({
+        const testRun = await prisma.testRun.findUnique({
             where: { id },
             include: {
                 pipeline: true,
@@ -98,7 +94,7 @@ export class TestRunService {
     async createTestRun(data: CreateTestRunDTO, userId: string): Promise<TestRun> {
         // Verify pipeline exists
         // Note: Production schema does not associate pipelines with users directly
-        const pipeline = await this.prisma.pipeline.findFirst({
+        const pipeline = await prisma.pipeline.findFirst({
             where: {
                 id: data.pipelineId,
             },
@@ -108,7 +104,7 @@ export class TestRunService {
             throw new NotFoundError('Pipeline not found');
         }
 
-        const testRun = await this.prisma.testRun.create({
+        const testRun = await prisma.testRun.create({
             data: {
                 ...data,
                 userId,
@@ -130,7 +126,7 @@ export class TestRunService {
         }
 
         // 'CANCELLED' is not in standard TestStatus enum, mapping to FAILED
-        const updatedTestRun = await this.prisma.testRun.update({
+        const updatedTestRun = await prisma.testRun.update({
             where: { id },
             data: {
                 status: 'FAILED',
@@ -150,7 +146,7 @@ export class TestRunService {
             throw new Error('Can only retry failed, skipped, or flaky test runs');
         }
 
-        const newTestRun = await this.prisma.testRun.create({
+        const newTestRun = await prisma.testRun.create({
             data: {
                 pipelineId: originalRun.pipelineId,
                 userId,
@@ -168,11 +164,11 @@ export class TestRunService {
 
     async deleteTestRun(id: string): Promise<void> {
         // We need to check existence but usually we can just deleteMany or delete
-        const testRun = await this.prisma.testRun.findUnique({ where: { id } });
+        const testRun = await prisma.testRun.findUnique({ where: { id } });
         if (!testRun) {
             throw new NotFoundError('Test run not found');
         }
-        await this.prisma.testRun.delete({ where: { id } });
+        await prisma.testRun.delete({ where: { id } });
         logger.info(`Test run deleted: ${id}`);
     }
 }

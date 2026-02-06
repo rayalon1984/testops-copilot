@@ -3,9 +3,7 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { pipelineController } from '../controllers/pipeline.controller';
 import { UserRole } from '../constants';
 import { pipelineRouter as router } from './index';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 // Apply authentication to all routes
 router.use(authenticate);

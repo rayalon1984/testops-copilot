@@ -54,7 +54,7 @@ router.post(
   authenticate,
   asyncHandler(async (req: Request, res: Response) => {
     if (req.user) {
-      await authController.logout(req.user.id);
+      await authController.logout(req.user.id, req.token);
     }
     
     res.clearCookie('refreshToken');

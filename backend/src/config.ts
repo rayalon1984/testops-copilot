@@ -25,9 +25,9 @@ const envSchema = z.object({
   DATABASE_SSL: z.string().transform(val => val === 'true').default('false'),
   
   // JWT
-  JWT_SECRET: z.string(),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production security'),
   JWT_EXPIRES_IN: z.string().default('24h'),
-  JWT_REFRESH_SECRET: z.string(),
+  JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters for production security'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   
   // GitHub (optional)

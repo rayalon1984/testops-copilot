@@ -1,9 +1,7 @@
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticate } from '../middleware/auth';
 import { testRunRouter as router } from './index';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 // @route   GET /api/v1/test-runs
 // @desc    Get all test runs (with filters)

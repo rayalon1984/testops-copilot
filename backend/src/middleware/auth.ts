@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { config } from '../config';
+import { tokenBlacklist } from '../services/tokenBlacklist.service';
 import { AuthenticationError, AuthorizationError } from './errorHandler';
 import { TokenPayload, User } from '../types/user';
 import { UserRole, JWT_CONFIG, ERROR_MESSAGES } from '../constants';
-
-const prisma = new PrismaClient();
 
 export const authenticate = async (
   req: Request,
@@ -17,6 +16,11 @@ export const authenticate = async (
     const token = extractTokenFromHeader(req);
     if (!token) {
       throw new AuthenticationError(ERROR_MESSAGES.UNAUTHORIZED);
+    }
+
+    // Check if token has been revoked
+    if (await tokenBlacklist.isBlacklisted(token)) {
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_TOKEN);
     }
 
     const decoded = jwt.verify(token, config.jwt.secret, {

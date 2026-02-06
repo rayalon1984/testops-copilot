@@ -1,8 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
-import { Pipeline, TestRun, PrismaClient } from '@prisma/client';
+import { Pipeline, TestRun } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
-
-const prisma = new PrismaClient();
 
 interface JenkinsConfig {
   url: string;

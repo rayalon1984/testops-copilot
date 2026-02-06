@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import { GitHubService } from '../services/github.service';
 import { AuthorizationError, NotFoundError } from '../middleware/errorHandler';
 import {
@@ -14,8 +14,6 @@ import {
   parsePipelineConfig,
   toInputJsonValue
 } from '../utils/prismaHelpers';
-
-const prisma = new PrismaClient();
 
 export class PipelineController {
   private githubService: GitHubService;

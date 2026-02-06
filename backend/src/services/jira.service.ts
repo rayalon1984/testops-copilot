@@ -1,5 +1,5 @@
 import JiraClient from 'jira-client';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
 import {
@@ -9,8 +9,6 @@ import {
   UpdateIssueDTO,
   JiraIssueResponse
 } from '@/types/jira';
-
-const prisma = new PrismaClient();
 
 export class JiraService {
   private client: JiraClient | null = null;

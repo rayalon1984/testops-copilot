@@ -1,9 +1,7 @@
-import { PrismaClient, User } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NotFoundError } from '@/middleware/errorHandler';
 import { NotificationService } from '@/services/notification.service';
 import { logger } from '@/utils/logger';
-
-const prisma = new PrismaClient();
 
 // Types for user notification preferences (stored as JSON)
 interface NotificationPreferences {

@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/prisma';
 import Redis from 'ioredis';
-
-const prisma = new PrismaClient();
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';

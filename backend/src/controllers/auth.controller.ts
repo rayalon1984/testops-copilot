@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { config } from '../config';
+import { prisma } from '../lib/prisma';
 import { JwtService } from '../services/jwt.service';
+import { tokenBlacklist } from '../services/tokenBlacklist.service';
 import { AuthenticationError, NotFoundError } from '../middleware/errorHandler';
 import { ERROR_MESSAGES, UserRole } from '../constants';
 import {
@@ -11,8 +12,6 @@ import {
   TokenPayload,
   UserResponse
 } from '../types/user';
-
-const prisma = new PrismaClient();
 
 export class AuthController {
   async register(data: CreateUserDTO) {
@@ -73,9 +72,14 @@ export class AuthController {
     };
   }
 
-  async logout(userId: string): Promise<void> {
-    // In a real application, you might want to invalidate the token
-    // by adding it to a blacklist or similar mechanism
+  async logout(userId: string, token?: string): Promise<void> {
+    // Blacklist the current token so it can't be reused
+    if (token) {
+      // Blacklist for the remaining lifetime of the token (24h max)
+      const maxTTL = 24 * 60 * 60 * 1000;
+      await tokenBlacklist.add(token, maxTTL);
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { updatedAt: new Date() }
