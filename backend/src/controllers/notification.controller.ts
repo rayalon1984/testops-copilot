@@ -45,7 +45,7 @@ export class NotificationController {
     this.notificationService = new NotificationService();
   }
 
-  async getPreferences(userId: string): Promise<NotificationPreferences> {
+  async getPreferences(_userId: string): Promise<NotificationPreferences> {
     // We don't have a NotificationPreference model in Prisma schema I added?
     // I added: Notification, TestRailRun, ConfluencePage.
     // I did NOT add NotificationPreference.

@@ -7,11 +7,6 @@ import { logger } from '../utils/logger';
  * expiration. In production with multiple instances, replace with Redis.
  */
 
-interface BlacklistEntry {
-  token: string;
-  expiresAt: number;
-}
-
 class TokenBlacklistService {
   private blacklist: Map<string, number> = new Map();
   private cleanupInterval: ReturnType<typeof setInterval>;

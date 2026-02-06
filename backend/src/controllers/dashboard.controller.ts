@@ -292,7 +292,7 @@ export class DashboardController {
   /**
    * Helper: Get AI cost data
    */
-  private static async getAICostData(startDate: Date): Promise<{
+  private static async getAICostData(_startDate: Date): Promise<{
     totalCost: number;
     monthlySpent: number;
     monthlyBudget: number;
@@ -300,9 +300,6 @@ export class DashboardController {
     try {
       // This would query the ai_usage table from cost-tracker
       // For now, return realistic estimates
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
       // Mock data - would be real queries in production
       return {
         totalCost: 2.34,

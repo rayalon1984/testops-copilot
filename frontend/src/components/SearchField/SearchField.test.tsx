@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../../test/test-utils';
+import { render, screen, fireEvent } from '../../test/test-utils';
 import SearchField from './SearchField';
 
 // Mock lodash debounce to execute immediately in tests

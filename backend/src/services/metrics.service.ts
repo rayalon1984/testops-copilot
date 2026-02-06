@@ -9,8 +9,6 @@ import { prisma } from '../lib/prisma';
 import {
   TestMetrics,
   MetricsTimeRange,
-  MetricsByTestSuite,
-  MetricsByPipeline,
   TopFailingTest,
   PrometheusExportOptions,
 } from '../types/metrics';

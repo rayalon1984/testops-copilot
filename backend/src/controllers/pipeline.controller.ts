@@ -1,18 +1,17 @@
 import { prisma } from '../lib/prisma';
 import { GitHubService } from '../services/github.service';
-import { AuthorizationError, NotFoundError } from '../middleware/errorHandler';
+import { NotFoundError } from '../middleware/errorHandler';
 import {
   CreatePipelineDTO,
   UpdatePipelineDTO,
   PipelineFilters,
   toPipeline
 } from '../types/pipeline';
-import { PipelineStatus, TestStatus, PipelineType } from '../constants';
+import { TestStatus, PipelineType } from '../constants';
 import {
   createPipelineInput,
   updatePipelineInput,
-  parsePipelineConfig,
-  toInputJsonValue
+  parsePipelineConfig
 } from '../utils/prismaHelpers';
 
 export class PipelineController {
@@ -93,7 +92,7 @@ export class PipelineController {
     return toPipeline(prismaPipeline);
   }
 
-  async createPipeline(data: CreatePipelineDTO, userId: string) {
+  async createPipeline(data: CreatePipelineDTO, _userId: string) {
     // Validate connection before creating
     await this.githubService.validateConnection(data.config);
 
@@ -112,7 +111,7 @@ export class PipelineController {
   }
 
   async updatePipeline(id: string, data: UpdatePipelineDTO, userId: string) {
-    const pipeline = await this.getPipeline(id, userId);
+    await this.getPipeline(id, userId);
 
     if (data.config) {
       await this.githubService.validateConnection(data.config);
@@ -130,7 +129,7 @@ export class PipelineController {
   }
 
   async deletePipeline(id: string, userId: string) {
-    const pipeline = await this.getPipeline(id, userId);
+    await this.getPipeline(id, userId);
 
     await prisma.pipeline.delete({
       where: { id }

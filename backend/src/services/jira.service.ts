@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
 import {
-  JiraIssueType,
   JiraIssueStatus,
   CreateIssueDTO,
   UpdateIssueDTO,
