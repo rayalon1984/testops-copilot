@@ -1,7 +1,7 @@
 # TestOps Companion - AI Assistant Development Guide
 
-> **Last Updated**: 2026-01-20
-> **Version**: 2.6.0
+> **Last Updated**: 2026-02-06
+> **Version**: 2.7.0
 > **Purpose**: Comprehensive guide for AI assistants working on TestOps Companion
 
 ---
@@ -176,20 +176,16 @@ backend/src/
 **Pattern**:
 ```typescript
 // backend/src/services/testRun.service.ts
+import { prisma } from '@/lib/prisma'; // ALWAYS use the singleton
+
 export class TestRunService {
-  private prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
-
   async getAllTestRuns(
     userId: string,
     filters: TestRunFilters
   ): Promise<TestRun[]> {
     // Business logic with Prisma queries
     const where = this.buildWhereClause(filters, userId);
-    return await this.prisma.testRun.findMany({ where });
+    return await prisma.testRun.findMany({ where });
   }
 
   async createTestRun(
@@ -208,6 +204,17 @@ export interface CreateTestRunDTO {
   branch?: string;
   status: TestStatus;
 }
+```
+
+**IMPORTANT - PrismaClient Usage**:
+Always import the singleton from `@/lib/prisma`. **NEVER** instantiate `new PrismaClient()` directly:
+```typescript
+// ✅ Correct
+import { prisma } from '@/lib/prisma';
+
+// ❌ Wrong - creates separate connection pool
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 ```
 
 **When to Create a New Service**:
@@ -2178,6 +2185,21 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 ## Changelog
 
+### 2026-02-06 (v2.7.0 - Production Readiness Release)
+- **Security**: Removed hardcoded secrets from docker-compose.prod.yml
+- **Security**: Disabled anonymous Weaviate authentication in production
+- **Security**: Added JWT secret minimum 32-character validation
+- **Security**: Implemented token blacklist service for proper logout/revocation
+- **Security**: Added stricter rate limiting on auth endpoints (10 req/15min)
+- **Architecture**: Consolidated all PrismaClient usage to singleton pattern (lib/prisma.ts)
+- **Testing**: Added 87 tests (50 backend + 37 frontend) covering auth, JWT, error handling, and UI components
+- **CI/CD**: Removed all continue-on-error flags; tests, lint, and typecheck now block merges
+- **CI/CD**: Removed passWithNoTests from jest.config.js
+- **Code Quality**: Eliminated all ESLint errors, reduced warnings from 159 to 142
+- **Deployment**: Generated baseline Prisma migration (0001_baseline)
+- **Deployment**: Updated .env.production.example with secrets generation guidance
+- **Documentation**: Updated CLAUDE.md to v2.7.0 with PrismaClient singleton pattern guidance
+
 ### 2026-01-04
 - Initial CLAUDE.md creation
 - Comprehensive architecture documentation
@@ -2186,4 +2208,4 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 ---
 
-**This guide is maintained by the TestOps Companion team. Last updated: 2026-01-04**
+**This guide is maintained by the TestOps Companion team. Last updated: 2026-02-06**
