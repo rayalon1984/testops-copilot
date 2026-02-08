@@ -4,9 +4,13 @@
 
 import { Router, type Router as RouterType } from 'express';
 import { FailureArchiveController } from '../controllers/failure-archive.controller';
+import { authenticate } from '../middleware/auth';
 import { asMiddleware } from '../types/middleware';
 
 const router: RouterType = Router();
+
+// All failure archive routes require authentication
+router.use(authenticate);
 
 // Create failure archive entry
 router.post('/', asMiddleware(FailureArchiveController.createFailure));

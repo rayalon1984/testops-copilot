@@ -3,7 +3,9 @@ import { authRouter as router } from './index';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
+import { validateRegisterInput, validateLoginInput } from '../middleware/validation';
 import { JwtService } from '../services/jwt.service';
+import { tokenBlacklist } from '../services/tokenBlacklist.service';
 import { LoginDTO, CreateUserDTO, UpdatePasswordDTO } from '../types/user';
 
 interface TypedRequest<T> extends Request {
@@ -15,6 +17,7 @@ const authController = new AuthController();
 // Register new user
 router.post(
   '/register',
+  validateRegisterInput,
   asyncHandler(async (req: TypedRequest<CreateUserDTO>, res: Response) => {
     const { user, accessToken, refreshToken } = await authController.register(req.body);
 
@@ -33,6 +36,7 @@ router.post(
 // Login user
 router.post(
   '/login',
+  validateLoginInput,
   asyncHandler(async (req: TypedRequest<LoginDTO>, res: Response) => {
     const { user, accessToken, refreshToken } = await authController.login(req.body);
 
@@ -74,7 +78,11 @@ router.post(
     }
 
     const tokens = JwtService.refreshTokens(refreshToken);
-    
+
+    // Blacklist old refresh token to prevent reuse
+    const maxTTL = 7 * 24 * 60 * 60 * 1000;
+    await tokenBlacklist.add(refreshToken, maxTTL);
+
     // Set new refresh token in HTTP-only cookie
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,

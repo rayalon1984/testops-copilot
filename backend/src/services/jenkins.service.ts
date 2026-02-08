@@ -36,7 +36,49 @@ export class JenkinsService {
         'Content-Type': 'application/json',
       },
       timeout: 30000,
+      maxRedirects: 0,
     });
+  }
+
+  /**
+   * Validates that a URL is not targeting internal/private networks (SSRF protection)
+   */
+  private validateUrl(url: string): void {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error('Invalid URL format');
+    }
+
+    // Only allow http(s) protocols
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('Only HTTP(S) URLs are allowed');
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+
+    // Block private/internal IP ranges and loopback
+    const blockedPatterns = [
+      /^localhost$/i,
+      /^127\./,
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[01])\./,
+      /^192\.168\./,
+      /^169\.254\./,
+      /^0\./,
+      /^fc00:/i,
+      /^fe80:/i,
+      /^::1$/,
+      /^0:0:0:0:0:0:0:1$/,
+      /^\[::1\]$/,
+    ];
+
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        throw new Error('URLs targeting internal or private networks are not allowed');
+      }
+    }
   }
 
   private createAuthHeader(credentials: { username: string; apiToken: string }): string {
@@ -44,6 +86,8 @@ export class JenkinsService {
   }
 
   async validateConnection(config: JenkinsConfig): Promise<void> {
+    this.validateUrl(config.url);
+
     try {
       const response = await this.client.get(`${config.url}/api/json`, {
         headers: {
@@ -64,6 +108,8 @@ export class JenkinsService {
 
   async startPipeline(pipeline: Pipeline): Promise<TestRun> {
     const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
+    this.validateUrl(config.url);
+
     const buildParams: JenkinsBuildParams = {
       branch: config.branch,
     };
@@ -96,9 +142,10 @@ export class JenkinsService {
         throw new Error('Failed to trigger Jenkins build');
       }
 
-      // Get queue item location
+      // Get queue item location - validate it stays on same origin (SSRF protection)
       const queueUrl = response.headers.location;
-      const buildDetails = await this.waitForBuildStart(queueUrl, config.credentials);
+      this.validateSameOrigin(config.url, queueUrl);
+      const buildDetails = await this.waitForBuildStart(queueUrl, config.credentials, config.url);
 
       // Update test run with build details
       const updatedTestRun = await prisma.testRun.update({
@@ -109,7 +156,10 @@ export class JenkinsService {
         }
       });
 
-      // Start monitoring build progress
+      // Start monitoring build progress - validate URL stays on same origin
+      if (buildDetails.url) {
+        this.validateSameOrigin(config.url, buildDetails.url);
+      }
       this.monitorBuildProgress(buildDetails.url, config.credentials, updatedTestRun);
 
       return updatedTestRun;
@@ -119,7 +169,28 @@ export class JenkinsService {
     }
   }
 
-  private async waitForBuildStart(queueUrl: string, credentials: { username: string; apiToken: string }): Promise<JenkinsBuildResponse> {
+  /**
+   * Validates that a redirect URL stays on the same origin as the configured Jenkins URL
+   */
+  private validateSameOrigin(baseUrl: string, redirectUrl: string): void {
+    if (!redirectUrl) {
+      throw new Error('No redirect URL provided');
+    }
+    try {
+      const base = new URL(baseUrl);
+      const redirect = new URL(redirectUrl);
+      if (base.origin !== redirect.origin) {
+        throw new Error('Redirect URL does not match Jenkins server origin');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('origin')) {
+        throw error;
+      }
+      throw new Error('Invalid redirect URL');
+    }
+  }
+
+  private async waitForBuildStart(queueUrl: string, credentials: { username: string; apiToken: string }, baseUrl: string): Promise<JenkinsBuildResponse> {
     let attempts = 0;
     const maxAttempts = 10;
     const delay = 2000;

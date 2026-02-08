@@ -60,6 +60,9 @@ router.post(
       }
     });
 
+    // Strip credentials from response
+    const { credentials: _creds, ...safeConfig } = config || {};
+
     res.status(201).json({
       id: pipeline.id,
       name: pipeline.name,
@@ -67,7 +70,7 @@ router.post(
       status: 'pending',
       lastRun: new Date().toISOString(),
       successRate: 0,
-      config: config || {}
+      config: safeConfig
     });
   })
 );

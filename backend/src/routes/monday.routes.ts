@@ -6,8 +6,12 @@
 
 import { Router, type Router as RouterType } from 'express';
 import { MondayController } from '../controllers/monday.controller';
+import { authenticate } from '../middleware/auth';
 
 const router: RouterType = Router();
+
+// All Monday.com routes require authentication
+router.use(authenticate);
 
 // Board routes
 router.get('/boards', MondayController.getBoards);
