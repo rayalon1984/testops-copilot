@@ -1,7 +1,7 @@
 # TestOps Companion - AI Assistant Development Guide
 
-> **Last Updated**: 2026-02-06
-> **Version**: 2.7.0
+> **Last Updated**: 2026-02-08
+> **Version**: 2.7.1
 > **Purpose**: Comprehensive guide for AI assistants working on TestOps Companion
 
 ---
@@ -2184,6 +2184,17 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 ---
 
 ## Changelog
+
+### 2026-02-08 (v2.7.1 - Security Patch Release)
+- **Security**: Fixed privilege escalation via registration (mass assignment of role field)
+- **Security**: Added authentication to 8 unprotected route groups (failure-archive, monday, metrics, dashboard, jira, AI, notification endpoints, Prometheus)
+- **Security**: Fixed SSRF in Jenkins service (blocked private/internal IP ranges, validated redirect origins)
+- **Security**: Blacklist old refresh tokens on rotation to prevent reuse
+- **Security**: Stripped credentials from pipeline API responses
+- **Security**: Redacted sensitive fields (passwords, tokens) from error handler logs
+- **Security**: Added input validation middleware to register/login routes
+- **Performance**: Added 1MB body parser size limit and pagination limit on test run queries
+- **Hardening**: Removed system info from health endpoint, strict channel verification schema
 
 ### 2026-02-06 (v2.7.0 - Production Readiness Release)
 - **Security**: Removed hardcoded secrets from docker-compose.prod.yml

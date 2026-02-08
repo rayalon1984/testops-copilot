@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.7.0](docs/PRODUCTION_READINESS_ANALYSIS.md) - Production Readiness: Security, Tests, CI/CD & Deployment Hardening | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.7.1](https://github.com/rayalon1984/testops-companion/releases/tag/v2.7.1) - Security Patch: Critical vulnerability fixes across backend | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
