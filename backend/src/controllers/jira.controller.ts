@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { jiraService } from '@/services/jira.service';
 import { asyncHandler } from '@/middleware/errorHandler';
+import { authenticate } from '@/middleware/auth';
 import {
   createIssueSchema,
   updateIssueSchema,
@@ -12,6 +13,9 @@ import {
 } from '@/types/jira';
 
 const router: Router = Router();
+
+// All Jira routes require authentication
+router.use(authenticate);
 
 // Routes
 router.post(

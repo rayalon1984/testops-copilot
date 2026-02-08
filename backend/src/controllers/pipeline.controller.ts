@@ -57,6 +57,10 @@ export class PipelineController {
         'PENDING': 'pending'
       };
 
+      const rawConfig = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
+      // Strip credentials from API response
+      const { credentials: _creds, ...safeConfig } = rawConfig || {};
+
       return {
         id: pipeline.id,
         name: pipeline.name,
@@ -64,7 +68,7 @@ export class PipelineController {
         status: statusMap[lastRunStatus] || 'pending',
         lastRun,
         successRate,
-        config: typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config
+        config: safeConfig
       };
     });
   }
@@ -164,7 +168,8 @@ export class PipelineController {
 
     const testRuns = await prisma.testRun.findMany({
       where: { pipelineId: pipeline.id },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 100
     });
 
     return testRuns;

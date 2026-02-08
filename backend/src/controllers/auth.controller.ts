@@ -30,9 +30,11 @@ export class AuthController {
 
     const user = await prisma.user.create({
       data: {
-        ...data,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
         password: hashedPassword,
-        role: data.role || UserRole.USER
+        role: UserRole.USER
       }
     });
 

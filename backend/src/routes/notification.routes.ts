@@ -206,6 +206,7 @@ router.get(
 // @access  Private
 router.get(
   '/undelivered',
+  authenticate,
   asyncHandler(async (req, res) => {
     // Return mock undelivered notifications
     const mockNotifications = [
@@ -239,6 +240,7 @@ router.get(
 // @access  Private
 router.patch(
   '/:id/delivered',
+  authenticate,
   asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Notification marked as delivered' });
   })
@@ -249,6 +251,7 @@ router.patch(
 // @access  Private
 router.delete(
   '/:id',
+  authenticate,
   asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: 'Notification deleted' });
   })
@@ -259,6 +262,7 @@ router.delete(
 // @access  Private
 router.get(
   '/preferences',
+  authenticate,
   asyncHandler(async (req, res) => {
     const preferences = await notificationController.getPreferences(req.user!.id);
     res.status(200).json({
@@ -273,6 +277,7 @@ router.get(
 // @access  Private
 router.put(
   '/preferences',
+  authenticate,
   validateNotificationPreferences,
   asyncHandler(async (req, res) => {
     const preferences = await notificationController.updatePreferences(
@@ -291,6 +296,7 @@ router.put(
 // @access  Private
 router.post(
   '/test',
+  authenticate,
   asyncHandler(async (req, res) => {
     await notificationController.sendTestNotification(req.user!.id);
     res.status(200).json({
@@ -305,6 +311,7 @@ router.post(
 // @access  Private
 router.get(
   '/channels',
+  authenticate,
   asyncHandler(async (req, res) => {
     const channels = await notificationController.getAvailableChannels();
     res.status(200).json({
@@ -319,6 +326,7 @@ router.get(
 // @access  Private
 router.post(
   '/channels/verify',
+  authenticate,
   asyncHandler(async (req, res) => {
     const result = await notificationController.verifyChannel(
       req.user!.id,
@@ -336,6 +344,7 @@ router.post(
 // @access  Private
 router.get(
   '/history',
+  authenticate,
   asyncHandler(async (req, res) => {
     const history = await notificationController.getNotificationHistory(
       req.user!.id,

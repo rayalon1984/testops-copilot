@@ -7,12 +7,16 @@
 
 import { Router, Request, Response, IRouter } from 'express';
 import { getAIManager } from '../../services/ai';
+import { authenticate } from '../../middleware/auth';
 import { TestFailure } from '../../services/ai/types';
 import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
 import { SummarizationOptions } from '../../services/ai/features/log-summary';
 
 const router: IRouter = Router();
+
+// All AI routes require authentication
+router.use(authenticate);
 
 /**
  * GET /api/ai/health

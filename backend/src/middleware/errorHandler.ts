@@ -37,14 +37,26 @@ export const errorHandler = (
 ) => {
   const isDevelopment = config.env === 'development';
 
-  // Log the error
+  // Log the error (redact sensitive fields from body)
+  const redactSensitive = (body: Record<string, unknown> | undefined) => {
+    if (!body) return undefined;
+    const sensitiveFields = ['password', 'currentPassword', 'newPassword', 'apiToken', 'token', 'secret', 'refreshToken'];
+    const redacted = { ...body };
+    for (const field of sensitiveFields) {
+      if (field in redacted) {
+        redacted[field] = '[REDACTED]';
+      }
+    }
+    return redacted;
+  };
+
   logger.error('API Error:', {
     url: req.url,
     method: req.method,
     statusCode: err.statusCode,
     message: err.message,
     stack: isDevelopment ? err.stack : undefined,
-    body: isDevelopment ? req.body : undefined,
+    body: isDevelopment ? redactSensitive(req.body) : undefined,
     params: isDevelopment ? req.params : undefined,
     query: isDevelopment ? req.query : undefined
   });

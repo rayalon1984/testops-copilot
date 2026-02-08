@@ -61,8 +61,8 @@ app.use('/api/v1/auth/login', asMiddleware(authRateLimitMiddleware));
 app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 
 // Body parsing middleware
-app.use(asMiddleware(express.json()));
-app.use(asMiddleware(express.urlencoded({ extended: true })));
+app.use(asMiddleware(express.json({ limit: '1mb' })));
+app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 
 // Request timing middleware
@@ -71,13 +71,11 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoint (no sensitive system info)
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memoryUsage: process.memoryUsage()
+    timestamp: new Date().toISOString()
   });
 });
 

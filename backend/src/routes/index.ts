@@ -6,6 +6,7 @@ import metricsRouter from './metrics.routes';
 import dashboardRouter from './dashboard.routes';
 import aiRouter from './ai';
 import { MetricsController } from '../controllers/metrics.controller';
+import { authenticate } from '../middleware/auth';
 
 // Create and export routers
 export const authRouter: IRouter = Router();
@@ -20,8 +21,8 @@ import './testRun.routes';
 import './notification.routes';
 
 export function registerRoutes(app: Application): void {
-  // Prometheus metrics endpoint (standard path)
-  app.get('/metrics', MetricsController.getPrometheusMetrics);
+  // Prometheus metrics endpoint (requires authentication)
+  app.get('/metrics', authenticate, MetricsController.getPrometheusMetrics);
 
   // API routes
   app.use('/api/v1/auth', authRouter);
