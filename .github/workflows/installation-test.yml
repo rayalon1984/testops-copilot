@@ -19,42 +19,60 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Generate test .env.production
+        run: |
+          cat > .env.production << 'EOF'
+          NODE_ENV=production
+          PORT=3000
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=ci_test_password_123
+          POSTGRES_DB=testops
+          DATABASE_URL=postgresql://postgres:ci_test_password_123@db:5432/testops
+          JWT_SECRET=ci-test-jwt-secret-must-be-at-least-32-characters-long
+          JWT_REFRESH_SECRET=ci-test-jwt-refresh-secret-must-be-at-least-32-chars
+          JWT_EXPIRES_IN=24h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CORS_ORIGIN=http://localhost:80
+          LOG_LEVEL=info
+          BCRYPT_SALT_ROUNDS=10
+          RATE_LIMIT_WINDOW_MS=900000
+          RATE_LIMIT_MAX_REQUESTS=100
+          EOF
+          echo "Generated .env.production for CI"
+
       - name: Build and Start Production Stack
         run: |
-          # Use the new production compose file
-          docker compose -f docker-compose.prod.yml up -d --build
-          
+          # --env-file feeds vars to docker-compose interpolation (e.g. ${POSTGRES_PASSWORD})
+          docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+
           # Wait for services to be ready
           echo "Waiting for services to start..."
           sleep 30
-          
+
       - name: Show running containers
-        run: docker compose -f docker-compose.prod.yml ps
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml ps
 
       - name: Check Backend Health
         run: |
-          # Backend runs on port 3000 mapped to host
           echo "Checking backend health..."
-          timeout 90s bash -c 'until curl -s http://localhost:3000/health | grep "ok"; do sleep 5; done'
+          timeout 120s bash -c 'until curl -s http://localhost:3000/health | grep "ok"; do sleep 5; done'
 
       - name: Check Frontend Accessibility
         run: |
-          # Frontend runs on port 80 mapped to host
           echo "Checking frontend availability..."
           curl --fail -I http://localhost:80
 
       - name: Verify Database Migrations
         run: |
-          # Check if migrations tables exist in the DB container
-          docker compose -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
+          docker compose --env-file .env.production -f docker-compose.prod.yml exec -T db psql -U postgres -d testops -c "\dt" | grep "_prisma_migrations"
 
       - name: Print Container Logs
         if: failure()
-        run: docker compose -f docker-compose.prod.yml logs backend db
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml logs --tail=100
 
       - name: Stop services
         if: always()
-        run: docker compose -f docker-compose.prod.yml down -v
+        run: docker compose --env-file .env.production -f docker-compose.prod.yml down -v
 
   test-demo-install:
     name: Test Demo Mode Installation
