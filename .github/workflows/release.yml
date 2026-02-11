@@ -35,12 +35,21 @@ jobs:
         # If no release notes found in CHANGELOG, generate from commits
         if [ ! -s release_notes.txt ]; then
           echo "**Changes in this release:**" > release_notes.txt
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> release_notes.txt
+          echo "" >> release_notes.txt
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=tformat:"- %s" "${PREV_TAG}..HEAD" >> release_notes.txt
+          else
+            git log --pretty=tformat:"- %s" HEAD >> release_notes.txt
+          fi
         fi
+
+        # Ensure file ends with a newline
+        sed -i -e '$a\' release_notes.txt
 
         # Save for next step
         cat release_notes.txt
-        # Use a random delimiter to avoid conflicts with content
+        # Use EOF delimiter with random suffix to avoid conflicts with content
         delimiter="ghadelimiter_$RANDOM"
         {
           echo "RELEASE_NOTES<<${delimiter}"
