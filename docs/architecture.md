@@ -10,11 +10,23 @@ graph TD
     FE --> API[Backend API]
     API --> DB[(PostgreSQL)]
     API --> Redis[(Redis Cache)]
+    API --> AI[AI Providers]
+    API --> Weaviate[(Weaviate Vector DB)]
     API --> Jenkins[Jenkins API]
     API --> GitHub[GitHub API]
+    API --> Jira[Jira API]
+    API --> Confluence[Confluence API]
     API --> Slack[Slack API]
     API --> Email[Email Service]
     API --> Pushover[Pushover API]
+
+    subgraph "Context Enrichment (v2.8.0)"
+        API --> Enrichment[Enrichment Service]
+        Enrichment --> Jira
+        Enrichment --> Confluence
+        Enrichment --> GitHub
+        Enrichment --> AI
+    end
 ```
 
 ## Core Components
@@ -178,6 +190,39 @@ sequenceDiagram
    - Time to resolve tracking
    - Tag-based organization
 
+## Cross-Platform Context Enrichment (v2.8.0)
+
+The context enrichment system gathers information from multiple platforms in parallel to produce richer failure analysis.
+
+```mermaid
+graph TD
+    Failure[Test Failure] --> Enrichment[ContextEnrichmentService]
+
+    Enrichment --> |"Promise.allSettled()"| JiraSearch[Jira: searchSimilarIssues]
+    Enrichment --> |"Promise.allSettled()"| ConfSearch[Confluence: searchContent]
+    Enrichment --> |"Promise.allSettled()"| GitHubFetch[GitHub: getCommitChanges + getPullRequestForCommit]
+
+    JiraSearch --> |JQL text search| JiraResults[Matching Jira Issues]
+    ConfSearch --> |CQL semantic search| ConfResults[Relevant Wiki Pages]
+    GitHubFetch --> |REST API| GitResults[Commit Diffs + PR Files]
+
+    JiraResults --> Synthesis[AI Synthesis Engine]
+    ConfResults --> Synthesis
+    GitResults --> Synthesis
+
+    Synthesis --> Result[EnrichmentResult]
+    Result --> Analysis[Actionable Analysis + Confidence Score]
+```
+
+### Key Design Decisions
+
+- **Parallel execution**: All three sources are queried concurrently using `Promise.allSettled()` so one source failing doesn't block the others
+- **Graceful degradation**: Works with or without AI, with or without any specific integration. Falls back to a basic text summary if the AI provider is unavailable
+- **Smart input cleaning**: Jira queries strip timestamps, UUIDs, memory addresses, and file paths from error messages before searching
+- **Diff truncation**: GitHub diffs are capped at 2,000 characters to prevent prompt token overflow
+- **Relevance scoring**: Files from PRs are scored against the stack trace and error message; only the top 5 most relevant files are included in the AI prompt
+- **Confidence estimation**: Score ranges from 0.3 (base) up to 0.95, increasing when Jira issues (+ 0.2), Confluence pages (+0.15), or PRs (+0.25) are found
+
 ## External Integrations
 
 ### CI/CD Systems
@@ -191,7 +236,7 @@ sequenceDiagram
 - Pushover notifications
 
 ### Issue Tracking & Project Management
-- **Jira**: Automatic issue creation, bi-directional sync, custom field mapping
+- **Jira**: Automatic issue creation, bi-directional sync, custom field mapping, and similar issue search *(v2.8.0)*
 - **Monday.com**: Work OS integration, automatic item creation from failures, GraphQL API
 - Link failures to existing issues
 - Search and prevent duplicate entries
@@ -273,7 +318,8 @@ graph TD
 ## Future Architecture Considerations
 
 1. **Enhanced AI/ML Integration**
-   - Automated RCA suggestions using LLMs
+   - ~~Automated RCA suggestions using LLMs~~ *(Shipped: v2.5.3)*
+   - ~~Cross-platform context enrichment~~ *(Shipped: v2.8.0)*
    - Improved pattern detection with machine learning
    - Predictive test failure analysis
    - Anomaly detection improvements

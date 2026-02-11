@@ -8,6 +8,7 @@ TestOps Companion integrates with Jira to provide seamless issue tracking and te
 - Link test runs to existing Jira issues
 - Synchronize test status with Jira
 - View Jira issue details within TestOps Companion
+- **Search for similar existing issues** *(v2.8.0)* before creating duplicates
 
 ## Setup
 
@@ -76,6 +77,50 @@ Test run statuses are automatically synchronized with linked Jira issues:
 - Skipped → Won't Fix
 - Running → In Progress
 
+## Similar Issue Search (v2.8.0)
+
+When a test failure occurs, the system can automatically search Jira for existing issues that match the failure before creating a duplicate ticket.
+
+### How It Works
+
+1. The error message is cleaned: timestamps, UUIDs, memory addresses, and file paths with line numbers are stripped
+2. Meaningful search terms are extracted (first 200 characters)
+3. A JQL text search runs against issue summaries and descriptions
+4. Results are returned sorted by most recently updated
+
+### Usage via Context Enrichment
+
+The search is automatically invoked when using the `POST /api/ai/enrich` endpoint with `sources.jira: true`. It can also be called directly:
+
+```typescript
+import { jiraService } from '@/services/jira.service';
+
+const similarIssues = await jiraService.searchSimilarIssues(
+  'Connection timeout after 30s waiting for database',
+  'testLoginFlow',
+  {
+    maxResults: 5,
+    projectKey: 'PROJ',
+    statusFilter: ['Open', 'In Progress']
+  }
+);
+```
+
+### Example Response
+
+```json
+[
+  {
+    "key": "PROJ-456",
+    "summary": "Connection timeout issues in login flow",
+    "status": "In Progress",
+    "type": "Bug",
+    "priority": "High",
+    "assignee": "john.doe"
+  }
+]
+```
+
 ## API Endpoints
 
 ### Create Issue
@@ -89,6 +134,21 @@ Content-Type: application/json
   "type": "Bug",
   "labels": ["automated-test", "regression"],
   "testRunId": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+### Search Similar Issues (v2.8.0)
+```http
+POST /api/ai/enrich
+Content-Type: application/json
+
+{
+  "failure": {
+    "testId": "test-123",
+    "errorMessage": "Connection timeout after 30s",
+    "testName": "testLoginFlow"
+  },
+  "sources": { "jira": true, "confluence": false, "github": false }
 }
 ```
 

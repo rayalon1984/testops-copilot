@@ -2,67 +2,87 @@
 
 This document outlines the planned features and improvements for TestOps Companion.
 
-## Current Version (1.0.0)
+> **Current Version**: 2.8.0 (February 2026)
 
-Core functionality and essential features for test automation management.
+---
 
-### Features
-- User authentication and authorization
-- Basic pipeline management
-- Test execution tracking
-- Simple notifications
-- Basic dashboard
-- Jenkins integration
-- GitHub Actions integration
-- Email notifications
-- Slack notifications
+## Shipped
 
-## Short Term (1.1.0 - Q3 2025)
+### v2.8.0 - Cross-Platform Context Enrichment (February 2026)
+- [x] Jira similar issue search (JQL text search)
+- [x] Confluence knowledge reader (CQL search for runbooks and RCA docs)
+- [x] GitHub code awareness (commit diffs, PR file changes)
+- [x] AI-powered context enrichment service orchestrating all three sources
+- [x] `POST /api/ai/enrich` endpoint
 
-Focus on improving user experience and adding essential integrations.
+### v2.7.0 / v2.7.1 - Production Readiness & Security (February 2026)
+- [x] Security hardening (privilege escalation fix, SSRF protection, auth on all routes)
+- [x] Token blacklist service for proper logout/revocation
+- [x] 87 tests (50 backend + 37 frontend)
+- [x] CI/CD hardening (tests, lint, typecheck block merges)
+- [x] PrismaClient singleton pattern
 
-### Pipeline Management
-- [ ] Pipeline templates
-- [ ] Pipeline cloning
-- [ ] Parallel pipeline execution
-- [ ] Pipeline dependencies
-- [ ] Pipeline versioning
-- [ ] Pipeline export/import
+### v2.6.0 - MCP Server (January 2026)
+- [x] Model Context Protocol server with 8 tools
+- [x] 98% token reduction and 90% cost savings
+- [x] PostgreSQL integration with connection pooling
 
-### Test Management
-- [ ] Test case management
-- [ ] Test suite organization
-- [ ] Test data management
-- [ ] Test environment management
-- [ ] Test result history
-- [ ] Test coverage tracking
+### v2.5.3 / v2.5.4 - AI Integration (November 2025)
+- [x] Multi-provider AI support (Anthropic, OpenAI, Google Gemini, Azure OpenAI)
+- [x] RCA matching with semantic search (Weaviate vector DB)
+- [x] Automated failure categorization (6 categories)
+- [x] Intelligent log summarization
+- [x] Cost tracking and budget alerts
+- [x] 3-tier Redis caching
+
+### v2.5.0 - v2.5.2 - Integrations & Knowledge Base (November 2025)
+- [x] Failure Knowledge Base with smart fingerprinting
+- [x] Grafana & Prometheus metrics (20+ metrics, pre-built dashboards)
+- [x] Monday.com Work OS integration
+- [x] Confluence documentation publishing
+- [x] TestRail test case management
+- [x] Jira issue creation and sync
+
+### v1.0.0 - Core Platform (December 2024)
+- [x] User authentication and authorization (JWT)
+- [x] Pipeline management (Jenkins, GitHub Actions)
+- [x] Test execution tracking
+- [x] Real-time notifications (Slack, Email, Pushover)
+- [x] Interactive dashboard with analytics
+
+---
+
+## Next Up
+
+### v2.9.0 - Enhanced Intelligence (Q2 2026)
+
+### Test Intelligence
+- [ ] Flaky test detection with statistical scoring
+- [ ] Test impact analysis (which code changes affect which tests)
+- [ ] Smart test selection (run only tests affected by code changes)
+- [ ] Predictive failure analysis
+- [ ] Anomaly detection for test execution patterns
+
+### Collaboration
+- [ ] Team workspaces with shared dashboards
+- [ ] Comments and discussions on failures
+- [ ] Real-time collaborative RCA documentation
 
 ### Notifications
-- [ ] Custom notification templates
-- [ ] Notification rules engine
 - [ ] Microsoft Teams integration
 - [ ] Discord integration
-- [ ] Webhook support
-- [ ] Notification batching
+- [ ] Custom notification templates with rich formatting
+- [ ] Notification rules engine
 
-### Analytics
-- [ ] Enhanced dashboard widgets
-- [ ] Custom report builder
-- [ ] Trend analysis
-- [ ] Performance metrics
-- [ ] Quality metrics
-- [ ] Team productivity metrics
+---
 
-## Medium Term (1.2.0 - Q4 2025)
-
-Focus on advanced features and enterprise capabilities.
+## Medium Term (v3.0.0 - Q3/Q4 2026)
 
 ### Enterprise Features
 - [ ] SAML/SSO integration
 - [ ] LDAP integration
 - [ ] Audit logging
-- [ ] Role-based access control
-- [ ] Custom roles
+- [ ] Custom roles and granular permissions
 - [ ] IP whitelisting
 
 ### CI/CD Integration
@@ -70,44 +90,12 @@ Focus on advanced features and enterprise capabilities.
 - [ ] CircleCI integration
 - [ ] Azure DevOps integration
 - [ ] Bitbucket Pipelines
-- [ ] TeamCity integration
-- [ ] Bamboo integration
-
-### Test Intelligence
-- [ ] Flaky test detection
-- [ ] Test impact analysis
-- [ ] Smart test selection
-- [ ] Test prioritization
-- [ ] Failure analysis
-- [ ] Root cause analysis
-
-### Collaboration
-- [ ] Team workspaces
-- [ ] Shared dashboards
-- [ ] Comments and discussions
-- [ ] Knowledge base
-- [ ] Integration with wiki systems
-- [ ] Team chat integration
-
-## Long Term (2.0.0 - Q2 2026)
-
-Focus on AI/ML capabilities and advanced automation.
-
-### AI/ML Features
-- [ ] ML-based test selection
-- [ ] Automated test generation
-- [ ] Predictive analytics
-- [ ] Anomaly detection
-- [ ] Performance prediction
-- [ ] Smart alerting
 
 ### Advanced Automation
-- [ ] Test script generation
 - [ ] Auto-healing tests
 - [ ] Self-maintaining pipelines
 - [ ] Automated environment setup
 - [ ] Configuration optimization
-- [ ] Resource optimization
 
 ### Quality Gates
 - [ ] Custom quality gates

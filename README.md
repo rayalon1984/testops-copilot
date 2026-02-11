@@ -33,7 +33,6 @@
 | Mode | Email | Password |
 |------|-------|----------|
 | **Demo** | `demo@testops.ai` | `demo123` |
-| **Demo** | `demo@testops.ai` | `demo123` |
 | **Production** | Defined during setup | Defined during setup |
 
 ---
@@ -95,10 +94,15 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
   - Flaky test detection and reporting
   - Performance metrics and regression tracking
 
-- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4)*
+- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4 | Phase 3: v2.8.0)*
   - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
   - **Automated Failure Categorization**: AI-powered classification into 6 categories (bug_critical, bug_minor, environment, flaky, configuration, unknown) with confidence scoring and suggested actions *(v2.5.4)*
   - **Intelligent Log Summarization**: AI analysis of test logs with root cause extraction, error location identification, and suggested fixes *(v2.5.4)*
+  - **Cross-Platform Context Enrichment** *(v2.8.0)*: Automatically gathers context from Jira, Confluence, and GitHub to produce richer failure analysis
+    - **Jira Similar Issue Search**: JQL text search finds existing Jira issues matching the failure, preventing duplicates and surfacing related work
+    - **Confluence Knowledge Reader**: CQL search finds relevant RCA docs, runbooks, and architecture pages from your wiki
+    - **GitHub Code Awareness**: Fetches commit diffs, finds associated PRs, and highlights file changes relevant to the failing test
+    - **AI-Synthesized Insights**: An LLM connects the dots across all three sources to produce an actionable root cause analysis
   - **Multi-Provider Support**: Anthropic Claude Sonnet 4.5, OpenAI GPT-4 Turbo, Google Gemini (1M token context), Azure OpenAI
   - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
   - **Semantic Search**: Find similar failures even with different error messages
@@ -122,12 +126,12 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
   - 95% faster resolution for known issues
 
 - **🔗 Powerful Integrations**
-  - **Jira**: Automatic issue creation and synchronization
+  - **Jira**: Automatic issue creation, synchronization, and similar issue search *(search: v2.8.0)*
   - **Monday.com**: Work OS integration for task management
   - **TestRail**: Test case management and result synchronization
-  - **Confluence**: Automated RCA documentation and test reporting
+  - **Confluence**: Automated RCA documentation, test reporting, and knowledge retrieval *(reader: v2.8.0)*
   - **Grafana & Prometheus**: Metrics visualization and alerting
-  - **GitHub**: Workflow triggers and status updates
+  - **GitHub**: Workflow triggers, status updates, commit diffs, and PR awareness *(code awareness: v2.8.0)*
   - **Slack**: Real-time notifications and alerts
   - **Email**: Customizable notification templates
   - **Pushover**: Mobile push notifications
@@ -153,7 +157,7 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
 - **Validation**: Zod schema validation
 - **Testing**: Jest with supertest
 - **Logging**: Winston
-- **AI Services** *(v2.5.3-v2.5.4)*:
+- **AI Services** *(v2.5.3-v2.8.0)*:
   - Anthropic Claude SDK (@anthropic-ai/sdk)
   - OpenAI SDK (openai)
   - Google Generative AI SDK (@google/generative-ai) *(v2.5.4)*
@@ -491,6 +495,7 @@ Seamlessly integrate with Jira for issue tracking and test management.
 - Link test runs to existing issues
 - Bi-directional status synchronization
 - Custom field mapping
+- **Similar issue search** *(v2.8.0)*: JQL text search finds existing Jira issues matching a failure before creating duplicates
 
 **Configuration:**
 ```env
@@ -545,7 +550,7 @@ TESTRAIL_PROJECT_ID=1                             # Optional: Default project
 
 ### Confluence Integration
 
-Integrate with Atlassian Confluence to automatically publish test documentation and RCA reports.
+Integrate with Atlassian Confluence to automatically publish test documentation and RCA reports --- and search existing knowledge.
 
 **Features:**
 - Publish Root Cause Analysis documents from Failure Knowledge Base
@@ -553,6 +558,7 @@ Integrate with Atlassian Confluence to automatically publish test documentation 
 - Link documentation to Jira issues for traceability
 - Organize pages with spaces, parent pages, and labels
 - Track publishing history and update existing pages
+- **Knowledge reader** *(v2.8.0)*: CQL search finds relevant RCA docs, runbooks, and architecture pages when analyzing failures
 
 **Configuration:**
 ```env
@@ -609,6 +615,7 @@ Trigger and monitor GitHub Actions workflows directly from TestOps Companion.
 - Status monitoring
 - PR status checks integration
 - Commit status updates
+- **Code awareness** *(v2.8.0)*: Fetch commit diffs, find associated PRs, and analyze file changes to understand what code changes may have caused a test failure
 
 **Configuration:**
 ```env
@@ -777,7 +784,7 @@ PUT    /api/v1/failure-archive/:id/resolve      # Mark failure as resolved
 POST   /api/v1/failure-archive/detect-patterns  # Detect recurring patterns
 ```
 
-### AI Endpoints *(v2.5.3-v2.5.4)*
+### AI Endpoints *(v2.5.3-v2.8.0)*
 
 ```
 # RCA Matching (v2.5.3)
@@ -790,6 +797,9 @@ POST   /api/ai/categorize           # Categorize test failure with AI
 
 # Log Summarization (v2.5.4)
 POST   /api/ai/summarize            # Summarize test logs with AI
+
+# Cross-Platform Context Enrichment (v2.8.0)
+POST   /api/ai/enrich               # Enrich failure with Jira/Confluence/GitHub context
 
 # Monitoring & Stats
 GET    /api/ai/health               # Check AI services health

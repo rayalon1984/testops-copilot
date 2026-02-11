@@ -27,11 +27,52 @@ The Confluence integration allows you to:
 - **Organize documentation** in spaces with parent pages and labels
 - **Track publishing history** and update existing pages
 
-This integration is part of the Phase 1 implementation, focusing on documentation publishing and test reporting.
-
 ## Features
 
-### 1. RCA Document Publishing
+### 1. Knowledge Search and Retrieval (v2.8.0)
+
+**New in v2.8.0:** Confluence is no longer write-only. The integration now reads *from* Confluence to surface relevant documentation when analyzing test failures.
+
+- **CQL semantic search** across your wiki for pages matching a failure's error message or test name
+- **Label-based filtering**: automatically scopes searches to pages tagged `rca`, `runbook`, `architecture`, or `troubleshooting`
+- **Excerpt extraction**: returns the first 500 characters of matching pages as plain text
+- Used automatically by the [Context Enrichment API](../api.md#context-enrichment-v280) (`POST /api/ai/enrich`)
+
+**Example: How it surfaces knowledge**
+
+When a test fails with "Connection timeout", the system searches Confluence and finds:
+- A runbook titled "Connection Troubleshooting" with the fix documented
+- An architecture page explaining the connection pool configuration
+
+This context is fed to the AI alongside Jira and GitHub data to produce a complete root cause analysis.
+
+**Usage via Context Enrichment:**
+```json
+POST /api/ai/enrich
+{
+  "failure": {
+    "testId": "test-123",
+    "errorMessage": "Connection timeout after 30s",
+    "testName": "testLoginFlow"
+  },
+  "sources": { "confluence": true }
+}
+```
+
+**Direct service usage:**
+```typescript
+const pages = await confluenceService.searchContent(
+  'Connection timeout login',
+  {
+    spaceKey: 'OPS',
+    maxResults: 5,
+    labels: ['rca', 'runbook']
+  }
+);
+// Returns: [{ id, title, url, excerpt, labels }]
+```
+
+### 2. RCA Document Publishing
 - Publish detailed Root Cause Analysis documents from the Failure Knowledge Base
 - Include failure details, error messages, stack traces, and screenshots
 - Document root cause, detailed analysis, solutions, and prevention steps
@@ -39,14 +80,14 @@ This integration is part of the Phase 1 implementation, focusing on documentatio
 - Apply labels for categorization (rca, test-failure, severity levels)
 - Track temporal data (environment, build number, commit SHA, branch)
 
-### 2. Test Execution Reports
+### 3. Test Execution Reports
 - Generate comprehensive test run reports with statistics
 - Include pass/fail rates, execution time, and test counts
 - Optional detailed failure information with error messages
 - Track test status distribution (passed, failed, skipped, error)
 - Automatic labeling (test-report, status-based tags)
 
-### 3. Page Management
+### 4. Page Management
 - Create new Confluence pages with rich HTML content
 - Update existing pages while preserving version history
 - Apply labels for categorization and searchability
@@ -905,5 +946,5 @@ Planned improvements for future versions:
 - Automatic page archiving for resolved failures
 - Custom page templates
 - Bulk export/import functionality
-- Confluence search integration
+- ~~Confluence search integration~~ *(Shipped: v2.8.0)*
 - Page analytics and view tracking
