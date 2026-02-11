@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-02-11
+
+### Added
+- **Cross-Platform Context Enrichment**
+  - Jira similar issue search — JQL text search to find existing Jira issues matching test failures
+  - Confluence knowledge reader — CQL search to find relevant RCA docs, runbooks, and architecture pages
+  - GitHub code awareness — fetch commit diffs, find associated PRs, and get PR file changes
+  - AI-powered context enrichment service — orchestrates all three sources and synthesizes insights via LLM
+  - New API endpoint `POST /api/ai/enrich` for cross-platform failure context enrichment
+
+### Changed
+- Jira service now searches for duplicate/similar issues before creating new ones
+- Confluence service now reads from pages (previously write-only)
+- GitHub service now analyzes code changes related to test failures
+- Added `searchJira` to jira-client type declarations
+- Fixed Docker production installation test (env_file vs --env-file, DB readiness wait loop)
+
+## [2.7.1] - 2026-02-08
+
+### Security
+- Fixed privilege escalation via registration (mass assignment of role field)
+- Added authentication to 8 unprotected route groups (failure-archive, monday, metrics, dashboard, jira, AI, notification endpoints, Prometheus)
+- Fixed SSRF in Jenkins service (blocked private/internal IP ranges, validated redirect origins)
+- Blacklist old refresh tokens on rotation to prevent reuse
+- Stripped credentials from pipeline API responses
+- Redacted sensitive fields (passwords, tokens) from error handler logs
+- Added input validation middleware to register/login routes
+
+### Changed
+- Added 1MB body parser size limit and pagination limit on test run queries
+- Removed system info from health endpoint, strict channel verification schema
+
+## [2.7.0] - 2026-02-06
+
+### Security
+- Removed hardcoded secrets from docker-compose.prod.yml
+- Disabled anonymous Weaviate authentication in production
+- Added JWT secret minimum 32-character validation
+- Implemented token blacklist service for proper logout/revocation
+- Added stricter rate limiting on auth endpoints (10 req/15min)
+
+### Changed
+- Consolidated all PrismaClient usage to singleton pattern (lib/prisma.ts)
+- Eliminated all ESLint errors, reduced warnings from 159 to 142
+- Generated baseline Prisma migration (0001_baseline)
+- Updated .env.production.example with secrets generation guidance
+- Removed all continue-on-error flags; tests, lint, and typecheck now block merges
+- Removed passWithNoTests from jest.config.js
+
+### Added
+- 87 tests (50 backend + 37 frontend) covering auth, JWT, error handling, and UI components
+
+## [2.6.0] - 2026-01-20
+
+### Added
+- **MCP Server for AI-Powered Test Analysis**
+  - 8 powerful tools for failure analysis, batch analysis, knowledge base search, and more
+  - TypeScript strict mode with full type safety and Zod validation
+  - PostgreSQL integration with connection pooling and transaction support
+  - 98% token reduction and 90% cost savings through server-side execution
+
+### Changed
+- Updated root package.json with MCP server scripts (mcp:dev, mcp:inspector, mcp:build)
+- Integrated MCP server into build, install, typecheck workflows
+
 ## [2.5.4] - 2025-11-20
 
 ### Added
@@ -501,5 +566,14 @@ git push origin vX.Y.Z
 
 When breaking changes are introduced, migration guides will be provided here to help users upgrade their applications.
 
-[Unreleased]: https://github.com/yourusername/testops-companion/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/testops-companion/releases/tag/v1.0.0
+[Unreleased]: https://github.com/rayalon1984/testops-companion/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.0
+[2.7.1]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.7.1
+[2.7.0]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.7.0
+[2.6.0]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.6.0
+[2.5.4]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.4
+[2.5.3]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.3
+[2.5.2]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.2
+[2.5.1]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.1
+[2.5.0]: https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.0
+[1.0.0]: https://github.com/rayalon1984/testops-companion/releases/tag/v1.0.0
