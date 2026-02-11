@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.7.1](https://github.com/rayalon1984/testops-companion/releases/tag/v2.7.1) - Security Patch: Critical vulnerability fixes across backend | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.8.0](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.0) - Cross-Platform Context Enrichment: Jira search, Confluence reader, GitHub code awareness | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 

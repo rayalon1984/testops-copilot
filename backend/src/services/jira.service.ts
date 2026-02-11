@@ -177,6 +177,121 @@ export class JiraService {
     }
   }
 
+  /**
+   * Search Jira for issues similar to a given test failure.
+   * Uses JQL text search on summary and description fields.
+   */
+  async searchSimilarIssues(
+    errorMessage: string,
+    testName?: string,
+    options: { maxResults?: number; projectKey?: string; statusFilter?: string[] } = {}
+  ): Promise<JiraIssueResponse[]> {
+    this.checkEnabled();
+
+    const maxResults = options.maxResults || 10;
+    const project = options.projectKey || this.projectKey;
+
+    try {
+      // Extract key terms from the error message for JQL text search
+      const searchTerms = this.extractSearchTerms(errorMessage);
+      if (searchTerms.length === 0 && !testName) {
+        return [];
+      }
+
+      // Build JQL query: search summary and description for matching terms
+      const textClauses: string[] = [];
+      if (searchTerms.length > 0) {
+        const termString = searchTerms.join(' ');
+        textClauses.push(`text ~ "${this.escapeJql(termString)}"`);
+      }
+      if (testName) {
+        textClauses.push(`summary ~ "${this.escapeJql(testName)}"`);
+      }
+
+      let jql = `project = ${project} AND (${textClauses.join(' OR ')})`;
+
+      // Optionally filter by status (e.g., only open issues)
+      if (options.statusFilter && options.statusFilter.length > 0) {
+        const statuses = options.statusFilter.map(s => `"${s}"`).join(', ');
+        jql += ` AND status IN (${statuses})`;
+      }
+
+      jql += ' ORDER BY updated DESC';
+
+      const result = await this.client!.searchJira(jql, {
+        maxResults,
+        fields: ['summary', 'description', 'status', 'issuetype', 'labels', 'updated', 'created', 'assignee', 'priority'],
+      });
+
+      const issues: JiraIssueResponse[] = (result.issues || []).map((issue: any) => ({
+        id: issue.id,
+        key: issue.key,
+        fields: {
+          summary: issue.fields.summary ?? '',
+          description: issue.fields.description ?? '',
+          status: { name: issue.fields.status?.name ?? 'Unknown' },
+          issuetype: { name: issue.fields.issuetype?.name ?? 'Unknown' },
+          labels: issue.fields.labels || [],
+          priority: issue.fields.priority?.name,
+          assignee: issue.fields.assignee?.displayName,
+          updated: issue.fields.updated,
+          created: issue.fields.created,
+        },
+      }));
+
+      logger.info(`Found ${issues.length} similar Jira issues for: ${testName || searchTerms.join(' ')}`);
+      return issues;
+    } catch (error) {
+      logger.error('Failed to search Jira for similar issues:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Extract meaningful search terms from an error message.
+   * Strips noise like timestamps, UUIDs, memory addresses, and line numbers.
+   */
+  private extractSearchTerms(errorMessage: string): string[] {
+    let cleaned = errorMessage
+      // Remove timestamps
+      .replace(/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[.\d]*Z?/g, '')
+      // Remove UUIDs
+      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '')
+      // Remove memory addresses
+      .replace(/0x[0-9a-f]+/gi, '')
+      // Remove file paths with line numbers
+      .replace(/\(\/[^)]+:\d+:\d+\)/g, '')
+      // Remove standalone numbers
+      .replace(/\b\d{4,}\b/g, '')
+      // Collapse whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Take the first meaningful portion (JQL text search has limits)
+    if (cleaned.length > 200) {
+      cleaned = cleaned.substring(0, 200);
+    }
+
+    return cleaned ? [cleaned] : [];
+  }
+
+  /**
+   * Escape special JQL characters
+   */
+  private escapeJql(text: string): string {
+    return text
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/'/g, "\\'");
+  }
+
+  /**
+   * Check if Jira integration is enabled
+   */
+  isEnabled(): boolean {
+    return this.enabled;
+  }
+
   private async transitionIssue(issueKey: string, status: JiraIssueStatus): Promise<void> {
     this.checkEnabled();
 

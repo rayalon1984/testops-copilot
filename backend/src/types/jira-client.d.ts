@@ -46,6 +46,7 @@ declare module 'jira-client' {
     listTransitions(issueKey: string): Promise<JiraTransitions>;
     transitionIssue(issueKey: string, transition: { transition: { id: string } }): Promise<void>;
     addComment(issueKey: string, comment: { body: string }): Promise<void>;
+    searchJira(searchString: string, optional?: { maxResults?: number; fields?: string[]; startAt?: number }): Promise<{ issues: JiraIssue[]; total: number; maxResults: number; startAt: number }>;
   }
 
   export = JiraApi;

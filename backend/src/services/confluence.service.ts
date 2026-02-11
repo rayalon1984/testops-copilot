@@ -473,6 +473,107 @@ export class ConfluenceService {
   }
 
   /**
+   * Search Confluence for pages relevant to a test failure.
+   * Uses CQL (Confluence Query Language) to find RCA docs, runbooks, and architecture pages.
+   */
+  async searchContent(
+    query: string,
+    options: { spaceKey?: string; maxResults?: number; labels?: string[] } = {}
+  ): Promise<Array<{ id: string; title: string; url: string; excerpt: string; labels: string[] }>> {
+    this.checkEnabled();
+
+    const space = options.spaceKey || this.spaceKey;
+    const maxResults = options.maxResults || 10;
+
+    try {
+      // Build CQL query
+      let cql = `type = page AND text ~ "${this.escapeCql(query)}"`;
+      if (space) {
+        cql += ` AND space = "${space}"`;
+      }
+      if (options.labels && options.labels.length > 0) {
+        const labelClauses = options.labels.map(l => `label = "${l}"`).join(' OR ');
+        cql += ` AND (${labelClauses})`;
+      }
+      cql += ' ORDER BY lastModified DESC';
+
+      const response = await this.client!.get('/content/search', {
+        params: {
+          cql,
+          limit: maxResults,
+          expand: 'body.view,metadata.labels,space',
+        },
+      });
+
+      const results = (response.data.results || []).map((page: any) => {
+        // Extract a text excerpt from the page body (strip HTML)
+        const bodyHtml = page.body?.view?.value || '';
+        const excerpt = this.stripHtml(bodyHtml).substring(0, 500);
+        const labels = (page.metadata?.labels?.results || []).map((l: any) => l.name);
+
+        return {
+          id: page.id,
+          title: page.title,
+          url: `${config.confluence!.baseUrl}/wiki${page._links?.webui || ''}`,
+          excerpt,
+          labels,
+        };
+      });
+
+      logger.info(`Found ${results.length} Confluence pages for query: ${query.substring(0, 50)}`);
+      return results;
+    } catch (error) {
+      logger.error('Failed to search Confluence:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get the full text content of a Confluence page (HTML stripped to plain text).
+   */
+  async getPageContent(pageId: string): Promise<{ title: string; content: string; url: string }> {
+    this.checkEnabled();
+
+    try {
+      const page = await this.getPage(pageId);
+      const content = this.stripHtml(page.body?.storage?.value || '');
+
+      return {
+        title: page.title,
+        content,
+        url: `${config.confluence!.baseUrl}/wiki${page._links?.webui || ''}`,
+      };
+    } catch (error) {
+      logger.error(`Failed to get Confluence page content ${pageId}:`, error);
+      throw new Error('Failed to get Confluence page content');
+    }
+  }
+
+  /**
+   * Strip HTML tags and return plain text
+   */
+  private stripHtml(html: string): string {
+    return html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .trim();
+  }
+
+  /**
+   * Escape special CQL characters
+   */
+  private escapeCql(text: string): string {
+    return text
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"');
+  }
+
+  /**
    * Build RCA document content in Confluence storage format
    */
   private buildRCAContent(failure: any, linkToJira: boolean): string {

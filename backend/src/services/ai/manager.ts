@@ -14,6 +14,7 @@ import { initializeSchemas } from './vector/schema';
 import { RCAMatchingService } from './features/rca-matching';
 import { CategorizationService } from './features/categorization';
 import { LogSummarizationService } from './features/log-summary';
+import { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './features/context-enrichment';
 import { AICache, getCache } from './cache';
 import { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
 import { TestFailure, SimilarFailure, HealthStatus, FailureCategorization, LogSummary } from './types';
@@ -38,6 +39,7 @@ export class AIManager {
   private rcaMatching: RCAMatchingService | null = null;
   private categorization: CategorizationService | null = null;
   private logSummarization: LogSummarizationService | null = null;
+  private contextEnrichment: ContextEnrichmentService;
   private initialized: boolean = false;
   private db: Pool;
 
@@ -46,6 +48,7 @@ export class AIManager {
     this.configManager = getConfigManager();
     this.cache = getCache();
     this.costTracker = getCostTracker(this.db, this.configManager.getCostConfig());
+    this.contextEnrichment = new ContextEnrichmentService();
   }
 
   /**
@@ -79,6 +82,7 @@ export class AIManager {
 
       // Initialize AI provider
       this.provider = createProviderFromEnv();
+      this.contextEnrichment.setProvider(this.provider);
       console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
 
       // Initialize categorization service (always available)
@@ -304,6 +308,38 @@ export class AIManager {
       return result;
     } catch (error) {
       console.error('Log summarization failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enrich a test failure with cross-platform context from Jira, Confluence, and GitHub.
+   */
+  async enrichFailureContext(input: EnrichmentInput): Promise<EnrichmentResult> {
+    this.ensureInitialized();
+
+    try {
+      const result = await this.contextEnrichment.enrichFailureContext(input);
+
+      // Record usage if AI was involved
+      if (this.provider && result.sourcesQueried.length > 0 && result.analysis) {
+        const record: UsageRecord = {
+          timestamp: new Date(),
+          provider: this.provider.getName(),
+          model: this.configManager.getModel(),
+          feature: 'rca_matching',
+          inputTokens: this.estimateTokens(result.analysis),
+          outputTokens: this.estimateTokens(result.analysis),
+          totalTokens: this.estimateTokens(result.analysis) * 2,
+          costUSD: 0.003,
+          cached: false,
+        };
+        await this.costTracker.recordUsage(record);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Context enrichment failed:', error);
       throw error;
     }
   }

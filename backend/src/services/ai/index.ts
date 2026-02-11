@@ -33,6 +33,7 @@ export * from './vector/schema';
 export { RCAMatchingService, RCAMatchingOptions } from './features/rca-matching';
 export { CategorizationService, CategorizationOptions } from './features/categorization';
 export { LogSummarizationService, SummarizationOptions } from './features/log-summary';
+export { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './features/context-enrichment';
 
 // Export cache and cost tracking
 export { AICache, getCache, closeCache } from './cache';

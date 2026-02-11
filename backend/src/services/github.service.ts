@@ -142,6 +142,108 @@ export class GitHubService {
     }
   }
 
+  /**
+   * Get the files changed in a specific commit.
+   * Returns file names, patches (diffs), and change stats.
+   */
+  async getCommitChanges(
+    owner: string,
+    repo: string,
+    commitSha: string
+  ): Promise<{ message: string; files: Array<{ filename: string; status: string; patch: string; additions: number; deletions: number }> }> {
+    try {
+      const response = await this.octokit.repos.getCommit({
+        owner,
+        repo,
+        ref: commitSha,
+      });
+
+      const commit = response.data;
+      return {
+        message: commit.commit.message,
+        files: (commit.files || []).map((f: any) => ({
+          filename: f.filename,
+          status: f.status,
+          patch: f.patch || '',
+          additions: f.additions,
+          deletions: f.deletions,
+        })),
+      };
+    } catch (error) {
+      logger.error(`Failed to get commit changes for ${commitSha}:`, error);
+      throw new Error('Failed to get commit changes from GitHub');
+    }
+  }
+
+  /**
+   * Find the pull request associated with a commit SHA.
+   */
+  async getPullRequestForCommit(
+    owner: string,
+    repo: string,
+    commitSha: string
+  ): Promise<{ number: number; title: string; body: string; url: string; author: string } | null> {
+    try {
+      const response = await this.octokit.repos.listPullRequestsAssociatedWithCommit({
+        owner,
+        repo,
+        commit_sha: commitSha,
+      });
+
+      const prs = response.data;
+      if (prs.length === 0) return null;
+
+      // Return the most recent merged or open PR
+      const pr = prs.find((p: any) => p.merged_at) || prs[0];
+      return {
+        number: pr.number,
+        title: pr.title,
+        body: pr.body || '',
+        url: pr.html_url,
+        author: pr.user?.login || 'unknown',
+      };
+    } catch (error) {
+      logger.error(`Failed to find PR for commit ${commitSha}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get the files changed in a pull request.
+   */
+  async getPullRequestFiles(
+    owner: string,
+    repo: string,
+    pullNumber: number
+  ): Promise<Array<{ filename: string; status: string; patch: string; additions: number; deletions: number }>> {
+    try {
+      const response = await this.octokit.pulls.listFiles({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100,
+      });
+
+      return response.data.map((f: any) => ({
+        filename: f.filename,
+        status: f.status,
+        patch: f.patch || '',
+        additions: f.additions,
+        deletions: f.deletions,
+      }));
+    } catch (error) {
+      logger.error(`Failed to get PR #${pullNumber} files:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Check if GitHub is configured with a valid token
+   */
+  isEnabled(): boolean {
+    return !!config.github.token;
+  }
+
   private parseConfig(config: unknown): GitHubWorkflowConfig {
     if (
       !config ||

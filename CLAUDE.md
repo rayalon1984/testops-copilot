@@ -1,7 +1,7 @@
 # TestOps Companion - AI Assistant Development Guide
 
-> **Last Updated**: 2026-02-08
-> **Version**: 2.7.1
+> **Last Updated**: 2026-02-11
+> **Version**: 2.8.0
 > **Purpose**: Comprehensive guide for AI assistants working on TestOps Companion
 
 ---
@@ -2184,6 +2184,18 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 ---
 
 ## Changelog
+
+### 2026-02-11 (v2.8.0 - Cross-Platform Context Enrichment)
+- **Feature**: Jira similar issue search — JQL text search to find existing Jira issues matching test failures
+- **Feature**: Confluence knowledge reader — CQL search to find relevant RCA docs, runbooks, and architecture pages
+- **Feature**: GitHub code awareness — fetch commit diffs, find associated PRs, and get PR file changes
+- **Feature**: AI-powered context enrichment service — orchestrates all three sources and synthesizes insights via LLM
+- **Feature**: New API endpoint `POST /api/ai/enrich` for cross-platform failure context enrichment
+- **Integration**: Jira service now searches for duplicate/similar issues before creating new ones
+- **Integration**: Confluence service now reads from pages (previously write-only)
+- **Integration**: GitHub service now analyzes code changes related to test failures
+- **Types**: Added `searchJira` to jira-client type declarations
+- **CI**: Fixed Docker production installation test (env_file vs --env-file, DB readiness wait loop)
 
 ### 2026-02-08 (v2.7.1 - Security Patch Release)
 - **Security**: Fixed privilege escalation via registration (mass assignment of role field)

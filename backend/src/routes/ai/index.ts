@@ -12,6 +12,7 @@ import { TestFailure } from '../../services/ai/types';
 import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
 import { SummarizationOptions } from '../../services/ai/features/log-summary';
+import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
 
 const router: IRouter = Router();
 
@@ -320,6 +321,51 @@ router.post('/summarize', async (req: Request, res: Response) => {
     console.error('Log summarization failed:', error);
     return     res.status(500).json({
       error: 'Log summarization failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /api/ai/enrich
+ * Enrich a test failure with cross-platform context from Jira, Confluence, and GitHub.
+ * Returns related Jira issues, relevant Confluence docs, code changes, and AI analysis.
+ */
+router.post('/enrich', async (req: Request, res: Response) => {
+  try {
+    const aiManager = getAIManager();
+
+    const { failure, repo, sources, maxResultsPerSource } = req.body;
+
+    if (!failure || !failure.testId || !failure.errorMessage) {
+      return res.status(400).json({
+        error: 'Invalid failure data. Required: failure.testId, failure.errorMessage',
+      });
+    }
+
+    const input: EnrichmentInput = {
+      failure,
+      repo,
+      sources,
+      maxResultsPerSource,
+    };
+
+    const result = await aiManager.enrichFailureContext(input);
+
+    return res.json({
+      analysis: result.analysis,
+      confidence: result.confidence,
+      sourcesQueried: result.sourcesQueried,
+      context: {
+        jiraIssues: result.context.jiraIssues,
+        confluencePages: result.context.confluencePages,
+        codeChanges: result.context.codeChanges,
+      },
+    });
+  } catch (error) {
+    console.error('Context enrichment failed:', error);
+    return res.status(500).json({
+      error: 'Context enrichment failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
