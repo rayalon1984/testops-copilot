@@ -22,7 +22,8 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### API & Integration
 - [API Documentation](api.md) - REST API reference
-- [Jira Integration](integrations/jira.md) - Jira ticket creation and tracking
+- [Jira Integration](integrations/jira.md) - Jira ticket creation, tracking, and similar issue search
+- [Confluence Integration](integrations/confluence.md) - Documentation publishing and knowledge retrieval
 - [Monday.com Integration](integrations/monday.md) - Monday.com Work OS integration
 - [Grafana Integration](integrations/grafana.md) - Prometheus metrics and Grafana dashboards
 - [Authentication](authentication.md) - Authentication and authorization
@@ -35,6 +36,8 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### Features
 - [Failure Knowledge Base](features/FAILURE_KNOWLEDGE_BASE.md) - RCA documentation and intelligent failure matching
+- [How Does It Work?](HOW_DOES_IT_WORK.md) - Plain-English guide to the system
+- [Cross-Platform Context Enrichment](api.md#context-enrichment-v280) - AI-powered failure analysis with Jira, Confluence, and GitHub context
 
 ### User Guides
 - [Pipeline Management](guides/pipelines.md) - Managing test pipelines
@@ -122,6 +125,11 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - Performance metrics
 - Custom reports
 
+### AI-Powered Analysis
+- AI failure categorization, log summarization, and RCA matching
+- Cross-platform context enrichment *(v2.8.0)*: gathers context from Jira, Confluence, and GitHub
+- Multi-provider support: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI
+
 ### Integrations
 
 #### CI/CD Platforms
@@ -129,8 +137,12 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - GitHub Actions
 
 #### Work Management
-- **Jira** - Automatic issue creation and tracking
+- **Jira** - Automatic issue creation, tracking, and similar issue search *(v2.8.0)*
 - **Monday.com** - Work OS integration for task management
+
+#### Knowledge & Documentation
+- **Confluence** - Documentation publishing and knowledge retrieval *(reader: v2.8.0)*
+- **GitHub** - Commit diffs, PR file changes, and code awareness *(v2.8.0)*
 
 #### Monitoring & Observability
 - **Grafana & Prometheus** - Real-time metrics visualization and alerting

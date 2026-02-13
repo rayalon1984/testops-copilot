@@ -236,6 +236,109 @@ Paginated endpoints return metadata:
 }
 ```
 
+## AI Endpoints
+
+### Context Enrichment (v2.8.0)
+
+#### POST /api/ai/enrich
+
+Enrich a test failure with cross-platform context from Jira, Confluence, and GitHub. Returns an AI-synthesized analysis connecting the dots across all sources.
+
+**Request:**
+```json
+{
+  "failure": {
+    "testId": "test-123",
+    "testName": "testLoginFlow",
+    "errorMessage": "Connection timeout after 30s",
+    "stackTrace": "at LoginService.authenticate (src/auth/login.ts:45)...",
+    "pipeline": "main-ci",
+    "branch": "main",
+    "commitHash": "abc123def456"
+  },
+  "repo": "acme/webapp",
+  "sources": {
+    "jira": true,
+    "confluence": true,
+    "github": true
+  },
+  "maxResultsPerSource": 5
+}
+```
+
+**Response:**
+```json
+{
+  "analysis": "This failure matches open ticket PROJ-456. PR #123 modified the timeout config...",
+  "confidence": 0.85,
+  "sourcesQueried": ["jira", "confluence", "github"],
+  "context": {
+    "jiraIssues": [
+      {
+        "key": "PROJ-456",
+        "summary": "Connection timeout issues in login flow",
+        "status": "In Progress",
+        "type": "Bug",
+        "priority": "High",
+        "assignee": "john.doe",
+        "url": "PROJ-456"
+      }
+    ],
+    "confluencePages": [
+      {
+        "id": "123456",
+        "title": "Connection Troubleshooting Runbook",
+        "url": "https://confluence.example.com/wiki/pages/123456",
+        "excerpt": "Common connection timeout issues and solutions...",
+        "labels": ["rca", "runbook"]
+      }
+    ],
+    "codeChanges": {
+      "commit": {
+        "sha": "abc123def456",
+        "message": "Update connection timeout config",
+        "files": [{"filename": "src/config/timeout.ts", "status": "modified", "additions": 5, "deletions": 2}]
+      },
+      "pullRequest": {
+        "number": 123,
+        "title": "Fix timeout configuration",
+        "url": "https://github.com/acme/webapp/pull/123",
+        "author": "jane.smith"
+      }
+    }
+  }
+}
+```
+
+**Parameters:**
+- `failure` (required): Object with `testId` and `errorMessage` at minimum
+- `repo` (optional): GitHub `owner/repo` slug for code awareness
+- `sources` (optional): Toggle individual sources (all default to `true`)
+- `maxResultsPerSource` (optional): Cap results per source (default: 5)
+
+### RCA Matching (v2.5.3)
+
+```
+POST   /api/ai/rca/similar          # Find similar historical failures
+POST   /api/ai/rca/store            # Store failure for future matching
+PUT    /api/ai/rca/:id/resolve      # Mark failure as resolved
+```
+
+### Categorization & Summarization (v2.5.4)
+
+```
+POST   /api/ai/categorize           # Categorize test failure with AI
+POST   /api/ai/summarize            # Summarize test logs with AI
+```
+
+### Monitoring
+
+```
+GET    /api/ai/health               # AI services health check
+GET    /api/ai/costs                # Cost summary and usage stats
+GET    /api/ai/stats                # Overall AI statistics
+```
+
 ## Versioning
 
 The API version is included in the URL path (/api/v1/).

@@ -135,7 +135,30 @@ graph LR
 
 ---
 
-### 5. Pipeline Management
+### 5. Cross-Platform Context Enrichment (v2.8.0)
+
+```mermaid
+graph TD
+    subgraph Enrichment["Context Enrichment Results"]
+        Header[Failure: Connection Timeout in Login Test]
+        Sources[Context Sources]
+        Analysis[AI Analysis]
+    end
+
+    Sources --> JiraResults["Jira: PROJ-456 Connection timeout issues (In Progress)"]
+    Sources --> ConfResults["Confluence: Connection Troubleshooting Runbook"]
+    Sources --> GitResults["GitHub: PR #123 modified timeout config (jane.smith)"]
+
+    Analysis --> Synthesis["AI says: This matches PROJ-456. PR #123 changed the timeout\nconfig which likely caused the regression. The Confluence\nrunbook has the documented fix. Confidence: 85%"]
+
+    Synthesis --> Actions["Link to PROJ-456 | Apply Runbook Fix | Review PR #123"]
+```
+
+**Placeholder:** `screenshots/context-enrichment.png`
+
+---
+
+### 6. Pipeline Management
 
 ```mermaid
 graph TD
@@ -156,7 +179,7 @@ graph TD
 
 ---
 
-### 6. Notifications & Integrations
+### 7. Notifications & Integrations
 
 ```mermaid
 graph LR
@@ -183,7 +206,7 @@ graph LR
 
 ---
 
-### 7. Grafana Metrics Dashboard
+### 8. Grafana Metrics Dashboard
 
 ```mermaid
 graph TB
@@ -252,7 +275,39 @@ sequenceDiagram
 
 ---
 
-### Workflow 2: Documenting a New Failure
+### Workflow 2: Cross-Platform Context Enrichment (v2.8.0)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant TestRun
+    participant Enrichment
+    participant Jira
+    participant Confluence
+    participant GitHub
+    participant AI
+
+    User->>TestRun: Views failed test
+    TestRun->>Enrichment: Request context enrichment
+    par Parallel Context Gathering
+        Enrichment->>Jira: Search similar issues (JQL)
+        Enrichment->>Confluence: Search runbooks (CQL)
+        Enrichment->>GitHub: Fetch commit diff + PR
+    end
+    Jira-->>Enrichment: 2 matching issues
+    Confluence-->>Enrichment: 1 relevant runbook
+    GitHub-->>Enrichment: PR #123 with 3 changed files
+    Enrichment->>AI: Synthesize all context
+    AI-->>Enrichment: Actionable analysis (85% confidence)
+    Enrichment-->>User: "Matches PROJ-456, runbook has fix, PR #123 is root cause"
+    Note over User: Full picture in 30 seconds, not 30 minutes
+```
+
+**Placeholder:** `screenshots/workflow-enrichment.png`
+
+---
+
+### Workflow 3: Documenting a New Failure
 
 ```mermaid
 sequenceDiagram
@@ -378,7 +433,14 @@ When creating actual demo videos, cover these scenarios:
 - Link to Jira ticket
 - Save to knowledge base
 
-### 3. **Integration Demo (2 minutes)**
+### 3. **Context Enrichment Demo (3 minutes)** *(v2.8.0)*
+- Trigger a test failure with a known commit hash
+- Watch the enrichment service query Jira, Confluence, and GitHub in parallel
+- See the AI synthesis: matching Jira ticket + relevant runbook + PR that caused the issue
+- One-click to link the failure to the existing Jira ticket
+- Show the confidence score and how it changes with more context sources
+
+### 4. **Integration Demo (2 minutes)**
 - Configure Jira integration
 - Configure Slack notifications
 - Set up Grafana dashboard
@@ -387,14 +449,14 @@ When creating actual demo videos, cover these scenarios:
 - Similar failure alert shows up
 - Metrics update in real-time on Grafana
 
-### 4. **Knowledge Base Tour (3 minutes)**
+### 5. **Knowledge Base Tour (3 minutes)**
 - Browse archived failures
 - Search for specific error patterns
 - View statistics and insights
 - See recurring failure patterns
 - Export data
 
-### 5. **Grafana Metrics Demo (2 minutes)**
+### 6. **Grafana Metrics Demo (2 minutes)**
 - View real-time test metrics dashboard
 - Explore pass rate trends over time
 - Check execution time percentiles (P50, P95, P99)
@@ -425,7 +487,9 @@ When capturing actual screenshots, include:
 
 ### Feature Highlights:
 - [ ] Smart matching in action (side-by-side comparison)
-- [ ] Jira integration working (ticket creation)
+- [ ] Context enrichment results panel (Jira + Confluence + GitHub context)
+- [ ] AI synthesis output with confidence score
+- [ ] Jira integration working (ticket creation + similar issue search)
 - [ ] Monday.com integration (item creation)
 - [ ] Slack notification example
 - [ ] Search and filter functionality

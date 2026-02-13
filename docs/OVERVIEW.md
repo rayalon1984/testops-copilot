@@ -209,6 +209,24 @@ Break-even: Less than 1 week
 
 ---
 
+## 🔗 Cross-Platform Context Enrichment (v2.8.0)
+
+**The newest capability: when a test fails, the system automatically pulls context from every tool your team uses.**
+
+### How It Works (30-Second Version)
+
+1. A test fails
+2. TestOps Companion simultaneously searches:
+   - **Jira**: "Is there already a ticket for this?"
+   - **Confluence**: "Did someone write a runbook for this?"
+   - **GitHub**: "What code changed that might have caused this?"
+3. The AI reads all the context together and gives you a one-paragraph answer:
+   > "This matches open ticket PROJ-456. The runbook says to increase the connection pool. PR #123 changed the timeout config, which is the likely cause."
+
+**Result:** Instead of 30 minutes of detective work across three different tools, your team gets the full picture in 30 seconds.
+
+---
+
 ## 🎯 Key Integrations
 
 **TestOps Companion works with the tools you already use:**
@@ -218,8 +236,12 @@ Break-even: Less than 1 week
 - Jenkins - Full pipeline integration
 
 ### Work Management
-- **Jira** - Auto-create tickets from failures
+- **Jira** - Auto-create tickets from failures + search for existing similar issues *(v2.8.0)*
 - **Monday.com** - Work OS integration for task tracking
+
+### Knowledge & Documentation
+- **Confluence** - Publish RCA docs + search existing runbooks and architecture pages *(v2.8.0)*
+- **GitHub** - Beyond CI/CD: fetch commit diffs and PR file changes to understand *what code broke the test* *(v2.8.0)*
 
 ### Notifications
 - **Slack** - Instant failure alerts to channels

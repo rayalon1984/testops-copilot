@@ -84,7 +84,56 @@ Every failure is automatically archived. When your team investigates and documen
                             Jira: INFRA-1234"
 ```
 
-### 4. Your Team Gets Notified
+### 4. Context from Every Tool You Use (v2.8.0)
+
+Before anyone on your team even looks at the failure, the system reaches out to three places simultaneously:
+
+#### A. Jira: "Has anyone reported this before?"
+
+The system searches your Jira project for issues with similar error messages or test names. It strips out noise (timestamps, UUIDs, memory addresses) and looks for the meaningful parts.
+
+If it finds matches, you immediately see:
+
+- Existing tickets that might be the same issue (no duplicate filing)
+- Who's already working on it
+- What priority and status it has
+
+#### B. Confluence: "Is there a runbook for this?"
+
+The system searches your wiki for pages tagged with `rca`, `runbook`, `architecture`, or `troubleshooting` that match the failure. If your team wrote a troubleshooting guide six months ago, it surfaces automatically.
+
+#### C. GitHub: "What code changed?"
+
+If the failure is tied to a specific commit, the system fetches the diff and finds the associated pull request. It then highlights which changed files are most relevant to the failing test.
+
+#### D. The AI Connects the Dots
+
+All three sources --- Jira issues, Confluence docs, and code changes --- are fed to the AI together. Instead of just categorizing the failure, the AI now produces a synthesis:
+
+> "This failure matches open ticket PROJ-456. The Confluence runbook 'Connection Troubleshooting' has a documented fix. PR #123 by jane.smith modified the timeout configuration, which is likely the root cause. Recommended action: apply the fix from the runbook and link to PROJ-456."
+
+```
+  New Failure
+      |
+      v
+  +---------+     +-----------+     +--------+
+  |  Jira   |     | Confluence|     | GitHub |
+  | search  |     |  search   |     |  diffs |
+  +---------+     +-----------+     +--------+
+       \               |               /
+        \              |              /
+         v             v             v
+     +------------------------------+
+     |   AI Synthesis Engine        |
+     |   "Here's what happened and  |
+     |    what to do about it"      |
+     +------------------------------+
+               |
+               v
+     Actionable Root Cause Analysis
+```
+
+### 5. Your Team Gets Notified
 
 When tests finish, the people who need to know get told:
 
@@ -169,11 +218,19 @@ Here's the complete picture of what talks to what:
   |   users)         |       |   for matching)  |
   +------------------+       +------------------+
            |
-           | Sends notifications & creates tickets
+           | Sends notifications, creates tickets,
+           | AND reads back context (v2.8.0)
            v
   +--------------------------------------------------+
   |  Jira  |  Slack  |  Confluence  |  Monday  |  TestRail  |
+  |  (read |         |  (read &     |          |            |
+  |  &write)         |   write)     |          |            |
   +--------------------------------------------------+
+           ^                 ^              ^
+           |                 |              |
+           +--------+--------+--------------+
+                    |
+           GitHub API (commit diffs, PRs)
 ```
 
 ---
@@ -181,7 +238,7 @@ Here's the complete picture of what talks to what:
 ## Frequently Asked Questions
 
 **Does it need access to my source code?**
-No. It only connects to your CI/CD pipeline to watch test results. It reads error messages, stack traces, and logs --- not your application code.
+With the v2.8.0 GitHub code awareness feature, it *can* read commit diffs and PR file changes when investigating a failure --- but only for the specific commits tied to the failing test run. It does not clone your repo or scan your entire codebase. The feature is optional and can be disabled per-request.
 
 **Does it slow down my pipeline?**
 No. It observes from the outside. Your tests run exactly as they would without it. We poll for results after the fact.
@@ -203,4 +260,4 @@ Yes. The pipeline monitoring, test tracking, notifications, and integrations all
 
 ---
 
-*That's it. Connect your pipeline, let it watch your tests, and let the AI handle the detective work.*
+*That's it. Connect your pipeline, let it watch your tests, and let the AI handle the detective work --- now with context from Jira, Confluence, and GitHub built right in.*
