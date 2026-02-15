@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   CssBaseline,
@@ -12,12 +12,13 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  ListItemButton,
   Divider,
   useTheme,
   useMediaQuery,
-  Select,
-  MenuItem,
-  FormControl,
+  Chip,
+  alpha,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -27,30 +28,58 @@ import {
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
-  SmartToy as AIIcon,
-  Brush as DesignIcon,
-  Restore as LegacyIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  BugReport as BugReportIcon,
+  AttachMoney as CostIcon,
 } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
 import { useDesignMode } from '../../contexts/DesignModeContext';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Pipelines', icon: <PipelineIcon />, path: '/pipelines' },
-  { text: 'Test Runs', icon: <TestRunIcon />, path: '/test-runs' },
-  { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+interface NavItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    label: 'Overview',
+    items: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    ],
+  },
+  {
+    label: 'Testing',
+    items: [
+      { text: 'Pipelines', icon: <PipelineIcon />, path: '/pipelines' },
+      { text: 'Test Runs', icon: <TestRunIcon />, path: '/test-runs' },
+      { text: 'Failure Knowledge Base', icon: <BugReportIcon />, path: '/failure-knowledge-base' },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { text: 'Cost Tracker', icon: <CostIcon />, path: '/cost-tracker' },
+      { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
+      { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    ],
+  },
 ];
 
 export default function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [aiProvider, setAIProvider] = useState('claude-sonnet-4.5');
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode: designMode, toggleMode } = useDesignMode();
+  const { mode: designMode, colorMode, toggleMode, toggleColorMode } = useDesignMode();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -63,32 +92,174 @@ export default function Layout() {
     }
   };
 
+  const isActive = (path: string) => {
+    if (path === '/dashboard') return location.pathname === '/dashboard' || location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
   const drawer = (
-    <>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          TestOps Companion
-        </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Logo Area */}
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2.5,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              letterSpacing: '-0.05em',
+            }}
+          >
+            TC
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" fontWeight={700} color="text.primary" lineHeight={1.2}>
+              TestOps
+            </Typography>
+            <Typography variant="caption" color="text.disabled" lineHeight={1}>
+              Companion
+            </Typography>
+          </Box>
+        </Box>
         {isMobile && (
-          <IconButton onClick={handleDrawerToggle}>
+          <IconButton onClick={handleDrawerToggle} size="small">
             <ChevronLeftIcon />
           </IconButton>
         )}
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => handleNavigation(item.path)}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
+      </Box>
+
+      <Divider sx={{ mx: 2, opacity: 0.6 }} />
+
+      {/* Navigation Sections */}
+      <Box sx={{ flex: 1, overflowY: 'auto', py: 1.5 }}>
+        {navSections.map((section, sectionIndex) => (
+          <Box key={section.label} sx={{ mb: sectionIndex < navSections.length - 1 ? 1 : 0 }}>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              fontWeight={600}
+              textTransform="uppercase"
+              letterSpacing="0.08em"
+              sx={{ px: 3, py: 1, display: 'block', fontSize: '0.65rem' }}
+            >
+              {section.label}
+            </Typography>
+            <List disablePadding sx={{ px: 1.5 }}>
+              {section.items.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
+                    <ListItemButton
+                      onClick={() => handleNavigation(item.path)}
+                      sx={{
+                        borderRadius: 2,
+                        py: 0.9,
+                        px: 1.5,
+                        minHeight: 40,
+                        backgroundColor: active
+                          ? alpha(theme.palette.primary.main, 0.1)
+                          : 'transparent',
+                        color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+                        '&:hover': {
+                          backgroundColor: active
+                            ? alpha(theme.palette.primary.main, 0.14)
+                            : alpha(theme.palette.action.hover, 0.6),
+                        },
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <ListItemIcon
+                        sx={{
+                          minWidth: 36,
+                          color: active ? theme.palette.primary.main : theme.palette.text.disabled,
+                          '& .MuiSvgIcon-root': { fontSize: 20 },
+                        }}
+                      >
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{
+                          variant: 'body2',
+                          fontWeight: active ? 600 : 400,
+                          fontSize: '0.85rem',
+                        }}
+                      />
+                      {active && (
+                        <Box
+                          sx={{
+                            width: 4,
+                            height: 20,
+                            borderRadius: 2,
+                            backgroundColor: theme.palette.primary.main,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Box>
         ))}
-      </List>
-    </>
+      </Box>
+
+      <Divider sx={{ mx: 2, opacity: 0.6 }} />
+
+      {/* Bottom: Version & Theme Toggle */}
+      <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Chip
+          label="v2.8.0"
+          size="small"
+          variant="outlined"
+          sx={{
+            height: 22,
+            fontSize: '0.65rem',
+            fontWeight: 500,
+            borderColor: alpha(theme.palette.text.disabled, 0.2),
+            color: 'text.disabled',
+          }}
+        />
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          {designMode === 'modern' && (
+            <Tooltip title={colorMode === 'dark' ? 'Light mode' : 'Dark mode'} placement="top">
+              <IconButton
+                onClick={toggleColorMode}
+                size="small"
+                sx={{
+                  width: 30,
+                  height: 30,
+                  color: 'text.secondary',
+                  '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.08) },
+                }}
+              >
+                {colorMode === 'dark' ? (
+                  <LightModeIcon sx={{ fontSize: 16 }} />
+                ) : (
+                  <DarkModeIcon sx={{ fontSize: 16 }} />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+      </Box>
+    </Box>
   );
 
   return (
@@ -96,12 +267,13 @@ export default function Layout() {
       <CssBaseline />
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -111,57 +283,22 @@ export default function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            TestOps Companion
+
+          {/* Page title based on route */}
+          <Typography
+            variant="body1"
+            fontWeight={500}
+            color="text.secondary"
+            noWrap
+            sx={{ flexGrow: 1 }}
+          >
+            {navSections
+              .flatMap((s) => s.items)
+              .find((item) => isActive(item.path))?.text || 'TestOps Companion'}
           </Typography>
-
-          {/* Design Mode Toggle */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
-            <Tooltip title={designMode === 'modern' ? 'Switch to Legacy Design' : 'Switch to Modern Design'}>
-              <IconButton
-                color="inherit"
-                onClick={toggleMode}
-                size="small"
-                sx={{
-                  bgcolor: designMode === 'modern' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}
-              >
-                {designMode === 'modern' ? <DesignIcon fontSize="small" /> : <LegacyIcon fontSize="small" />}
-              </IconButton>
-            </Tooltip>
-          </Box>
-
-          {/* AI Provider Selector */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              AI Provider
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 180 }}>
-              <Select
-                value={aiProvider}
-                onChange={(e) => setAIProvider(e.target.value)}
-                sx={{
-                  color: 'text.primary',
-                  fontSize: '0.875rem',
-                  '& .MuiSelect-icon': {
-                    color: 'text.secondary',
-                  },
-                  '& .MuiOutline-notchedOutline': {
-                    borderColor: '#475569',
-                  },
-                }}
-                startAdornment={<AIIcon sx={{ mr: 1, fontSize: 18, color: 'text.secondary' }} />}
-              >
-                <MenuItem value="claude-sonnet-4.5">🤖 Claude Sonnet 4.5</MenuItem>
-                <MenuItem value="gpt-4-turbo">🤖 GPT-4 Turbo</MenuItem>
-                <MenuItem value="gemini-flash">🤖 Gemini 1.5 Flash</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
         </Toolbar>
       </AppBar>
+
       <Box
         component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
@@ -171,9 +308,7 @@ export default function Layout() {
           variant="temporary"
           open={drawerOpen}
           onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+          ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
             '& .MuiDrawer-paper': {
@@ -199,6 +334,7 @@ export default function Layout() {
           {drawer}
         </Drawer>
       </Box>
+
       <Box
         component="main"
         sx={{
@@ -207,7 +343,7 @@ export default function Layout() {
           width: { md: `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        <Toolbar /> {/* Add spacing for the AppBar */}
+        <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }} />
         <Outlet />
       </Box>
     </Box>

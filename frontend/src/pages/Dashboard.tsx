@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Grid,
-  Paper,
   Typography,
   Box,
   CircularProgress,
@@ -21,6 +20,10 @@ import {
   Tooltip,
   Fade,
   Grow,
+  Skeleton,
+  IconButton,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -31,6 +34,13 @@ import {
   Speed as SpeedIcon,
   AttachMoney as MoneyIcon,
   CheckCircle as CheckCircleIcon,
+  AccessTime as TimeIcon,
+  FiberManualRecord as DotIcon,
+  ArrowForward as ArrowForwardIcon,
+  Cached as CacheIcon,
+  Psychology as AIIcon,
+  DataUsage as DataUsageIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -88,8 +98,8 @@ const categoryIcons: Record<string, string> = {
 };
 
 const categoryLabels: Record<string, string> = {
-  bug_critical: 'Bug Critical',
-  bug_minor: 'Bug Minor',
+  bug_critical: 'Critical Bug',
+  bug_minor: 'Minor Bug',
   environment: 'Environment',
   flaky: 'Flaky Test',
   configuration: 'Configuration',
@@ -108,8 +118,6 @@ function useCountUp(end: number, duration: number = 2000) {
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Ease out function for smooth animation
       const easeOut = 1 - Math.pow(1 - progress, 3);
       const current = Math.floor(easeOut * end);
 
@@ -120,7 +128,7 @@ function useCountUp(end: number, duration: number = 2000) {
         clearInterval(timer);
         setCount(end);
       }
-    }, 16); // ~60fps
+    }, 16);
 
     return () => clearInterval(timer);
   }, [end, duration]);
@@ -128,10 +136,78 @@ function useCountUp(end: number, duration: number = 2000) {
   return count;
 }
 
+// Circular progress gauge component
+function MetricGauge({
+  value,
+  label,
+  color,
+  suffix = '%',
+}: {
+  value: number;
+  label: string;
+  color: string;
+  suffix?: string;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+        <CircularProgress
+          variant="determinate"
+          value={100}
+          size={72}
+          thickness={4}
+          sx={{ color: alpha(color, 0.12) }}
+        />
+        <CircularProgress
+          variant="determinate"
+          value={Math.min(value, 100)}
+          size={72}
+          thickness={4}
+          sx={{
+            color,
+            position: 'absolute',
+            left: 0,
+            '& .MuiCircularProgress-circle': {
+              strokeLinecap: 'round',
+            },
+          }}
+        />
+        <Box
+          sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="body2" fontWeight={700} color="text.primary">
+            {typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value}
+            {suffix}
+          </Typography>
+        </Box>
+      </Box>
+      <Typography variant="caption" color="text.secondary" textAlign="center" lineHeight={1.3}>
+        {label}
+      </Typography>
+    </Box>
+  );
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [selectedFailure, setSelectedFailure] = useState<DashboardMetrics['recentFailures'][number] | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<DashboardMetrics['providers'][number] | null>(null);
+  const theme = useTheme();
+  const [selectedFailure, setSelectedFailure] = useState<
+    DashboardMetrics['recentFailures'][number] | null
+  >(null);
+  const [selectedProvider, setSelectedProvider] = useState<
+    DashboardMetrics['providers'][number] | null
+  >(null);
 
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ['dashboard', 'ai-metrics'],
@@ -139,32 +215,40 @@ export default function Dashboard() {
       const token = localStorage.getItem('accessToken');
       const response = await axios.get('/api/v1/dashboard', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       return response.data.data;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
-  // Animated counts - MUST be called before any early returns (React Rules of Hooks)
+  // Animated counts
   const animatedTestCount = useCountUp(metrics?.totalTestsAnalyzed || 0, 1500);
   const animatedFailureCount = useCountUp(metrics?.failuresAutoCategorized || 0, 1500);
   const animatedTimeSaved = useCountUp(metrics?.timeSavedHours || 0, 1500);
-  const animatedCost = useCountUp((metrics?.aiCostUSD || 0) * 100, 1500) / 100; // For decimals
+  const animatedCost = useCountUp((metrics?.aiCostUSD || 0) * 100, 1500) / 100;
 
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
+      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+        <Skeleton variant="rounded" height={100} sx={{ mb: 3, borderRadius: 3 }} />
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          {[1, 2, 3, 4].map((i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
+              <Skeleton variant="rounded" height={140} sx={{ borderRadius: 2 }} />
+            </Grid>
+          ))}
+        </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={320} sx={{ borderRadius: 2 }} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Skeleton variant="rounded" height={320} sx={{ borderRadius: 2 }} />
+          </Grid>
+        </Grid>
+      </Container>
     );
   }
 
@@ -178,210 +262,257 @@ export default function Dashboard() {
     );
   }
 
+  const budgetPercent =
+    metrics.aiPerformance.monthlyBudgetTotal > 0
+      ? (metrics.aiPerformance.monthlyBudgetUsed / metrics.aiPerformance.monthlyBudgetTotal) * 100
+      : 0;
+
+  const statCards = [
+    {
+      label: 'Tests Analyzed',
+      value: animatedTestCount.toLocaleString(),
+      trend: '+12% from yesterday',
+      trendUp: true,
+      icon: <AssessmentIcon />,
+      color: theme.palette.success.main,
+      onClick: () => navigate('/test-runs'),
+    },
+    {
+      label: 'Failures Categorized',
+      value: animatedFailureCount.toLocaleString(),
+      trend: '100% categorization rate',
+      trendUp: true,
+      icon: <BugIcon />,
+      color: theme.palette.warning.main,
+      onClick: () => navigate('/failure-knowledge-base'),
+    },
+    {
+      label: 'Hours Saved',
+      value: `${animatedTimeSaved}h`,
+      trend: 'vs manual analysis',
+      trendUp: true,
+      icon: <SpeedIcon />,
+      color: theme.palette.info.main,
+      onClick: undefined,
+    },
+    {
+      label: 'AI Spend',
+      value: `$${animatedCost.toFixed(2)}`,
+      trend: `${metrics.cacheSavingsPercent}% saved via cache`,
+      trendUp: true,
+      icon: <MoneyIcon />,
+      color: theme.palette.secondary.main,
+      onClick: () => navigate('/cost-tracker'),
+    },
+  ];
+
   return (
     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-      {/* Header */}
-      <Fade in timeout={800}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" fontWeight="bold" color="text.primary" gutterBottom>
-            AI-Powered Failure Analysis Dashboard
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Real-time insights • {metrics.timeRange} • {metrics.totalTestsAnalyzed.toLocaleString()} tests analyzed
-          </Typography>
+      {/* ─── Welcome Banner ─── */}
+      <Fade in timeout={600}>
+        <Box
+          sx={{
+            mb: 4,
+            p: { xs: 2.5, md: 3.5 },
+            borderRadius: 3,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.secondary.main, 0.06)} 100%)`,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-start', md: 'center' },
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              color="text.primary"
+              sx={{ letterSpacing: '-0.02em', mb: 0.5 }}
+            >
+              Failure Analysis
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {metrics.timeRange} &middot; {metrics.totalTestsAnalyzed.toLocaleString()} tests
+              processed &middot; Last sync{' '}
+              {new Date(metrics.lastUpdated).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+            <Chip
+              icon={<DotIcon sx={{ fontSize: 10, color: `${theme.palette.success.main} !important` }} />}
+              label="All Systems Operational"
+              size="small"
+              variant="outlined"
+              sx={{
+                borderColor: alpha(theme.palette.success.main, 0.3),
+                color: theme.palette.success.main,
+                fontWeight: 500,
+                '& .MuiChip-icon': { ml: 0.5 },
+              }}
+            />
+            <Chip
+              label={`Cache ${metrics.cacheHitRate}%`}
+              size="small"
+              variant="outlined"
+              icon={<CacheIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                borderColor: alpha(theme.palette.text.secondary, 0.2),
+                color: 'text.secondary',
+                fontWeight: 500,
+              }}
+            />
+          </Box>
         </Box>
       </Fade>
 
-      {/* Stats Cards Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Total Tests Analyzed */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Grow in timeout={600}>
-            <Tooltip title="Click to view test runs" arrow>
+      {/* ─── Stats Cards ─── */}
+      <Grid container spacing={2.5} sx={{ mb: 4 }}>
+        {statCards.map((card, index) => (
+          <Grid item xs={12} sm={6} md={3} key={card.label}>
+            <Grow in timeout={500 + index * 100}>
               <Card
                 sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 6,
-                    borderColor: 'success.main',
-                    borderWidth: 2,
-                    borderStyle: 'solid',
-                  }
+                  cursor: card.onClick ? 'pointer' : 'default',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'all 0.25s ease',
+                  '&:hover': card.onClick
+                    ? {
+                        transform: 'translateY(-4px)',
+                        borderColor: alpha(card.color, 0.3),
+                        boxShadow: `0 8px 24px ${alpha(card.color, 0.12)}`,
+                      }
+                    : {},
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 3,
+                    background: card.color,
+                    borderRadius: '3px 0 0 3px',
+                  },
                 }}
-                onClick={() => navigate('/test-runs')}
+                onClick={card.onClick}
               >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Tests Analyzed
-                    </Typography>
-                    <AssessmentIcon color="success" />
+                <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        fontWeight={500}
+                        textTransform="uppercase"
+                        letterSpacing="0.05em"
+                        sx={{ display: 'block', mb: 1 }}
+                      >
+                        {card.label}
+                      </Typography>
+                      <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        color="text.primary"
+                        sx={{ mb: 0.75, lineHeight: 1.1 }}
+                      >
+                        {card.value}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        {card.trendUp && (
+                          <TrendingUpIcon sx={{ fontSize: 14, color: theme.palette.success.main }} />
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          {card.trend}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: alpha(card.color, 0.1),
+                        color: card.color,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {card.icon}
+                    </Box>
                   </Box>
-                  <Typography variant="h3" fontWeight="bold" color="success.main" sx={{ my: 1 }}>
-                    {animatedTestCount.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    <TrendingUpIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
-                    12% from yesterday
-                  </Typography>
                 </CardContent>
               </Card>
-            </Tooltip>
-          </Grow>
-        </Grid>
-
-        {/* Failures Auto-Categorized */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Grow in timeout={800}>
-            <Tooltip title="Click to view failure knowledge base" arrow>
-              <Card
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 6,
-                    borderColor: 'warning.main',
-                    borderWidth: 2,
-                    borderStyle: 'solid',
-                  }
-                }}
-                onClick={() => navigate('/failure-knowledge-base')}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Failures Auto-Categorized
-                    </Typography>
-                    <BugIcon color="warning" />
-                  </Box>
-                  <Typography variant="h3" fontWeight="bold" color="warning.main" sx={{ my: 1 }}>
-                    {animatedFailureCount.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <CheckCircleIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
-                    100% categorization rate
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Tooltip>
-          </Grow>
-        </Grid>
-
-        {/* Time Saved */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Grow in timeout={1000}>
-            <Tooltip title="Time saved with AI-powered analysis" arrow>
-              <Card
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 6,
-                    borderColor: 'info.main',
-                    borderWidth: 2,
-                    borderStyle: 'solid',
-                  }
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Time Saved (AI Analysis)
-                    </Typography>
-                    <SpeedIcon color="info" />
-                  </Box>
-                  <Typography variant="h3" fontWeight="bold" color="info.main" sx={{ my: 1 }}>
-                    {animatedTimeSaved}h
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    vs manual analysis
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Tooltip>
-          </Grow>
-        </Grid>
-
-        {/* AI Cost */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Grow in timeout={1200}>
-            <Tooltip title="Click to view cost tracker" arrow>
-              <Card
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 6,
-                    borderColor: 'secondary.main',
-                    borderWidth: 2,
-                    borderStyle: 'solid',
-                  }
-                }}
-                onClick={() => navigate('/cost-tracker')}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      AI Cost (with caching)
-                    </Typography>
-                    <MoneyIcon color="secondary" />
-                  </Box>
-                  <Typography variant="h3" fontWeight="bold" color="secondary.main" sx={{ my: 1 }}>
-                    ${animatedCost.toFixed(2)}
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    {metrics.cacheSavingsPercent}% savings • {metrics.cacheHits} cache hits
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Tooltip>
-          </Grow>
-        </Grid>
+            </Grow>
+          </Grid>
+        ))}
       </Grid>
 
-      {/* Main Content Row */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Failure Categories Breakdown */}
-        <Grid item xs={12} md={6}>
-          <Grow in timeout={1400}>
+      {/* ─── Main Content: Categories + Recent Failures ─── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Failure Categories */}
+        <Grid item xs={12} md={5}>
+          <Grow in timeout={900}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
-                  Failure Categories Breakdown
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    Failure Categories
+                  </Typography>
+                  <Chip
+                    label={`${metrics.failureCategories.length} types`}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      height: 24,
+                      fontSize: '0.7rem',
+                      borderColor: alpha(theme.palette.text.secondary, 0.2),
+                    }}
+                  />
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 3 }}>
                   AI-powered classification with confidence scoring
                 </Typography>
 
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {metrics.failureCategories.map((category, index) => (
-                    <Fade in timeout={1600 + (index * 200)} key={`${category.category}-${index}`}>
-                      <Box sx={{ mb: 2.5 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="body2" color="text.primary">
-                            {categoryIcons[category.category]} {categoryLabels[category.category] || category.category}
+                    <Fade in timeout={1000 + index * 150} key={`${category.category}-${index}`}>
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+                          <Typography variant="body2" color="text.primary" fontWeight={500}>
+                            {categoryIcons[category.category]}{' '}
+                            {categoryLabels[category.category] || category.category}
                           </Typography>
-                          <Typography variant="body2" color="text.primary">
-                            {category.count} ({category.percentage.toFixed(1)}%)
+                          <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                            {category.count}
+                            <Typography
+                              component="span"
+                              variant="caption"
+                              color="text.disabled"
+                              sx={{ ml: 0.5 }}
+                            >
+                              ({category.percentage.toFixed(0)}%)
+                            </Typography>
                           </Typography>
                         </Box>
                         <LinearProgress
                           variant="determinate"
                           value={category.percentage}
                           sx={{
-                            height: 20,
-                            borderRadius: 10,
-                            backgroundColor: '#1e293b',
-                            border: '1px solid #334155',
+                            height: 6,
+                            borderRadius: 3,
+                            backgroundColor: alpha(theme.palette.text.primary, 0.06),
                             '& .MuiLinearProgress-bar': {
                               backgroundColor: category.color,
-                              borderRadius: 10,
-                              transition: 'width 1s ease-in-out',
+                              borderRadius: 3,
+                              transition: 'width 1.2s ease-in-out',
                             },
                           }}
                         />
@@ -394,85 +525,125 @@ export default function Dashboard() {
           </Grow>
         </Grid>
 
-        {/* Recent AI Failure Analysis */}
-        <Grid item xs={12} md={6}>
-          <Grow in timeout={1400}>
+        {/* Recent Failures */}
+        <Grid item xs={12} md={7}>
+          <Grow in timeout={900}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
-                  Recent AI Failure Analysis
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    Recent Failures
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForwardIcon sx={{ fontSize: '14px !important' }} />}
+                    onClick={() => navigate('/failure-knowledge-base')}
+                    sx={{ textTransform: 'none', fontWeight: 500, fontSize: '0.8rem' }}
+                  >
+                    View all
+                  </Button>
+                </Box>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 3 }}>
                   Intelligent log summarization with root cause detection
                 </Typography>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {metrics.recentFailures.slice(0, 3).map((failure, index) => (
-                    <Fade in timeout={1600 + (index * 300)} key={failure.id}>
-                      <Paper
-                        onClick={() => setSelectedFailure(failure)}
-                        sx={{
-                          p: 2,
-                          backgroundColor: '#0f172a',
-                          border: '1px solid #334155',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            backgroundColor: '#1e293b',
-                            borderColor: '#475569',
-                            transform: 'translateY(-4px) scale(1.02)',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                          },
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 16,
-                              height: 16,
-                              borderRadius: '50%',
-                              backgroundColor: metrics.failureCategories.find(
-                                (c) => c.category === failure.category
-                              )?.color || '#64748b',
-                              flexShrink: 0,
-                              mt: 0.5,
-                            }}
-                          />
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography
-                              variant="body2"
-                              fontWeight="bold"
-                              color="text.primary"
-                              sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {failure.errorMessage}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {metrics.recentFailures.slice(0, 3).map((failure, index) => {
+                    const catColor =
+                      metrics.failureCategories.find((c) => c.category === failure.category)
+                        ?.color || theme.palette.text.disabled;
+
+                    return (
+                      <Fade in timeout={1000 + index * 200} key={failure.id}>
+                        <Box
+                          onClick={() => setSelectedFailure(failure)}
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
+                            cursor: 'pointer',
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              borderColor: alpha(catColor, 0.4),
+                              backgroundColor: alpha(theme.palette.action.hover, 0.4),
+                              transform: 'translateX(4px)',
+                            },
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              left: 0,
+                              top: 8,
+                              bottom: 8,
+                              width: 3,
+                              borderRadius: 2,
+                              backgroundColor: catColor,
+                            },
+                          }}
+                        >
+                          <Box sx={{ pl: 1.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.75 }}>
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                color="text.primary"
+                                sx={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  flex: 1,
+                                  mr: 1.5,
+                                }}
+                              >
+                                {failure.errorMessage}
+                              </Typography>
+                              <Chip
+                                label={categoryLabels[failure.category] || failure.category}
+                                size="small"
+                                sx={{
+                                  height: 22,
+                                  fontSize: '0.68rem',
+                                  fontWeight: 600,
+                                  backgroundColor: alpha(catColor, 0.12),
+                                  color: catColor,
+                                  border: `1px solid ${alpha(catColor, 0.2)}`,
+                                  flexShrink: 0,
+                                }}
+                              />
+                            </Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                              {failure.rootCause || 'Analysis in progress...'}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                              Root Cause: {failure.rootCause || 'Analyzing...'}
-                            </Typography>
-                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
-                              Confidence: {(failure.confidence * 100).toFixed(0)}% • Similar: {failure.similarCount} past cases •{' '}
-                              {failure.filePath || failure.testName}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Typography variant="caption" color="text.disabled">
+                                {(failure.confidence * 100).toFixed(0)}% confidence
+                              </Typography>
+                              <Typography variant="caption" color="text.disabled">
+                                &middot;
+                              </Typography>
+                              <Typography variant="caption" color="text.disabled">
+                                {failure.similarCount} similar
+                              </Typography>
+                              <Typography variant="caption" color="text.disabled">
+                                &middot;
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.disabled"
+                                sx={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {failure.filePath || failure.testName}
+                              </Typography>
+                            </Box>
                           </Box>
-                          <Chip
-                            label={categoryLabels[failure.category] || failure.category}
-                            size="small"
-                            sx={{
-                              backgroundColor: '#334155',
-                              color: metrics.failureCategories.find((c) => c.category === failure.category)?.color || '#94a3b8',
-                              fontSize: '0.7rem',
-                              height: 22,
-                            }}
-                          />
                         </Box>
-                      </Paper>
-                    </Fade>
-                  ))}
+                      </Fade>
+                    );
+                  })}
                 </Box>
               </CardContent>
             </Card>
@@ -480,60 +651,90 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* Bottom Row */}
+      {/* ─── Bottom Row: AI Performance + Providers ─── */}
       <Grid container spacing={3}>
-        {/* AI Performance Metrics */}
-        <Grid item xs={12} md={4}>
-          <Grow in timeout={1800}>
+        {/* AI Performance */}
+        <Grid item xs={12} md={6}>
+          <Grow in timeout={1200}>
             <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
-                  AI Performance Metrics
-                </Typography>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+                  <AIIcon sx={{ fontSize: 20, color: theme.palette.primary.main }} />
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    AI Performance
+                  </Typography>
+                </Box>
 
-                <Box sx={{ mt: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Average Analysis Time:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" color="success.main">
-                      {metrics.aiPerformance.avgAnalysisTimeSeconds} seconds
+                {/* Gauge Row */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    mb: 3,
+                    py: 2,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.background.default, 0.5),
+                  }}
+                >
+                  <MetricGauge
+                    value={metrics.aiPerformance.categorizationAccuracy}
+                    label="Accuracy"
+                    color={theme.palette.success.main}
+                  />
+                  <MetricGauge
+                    value={metrics.aiPerformance.cacheHitRate * 100}
+                    label="Cache Hit"
+                    color={theme.palette.info.main}
+                  />
+                  <MetricGauge
+                    value={budgetPercent}
+                    label="Budget Used"
+                    color={
+                      budgetPercent > 80
+                        ? theme.palette.error.main
+                        : budgetPercent > 50
+                          ? theme.palette.warning.main
+                          : theme.palette.success.main
+                    }
+                  />
+                </Box>
+
+                {/* Metric Details */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TimeIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Avg Analysis Time
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {metrics.aiPerformance.avgAnalysisTimeSeconds}s
                     </Typography>
                   </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Categorization Accuracy:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" color="success.main">
-                      {metrics.aiPerformance.categorizationAccuracy.toFixed(1)}%
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Similar Failures Found:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" color="info.main">
-                      {metrics.aiPerformance.similarFailuresFound} matches
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <DataUsageIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Similar Failures Matched
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {metrics.aiPerformance.similarFailuresFound}
                     </Typography>
                   </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Cache Hit Rate:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" color="secondary.main">
-                      {(metrics.aiPerformance.cacheHitRate * 100).toFixed(1)}%
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Monthly AI Budget Used:
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" color="warning.main">
-                      ${metrics.aiPerformance.monthlyBudgetUsed.toFixed(2)} / ${metrics.aiPerformance.monthlyBudgetTotal}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <MoneyIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Monthly Budget
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      ${metrics.aiPerformance.monthlyBudgetUsed.toFixed(2)}{' '}
+                      <Typography component="span" variant="caption" color="text.disabled">
+                        / ${metrics.aiPerformance.monthlyBudgetTotal}
+                      </Typography>
                     </Typography>
                   </Box>
                 </Box>
@@ -542,98 +743,112 @@ export default function Dashboard() {
           </Grow>
         </Grid>
 
-        {/* AI Provider Comparison */}
-        <Grid item xs={12} md={8}>
-          <Grow in timeout={1800}>
+        {/* AI Providers */}
+        <Grid item xs={12} md={6}>
+          <Grow in timeout={1200}>
             <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="text.primary" gutterBottom>
-                  AI Provider Comparison
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Multi-provider support with intelligent cost optimization • Click to see details
-                </Typography>
-
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Box sx={{ display: 'flex', mb: 1, pb: 1, borderBottom: '1px solid #334155' }}>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: '35%' }}>
-                      Provider
-                    </Typography>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: '20%' }}>
-                      Cost/1M
-                    </Typography>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: '20%' }}>
-                      Context
-                    </Typography>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ width: '25%' }}>
-                      Speed
-                    </Typography>
-                  </Box>
-
-                  {metrics.providers.map((provider, index) => (
-                    <Fade in timeout={2000 + (index * 200)} key={provider.name}>
-                      <Box
-                        onClick={() => setSelectedProvider(provider)}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          py: 1.5,
-                          px: 1,
-                          borderRadius: 1,
-                          opacity: provider.isActive ? 1 : 0.6,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                            transform: 'translateX(4px)',
-                          },
-                        }}
-                      >
-                        <Box sx={{ width: '35%', display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: '50%',
-                              backgroundColor: provider.isActive ? '#10b981' : '#64748b',
-                            }}
-                          />
-                          <Typography variant="body2" color="text.primary">
-                            {provider.name}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          color={provider.costPer1M < 5 ? 'success.main' : 'text.primary'}
-                          sx={{ width: '20%' }}
-                        >
-                          ${provider.costPer1M.toFixed(2)}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color={provider.contextWindow.includes('1M') ? 'info.main' : 'text.primary'}
-                          sx={{ width: '20%' }}
-                        >
-                          {provider.contextWindow}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color={provider.speed.includes('⚡⚡⚡') ? 'success.main' : 'text.secondary'}
-                          sx={{ width: '25%' }}
-                        >
-                          {provider.speed}
-                        </Typography>
-                      </Box>
-                    </Fade>
-                  ))}
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                  <Typography variant="h6" fontWeight={600} color="text.primary">
+                    Providers
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Multi-provider &middot; Cost-optimized
+                  </Typography>
                 </Box>
+
+                <Grid container spacing={1.5}>
+                  {metrics.providers.map((provider, index) => (
+                    <Grid item xs={12} sm={6} key={provider.name}>
+                      <Fade in timeout={1200 + index * 150}>
+                        <Box
+                          onClick={() => setSelectedProvider(provider)}
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            border: `1px solid ${
+                              provider.isActive
+                                ? alpha(theme.palette.primary.main, 0.25)
+                                : alpha(theme.palette.divider, 0.6)
+                            }`,
+                            backgroundColor: provider.isActive
+                              ? alpha(theme.palette.primary.main, 0.04)
+                              : 'transparent',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            opacity: provider.isActive ? 1 : 0.65,
+                            '&:hover': {
+                              borderColor: alpha(theme.palette.primary.main, 0.4),
+                              backgroundColor: alpha(theme.palette.primary.main, 0.06),
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                            <Typography variant="body2" fontWeight={600} color="text.primary">
+                              {provider.name}
+                            </Typography>
+                            {provider.isActive && (
+                              <Chip
+                                label="Active"
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: '0.65rem',
+                                  fontWeight: 600,
+                                  backgroundColor: alpha(theme.palette.success.main, 0.12),
+                                  color: theme.palette.success.main,
+                                  border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                                }}
+                              />
+                            )}
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Box>
+                              <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                                Cost/1M
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                color={
+                                  provider.costPer1M < 5
+                                    ? theme.palette.success.main
+                                    : 'text.primary'
+                                }
+                              >
+                                ${provider.costPer1M.toFixed(2)}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                                Context
+                              </Typography>
+                              <Typography variant="body2" fontWeight={500} color="text.primary">
+                                {provider.contextWindow}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                                Speed
+                              </Typography>
+                              <Typography variant="body2" fontWeight={500} color="text.primary">
+                                {provider.speed}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Fade>
+                    </Grid>
+                  ))}
+                </Grid>
               </CardContent>
             </Card>
           </Grow>
         </Grid>
       </Grid>
 
-      {/* Failure Detail Modal */}
+      {/* ─── Failure Detail Modal ─── */}
       <Dialog
         open={!!selectedFailure}
         onClose={() => setSelectedFailure(null)}
@@ -641,29 +856,29 @@ export default function Dashboard() {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: '#0f172a',
-            backgroundImage: 'none',
-          }
+            borderRadius: 3,
+            border: `1px solid ${theme.palette.divider}`,
+          },
         }}
       >
         {selectedFailure && (
           <>
-            <DialogTitle sx={{ borderBottom: '1px solid #334155', pb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <BugIcon color="error" />
-                <Typography variant="h6" fontWeight="bold">
-                  Failure Analysis Detail
+            <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <BugIcon sx={{ color: theme.palette.error.main }} />
+                <Typography variant="h6" fontWeight={600}>
+                  Failure Analysis
                 </Typography>
               </Box>
               <Chip
                 label={categoryLabels[selectedFailure.category] || selectedFailure.category}
                 size="small"
                 sx={{
-                  backgroundColor: metrics?.failureCategories.find(
-                    (c) => c.category === selectedFailure.category
-                  )?.color || '#64748b',
+                  backgroundColor:
+                    metrics?.failureCategories.find((c) => c.category === selectedFailure.category)
+                      ?.color || theme.palette.text.disabled,
                   color: '#fff',
-                  fontWeight: 'bold',
+                  fontWeight: 600,
                 }}
               />
             </DialogTitle>
@@ -672,15 +887,27 @@ export default function Dashboard() {
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Error Message
                 </Typography>
-                <Paper sx={{ p: 2, backgroundColor: '#1e293b', border: '1px solid #334155' }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.error.main, 0.06),
+                    border: `1px solid ${alpha(theme.palette.error.main, 0.15)}`,
+                  }}
+                >
                   <Typography variant="body2" color="error.main" fontFamily="monospace">
                     {selectedFailure.errorMessage}
                   </Typography>
-                </Paper>
+                </Box>
               </Box>
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <CodeIcon fontSize="small" />
                   Test Name
                 </Typography>
@@ -689,69 +916,71 @@ export default function Dashboard() {
                 </Typography>
               </Box>
 
-              <Divider sx={{ my: 2, borderColor: '#334155' }} />
+              <Divider sx={{ my: 2 }} />
 
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <BuildIcon fontSize="small" />
                   AI Root Cause Analysis
                 </Typography>
-                <Paper sx={{ p: 2, backgroundColor: '#1e293b', border: '1px solid #10b981' }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.success.main, 0.06),
+                    border: `1px solid ${alpha(theme.palette.success.main, 0.15)}`,
+                  }}
+                >
                   <Typography variant="body2" color="success.main">
                     {selectedFailure.rootCause || 'Analysis in progress...'}
                   </Typography>
-                </Paper>
+                </Box>
               </Box>
 
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  AI Confidence & Similar Cases
+                  Confidence & Context
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
                   <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Confidence Score
+                    <Typography variant="caption" color="text.disabled">
+                      Confidence
                     </Typography>
-                    <Typography variant="h6" color="success.main">
+                    <Typography variant="h6" fontWeight={700} color="text.primary">
                       {(selectedFailure.confidence * 100).toFixed(0)}%
                     </Typography>
                   </Box>
-                  <Divider orientation="vertical" flexItem sx={{ borderColor: '#334155' }} />
+                  <Divider orientation="vertical" flexItem />
                   <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Similar Past Cases
+                    <Typography variant="caption" color="text.disabled">
+                      Similar Cases
                     </Typography>
-                    <Typography variant="h6" color="info.main">
+                    <Typography variant="h6" fontWeight={700} color="text.primary">
                       {selectedFailure.similarCount}
                     </Typography>
                   </Box>
-                  <Divider orientation="vertical" flexItem sx={{ borderColor: '#334155' }} />
+                  <Divider orientation="vertical" flexItem />
                   <Box>
-                    <Typography variant="caption" color="text.secondary">
-                      First Detected
+                    <Typography variant="caption" color="text.disabled">
+                      Detected
                     </Typography>
-                    <Typography variant="body2" color="text.primary">
+                    <Typography variant="body2" fontWeight={500} color="text.primary">
                       {new Date(selectedFailure.timestamp).toLocaleDateString()}
                     </Typography>
                   </Box>
                 </Box>
               </Box>
-
-              <Box sx={{ p: 2, backgroundColor: '#1e293b', borderRadius: 1, border: '1px solid #334155' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                  💡 AI-Powered Insight
-                </Typography>
-                <Typography variant="body2" color="text.primary">
-                  This failure pattern has been automatically categorized and analyzed using advanced AI models.
-                  The root cause has been identified with high confidence based on similar historical failures.
-                </Typography>
-              </Box>
             </DialogContent>
-            <DialogActions sx={{ borderTop: '1px solid #334155', p: 2 }}>
-              <Button onClick={() => setSelectedFailure(null)} variant="outlined">
+            <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2, gap: 1 }}>
+              <Button onClick={() => setSelectedFailure(null)} variant="outlined" size="small">
                 Close
               </Button>
-              <Button variant="contained" color="primary">
+              <Button variant="contained" size="small">
                 View Full Details
               </Button>
             </DialogActions>
@@ -759,7 +988,7 @@ export default function Dashboard() {
         )}
       </Dialog>
 
-      {/* Provider Detail Modal */}
+      {/* ─── Provider Detail Modal ─── */}
       <Dialog
         open={!!selectedProvider}
         onClose={() => setSelectedProvider(null)}
@@ -767,73 +996,92 @@ export default function Dashboard() {
         fullWidth
         PaperProps={{
           sx: {
-            backgroundColor: '#0f172a',
-            backgroundImage: 'none',
-          }
+            borderRadius: 3,
+            border: `1px solid ${theme.palette.divider}`,
+          },
         }}
       >
         {selectedProvider && (
           <>
-            <DialogTitle sx={{ borderBottom: '1px solid #334155', pb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <CodeIcon color="primary" />
-                <Typography variant="h6" fontWeight="bold">
+            <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <AIIcon sx={{ color: theme.palette.primary.main }} />
+                <Typography variant="h6" fontWeight={600}>
                   {selectedProvider.name}
                 </Typography>
               </Box>
               <Chip
                 label={selectedProvider.isActive ? 'Active' : 'Inactive'}
                 size="small"
-                color={selectedProvider.isActive ? 'success' : 'default'}
-                sx={{ fontWeight: 'bold' }}
+                sx={{
+                  fontWeight: 600,
+                  backgroundColor: selectedProvider.isActive
+                    ? alpha(theme.palette.success.main, 0.12)
+                    : alpha(theme.palette.text.disabled, 0.12),
+                  color: selectedProvider.isActive
+                    ? theme.palette.success.main
+                    : theme.palette.text.disabled,
+                }}
               />
             </DialogTitle>
             <DialogContent sx={{ mt: 2 }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Cost per 1M Tokens
-                </Typography>
-                <Typography variant="h4" fontWeight="bold" color={selectedProvider.costPer1M < 5 ? 'success.main' : 'text.primary'}>
-                  ${selectedProvider.costPer1M.toFixed(2)}
-                </Typography>
-              </Box>
+              <Grid container spacing={3}>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
+                    Cost / 1M Tokens
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    fontWeight={700}
+                    color={
+                      selectedProvider.costPer1M < 5
+                        ? theme.palette.success.main
+                        : 'text.primary'
+                    }
+                  >
+                    ${selectedProvider.costPer1M.toFixed(2)}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
+                    Context Window
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700} color="text.primary">
+                    {selectedProvider.contextWindow}
+                  </Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
+                    Speed
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700} color="text.primary">
+                    {selectedProvider.speed}
+                  </Typography>
+                </Grid>
+              </Grid>
 
-              <Divider sx={{ my: 2, borderColor: '#334155' }} />
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Context Window
-                </Typography>
-                <Typography variant="h5" fontWeight="bold" color="info.main">
-                  {selectedProvider.contextWindow}
-                </Typography>
-              </Box>
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Processing Speed
-                </Typography>
-                <Typography variant="h5" fontWeight="bold" color="success.main">
-                  {selectedProvider.speed}
-                </Typography>
-              </Box>
-
-              <Box sx={{ p: 2, backgroundColor: '#1e293b', borderRadius: 1, border: '1px solid #334155' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                  💡 Provider Info
-                </Typography>
-                <Typography variant="body2" color="text.primary">
-                  This AI provider is {selectedProvider.isActive ? 'currently active and processing requests' : 'configured but not currently active'}.
-                  {selectedProvider.isActive && ' All failure analysis is being routed through this provider for optimal performance and cost.'}
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  {selectedProvider.isActive
+                    ? 'Currently active and processing all failure analysis requests.'
+                    : 'Configured but not currently active. Activate to route analysis requests through this provider.'}
                 </Typography>
               </Box>
             </DialogContent>
-            <DialogActions sx={{ borderTop: '1px solid #334155', p: 2 }}>
-              <Button onClick={() => setSelectedProvider(null)} variant="outlined">
+            <DialogActions sx={{ borderTop: `1px solid ${theme.palette.divider}`, p: 2, gap: 1 }}>
+              <Button onClick={() => setSelectedProvider(null)} variant="outlined" size="small">
                 Close
               </Button>
               {!selectedProvider.isActive && (
-                <Button variant="contained" color="primary">
+                <Button variant="contained" size="small">
                   Activate Provider
                 </Button>
               )}
