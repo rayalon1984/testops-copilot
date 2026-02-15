@@ -225,7 +225,7 @@ export default function Layout() {
       {/* Bottom: Version & Theme Toggle */}
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
-          label="v2.8.0"
+          label="v2.8.1"
           size="small"
           variant="outlined"
           sx={{

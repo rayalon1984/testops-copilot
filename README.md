@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.8.0](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.0) - Cross-Platform Context Enrichment: Jira search, Confluence reader, GitHub code awareness | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.8.1](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.1) - Modern Dashboard UX Overhaul | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
@@ -64,7 +64,19 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ### AI-Powered Dashboard
 
-![TestOps Companion Dashboard](docs/media/testops_dashboard.svg)
+<details open>
+<summary><strong>Dark Mode</strong></summary>
+
+![TestOps Companion Dashboard - Dark](docs/assets/screenshots/dashboard-modern-dark.png)
+
+</details>
+
+<details>
+<summary><strong>Light Mode</strong></summary>
+
+![TestOps Companion Dashboard - Light](docs/assets/screenshots/dashboard-modern-light.png)
+
+</details>
 
 *Real-time AI-powered failure analysis with multi-provider support, automated categorization, and intelligent cost optimization*
 
