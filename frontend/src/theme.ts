@@ -244,6 +244,21 @@ const getModernTheme = (mode: 'light' | 'dark'): ThemeOptions => {
           paper: { backgroundColor: colors.background, borderRight: `1px solid ${colors.divider}` },
         },
       },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            '&.Mui-selected': {
+              backgroundColor: alpha(modernColors.primary.main, 0.1),
+              '&:hover': { backgroundColor: alpha(modernColors.primary.main, 0.14) },
+            },
+          },
+        },
+      },
+      MuiSkeleton: {
+        styleOverrides: {
+          root: { backgroundColor: alpha(colors.text.primary, 0.06) },
+        },
+      },
     },
   };
 };
