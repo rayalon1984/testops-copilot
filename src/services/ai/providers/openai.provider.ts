@@ -25,23 +25,23 @@ export class OpenAIProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Pricing for GPT-4 Turbo as of January 2025
+    // Pricing for OpenAI models as of February 2026
     // Check https://openai.com/pricing for latest pricing
     // Note: Prices vary by model
     const modelPricing: Record<string, ProviderPricing> = {
-      'gpt-4-turbo': {
-        inputTokenCostPer1k: 0.01,
-        outputTokenCostPer1k: 0.03,
+      'gpt-4.1': {
+        inputTokenCostPer1k: 0.008,
+        outputTokenCostPer1k: 0.032,
         embeddingCostPer1k: undefined,
       },
-      'gpt-4': {
-        inputTokenCostPer1k: 0.03,
-        outputTokenCostPer1k: 0.06,
+      'gpt-4.1-mini': {
+        inputTokenCostPer1k: 0.0004,
+        outputTokenCostPer1k: 0.0016,
         embeddingCostPer1k: undefined,
       },
-      'gpt-3.5-turbo': {
-        inputTokenCostPer1k: 0.0005,
-        outputTokenCostPer1k: 0.0015,
+      'gpt-4.1-nano': {
+        inputTokenCostPer1k: 0.0001,
+        outputTokenCostPer1k: 0.0004,
         embeddingCostPer1k: undefined,
       },
       'text-embedding-3-small': {
@@ -56,14 +56,14 @@ export class OpenAIProvider extends BaseProvider {
       },
     };
 
-    return modelPricing[this.config.model] || modelPricing['gpt-4-turbo'];
+    return modelPricing[this.config.model] || modelPricing['gpt-4.1'];
   }
 
   getLimits(): ProviderLimits {
     // Limits vary by tier - these are for Tier 1
     return {
-      maxInputTokens: 128000,      // 128k for GPT-4 Turbo
-      maxOutputTokens: 4096,
+      maxInputTokens: 1047576,     // ~1M for GPT-4.1
+      maxOutputTokens: 32768,
       requestsPerMinute: 500,
       tokensPerMinute: 30000,
     };

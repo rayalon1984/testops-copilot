@@ -14,7 +14,7 @@
   <!-- AI Provider Dropdown -->
   <rect x="1020" y="42" width="160" height="20" rx="4" fill="#334155" stroke="#475569" stroke-width="1"/>
   <text x="1030" y="56" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    🤖 Claude Sonnet 4.5
+    🤖 Claude Opus 4.6
   </text>
   <polygon points="1170,50 1165,54 1175,54" fill="#94a3b8"/>
 
@@ -272,10 +272,10 @@
   <!-- Claude -->
   <circle cx="455" cy="707" r="6" fill="#10b981"/>
   <text x="475" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    Claude Sonnet 4.5
+    Claude Opus 4.6
   </text>
   <text x="740" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    $9.00
+    $15.00
   </text>
   <text x="860" y="712" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
     200K
@@ -287,25 +287,25 @@
   <!-- GPT-4 -->
   <circle cx="455" cy="732" r="6" fill="#64748b"/>
   <text x="475" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    GPT-4 Turbo
+    GPT-4.1
   </text>
   <text x="740" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    $20.00
+    $8.00
   </text>
   <text x="860" y="737" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    128K
+    1M
   </text>
-  <text x="1000" y="737" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
-    ⚡⚡
+  <text x="1000" y="737" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
+    ⚡⚡⚡
   </text>
 
   <!-- Gemini -->
   <circle cx="455" cy="757" r="6" fill="#64748b"/>
   <text x="475" y="762" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0">
-    Gemini 1.5 Flash
+    Gemini 3.0 Flash
   </text>
   <text x="740" y="762" font-family="Arial, sans-serif" font-size="12" fill="#10b981">
-    $0.375
+    $0.15
   </text>
   <text x="860" y="762" font-family="Arial, sans-serif" font-size="12" fill="#3b82f6">
     1M

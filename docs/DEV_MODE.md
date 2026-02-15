@@ -154,9 +154,9 @@ The `dev:simple` mode includes:
 - Network failures (high)
 
 **AI Usage** (~2,100 calls over 30 days):
-- Claude Sonnet 4: 65% cache hit, $1.2/month
-- GPT-4 Turbo: 35% cache hit, $15/month
-- Gemini Flash: 70% cache hit, $0.20/month
+- Claude Opus 4.6: 65% cache hit, $3.5/month
+- GPT-4.1: 35% cache hit, $12/month
+- Gemini 3.0 Flash: 70% cache hit, $0.15/month
 
 **Test Runs**: 20 runs with varying success rates
 **Time Range**: Last 30 days of data

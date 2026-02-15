@@ -15,7 +15,7 @@ import { AIConfig, AIProviderName } from './types';
 const DEFAULT_CONFIG: AIConfig = {
   enabled: false,
   provider: 'anthropic',
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-opus-4-6',
   features: {
     rcaMatching: true,
     categorization: true,

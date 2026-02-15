@@ -23,58 +23,47 @@ export class GoogleProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Pricing for Gemini models as of January 2025
+    // Pricing for Gemini models as of February 2026
     // Check https://ai.google.dev/pricing for latest pricing
     const modelPricing: Record<string, ProviderPricing> = {
-      'gemini-pro': {
-        inputTokenCostPer1k: 0.0005,
-        outputTokenCostPer1k: 0.0015,
-        embeddingCostPer1k: 0.0001,
-      },
-      'gemini-1.5-pro': {
+      'gemini-3.0-pro': {
         inputTokenCostPer1k: 0.00125,
-        outputTokenCostPer1k: 0.00375,
+        outputTokenCostPer1k: 0.005,
         embeddingCostPer1k: 0.0001,
       },
-      'gemini-1.5-flash': {
-        inputTokenCostPer1k: 0.000075,
-        outputTokenCostPer1k: 0.0003,
+      'gemini-3.0-flash': {
+        inputTokenCostPer1k: 0.00015,
+        outputTokenCostPer1k: 0.0006,
         embeddingCostPer1k: 0.00001,
       },
-      'text-embedding-004': {
+      'text-embedding-005': {
         inputTokenCostPer1k: 0.0000125,
         outputTokenCostPer1k: 0,
         embeddingCostPer1k: 0.0000125,
       },
     };
 
-    return modelPricing[this.config.model] || modelPricing['gemini-pro'];
+    return modelPricing[this.config.model] || modelPricing['gemini-3.0-flash'];
   }
 
   getLimits(): ProviderLimits {
     // Limits for Gemini models
     const modelLimits: Record<string, ProviderLimits> = {
-      'gemini-pro': {
-        maxInputTokens: 30720,
-        maxOutputTokens: 2048,
-        requestsPerMinute: 60,
-        tokensPerMinute: 32000,
-      },
-      'gemini-1.5-pro': {
-        maxInputTokens: 1000000, // 1M context window!
-        maxOutputTokens: 8192,
+      'gemini-3.0-pro': {
+        maxInputTokens: 2000000, // 2M context window
+        maxOutputTokens: 65536,
         requestsPerMinute: 360,
-        tokensPerMinute: 1000000,
+        tokensPerMinute: 2000000,
       },
-      'gemini-1.5-flash': {
+      'gemini-3.0-flash': {
         maxInputTokens: 1000000,
-        maxOutputTokens: 8192,
-        requestsPerMinute: 1000,
+        maxOutputTokens: 65536,
+        requestsPerMinute: 2000,
         tokensPerMinute: 4000000,
       },
     };
 
-    return modelLimits[this.config.model] || modelLimits['gemini-pro'];
+    return modelLimits[this.config.model] || modelLimits['gemini-3.0-flash'];
   }
 
   async chat(messages: ChatMessage[], options?: CompletionOptions): Promise<AIResponse> {

@@ -24,11 +24,11 @@ export class AnthropicProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Pricing as of January 2025 for Claude Sonnet 4.5
+    // Pricing as of February 2026 for Claude Opus 4.6
     // Check https://www.anthropic.com/api for latest pricing
     return {
-      inputTokenCostPer1k: 0.003,   // $3 per million input tokens
-      outputTokenCostPer1k: 0.015,  // $15 per million output tokens
+      inputTokenCostPer1k: 0.015,   // $15 per million input tokens
+      outputTokenCostPer1k: 0.075,  // $75 per million output tokens
       embeddingCostPer1k: undefined, // Anthropic doesn't provide embeddings directly
     };
   }

@@ -130,7 +130,7 @@ describe('AnthropicProvider', () => {
   beforeEach(() => {
     config = {
       apiKey: process.env.ANTHROPIC_API_KEY || 'test-key',
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-6',
       maxTokens: 1000,
     };
   });
@@ -147,8 +147,8 @@ describe('AnthropicProvider', () => {
       const provider = new AnthropicProvider(config);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.003);
-      expect(pricing.outputTokenCostPer1k).toBe(0.015);
+      expect(pricing.inputTokenCostPer1k).toBe(0.015);
+      expect(pricing.outputTokenCostPer1k).toBe(0.075);
       expect(pricing.embeddingCostPer1k).toBeUndefined();
     });
   });
@@ -181,7 +181,7 @@ describe('OpenAIProvider', () => {
   beforeEach(() => {
     config = {
       apiKey: process.env.OPENAI_API_KEY || 'test-key',
-      model: 'gpt-4-turbo',
+      model: 'gpt-4.1',
       maxTokens: 1000,
     };
   });
@@ -194,21 +194,21 @@ describe('OpenAIProvider', () => {
   });
 
   describe('getPricing', () => {
-    it('should return correct pricing for gpt-4-turbo', () => {
+    it('should return correct pricing for gpt-4.1', () => {
       const provider = new OpenAIProvider(config);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.01);
-      expect(pricing.outputTokenCostPer1k).toBe(0.03);
+      expect(pricing.inputTokenCostPer1k).toBe(0.008);
+      expect(pricing.outputTokenCostPer1k).toBe(0.032);
     });
 
-    it('should return correct pricing for gpt-3.5-turbo', () => {
-      const config35 = { ...config, model: 'gpt-3.5-turbo' };
-      const provider = new OpenAIProvider(config35);
+    it('should return correct pricing for gpt-4.1-mini', () => {
+      const configMini = { ...config, model: 'gpt-4.1-mini' };
+      const provider = new OpenAIProvider(configMini);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.0005);
-      expect(pricing.outputTokenCostPer1k).toBe(0.0015);
+      expect(pricing.inputTokenCostPer1k).toBe(0.0004);
+      expect(pricing.outputTokenCostPer1k).toBe(0.0016);
     });
   });
 
@@ -217,8 +217,8 @@ describe('OpenAIProvider', () => {
       const provider = new OpenAIProvider(config);
       const limits = provider.getLimits();
 
-      expect(limits.maxInputTokens).toBe(128000);
-      expect(limits.maxOutputTokens).toBe(4096);
+      expect(limits.maxInputTokens).toBe(1047576);
+      expect(limits.maxOutputTokens).toBe(32768);
       expect(limits.requestsPerMinute).toBe(500);
     });
   });
