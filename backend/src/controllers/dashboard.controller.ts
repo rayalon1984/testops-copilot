@@ -396,24 +396,24 @@ export class DashboardController {
 
     return [
       {
-        name: 'Claude Sonnet 4.5',
-        costPer1M: 9.00,
+        name: 'Claude Opus 4.6',
+        costPer1M: 15.00,
         contextWindow: '200K',
         speed: '⚡⚡⚡',
         isActive: activeProvider === 'anthropic',
       },
       {
-        name: 'GPT-4 Turbo',
-        costPer1M: 20.00,
-        contextWindow: '128K',
-        speed: '⚡⚡',
+        name: 'GPT-4.1',
+        costPer1M: 8.00,
+        contextWindow: '1M',
+        speed: '⚡⚡⚡',
         isActive: activeProvider === 'openai',
       },
       {
-        name: 'Gemini 1.5 Flash',
-        costPer1M: 0.375,
+        name: 'Gemini 3.0 Flash',
+        costPer1M: 0.15,
         contextWindow: '1M',
-        speed: '⚡⚡⚡',
+        speed: '⚡⚡⚡⚡',
         isActive: activeProvider === 'google',
       },
     ];

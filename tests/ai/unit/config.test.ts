@@ -40,7 +40,7 @@ describe('AIConfigManager', () => {
 
       expect(config.enabled).toBe(false);
       expect(config.provider).toBe('anthropic');
-      expect(config.model).toBe('claude-sonnet-4-20250514');
+      expect(config.model).toBe('claude-opus-4-6');
       expect(config.features.rcaMatching).toBe(true);
       expect(config.features.categorization).toBe(true);
       expect(config.cost.monthlyBudgetUSD).toBe(100);
@@ -79,7 +79,7 @@ describe('AIConfigManager', () => {
     it('should validate correct configuration', () => {
       process.env.AI_ENABLED = 'true';
       process.env.AI_PROVIDER = 'anthropic';
-      process.env.AI_MODEL = 'claude-sonnet-4-20250514';
+      process.env.AI_MODEL = 'claude-opus-4-6';
 
       const manager = new AIConfigManager();
       const validation = manager.validate();
@@ -156,10 +156,10 @@ describe('AIConfigManager', () => {
     });
 
     it('should get model name', () => {
-      process.env.AI_MODEL = 'gpt-4-turbo';
+      process.env.AI_MODEL = 'gpt-4.1';
       const manager = new AIConfigManager();
 
-      expect(manager.getModel()).toBe('gpt-4-turbo');
+      expect(manager.getModel()).toBe('gpt-4.1');
     });
   });
 });

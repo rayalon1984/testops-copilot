@@ -155,9 +155,9 @@ const PIPELINE_TEMPLATES = [
 ];
 
 const AI_PROVIDERS = [
-  { name: 'anthropic', model: 'claude-sonnet-4', avgTokens: 1200, avgCost: 0.0036, avgTime: 1800 },
-  { name: 'openai', model: 'gpt-4-turbo', avgTokens: 1500, avgCost: 0.045, avgTime: 2100 },
-  { name: 'google', model: 'gemini-1.5-flash', avgTokens: 1100, avgCost: 0.00055, avgTime: 1200 },
+  { name: 'anthropic', model: 'claude-opus-4-6', avgTokens: 1200, avgCost: 0.108, avgTime: 1800 },
+  { name: 'openai', model: 'gpt-4.1', avgTokens: 1500, avgCost: 0.06, avgTime: 2100 },
+  { name: 'google', model: 'gemini-3.0-flash', avgTokens: 1100, avgCost: 0.000825, avgTime: 1200 },
 ];
 
 const NOTIFICATION_TEMPLATES = [

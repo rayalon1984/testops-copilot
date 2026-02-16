@@ -579,7 +579,7 @@ export class AnthropicProvider extends BaseProvider {
 
   async chat(messages: ChatMessage[], options?: CompletionOptions): Promise<AIResponse> {
     const response = await this.client.messages.create({
-      model: options?.model || 'claude-sonnet-4.5',
+      model: options?.model || 'claude-opus-4-6',
       messages,
       max_tokens: options?.maxTokens || 4096
     });
@@ -1511,7 +1511,7 @@ export const aiConfig = {
   features: {
     newFeature: {
       enabled: process.env.AI_FEATURE_NEW === 'true',
-      model: 'claude-sonnet-4.5',
+      model: 'claude-opus-4-6',
       maxRetries: 3
     }
   }
@@ -1931,9 +1931,9 @@ const result = await anthropic.messages.create(...);
 
 **When to use each provider**:
 
-- **Anthropic Claude Sonnet 4.5**: Best for complex analysis, high quality
-- **OpenAI GPT-4 Turbo**: Good balance of quality and speed
-- **Google Gemini Flash**: Ultra-cheap, good for high-volume simple tasks
+- **Anthropic Claude Opus 4.6**: Best for complex analysis, highest quality
+- **OpenAI GPT-4.1**: Good balance of quality and speed, 1M context
+- **Google Gemini 3.0 Flash**: Ultra-cheap, good for high-volume simple tasks
 - **Azure OpenAI**: Enterprise SLAs, compliance requirements
 
 ### Cost Management

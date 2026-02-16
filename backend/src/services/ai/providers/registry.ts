@@ -119,10 +119,10 @@ class ProviderRegistry {
    */
   private getDefaultModel(provider: AIProviderName): string {
     const defaults: Record<AIProviderName, string> = {
-      anthropic: 'claude-sonnet-4-20250514',
-      openai: 'gpt-4-turbo',
-      google: 'gemini-pro',
-      azure: 'gpt-4',
+      anthropic: 'claude-opus-4-6',
+      openai: 'gpt-4.1',
+      google: 'gemini-3.0-flash',
+      azure: 'gpt-4.1',
     };
 
     return defaults[provider];

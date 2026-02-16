@@ -115,7 +115,7 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
     - **Confluence Knowledge Reader**: CQL search finds relevant RCA docs, runbooks, and architecture pages from your wiki
     - **GitHub Code Awareness**: Fetches commit diffs, finds associated PRs, and highlights file changes relevant to the failing test
     - **AI-Synthesized Insights**: An LLM connects the dots across all three sources to produce an actionable root cause analysis
-  - **Multi-Provider Support**: Anthropic Claude Sonnet 4.5, OpenAI GPT-4 Turbo, Google Gemini (1M token context), Azure OpenAI
+  - **Multi-Provider Support**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 (2M token context), Azure OpenAI
   - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
   - **Semantic Search**: Find similar failures even with different error messages
   - **AI-Enhanced Explanations**: Get detailed analysis of why failures are similar and suggested fixes
@@ -278,9 +278,9 @@ CORS_ORIGIN=http://localhost:5173
 # AI Configuration (Optional - v2.5.3+)
 AI_ENABLED=true
 AI_PROVIDER=anthropic                          # anthropic, openai, google, or azure
-AI_MODEL=claude-sonnet-4.5                     # Provider-specific model name
+AI_MODEL=claude-opus-4-6                       # Provider-specific model name
 ANTHROPIC_API_KEY=your-anthropic-key           # For Claude
-OPENAI_API_KEY=your-openai-key                 # For GPT-4
+OPENAI_API_KEY=your-openai-key                 # For GPT-4.1
 GOOGLE_API_KEY=your-google-key                 # For Gemini (v2.5.4)
 AZURE_OPENAI_ENDPOINT=https://your.openai.azure.com  # For Azure (v2.5.4)
 AZURE_OPENAI_KEY=your-azure-key                # For Azure (v2.5.4)

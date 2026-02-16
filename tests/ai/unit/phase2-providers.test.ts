@@ -12,7 +12,7 @@ describe('GoogleProvider', () => {
   beforeEach(() => {
     config = {
       apiKey: process.env.GOOGLE_API_KEY || 'test-key',
-      model: 'gemini-pro',
+      model: 'gemini-3.0-flash',
     };
   });
 
@@ -24,35 +24,26 @@ describe('GoogleProvider', () => {
   });
 
   describe('getPricing', () => {
-    it('should return correct pricing for gemini-pro', () => {
+    it('should return correct pricing for gemini-3.0-flash', () => {
       const provider = new GoogleProvider(config);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.0005);
-      expect(pricing.outputTokenCostPer1k).toBe(0.0015);
-      expect(pricing.embeddingCostPer1k).toBe(0.0001);
+      expect(pricing.inputTokenCostPer1k).toBe(0.00015);
+      expect(pricing.outputTokenCostPer1k).toBe(0.0006);
+      expect(pricing.embeddingCostPer1k).toBe(0.00001);
     });
 
-    it('should return correct pricing for gemini-1.5-pro', () => {
-      const config15 = { ...config, model: 'gemini-1.5-pro' };
-      const provider = new GoogleProvider(config15);
+    it('should return correct pricing for gemini-3.0-pro', () => {
+      const configPro = { ...config, model: 'gemini-3.0-pro' };
+      const provider = new GoogleProvider(configPro);
       const pricing = provider.getPricing();
 
       expect(pricing.inputTokenCostPer1k).toBe(0.00125);
-      expect(pricing.outputTokenCostPer1k).toBe(0.00375);
-    });
-
-    it('should return correct pricing for gemini-1.5-flash', () => {
-      const configFlash = { ...config, model: 'gemini-1.5-flash' };
-      const provider = new GoogleProvider(configFlash);
-      const pricing = provider.getPricing();
-
-      expect(pricing.inputTokenCostPer1k).toBe(0.000075);
-      expect(pricing.outputTokenCostPer1k).toBe(0.0003);
+      expect(pricing.outputTokenCostPer1k).toBe(0.005);
     });
 
     it('should return pricing for embeddings model', () => {
-      const configEmbed = { ...config, model: 'text-embedding-004' };
+      const configEmbed = { ...config, model: 'text-embedding-005' };
       const provider = new GoogleProvider(configEmbed);
       const pricing = provider.getPricing();
 
@@ -61,30 +52,29 @@ describe('GoogleProvider', () => {
   });
 
   describe('getLimits', () => {
-    it('should return correct limits for gemini-pro', () => {
+    it('should return correct limits for gemini-3.0-flash', () => {
       const provider = new GoogleProvider(config);
       const limits = provider.getLimits();
 
-      expect(limits.maxInputTokens).toBe(30720);
-      expect(limits.maxOutputTokens).toBe(2048);
+      expect(limits.maxInputTokens).toBe(1000000);
+      expect(limits.maxOutputTokens).toBe(65536);
     });
 
-    it('should return correct limits for gemini-1.5-pro', () => {
-      const config15 = { ...config, model: 'gemini-1.5-pro' };
-      const provider = new GoogleProvider(config15);
+    it('should return correct limits for gemini-3.0-pro', () => {
+      const configPro = { ...config, model: 'gemini-3.0-pro' };
+      const provider = new GoogleProvider(configPro);
       const limits = provider.getLimits();
 
-      expect(limits.maxInputTokens).toBe(1000000); // 1M context!
-      expect(limits.maxOutputTokens).toBe(8192);
+      expect(limits.maxInputTokens).toBe(2000000); // 2M context!
+      expect(limits.maxOutputTokens).toBe(65536);
     });
 
-    it('should return correct limits for gemini-1.5-flash', () => {
-      const configFlash = { ...config, model: 'gemini-1.5-flash' };
-      const provider = new GoogleProvider(configFlash);
+    it('should return correct limits for gemini-3.0-flash', () => {
+      const provider = new GoogleProvider(config);
       const limits = provider.getLimits();
 
       expect(limits.maxInputTokens).toBe(1000000);
-      expect(limits.requestsPerMinute).toBe(1000); // Much higher!
+      expect(limits.requestsPerMinute).toBe(2000); // Much higher!
     });
   });
 
@@ -124,21 +114,22 @@ describe('AzureProvider', () => {
   });
 
   describe('getPricing', () => {
-    it('should return pricing for gpt-4 deployment', () => {
-      const provider = new AzureProvider(config);
+    it('should return pricing for gpt-4.1 deployment', () => {
+      const config41 = { ...config, deploymentName: 'gpt-4.1-deployment' };
+      const provider = new AzureProvider(config41);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.03);
-      expect(pricing.outputTokenCostPer1k).toBe(0.06);
+      expect(pricing.inputTokenCostPer1k).toBe(0.008);
+      expect(pricing.outputTokenCostPer1k).toBe(0.032);
     });
 
-    it('should return pricing for gpt-35-turbo deployment', () => {
-      const config35 = { ...config, deploymentName: 'gpt-35-turbo-deployment' };
-      const provider = new AzureProvider(config35);
+    it('should return pricing for gpt-4.1-mini deployment', () => {
+      const configMini = { ...config, deploymentName: 'gpt-4.1-mini-deployment' };
+      const provider = new AzureProvider(configMini);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.0015);
-      expect(pricing.outputTokenCostPer1k).toBe(0.002);
+      expect(pricing.inputTokenCostPer1k).toBe(0.0004);
+      expect(pricing.outputTokenCostPer1k).toBe(0.0016);
     });
 
     it('should return pricing for embedding deployment', () => {
@@ -149,12 +140,12 @@ describe('AzureProvider', () => {
       expect(pricing.embeddingCostPer1k).toBe(0.00002);
     });
 
-    it('should fallback to gpt-35-turbo pricing for unknown deployments', () => {
+    it('should fallback to gpt-4.1-mini pricing for unknown deployments', () => {
       const configUnknown = { ...config, deploymentName: 'custom-deployment' };
       const provider = new AzureProvider(configUnknown);
       const pricing = provider.getPricing();
 
-      expect(pricing.inputTokenCostPer1k).toBe(0.0015);
+      expect(pricing.inputTokenCostPer1k).toBe(0.0004);
     });
   });
 
@@ -203,29 +194,29 @@ describe('Provider Cost Comparison', () => {
   it('should compare costs across all providers', () => {
     const providers = [
       {
-        name: 'Anthropic Claude Sonnet 4.5',
-        inputCost: 0.003,
-        outputCost: 0.015,
+        name: 'Anthropic Claude Opus 4.6',
+        inputCost: 0.015,
+        outputCost: 0.075,
       },
       {
-        name: 'OpenAI GPT-4 Turbo',
-        inputCost: 0.01,
-        outputCost: 0.03,
+        name: 'OpenAI GPT-4.1',
+        inputCost: 0.008,
+        outputCost: 0.032,
       },
       {
-        name: 'Google Gemini Pro',
-        inputCost: 0.0005,
-        outputCost: 0.0015,
+        name: 'Google Gemini 3.0 Pro',
+        inputCost: 0.00125,
+        outputCost: 0.005,
       },
       {
-        name: 'Google Gemini 1.5 Flash',
-        inputCost: 0.000075,
-        outputCost: 0.0003,
+        name: 'Google Gemini 3.0 Flash',
+        inputCost: 0.00015,
+        outputCost: 0.0006,
       },
       {
-        name: 'Azure GPT-4',
-        inputCost: 0.03,
-        outputCost: 0.06,
+        name: 'Azure GPT-4.1',
+        inputCost: 0.008,
+        outputCost: 0.032,
       },
     ];
 
@@ -238,14 +229,14 @@ describe('Provider Cost Comparison', () => {
     // Sort by cost
     costs.sort((a, b) => a.totalCost - b.totalCost);
 
-    // Gemini 1.5 Flash should be cheapest
+    // Gemini 3.0 Flash should be cheapest
     expect(costs[0].name).toContain('Flash');
 
-    // Gemini Pro should be second cheapest
-    expect(costs[1].name).toContain('Gemini Pro');
+    // Gemini 3.0 Pro should be second cheapest
+    expect(costs[1].name).toContain('Gemini 3.0 Pro');
 
-    // Azure/OpenAI GPT-4 should be most expensive
-    expect(costs[costs.length - 1].name).toContain('Azure');
+    // Anthropic Opus should be most expensive
+    expect(costs[costs.length - 1].name).toContain('Opus');
 
     console.log('\nProvider Cost Comparison (1M input + 1M output tokens):');
     costs.forEach((c, i) => {
@@ -255,19 +246,18 @@ describe('Provider Cost Comparison', () => {
 
   it('should show context window advantages', () => {
     const contexts = [
-      { name: 'Anthropic Claude Sonnet 4.5', tokens: 200000 },
-      { name: 'OpenAI GPT-4 Turbo', tokens: 128000 },
-      { name: 'Google Gemini Pro', tokens: 30720 },
-      { name: 'Google Gemini 1.5 Pro', tokens: 1000000 },
-      { name: 'Google Gemini 1.5 Flash', tokens: 1000000 },
-      { name: 'Azure GPT-4', tokens: 8192 },
+      { name: 'Anthropic Claude Opus 4.6', tokens: 200000 },
+      { name: 'OpenAI GPT-4.1', tokens: 1047576 },
+      { name: 'Google Gemini 3.0 Pro', tokens: 2000000 },
+      { name: 'Google Gemini 3.0 Flash', tokens: 1000000 },
+      { name: 'Azure GPT-4.1', tokens: 1047576 },
     ];
 
     contexts.sort((a, b) => b.tokens - a.tokens);
 
-    // Gemini 1.5 models should have largest context
-    expect(contexts[0].tokens).toBe(1000000);
-    expect(contexts[0].name).toContain('Gemini 1.5');
+    // Gemini 3.0 Pro should have largest context
+    expect(contexts[0].tokens).toBe(2000000);
+    expect(contexts[0].name).toContain('Gemini 3.0 Pro');
 
     console.log('\nProvider Context Window Comparison:');
     contexts.forEach((c, i) => {

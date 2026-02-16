@@ -45,33 +45,23 @@ export class AzureProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Azure OpenAI pricing varies by model and region
+    // Azure OpenAI pricing varies by model and region (February 2026)
     // These are approximate costs - check your Azure portal for exact pricing
     const modelPricing: Record<string, ProviderPricing> = {
-      'gpt-4': {
-        inputTokenCostPer1k: 0.03,
-        outputTokenCostPer1k: 0.06,
+      'gpt-4.1': {
+        inputTokenCostPer1k: 0.008,
+        outputTokenCostPer1k: 0.032,
         embeddingCostPer1k: undefined,
       },
-      'gpt-4-32k': {
-        inputTokenCostPer1k: 0.06,
-        outputTokenCostPer1k: 0.12,
+      'gpt-4.1-mini': {
+        inputTokenCostPer1k: 0.0004,
+        outputTokenCostPer1k: 0.0016,
         embeddingCostPer1k: undefined,
       },
-      'gpt-35-turbo': {
-        inputTokenCostPer1k: 0.0015,
-        outputTokenCostPer1k: 0.002,
-        embeddingCostPer1k: undefined,
-      },
-      'gpt-35-turbo-16k': {
-        inputTokenCostPer1k: 0.003,
-        outputTokenCostPer1k: 0.004,
-        embeddingCostPer1k: undefined,
-      },
-      'text-embedding-ada-002': {
+      'gpt-4.1-nano': {
         inputTokenCostPer1k: 0.0001,
-        outputTokenCostPer1k: 0,
-        embeddingCostPer1k: 0.0001,
+        outputTokenCostPer1k: 0.0004,
+        embeddingCostPer1k: undefined,
       },
       'text-embedding-3-small': {
         inputTokenCostPer1k: 0.00002,
@@ -93,7 +83,7 @@ export class AzureProvider extends BaseProvider {
       }
     }
 
-    return modelPricing['gpt-35-turbo'];
+    return modelPricing['gpt-4.1-mini'];
   }
 
   getLimits(): ProviderLimits {
