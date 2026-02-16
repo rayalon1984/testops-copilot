@@ -155,6 +155,19 @@ describe('AIConfigManager', () => {
       expect(manager.getProvider()).toBe('openai');
     });
 
+    it('should accept openrouter as a valid provider', () => {
+      process.env.AI_ENABLED = 'true';
+      process.env.AI_PROVIDER = 'openrouter';
+      process.env.AI_MODEL = 'meta-llama/llama-4-maverick';
+
+      const manager = new AIConfigManager();
+      const validation = manager.validate();
+
+      expect(validation.valid).toBe(true);
+      expect(manager.getProvider()).toBe('openrouter');
+      expect(manager.getModel()).toBe('meta-llama/llama-4-maverick');
+    });
+
     it('should get model name', () => {
       process.env.AI_MODEL = 'gpt-4.1';
       const manager = new AIConfigManager();

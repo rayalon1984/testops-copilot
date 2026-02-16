@@ -8,7 +8,7 @@
 /**
  * Supported AI providers
  */
-export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure';
+export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter';
 
 /**
  * AI feature categories

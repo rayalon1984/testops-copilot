@@ -261,7 +261,7 @@ export class AIConfigManager {
 
     if (this.config.enabled) {
       // Check provider is valid
-      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure'];
+      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter'];
       if (!validProviders.includes(this.config.provider)) {
         errors.push(`Invalid provider: ${this.config.provider}`);
       }

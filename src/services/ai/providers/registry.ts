@@ -11,6 +11,7 @@ import { AnthropicProvider } from './anthropic.provider';
 import { OpenAIProvider } from './openai.provider';
 import { GoogleProvider } from './google.provider';
 import { AzureProvider } from './azure.provider';
+import { OpenRouterProvider } from './openrouter.provider';
 
 export type ProviderFactory = (config: ProviderConfig) => BaseProvider;
 
@@ -33,6 +34,7 @@ class ProviderRegistry {
     this.register('openai', (config) => new OpenAIProvider(config));
     this.register('google', (config) => new GoogleProvider(config));
     this.register('azure', (config) => new AzureProvider(config as any));
+    this.register('openrouter', (config) => new OpenRouterProvider(config as any));
   }
 
   /**
@@ -107,6 +109,12 @@ class ProviderRegistry {
         (baseConfig as any).deploymentName = process.env.AZURE_DEPLOYMENT_NAME;
         break;
 
+      case 'openrouter':
+        baseConfig.apiKey = process.env.OPENROUTER_API_KEY || '';
+        (baseConfig as any).siteUrl = process.env.OPENROUTER_SITE_URL;
+        (baseConfig as any).appName = process.env.OPENROUTER_APP_NAME;
+        break;
+
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -123,6 +131,7 @@ class ProviderRegistry {
       openai: 'gpt-4.1',
       google: 'gemini-3.0-flash',
       azure: 'gpt-4.1',
+      openrouter: 'anthropic/claude-sonnet-4-5',
     };
 
     return defaults[provider];
@@ -145,7 +154,7 @@ class ProviderRegistry {
    * List all available providers (those with API keys configured)
    */
   listAvailableProviders(): AIProviderName[] {
-    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure'];
+    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter'];
     return allProviders.filter(p => this.isProviderAvailable(p));
   }
 

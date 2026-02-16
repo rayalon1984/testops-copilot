@@ -158,6 +158,7 @@ const AI_PROVIDERS = [
   { name: 'anthropic', model: 'claude-opus-4-6', avgTokens: 1200, avgCost: 0.108, avgTime: 1800 },
   { name: 'openai', model: 'gpt-4.1', avgTokens: 1500, avgCost: 0.06, avgTime: 2100 },
   { name: 'google', model: 'gemini-3.0-flash', avgTokens: 1100, avgCost: 0.000825, avgTime: 1200 },
+  { name: 'openrouter', model: 'meta-llama/llama-4-maverick', avgTokens: 1300, avgCost: 0.003, avgTime: 1500 },
 ];
 
 const NOTIFICATION_TEMPLATES = [
