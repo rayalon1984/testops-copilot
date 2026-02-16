@@ -7,7 +7,7 @@ ai:
   # Enable/disable AI features globally
   enabled: false
 
-  # AI Provider: anthropic | openai | google | azure
+  # AI Provider: anthropic | openai | google | azure | openrouter
   provider: anthropic
 
   # Model to use (provider-specific)
@@ -66,3 +66,13 @@ ai:
 #   endpoint: ${AZURE_OPENAI_ENDPOINT}
 #   api_key: ${AZURE_OPENAI_KEY}
 #   deployment_name: ${AZURE_DEPLOYMENT_NAME}
+
+# OpenRouter (unified gateway to 200+ models)
+# openrouter:
+#   api_key: ${OPENROUTER_API_KEY}
+#   site_url: ${OPENROUTER_SITE_URL}        # Optional: for analytics
+#   app_name: ${OPENROUTER_APP_NAME}        # Optional: for analytics
+#   # Use any model from https://openrouter.ai/models, e.g.:
+#   # model: meta-llama/llama-4-maverick
+#   # model: mistralai/mistral-large
+#   # model: anthropic/claude-opus-4-6

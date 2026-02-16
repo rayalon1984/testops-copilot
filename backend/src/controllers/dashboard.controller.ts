@@ -416,6 +416,13 @@ export class DashboardController {
         speed: '⚡⚡⚡⚡',
         isActive: activeProvider === 'google',
       },
+      {
+        name: 'OpenRouter (200+ models)',
+        costPer1M: 0.00,
+        contextWindow: 'Varies',
+        speed: '⚡⚡⚡',
+        isActive: activeProvider === 'openrouter',
+      },
     ];
   }
 

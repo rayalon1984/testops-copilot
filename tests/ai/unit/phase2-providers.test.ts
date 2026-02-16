@@ -1,10 +1,11 @@
 /**
- * Unit Tests - Google and Azure Providers
+ * Unit Tests - Google, Azure, and OpenRouter Providers
  */
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { GoogleProvider } from '../../../src/services/ai/providers/google.provider';
 import { AzureProvider, AzureProviderConfig } from '../../../src/services/ai/providers/azure.provider';
+import { OpenRouterProvider, OpenRouterProviderConfig } from '../../../src/services/ai/providers/openrouter.provider';
 
 describe('GoogleProvider', () => {
   let config: any;
@@ -190,6 +191,90 @@ describe('AzureProvider', () => {
   });
 });
 
+describe('OpenRouterProvider', () => {
+  let config: OpenRouterProviderConfig;
+
+  beforeEach(() => {
+    config = {
+      apiKey: process.env.OPENROUTER_API_KEY || 'test-key',
+      model: 'anthropic/claude-sonnet-4-5',
+      siteUrl: 'https://test.example.com',
+      appName: 'TestOps Test',
+    };
+  });
+
+  describe('getName', () => {
+    it('should return openrouter as provider name', () => {
+      const provider = new OpenRouterProvider(config);
+      expect(provider.getName()).toBe('openrouter');
+    });
+  });
+
+  describe('getPricing', () => {
+    it('should return conservative default pricing before model info is fetched', () => {
+      const provider = new OpenRouterProvider(config);
+      const pricing = provider.getPricing();
+
+      expect(pricing.inputTokenCostPer1k).toBe(0.005);
+      expect(pricing.outputTokenCostPer1k).toBe(0.015);
+      expect(pricing.embeddingCostPer1k).toBeUndefined();
+    });
+  });
+
+  describe('getLimits', () => {
+    it('should return conservative default limits before model info is fetched', () => {
+      const provider = new OpenRouterProvider(config);
+      const limits = provider.getLimits();
+
+      expect(limits.maxInputTokens).toBe(128000);
+      expect(limits.maxOutputTokens).toBe(4096);
+      expect(limits.requestsPerMinute).toBe(200);
+      expect(limits.tokensPerMinute).toBe(100000);
+    });
+  });
+
+  describe('embed', () => {
+    it('should throw error for embeddings (not supported via OpenRouter)', async () => {
+      const provider = new OpenRouterProvider(config);
+
+      await expect(provider.embed('test')).rejects.toThrow(
+        'OpenRouter does not support embeddings'
+      );
+    });
+  });
+
+  describe('getModelInfo', () => {
+    it('should return null before model info is fetched', () => {
+      const provider = new OpenRouterProvider(config);
+      expect(provider.getModelInfo()).toBeNull();
+    });
+  });
+
+  describe('configuration validation', () => {
+    it('should require API key', () => {
+      const invalidConfig = { ...config, apiKey: '' };
+
+      expect(() => new OpenRouterProvider(invalidConfig)).toThrow('API key');
+    });
+
+    it('should require model', () => {
+      const invalidConfig = { ...config, model: '' };
+
+      expect(() => new OpenRouterProvider(invalidConfig)).toThrow('model');
+    });
+
+    it('should accept config with optional siteUrl and appName', () => {
+      const minimalConfig = {
+        apiKey: 'test-key',
+        model: 'meta-llama/llama-4-maverick',
+      };
+
+      const provider = new OpenRouterProvider(minimalConfig);
+      expect(provider.getName()).toBe('openrouter');
+    });
+  });
+});
+
 describe('Provider Cost Comparison', () => {
   it('should compare costs across all providers', () => {
     const providers = [
@@ -217,6 +302,11 @@ describe('Provider Cost Comparison', () => {
         name: 'Azure GPT-4.1',
         inputCost: 0.008,
         outputCost: 0.032,
+      },
+      {
+        name: 'OpenRouter (default fallback)',
+        inputCost: 0.005,
+        outputCost: 0.015,
       },
     ];
 
@@ -251,6 +341,7 @@ describe('Provider Cost Comparison', () => {
       { name: 'Google Gemini 3.0 Pro', tokens: 2000000 },
       { name: 'Google Gemini 3.0 Flash', tokens: 1000000 },
       { name: 'Azure GPT-4.1', tokens: 1047576 },
+      { name: 'OpenRouter (default)', tokens: 128000 },
     ];
 
     contexts.sort((a, b) => b.tokens - a.tokens);

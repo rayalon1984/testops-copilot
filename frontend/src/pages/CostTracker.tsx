@@ -86,6 +86,7 @@ export default function CostTracker() {
     { date: '2026-02-12', provider: 'OpenAI', model: 'GPT-4.1', requests: 18, tokens: 27000, cost: 0.540, cacheHits: 12 },
     { date: '2026-02-11', provider: 'Anthropic', model: 'Claude Opus 4.6', requests: 38, tokens: 45600, cost: 0.410, cacheHits: 22 },
     { date: '2026-02-10', provider: 'Google', model: 'Gemini 3.0 Flash', requests: 65, tokens: 71500, cost: 0.027, cacheHits: 48 },
+    { date: '2026-02-09', provider: 'OpenRouter', model: 'meta-llama/llama-4-maverick', requests: 30, tokens: 42000, cost: 0.018, cacheHits: 19 },
   ];
 
   const budgetUsedPercent = (metrics.monthlySpent / metrics.monthlyBudget) * 100;
@@ -251,7 +252,8 @@ export default function CostTracker() {
                         size="small"
                         color={
                           row.provider === 'Anthropic' ? 'primary' :
-                            row.provider === 'OpenAI' ? 'secondary' : 'success'
+                            row.provider === 'OpenAI' ? 'secondary' :
+                              row.provider === 'OpenRouter' ? 'warning' : 'success'
                         }
                       />
                     </TableCell>
