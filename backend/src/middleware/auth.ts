@@ -52,16 +52,30 @@ export const authenticate = async (
   }
 };
 
-export const authorize = (...roles: UserRole[]) => {
+const ROLE_HIERARCHY: Record<UserRole, number> = {
+  [UserRole.ADMIN]: 40,
+  [UserRole.EDITOR]: 30,
+  [UserRole.USER]: 30, // Treat USER as EDITOR for backward compatibility
+  [UserRole.BILLING]: 20,
+  [UserRole.VIEWER]: 10,
+};
+
+export const hasRole = (userRole: UserRole, requiredRole: UserRole): boolean => {
+  return (ROLE_HIERARCHY[userRole] || 0) >= (ROLE_HIERARCHY[requiredRole] || 0);
+};
+
+export const authorize = (requiredRole: UserRole) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AuthenticationError(ERROR_MESSAGES.UNAUTHORIZED));
     }
 
-    if (!roles.includes(req.user.role as UserRole)) {
+    const userRole = req.user.role as UserRole;
+
+    if (!hasRole(userRole, requiredRole)) {
       return next(
         new AuthorizationError(
-          `Role ${req.user.role} is not authorized to access this resource`
+          `Role ${userRole} is not authorized to access this resource. Required: ${requiredRole}+`
         )
       );
     }

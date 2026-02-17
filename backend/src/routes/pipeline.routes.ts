@@ -1,7 +1,7 @@
 import { authenticate, authorize } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { pipelineController } from '../controllers/pipeline.controller';
-import { UserRole } from '../constants';
+import { UserRole, PipelineType } from '../constants';
 import { pipelineRouter as router } from './index';
 import { prisma } from '../lib/prisma';
 
@@ -37,8 +37,10 @@ router.get(
 );
 
 // Create pipeline
+// Create pipeline
 router.post(
   '/',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -47,37 +49,24 @@ router.post(
 
     const { name, type, config } = req.body;
 
-    const pipeline = await prisma.pipeline.create({
-      data: {
-        name,
-        type: type === 'jenkins' ? 'JENKINS' : type === 'github-actions' ? 'GITHUB_ACTIONS' : 'CUSTOM',
-        // status: 'PENDING', // Removed as not in Prod schema
-        config: JSON.stringify(config || {}),
-        // userId: req.user.id, // Removed as not in Prod schema? Wait. Dev had userId?
-        // Checking schema.dev: Pipeline has NO userId (I removed it).
-        // Checking schema.prod: Pipeline has NO userId.
-        // So create line 58 userId: req.user.id MUST BE REMOVED.
-      }
-    });
+    const pipeline = await pipelineController.createPipeline({
+      name,
+      type: type === 'jenkins' ? PipelineType.JENKINS : type === 'github-actions' ? PipelineType.GITHUB_ACTIONS : PipelineType.CUSTOM,
+      config: JSON.stringify(config || {})
+    }, req.user.id);
 
-    // Strip credentials from response
-    const { credentials: _creds, ...safeConfig } = config || {};
+    // Strip credentials from config for response if needed
+    // controller already returns safe config
 
-    res.status(201).json({
-      id: pipeline.id,
-      name: pipeline.name,
-      type: type,
-      status: 'pending',
-      lastRun: new Date().toISOString(),
-      successRate: 0,
-      config: safeConfig
-    });
+    res.status(201).json(pipeline);
   })
 );
 
 // Update pipeline
+// Update pipeline
 router.put(
   '/:id',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -94,25 +83,27 @@ router.put(
 );
 
 // Delete pipeline
+// Delete pipeline
 router.delete(
   '/:id',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
       return;
     }
 
-    await prisma.pipeline.delete({
-      where: { id: req.params.id }
-    });
+    await pipelineController.deletePipeline(req.params.id, req.user.id);
 
     res.status(204).send();
   })
 );
 
 // Start pipeline
+// Start pipeline
 router.post(
   '/:id/start',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -165,8 +156,10 @@ router.get(
 );
 
 // Schedule pipeline
+// Schedule pipeline
 router.post(
   '/:id/schedule',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });

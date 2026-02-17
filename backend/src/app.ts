@@ -3,7 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
+import session from 'express-session';
+import passport from 'passport';
 import { config } from './config';
+import { passportService } from './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
 import { registerRoutes } from './routes';
 import { ApiError } from './types/error';
@@ -64,6 +67,22 @@ app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 app.use(asMiddleware(express.json({ limit: '1mb' })));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
+
+// Session configuration
+app.use(session({
+  secret: config.security.sessionSecret || 'default_secret', // Should be in env
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: config.security.secureCookie,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Request timing middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {

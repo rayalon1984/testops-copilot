@@ -129,6 +129,22 @@ export class AuthController {
     });
   }
 
+  async ssoCallback(user: any) {
+    if (!user) {
+      throw new AuthenticationError('SSO authentication failed');
+    }
+
+    const tokenPayload: TokenPayload = {
+      userId: user.id,
+      role: user.role as UserRole
+    };
+
+    return {
+      user: this.mapUserToResponse(user),
+      ...JwtService.generateTokenPair(tokenPayload)
+    };
+  }
+
   private mapUserToResponse(user: any): UserResponse {
     return {
       id: user.id,

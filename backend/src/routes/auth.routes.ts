@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { authRouter as router } from './index';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
+import passport from 'passport';
 import { asyncHandler } from '../middleware/errorHandler';
 import { validateRegisterInput, validateLoginInput } from '../middleware/validation';
 import { JwtService } from '../services/jwt.service';
@@ -60,7 +61,7 @@ router.post(
     if (req.user) {
       await authController.logout(req.user.id, req.token);
     }
-    
+
     res.clearCookie('refreshToken');
     res.json({ message: 'Logged out successfully' });
   })
@@ -71,7 +72,7 @@ router.post(
   '/refresh',
   asyncHandler(async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refreshToken;
-    
+
     if (!refreshToken) {
       res.status(401).json({ message: 'Refresh token not found' });
       return;
@@ -126,3 +127,33 @@ router.put(
 );
 
 // Routes are registered to the authRouter imported from index
+// SAML SSO Login
+router.get(
+  '/login/sso/saml',
+  passport.authenticate('saml', { failureRedirect: '/login', failureFlash: true }),
+  (req, res) => {
+    res.redirect('/');
+  }
+);
+
+// SAML SSO Callback
+router.post(
+  '/login/sso/saml/callback',
+  passport.authenticate('saml', { failureRedirect: '/login', failureFlash: true }),
+  asyncHandler(async (req, res) => {
+    // req.user contains the authenticated user from passport.service
+    const { user, accessToken, refreshToken } = await authController.ssoCallback(req.user);
+
+    // Set refresh token in HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    // Redirect to frontend with access token
+    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+  })
+);

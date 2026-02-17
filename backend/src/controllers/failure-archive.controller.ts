@@ -66,7 +66,8 @@ export class FailureArchiveController {
         ...parsed,
         severity: parsed.severity as FailureSeverity | undefined
       };
-      const failure = await FailureArchiveService.createFailure(data);
+      const userId = req.user!.id; // Auth middleware ensures user exists
+      const failure = await FailureArchiveService.createFailure(data, userId);
 
       // Find similar failures for immediate feedback
       const similarFailures = await FailureArchiveService.findSimilarFailures(
@@ -102,10 +103,11 @@ export class FailureArchiveController {
       const { id } = req.params;
       const data = documentRCASchema.parse(req.body);
 
+      const userId = req.user!.id;
       const failure = await FailureArchiveService.documentRCA({
         id,
         ...data
-      });
+      }, userId);
 
       res.json({
         failure,
@@ -244,9 +246,11 @@ export class FailureArchiveController {
         return;
       }
 
+      const userId = req.user!.id;
       const failure = await FailureArchiveService.markResolved(
         id,
         resolvedBy,
+        userId,
         timeToResolve
       );
 

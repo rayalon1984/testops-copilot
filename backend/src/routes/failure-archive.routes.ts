@@ -4,8 +4,9 @@
 
 import { Router, type Router as RouterType } from 'express';
 import { FailureArchiveController } from '../controllers/failure-archive.controller';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth';
 import { asMiddleware } from '../types/middleware';
+import { UserRole } from '../constants';
 
 const router: RouterType = Router();
 
@@ -13,10 +14,10 @@ const router: RouterType = Router();
 router.use(authenticate);
 
 // Create failure archive entry
-router.post('/', asMiddleware(FailureArchiveController.createFailure));
+router.post('/', authorize(UserRole.EDITOR), asMiddleware(FailureArchiveController.createFailure));
 
 // Document RCA
-router.put('/:id/document-rca', asMiddleware(FailureArchiveController.documentRCA));
+router.put('/:id/document-rca', authorize(UserRole.EDITOR), asMiddleware(FailureArchiveController.documentRCA));
 
 // Get failure by ID
 router.get('/:id', asMiddleware(FailureArchiveController.getById));
@@ -31,7 +32,7 @@ router.post('/find-similar', asMiddleware(FailureArchiveController.findSimilar))
 router.get('/insights', asMiddleware(FailureArchiveController.getInsights));
 
 // Mark as resolved
-router.put('/:id/resolve', asMiddleware(FailureArchiveController.markResolved));
+router.put('/:id/resolve', authorize(UserRole.EDITOR), asMiddleware(FailureArchiveController.markResolved));
 
 // Detect patterns
 // router.post('/detect-patterns', asMiddleware(FailureArchiveController.detectPatterns));

@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../lib/prisma';
+import { auditService } from './audit.service';
 import crypto from 'crypto';
 import {
   FailureArchive,
@@ -123,7 +124,7 @@ export class FailureArchiveService {
   /**
    * Create a new failure archive entry
    */
-  static async createFailure(input: CreateFailureArchiveInput): Promise<FailureArchive> {
+  static async createFailure(input: CreateFailureArchiveInput, userId: string): Promise<FailureArchive> {
     // Check if similar failure exists based on testName and errorMessage
     const existing = await prisma.failureArchive.findFirst({
       where: {
@@ -145,7 +146,7 @@ export class FailureArchiveService {
     }
 
     // Create new entry
-    return prisma.failureArchive.create({
+    const failure = await prisma.failureArchive.create({
       data: {
         ...input,
         // screenshots: null, // Removed
@@ -158,12 +159,23 @@ export class FailureArchiveService {
         // isKnownIssue: false, // Prod schema doesn't have isKnownIssue
       }
     }) as unknown as FailureArchive;
+
+    // Audit Log
+    void auditService.log(
+      'FAILURE_CREATE',
+      'FailureArchive',
+      failure.id,
+      userId,
+      { testName: failure.testName }
+    );
+
+    return failure;
   }
 
   /**
    * Document root cause analysis for a failure
    */
-  static async documentRCA(input: DocumentRCAInput): Promise<FailureArchive> {
+  static async documentRCA(input: DocumentRCAInput, userId: string): Promise<FailureArchive> {
     const updateData: Record<string, unknown> = {
       rootCause: input.rootCause,
       // detailedAnalysis: input.detailedAnalysis, // Prod schema does NOT have detailedAnalysis
@@ -192,10 +204,21 @@ export class FailureArchiveService {
     // resolvedBy? Prod doesn't have resolvedBy? Check.
     // Prod schema: resolvedAt, resolved. NO resolvedBy.
 
-    return prisma.failureArchive.update({
+    const failure = await prisma.failureArchive.update({
       where: { id: input.id },
       data: updateData
     }) as unknown as FailureArchive;
+
+    // Audit Log
+    void auditService.log(
+      'FAILURE_RCA_UPDATE',
+      'FailureArchive',
+      failure.id,
+      userId,
+      { rootCause: input.rootCause }
+    );
+
+    return failure;
   }
 
   /**
@@ -371,9 +394,10 @@ export class FailureArchiveService {
   static async markResolved(
     id: string,
     resolvedBy: string,
+    userId: string,
     timeToResolve?: number
   ): Promise<FailureArchive> {
-    return prisma.failureArchive.update({
+    const failure = await prisma.failureArchive.update({
       where: { id },
       data: {
         resolved: true,
@@ -382,6 +406,17 @@ export class FailureArchiveService {
         // timeToResolve // Not in schema
       }
     }) as unknown as FailureArchive;
+
+    // Audit Log
+    void auditService.log(
+      'FAILURE_RESOLVE',
+      'FailureArchive',
+      id,
+      userId,
+      { resolvedBy }
+    );
+
+    return failure;
   }
 
   /**

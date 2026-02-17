@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { auditService } from '../services/audit.service';
 import { GitHubService } from '../services/github.service';
 import { NotFoundError } from '../middleware/errorHandler';
 import {
@@ -96,7 +97,7 @@ export class PipelineController {
     return toPipeline(prismaPipeline);
   }
 
-  async createPipeline(data: CreatePipelineDTO, _userId: string) {
+  async createPipeline(data: CreatePipelineDTO, userId: string) {
     // Validate connection before creating
     await this.githubService.validateConnection(data.config);
 
@@ -109,6 +110,15 @@ export class PipelineController {
     const prismaPipeline = await prisma.pipeline.create({
       data: createData
     });
+
+    // Audit Log
+    void auditService.log(
+      'PIPELINE_CREATE',
+      'Pipeline',
+      prismaPipeline.id,
+      userId,
+      { name: prismaPipeline.name, type: prismaPipeline.type }
+    );
 
     // Convert Prisma pipeline to our Pipeline type
     return toPipeline(prismaPipeline);
@@ -128,6 +138,15 @@ export class PipelineController {
       data: updateData
     });
 
+    // Audit Log
+    void auditService.log(
+      'PIPELINE_UPDATE',
+      'Pipeline',
+      prismaPipeline.id,
+      userId,
+      { updates: Object.keys(data) }
+    );
+
     // Convert Prisma pipeline to our Pipeline type
     return toPipeline(prismaPipeline);
   }
@@ -135,9 +154,18 @@ export class PipelineController {
   async deletePipeline(id: string, userId: string) {
     await this.getPipeline(id, userId);
 
-    await prisma.pipeline.delete({
+    const deleted = await prisma.pipeline.delete({
       where: { id }
     });
+
+    // Audit Log
+    void auditService.log(
+      'PIPELINE_DELETE',
+      'Pipeline',
+      id,
+      userId,
+      { name: deleted.name }
+    );
   }
 
   async startPipeline(id: string, userId: string) {

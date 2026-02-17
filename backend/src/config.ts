@@ -9,27 +9,27 @@ const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('3000'),
-  
+
   // API
   API_PREFIX: z.string().default('/api/v1'),
-  
+
   // CORS
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  
+
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
-  
+
   // Database
   DATABASE_URL: z.string(),
   DATABASE_SSL: z.string().transform(val => val === 'true').default('false'),
-  
+
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production security'),
   JWT_EXPIRES_IN: z.string().default('24h'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters for production security'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  
+
   // GitHub (optional)
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().default('https://api.github.com'),
@@ -58,11 +58,20 @@ const envSchema = z.object({
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
   LOG_FORMAT: z.enum(['combined', 'common', 'dev', 'short', 'tiny']).default('combined'),
-  
+
   // Security
   BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
   SESSION_SECRET: z.string().optional(),
+
+  // SSO
+  SSO_ENABLED: z.string().transform(val => val === 'true').default('false'),
+  SAML_ENTRY_POINT: z.string().optional(),
+  SAML_ISSUER: z.string().optional(),
+  SAML_CERT: z.string().optional(),
+  OIDC_CLIENT_ID: z.string().optional(),
+  OIDC_CLIENT_SECRET: z.string().optional(),
+  OIDC_ISSUER: z.string().optional(),
 
   // Slack
   SLACK_WEBHOOK_URL: z.string().optional(),
@@ -146,6 +155,19 @@ export interface Config {
     bcryptSaltRounds: number;
     secureCookie: boolean;
     sessionSecret?: string;
+  };
+  sso: {
+    enabled: boolean;
+    saml?: {
+      entryPoint: string;
+      issuer: string;
+      cert: string;
+    };
+    oidc?: {
+      clientId: string;
+      clientSecret: string;
+      issuer: string;
+    };
   };
   notifications: {
     slack?: {
@@ -232,6 +254,23 @@ export const config: Config = {
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
     secureCookie: env.SECURE_COOKIE,
     sessionSecret: env.SESSION_SECRET,
+  },
+  sso: {
+    enabled: env.SSO_ENABLED,
+    ...(env.SAML_ENTRY_POINT && env.SAML_ISSUER && env.SAML_CERT && {
+      saml: {
+        entryPoint: env.SAML_ENTRY_POINT,
+        issuer: env.SAML_ISSUER,
+        cert: env.SAML_CERT,
+      },
+    }),
+    ...(env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET && env.OIDC_ISSUER && {
+      oidc: {
+        clientId: env.OIDC_CLIENT_ID,
+        clientSecret: env.OIDC_CLIENT_SECRET,
+        issuer: env.OIDC_ISSUER,
+      },
+    }),
   },
   notifications: {
     ...(env.SLACK_BOT_TOKEN && {

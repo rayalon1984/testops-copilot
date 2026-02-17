@@ -22,13 +22,17 @@ model User {
 
   notifications Notification[]
   testRuns      TestRun[]
+  auditLogs     AuditLog[]
 
   @@map("users")
 }
 
 enum UserRole {
   ADMIN
-  USER
+  EDITOR
+  VIEWER
+  BILLING
+  USER // Deprecated, treated as EDITOR
 }
 
 model TestRun {
@@ -242,4 +246,20 @@ model TestRailRun {
 
   @@index([projectId])
   @@map("testrail_runs")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  action      String
+  entityType  String
+  entityId    String
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id])
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
