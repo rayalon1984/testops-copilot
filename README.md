@@ -62,7 +62,7 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ---
 
-### AI-Powered Dashboard
+### AI-Powered Dashboard with Agentic Copilot
 
 <details open>
 <summary><strong>Dark Mode</strong></summary>
@@ -78,7 +78,7 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 </details>
 
-*Real-time AI-powered failure analysis with multi-provider support, automated categorization, and intelligent cost optimization*
+*AI-powered failure analysis with Agentic Copilot — search Jira, query Confluence, check pipelines, and analyze failures through natural language conversation*
 
 ---
 
