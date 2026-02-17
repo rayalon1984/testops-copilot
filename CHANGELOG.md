@@ -2,36 +2,72 @@
 
 ## [2.8.5] - 2026-02-17
 
-### 🚀 Catalyst: Enterprise Readiness
-**TestOps Companion is now Enterprise-Ready.**
-This release transforms the platform from a team-level tool into a robust, scalable, and secure infrastructure capable of handling large-scale deployments. We focused on the "Big Corp" checklist: Security, Compliance, Scalability, and DevOps.
+> **Enterprise Readiness** — This release transforms TestOps Companion from a team-level tool into a production-grade, enterprise-ready platform.
 
-### ✨ Feature Spotlights
+---
 
-#### 🔐 Security & Identity (SSO + RBAC)
-- **Single Sign-On (SAML)**: Seamless integration with Okta, Azure AD, and Keycloak. JIT provisioning ensures users can log in immediately.
-- **Granular RBAC**: New roles (`Viewer`, `Editor`, `Admin`, `Billing`) provide precise access control over pipelines and configuration.
+### 🔐 Security & Identity
 
-#### 📜 Compliance & Audit
-- **Audit Logging**: Every critical action (Login, RCA Creation, Settings Change) is now logged with:
-  - **Who**: User ID and Email
-  - **Where**: IP Address and User Agent
-  - **What**: Redacted metadata (sensitive keys masked)
-- **Ready for Compliance**: Built to satisfy SOC2 and ISO27001 audit requirements.
+**Single Sign-On (SAML 2.0)** — Authenticate through your existing identity provider.
+Supports Okta, Azure AD, and Keycloak with Just-In-Time user provisioning.
 
-#### ⚡ Scalability & High Availability
-- **Redis Cluster Support**: No more Single Point of Failure. Full support for AWS ElastiCache and Redis Sentinel.
-- **Stateless Architecture**: The backend is now fully stateless, ready for horizontal autoscaling on Kubernetes.
+**Role-Based Access Control** — Four granular roles (`Viewer`, `Editor`, `Admin`, `Billing`)
+give you precise control over who can view, modify, and manage pipelines.
 
-#### 🛠️ DevOps Excellence
-- **Alpine Docker Images**: Switched to `node:20-alpine`, reducing image size by **80%** and improving security by running as non-root `node` user.
-- **OpenTelemetry**: Native tracing and metrics integration for Datadog, Jaeger, and Prometheus.
-- **API Documentation**: Interactive Swagger UI available at `/api/docs`.
+---
 
-### 📦 Upgrading
-- **Docker**: Pull the latest `ghcr.io/rayalon1984/testops-companion` images.
-- **Env**: Add `OTEL_ENABLED=true` to enable tracing.
+### 📜 Compliance & Audit Logging
 
-### Changed
-- **Docker Optimization**: Switched to multi-stage builds using `node:20-alpine`, reducing image size by ~80% and improving security (running as non-root `node` user).
-- **CI/CD**: Enhanced GitHub Actions pipeline for automated quality checks (Lint, Typecheck, Test, Build).
+Every critical action is now recorded with full context:
+
+| Field | Detail |
+|-------|--------|
+| **Who** | User ID, Email |
+| **Where** | IP Address, User Agent |
+| **What** | Action type, redacted metadata |
+
+Built to satisfy **SOC 2** and **ISO 27001** audit trail requirements.
+Sensitive fields are automatically redacted (API keys, tokens, passwords).
+
+---
+
+### ⚡ Scalability & High Availability
+
+**Redis Cluster Support** — Eliminates the single point of failure.
+Full compatibility with AWS ElastiCache and Redis Sentinel.
+
+**Stateless Backend** — The application server is now fully stateless,
+ready for horizontal autoscaling on Kubernetes.
+
+---
+
+### 🔭 Observability
+
+**OpenTelemetry** — Native distributed tracing and metrics.
+Ship telemetry to Datadog, Jaeger, or Prometheus with a single environment variable.
+
+**API Documentation** — Interactive Swagger UI at `/api/docs`,
+auto-generated from route annotations.
+
+---
+
+### 🐳 DevOps
+
+**Alpine Docker Images** — Multi-stage builds with `node:20-alpine` reduce
+image size by ~80% and run as a non-root `node` user.
+
+**CI/CD Pipeline** — Automated quality gates on every push:
+Lint → Typecheck → Test (61/61) → Docker Build.
+
+---
+
+### Upgrading
+
+```bash
+# Docker
+docker pull ghcr.io/rayalon1984/testops-companion/backend:2.8.5
+docker pull ghcr.io/rayalon1984/testops-companion/frontend:2.8.5
+
+# Environment
+OTEL_ENABLED=true   # Enable OpenTelemetry tracing
+```

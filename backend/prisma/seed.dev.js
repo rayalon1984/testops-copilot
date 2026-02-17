@@ -176,6 +176,8 @@ const NOTIFICATION_TEMPLATES = [
 async function seedDevelopmentData() {
   console.log('🌱 Seeding development database with MASSIVE demo data...');
 
+  const now = Date.now();
+
   // Clear existing data
   await prisma.aIUsage.deleteMany();
   await prisma.failureArchive.deleteMany();
@@ -219,7 +221,6 @@ async function seedDevelopmentData() {
 
   console.log(`✅ Created ${pipelines.length} pipelines`);
 
-  // Create MANY test runs with variety
   // Create MANY test runs with variety - BATCHED
   console.log('Generating test runs...');
   const testRunPayloads = [];
@@ -252,7 +253,6 @@ async function seedDevelopmentData() {
 
   console.log(`✅ Created ${testRuns.length} test runs`);
 
-  // Create massive failure dataset
   // Create massive failure dataset - BATCHED
   console.log('Generating failure archives...');
   const failurePayloads = [];
