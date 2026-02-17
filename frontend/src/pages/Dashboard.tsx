@@ -43,7 +43,6 @@ import {
   OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
-import AICopilot from '../components/AICopilot/AICopilot';
 import { useAuth } from '../hooks/useAuth';
 
 interface DashboardMetrics {
@@ -370,7 +369,7 @@ export default function Dashboard() {
                 fontWeight: 500,
               }}
             />
-            <AICopilot userRole={user?.role} />
+
           </Box>
         </Box>
       </Fade>

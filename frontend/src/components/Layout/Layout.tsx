@@ -34,8 +34,9 @@ import {
   AttachMoney as CostIcon,
 } from '@mui/icons-material';
 import { useDesignMode } from '../../contexts/DesignModeContext';
+import AICopilot from '../AICopilot/AICopilot';
 
-const drawerWidth = 260;
+const drawerWidth = 250; // Updated to match Grid
 
 interface NavItem {
   text: string;
@@ -225,7 +226,7 @@ export default function Layout() {
       {/* Bottom: Version & Theme Toggle */}
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
-          label="v2.8.1"
+          label="v2.9.0"
           size="small"
           variant="outlined"
           sx={{
@@ -263,88 +264,107 @@ export default function Layout() {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box
+      className="app-container"
+      sx={{
+        display: { xs: 'block', md: 'grid' }, /* Block on mobile, Grid on desktop */
+        gridTemplateColumns: { md: '250px 1fr 400px' },
+        /* Override class specific styles if needed via sx */
+        bgcolor: 'var(--bg-app)',
+        height: '100vh',
+        overflow: 'hidden'
+      }}
+    >
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-        }}
-      >
-        <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
 
-          {/* Page title based on route */}
-          <Typography
-            variant="body1"
-            fontWeight={500}
-            color="text.secondary"
-            noWrap
-            sx={{ flexGrow: 1 }}
-          >
-            {navSections
-              .flatMap((s) => s.items)
-              .find((item) => isActive(item.path))?.text || 'TestOps Companion'}
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
+      {/* 1. Navigation Column */}
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          borderRight: '1px solid var(--border-subtle)',
+          bgcolor: 'var(--bg-sidebar)',
+          height: '100%',
+          overflow: 'hidden'
+        }}
       >
-        {/* Mobile drawer */}
-        <Drawer
-          variant="temporary"
-          open={drawerOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        {/* Desktop drawer */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
+        {drawer}
       </Box>
 
+      {/* Mobile Drawer (Overlay) */}
+      <Drawer
+        variant="temporary"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+        }}
+      >
+        {drawer}
+      </Drawer>
+
+      {/* 2. Main Content Column */}
       <Box
         component="main"
         sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'hidden',
+          minWidth: 0 // Prevent flex overflow
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }} />
-        <Outlet />
+        <AppBar
+          position="static"
+          elevation={0}
+          sx={{
+            bgcolor: 'transparent',
+            borderBottom: '1px solid var(--border-subtle)',
+            color: 'text.primary'
+          }}
+        >
+          <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { md: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+
+            {/* Page title */}
+            <Typography
+              variant="subtitle1"
+              fontWeight={600}
+              color="text.primary"
+              noWrap
+              sx={{ flexGrow: 1 }}
+            >
+              {navSections
+                .flatMap((s) => s.items)
+                .find((item) => isActive(item.path))?.text || 'TestOps Companion'}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+          <Outlet />
+        </Box>
+      </Box>
+
+      {/* 3. AI Sidebar Column (Desktop Only) */}
+      <Box
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          height: '100%',
+          overflow: 'hidden'
+        }}
+      >
+        <AICopilot />
       </Box>
     </Box>
   );
