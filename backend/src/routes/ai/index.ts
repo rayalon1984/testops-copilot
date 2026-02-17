@@ -36,13 +36,13 @@ router.get('/health', async (req: Request, res: Response) => {
 
     const health = await aiManager.healthCheck();
 
-    return     res.json({
+    return res.json({
       enabled: true,
       healthy: health.healthy,
       services: health.services,
     });
   } catch (error) {
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Health check failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -74,7 +74,7 @@ router.post('/rca/similar', async (req: Request, res: Response) => {
 
     const similarFailures = await aiManager.findSimilarFailures(failure, options);
 
-    return     res.json({
+    return res.json({
       query: {
         testId: failure.testId,
         testName: failure.testName,
@@ -96,7 +96,7 @@ router.post('/rca/similar', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('RCA matching failed:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'RCA matching failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -127,13 +127,13 @@ router.post('/rca/store', async (req: Request, res: Response) => {
 
     const id = await aiManager.storeFailure(failure);
 
-    return     res.status(201).json({
+    return res.status(201).json({
       id,
       message: 'Failure stored successfully',
     });
   } catch (error) {
     console.error('Failed to store failure:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to store failure',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -154,7 +154,7 @@ router.put('/rca/:id/resolve', async (req: Request, res: Response) => {
       });
     }
 
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { resolution, resolvedBy, ticketUrl } = req.body;
 
     if (!resolution || !resolvedBy) {
@@ -165,13 +165,13 @@ router.put('/rca/:id/resolve', async (req: Request, res: Response) => {
 
     await aiManager.markFailureAsResolved(id, resolution, resolvedBy, ticketUrl);
 
-    return     res.json({
+    return res.json({
       message: 'Failure marked as resolved',
       id,
     });
   } catch (error) {
     console.error('Failed to mark failure as resolved:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to mark failure as resolved',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -198,10 +198,10 @@ router.get('/costs', async (req: Request, res: Response) => {
       summary = await aiManager.getCostSummary();
     }
 
-    return     res.json(summary);
+    return res.json(summary);
   } catch (error) {
     console.error('Failed to get cost summary:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get cost summary',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -222,14 +222,14 @@ router.get('/stats', async (req: Request, res: Response) => {
       aiManager.getRCAStats(),
     ]);
 
-    return     res.json({
+    return res.json({
       costs: costSummary,
       cache: cacheStats,
       rca: rcaStats,
     });
   } catch (error) {
     console.error('Failed to get stats:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to get stats',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -261,7 +261,7 @@ router.post('/categorize', async (req: Request, res: Response) => {
 
     const categorization = await aiManager.categorizeFailure(failure, options);
 
-    return     res.json({
+    return res.json({
       testId: failure.testId,
       testName: failure.testName,
       category: categorization.category,
@@ -272,7 +272,7 @@ router.post('/categorize', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Categorization failed:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Categorization failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
@@ -308,7 +308,7 @@ router.post('/summarize', async (req: Request, res: Response) => {
       options as SummarizationOptions
     );
 
-    return     res.json({
+    return res.json({
       testName,
       summary: summary.summary,
       rootCause: summary.rootCause,
@@ -319,7 +319,7 @@ router.post('/summarize', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Log summarization failed:', error);
-    return     res.status(500).json({
+    return res.status(500).json({
       error: 'Log summarization failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });

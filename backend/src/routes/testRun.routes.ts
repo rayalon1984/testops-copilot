@@ -74,7 +74,7 @@ router.get(
     }
 
     const testRun = await prisma.testRun.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: { id: req.params.id as string, userId: req.user.id },
       include: { pipeline: true, results: true }
     });
 

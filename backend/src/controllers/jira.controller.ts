@@ -30,7 +30,7 @@ router.post(
 router.put(
   '/issues/:key',
   asyncHandler(async (req: Request, res: Response) => {
-    const { key } = req.params;
+    const key = req.params.key as string;
     const data = updateIssueSchema.parse(req.body) as UpdateIssueDTO;
     await jiraService.updateIssue(key, data);
     res.status(200).json({ message: 'Issue updated successfully' });
@@ -40,7 +40,7 @@ router.put(
 router.get(
   '/issues/:key',
   asyncHandler(async (req: Request, res: Response) => {
-    const { key } = req.params;
+    const key = req.params.key as string;
     const issue = await jiraService.getIssue(key);
     res.status(200).json(issue);
   })
@@ -49,7 +49,7 @@ router.get(
 router.post(
   '/issues/:key/link',
   asyncHandler(async (req: Request, res: Response) => {
-    const { key } = req.params;
+    const key = req.params.key as string;
     const { testRunId } = linkTestRunSchema.parse(req.body) as LinkTestRunDTO;
     await jiraService.linkTestRun(key, testRunId);
     res.status(200).json({ message: 'Test run linked successfully' });

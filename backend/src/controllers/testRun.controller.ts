@@ -29,7 +29,7 @@ export class TestRunController {
     try {
       // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const testRun = await testRunService.getTestRunById(id, userId);
       res.json(testRun);
@@ -55,7 +55,7 @@ export class TestRunController {
     try {
       // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const testRun = await testRunService.cancelTestRun(id, userId);
       res.json(testRun);
@@ -68,7 +68,7 @@ export class TestRunController {
     try {
       // @ts-expect-error - User attached by auth middleware
       const userId = req.user.id;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const testRun = await testRunService.retryTestRun(id, userId);
       res.status(201).json(testRun);
@@ -89,7 +89,7 @@ export class TestRunController {
 
   async deleteTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await testRunService.deleteTestRun(id);
       res.status(204).send();
     } catch (error) {

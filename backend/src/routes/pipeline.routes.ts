@@ -31,7 +31,7 @@ router.get(
       return;
     }
 
-    const pipeline = await pipelineController.getPipeline(req.params.id, req.user.id);
+    const pipeline = await pipelineController.getPipeline(req.params.id as string, req.user.id);
     res.json(pipeline);
   })
 );
@@ -74,7 +74,7 @@ router.put(
     }
 
     const pipeline = await pipelineController.updatePipeline(
-      req.params.id,
+      req.params.id as string,
       req.body,
       req.user.id
     );
@@ -93,7 +93,7 @@ router.delete(
       return;
     }
 
-    await pipelineController.deletePipeline(req.params.id, req.user.id);
+    await pipelineController.deletePipeline(req.params.id as string, req.user.id);
 
     res.status(204).send();
   })
@@ -110,7 +110,7 @@ router.post(
       return;
     }
 
-    const testRun = await pipelineController.startPipeline(req.params.id, req.user.id);
+    const testRun = await pipelineController.startPipeline(req.params.id as string, req.user.id);
     res.json(testRun);
   })
 );
@@ -125,7 +125,7 @@ router.get(
     }
 
     const runs = await prisma.testRun.findMany({
-      where: { pipelineId: req.params.id, userId: req.user.id },
+      where: { pipelineId: req.params.id as string, userId: req.user.id },
       orderBy: { createdAt: 'desc' },
       take: 20,
       include: { results: true }
@@ -167,7 +167,7 @@ router.post(
     }
 
     await pipelineController.schedulePipeline(
-      req.params.id,
+      req.params.id as string,
       req.body.schedule,
       req.user.id
     );
@@ -184,7 +184,7 @@ router.get(
       return;
     }
 
-    const tests = await pipelineController.getFailedTests(req.params.id, req.user.id);
+    const tests = await pipelineController.getFailedTests(req.params.id as string, req.user.id);
     res.json(tests);
   })
 );
@@ -198,7 +198,7 @@ router.get(
       return;
     }
 
-    const tests = await pipelineController.getFlakeyTests(req.params.id, req.user.id);
+    const tests = await pipelineController.getFlakeyTests(req.params.id as string, req.user.id);
     res.json(tests);
   })
 );

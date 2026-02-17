@@ -101,7 +101,7 @@ export class FailureArchiveController {
    */
   static async documentRCA(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = documentRCASchema.parse(req.body);
 
       const userId = req.user!.id;
@@ -131,7 +131,7 @@ export class FailureArchiveController {
    */
   static async getById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const failure = await FailureArchiveService.getById(id);
 
       if (!failure) {
@@ -240,7 +240,7 @@ export class FailureArchiveController {
    */
   static async markResolved(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { resolvedBy, timeToResolve } = req.body;
 
       if (!resolvedBy) {

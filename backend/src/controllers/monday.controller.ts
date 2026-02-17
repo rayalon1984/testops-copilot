@@ -41,7 +41,7 @@ export class MondayController {
    */
   static async getBoard(req: Request, res: Response): Promise<void> {
     try {
-      const { boardId } = req.params;
+      const boardId = req.params.boardId as string;
       const mondayService = getMondayService();
       const board = await mondayService.getBoard(boardId);
 
@@ -63,7 +63,7 @@ export class MondayController {
    */
   static async getItems(req: Request, res: Response): Promise<void> {
     try {
-      const { boardId } = req.params;
+      const boardId = req.params.boardId as string;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 25;
 
       const mondayService = getMondayService();
@@ -118,7 +118,7 @@ export class MondayController {
    */
   static async updateItem(req: Request, res: Response): Promise<void> {
     try {
-      const { itemId } = req.params;
+      const itemId = req.params.itemId as string;
       const input: Omit<UpdateMondayItemInput, 'itemId'> = req.body;
 
       if (!input.boardId) {
@@ -153,7 +153,7 @@ export class MondayController {
    */
   static async createUpdate(req: Request, res: Response): Promise<void> {
     try {
-      const { itemId } = req.params;
+      const itemId = req.params.itemId as string;
       const { body } = req.body;
 
       if (!body) {
@@ -220,7 +220,7 @@ export class MondayController {
    */
   static async searchItems(req: Request, res: Response): Promise<void> {
     try {
-      const { boardId } = req.params;
+      const boardId = req.params.boardId as string;
       const { q } = req.query;
 
       if (!q) {
