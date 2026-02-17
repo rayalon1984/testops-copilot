@@ -13,6 +13,7 @@ import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
 import { SummarizationOptions } from '../../services/ai/features/log-summary';
 import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
+import { handleChatStream } from '../../services/ai/AIChatService';
 
 const router: IRouter = Router();
 
@@ -368,6 +369,60 @@ router.post('/enrich', async (req: Request, res: Response) => {
       error: 'Context enrichment failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
+  }
+});
+
+/**
+ * POST /api/ai/chat
+ * Agentic chat endpoint with SSE streaming.
+ * Executes a ReAct loop: Reason → Tool Call → Observe → Answer.
+ */
+router.post('/chat', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { message, sessionId, history } = req.body;
+
+    if (!message || typeof message !== 'string') {
+      res.status(400).json({ error: 'message is required and must be a string' });
+      return;
+    }
+
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // nginx proxy
+    res.flushHeaders();
+
+    // Extract user info from auth middleware
+    const user = (req as any).user || {};
+
+    await handleChatStream(
+      {
+        message,
+        sessionId,
+        userId: user.id || 'anonymous',
+        userRole: user.role || 'viewer',
+        history: history || [],
+      },
+      res
+    );
+
+    if (!res.writableEnded) {
+      res.end();
+    }
+  } catch (error) {
+    console.error('Chat endpoint failed:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'Chat failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return;
+    }
+    if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ type: 'error', data: 'Internal server error' })}\n\n`);
+      res.end();
+    }
   }
 });
 
