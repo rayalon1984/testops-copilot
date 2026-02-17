@@ -4,75 +4,77 @@ updates:
   - package-ecosystem: "npm"
     directory: "/backend"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
+      interval: "monthly"
+    open-pull-requests-limit: 5
     reviewers:
       - "rayalon1984"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(deps)"
       include: "scope"
     groups:
-      dev-dependencies:
-        patterns:
-          - "@types/*"
-          - "eslint*"
-          - "jest*"
-          - "typescript"
-      production-dependencies:
-        patterns:
-          - "express"
-          - "sqlite3"
-          - "jsonwebtoken"
+      all-production:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      all-dev:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      major-updates:
+        update-types:
+          - "major"
 
   # Frontend npm dependencies
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 10
+      interval: "monthly"
+    open-pull-requests-limit: 5
     reviewers:
       - "rayalon1984"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(deps)"
       include: "scope"
     groups:
-      dev-dependencies:
-        patterns:
-          - "@types/*"
-          - "eslint*"
-          - "vitest*"
-          - "typescript"
-      react-dependencies:
-        patterns:
-          - "react*"
-          - "@mui/*"
-      production-dependencies:
-        patterns:
-          - "@tanstack/*"
-          - "axios"
+      all-production:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      all-dev:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      major-updates:
+        update-types:
+          - "major"
 
-  # Docker dependencies
+  # Docker base images
   - package-ecosystem: "docker"
     directory: "/backend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(docker)"
 
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    commit-message:
+      prefix: "chore(docker)"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: "ci(deps)"
+    groups:
+      all-actions:
+        patterns:
+          - "*"
