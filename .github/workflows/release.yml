@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     name: Create Release
@@ -27,7 +31,7 @@ jobs:
         VERSION="${{ steps.get_version.outputs.version }}"
 
         # Extract release notes from CHANGELOG.md for this version
-        awk "/## \[${VERSION}\]/,/## \[/" docs/project/CHANGELOG.md | \
+        awk "/## \[${VERSION}\]/,/## \[/" CHANGELOG.md | \
           sed '/## \[/d' | \
           sed '/^$/d' | \
           head -n -1 > release_notes.txt
