@@ -11,6 +11,8 @@
 import { Response } from 'express';
 import { getAIManager } from './manager';
 import { toolRegistry } from './tools';
+import * as confirmationService from './ConfirmationService';
+import * as chatSessionService from './ChatSessionService';
 import { SSEEvent, SSEEventType, ToolContext } from './tools/types';
 import { ChatMessage } from './types';
 import { logger } from '@/utils/logger';
@@ -32,7 +34,7 @@ const MAX_REACT_ITERATIONS = 8;
  * Build the system prompt with tool definitions and role context.
  */
 function buildSystemPrompt(userRole: string): string {
-    const toolDefs = toolRegistry.formatForSystemPrompt(/* readOnlyOnly */ true);
+    const toolDefs = toolRegistry.formatForSystemPrompt(/* readOnlyOnly */ false);
 
     const roleGreetings: Record<string, string> = {
         admin: 'You are assisting an Admin/Manager. Emphasize system health, costs, and release readiness.',
@@ -200,6 +202,55 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 content: `Error: Tool "${toolCall.tool}" does not exist. Available tools: ${toolRegistry.getAll().map(t => t.name).join(', ')}. Please try again or provide an answer.`,
             });
             continue;
+        }
+
+        // Check for confirmation requirement
+        if (tool.requiresConfirmation) {
+            // Write tools require a session for persistence
+            if (!req.sessionId) {
+                messages.push({ role: 'assistant', content: responseText });
+                messages.push({
+                    role: 'user',
+                    content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided. Write actions are not allowed in anonymous chat.`
+                });
+                continue;
+            }
+
+            try {
+                // Create pending action in DB
+                const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.args)}`;
+                const pendingAction = await confirmationService.createPendingAction({
+                    sessionId: req.sessionId,
+                    userId: req.userId,
+                    toolName: tool.name,
+                    parameters: toolCall.args,
+                });
+
+                // Notify frontend
+                sendSSE(res, createEvent('confirmation_request', JSON.stringify({
+                    actionId: pendingAction.id,
+                    tool: tool.name,
+                    args: toolCall.args,
+                    summary
+                })));
+                sendSSE(res, createEvent('done', ''));
+
+                // Save state to history so we can resume later
+                // We save the assistant's "intent" to call the tool
+                await chatSessionService.saveMessage({
+                    sessionId: req.sessionId,
+                    role: 'assistant',
+                    content: responseText,
+                    toolName: tool.name
+                });
+
+                return; // Stop stream and wait for user
+            } catch (error) {
+                logger.error('[AIChatService] Failed to create pending action:', error);
+                sendSSE(res, createEvent('error', 'Failed to request confirmation. Please try again.'));
+                sendSSE(res, createEvent('done', ''));
+                return;
+            }
         }
 
         // Notify frontend: tool is starting

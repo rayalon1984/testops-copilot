@@ -16,6 +16,9 @@ import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
 import { handleChatStream } from '../../services/ai/AIChatService';
 import * as chatSession from '../../services/ai/ChatSessionService';
 import * as confirmation from '../../services/ai/ConfirmationService';
+import { toolRegistry } from '../../services/ai/tools';
+import { ToolResult } from '../../services/ai/tools/types';
+import { logger } from '../../utils/logger';
 
 const router: IRouter = Router();
 
@@ -510,7 +513,50 @@ router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
     }
 
     const result = await confirmation.resolveAction(actionId, user.id, approved);
-    res.json({ data: result });
+
+    let toolResult: ToolResult | { success: boolean; error: string } | null = null;
+    if (approved) {
+      const tool = toolRegistry.get(result.toolName);
+      if (tool) {
+        try {
+          // Execute the tool
+          const executionResult = await tool.execute(result.parameters, {
+            userId: user.id,
+            userRole: user.role || 'viewer',
+            sessionId: result.sessionId,
+          });
+
+          toolResult = executionResult;
+
+          // Persist the result to chat history so the AI knows what happened
+          // We format it as a "User" message containing the tool output,
+          // which matches the ReAct loop convention in AIChatService
+          await chatSession.saveMessage({
+            sessionId: result.sessionId,
+            role: 'user',
+            content: `Tool result for ${tool.name}:\n${JSON.stringify(executionResult.data ?? executionResult.error, null, 2)}\n\nAction confirmed and executed by user.`,
+            toolName: tool.name,
+          });
+
+          logger.info(`[AI] Executed confirmed tool ${tool.name} for session ${result.sessionId}`);
+        } catch (err) {
+          logger.error(`[AI] Failed to execute confirmed tool ${tool.name}:`, err);
+          toolResult = { success: false, error: 'Tool execution failed after confirmation' };
+        }
+      } else {
+        logger.warn(`[AI] Confirmed tool ${result.toolName} not found in registry`);
+      }
+    } else {
+      // Log denial in chat history
+      await chatSession.saveMessage({
+        sessionId: result.sessionId,
+        role: 'user',
+        content: `User denied the action for ${result.toolName}.`,
+        toolName: result.toolName,
+      });
+    }
+
+    res.json({ data: result, toolResult });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to resolve action';
     res.status(400).json({ error: message });

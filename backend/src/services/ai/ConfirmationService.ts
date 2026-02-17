@@ -20,6 +20,7 @@ export interface CreatePendingActionInput {
 
 export interface PendingActionSummary {
     id: string;
+    sessionId: string;
     toolName: string;
     parameters: Record<string, unknown>;
     status: string;
@@ -56,6 +57,7 @@ export async function createPendingAction(input: CreatePendingActionInput): Prom
 
         return {
             id: action.id,
+            sessionId: action.sessionId,
             toolName: action.toolName,
             parameters: input.parameters,
             status: action.status,
@@ -114,6 +116,7 @@ export async function resolveAction(
 
     return {
         id: updated.id,
+        sessionId: updated.sessionId,
         toolName: updated.toolName,
         parameters: JSON.parse(updated.parameters),
         status: updated.status,
@@ -133,6 +136,7 @@ export async function getSessionPendingActions(sessionId: string): Promise<Pendi
 
     return actions.map(a => ({
         id: a.id,
+        sessionId: a.sessionId,
         toolName: a.toolName,
         parameters: JSON.parse(a.parameters),
         status: a.status,
