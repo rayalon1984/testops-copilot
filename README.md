@@ -54,13 +54,6 @@
 
 ## 📸 Screenshots & Demo
 
-### 🎬 TestOps Companion Demo Video
-
-https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
-
-*AI-powered test operations platform transforming how teams manage CI/CD pipelines and test failures*
-
----
 
 ### AI-Powered Agentic Command Center
 
