@@ -16,6 +16,7 @@ import { dashboardMetricsTool } from './dashboard';
 
 // Phase 2: Write tools
 import { githubCreatePRTool } from './github-write';
+import { githubCreateBranchTool, githubUpdateFileTool } from './github-advanced-write';
 import { jiraCreateIssueTool, jiraTransitionIssueTool, jiraCommentTool } from './jira-write';
 
 // Register all Phase 1 tools
@@ -32,6 +33,8 @@ const phase1Tools = [
 // Register all Phase 2 tools
 const phase2Tools = [
     githubCreatePRTool,
+    githubCreateBranchTool,
+    githubUpdateFileTool,
     jiraCreateIssueTool,
     jiraTransitionIssueTool,
     jiraCommentTool,

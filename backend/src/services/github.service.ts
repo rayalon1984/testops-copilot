@@ -272,6 +272,83 @@ export class GitHubService {
   }
 
   /**
+   * Create a new branch from a base branch (usually main).
+   */
+  async createBranch(owner: string, repo: string, branchName: string, baseBranch: string = 'main'): Promise<void> {
+    try {
+      // Get the SHA of the base branch
+      const baseRef = await this.octokit.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${baseBranch}`,
+      });
+
+      const sha = baseRef.data.object.sha;
+
+      // Create the new branch
+      await this.octokit.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${branchName}`,
+        sha,
+      });
+
+      logger.info(`Created branch ${branchName} from ${baseBranch} in ${owner}/${repo}`);
+    } catch (error) {
+      logger.error(`Failed to create branch ${branchName}:`, error);
+      throw new Error(`Failed to create branch ${branchName}`);
+    }
+  }
+
+  /**
+   * Update (commit) a file in the repository.
+   */
+  async updateFile(
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string,
+    branch: string
+  ): Promise<{ sha: string; url: string }> {
+    try {
+      // Get current file SHA (if it exists) to allow updating
+      let sha: string | undefined;
+      try {
+        const current = await this.octokit.repos.getContent({
+          owner,
+          repo,
+          path,
+          ref: branch,
+        });
+        if (!Array.isArray(current.data) && current.data.sha) {
+          sha = current.data.sha;
+        }
+      } catch (e) {
+        // File doesn't exist, which is fine (we'll create it)
+      }
+
+      const response = await this.octokit.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path,
+        message,
+        content: Buffer.from(content).toString('base64'),
+        branch,
+        ...(sha ? { sha } : {}),
+      } as any);
+
+      return {
+        sha: response.data.commit.sha as string,
+        url: response.data.commit.html_url || '',
+      };
+    } catch (error) {
+      logger.error(`Failed to update file ${path}:`, error);
+      throw new Error(`Failed to update file ${path}`);
+    }
+  }
+
+  /**
    * Check if GitHub is configured with a valid token
    */
   isEnabled(): boolean {
