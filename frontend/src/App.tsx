@@ -1,3 +1,4 @@
+import { Suspense, lazy, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,21 +14,22 @@ import { DesignModeProvider, useDesignMode } from './contexts/DesignModeContext'
 // Components
 import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
+import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 
-// Pages
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import PipelineList from './pages/PipelineList';
-import PipelineDetail from './pages/PipelineDetail';
-import TestRunList from './pages/TestRunList';
-import TestRunDetail from './pages/TestRunDetail';
-import NotificationList from './pages/NotificationList';
-import Settings from './pages/Settings';
-import { FailureKnowledgeBase } from './pages/FailureKnowledgeBase';
-import CostTracker from './pages/CostTracker';
-import NotFound from './pages/NotFound';
-import { useMemo } from 'react';
+// Logic Pages (Lazy Loaded)
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PipelineList = lazy(() => import('./pages/PipelineList'));
+const PipelineDetail = lazy(() => import('./pages/PipelineDetail'));
+const TestRunList = lazy(() => import('./pages/TestRunList'));
+const TestRunDetail = lazy(() => import('./pages/TestRunDetail'));
+const NotificationList = lazy(() => import('./pages/NotificationList'));
+const Settings = lazy(() => import('./pages/Settings'));
+const FailureKnowledgeBase = lazy(() => import('./pages/FailureKnowledgeBase').then(module => ({ default: module.FailureKnowledgeBase })));
+const CostTracker = lazy(() => import('./pages/CostTracker'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Create Query Client
 const queryClient = new QueryClient({
@@ -55,42 +57,46 @@ function AppContent() {
           horizontal: 'right',
         }}
       >
-        <Router>
-          <AuthProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+        <ErrorBoundary>
+          <Router>
+            <AuthProvider>
+              <Suspense fallback={<LoadingSpinner message="Loading application..." />}>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                  {/* Protected Routes */}
+                  <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
 
-                {/* Pipelines */}
-                <Route path="/pipelines" element={<PipelineList />} />
-                <Route path="/pipelines/:id" element={<PipelineDetail />} />
+                    {/* Pipelines */}
+                    <Route path="/pipelines" element={<PipelineList />} />
+                    <Route path="/pipelines/:id" element={<PipelineDetail />} />
 
-                {/* Test Runs */}
-                <Route path="/test-runs" element={<TestRunList />} />
-                <Route path="/test-runs/:id" element={<TestRunDetail />} />
+                    {/* Test Runs */}
+                    <Route path="/test-runs" element={<TestRunList />} />
+                    <Route path="/test-runs/:id" element={<TestRunDetail />} />
 
-                {/* AI Features */}
-                <Route path="/failure-knowledge-base" element={<FailureKnowledgeBase />} />
-                <Route path="/cost-tracker" element={<CostTracker />} />
+                    {/* AI Features */}
+                    <Route path="/failure-knowledge-base" element={<FailureKnowledgeBase />} />
+                    <Route path="/cost-tracker" element={<CostTracker />} />
 
-                {/* Notifications */}
-                <Route path="/notifications" element={<NotificationList />} />
+                    {/* Notifications */}
+                    <Route path="/notifications" element={<NotificationList />} />
 
-                {/* Settings */}
-                <Route path="/settings" element={<Settings />} />
-              </Route>
+                    {/* Settings */}
+                    <Route path="/settings" element={<Settings />} />
+                  </Route>
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </Router>
+                  {/* 404 Route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AuthProvider>
+          </Router>
+        </ErrorBoundary>
       </SnackbarProvider>
     </ThemeProvider>
   );
