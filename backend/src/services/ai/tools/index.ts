@@ -14,6 +14,10 @@ import { confluenceSearchTool } from './confluence';
 import { jenkinsGetStatusTool } from './jenkins';
 import { dashboardMetricsTool } from './dashboard';
 
+// Phase 2: Write tools
+import { githubCreatePRTool } from './github-write';
+import { jiraCreateIssueTool, jiraTransitionIssueTool, jiraCommentTool } from './jira-write';
+
 // Register all Phase 1 tools
 const phase1Tools = [
     jiraSearchTool,
@@ -25,7 +29,15 @@ const phase1Tools = [
     dashboardMetricsTool,
 ];
 
-phase1Tools.forEach(tool => toolRegistry.register(tool));
+// Register all Phase 2 tools
+const phase2Tools = [
+    githubCreatePRTool,
+    jiraCreateIssueTool,
+    jiraTransitionIssueTool,
+    jiraCommentTool,
+];
+
+[...phase1Tools, ...phase2Tools].forEach(tool => toolRegistry.register(tool));
 
 // Re-export for convenience
 export { toolRegistry } from './registry';

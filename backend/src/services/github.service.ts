@@ -238,6 +238,40 @@ export class GitHubService {
   }
 
   /**
+   * Create a pull request on GitHub.
+   */
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<{ number: number; title: string; url: string; }> {
+    try {
+      const response = await this.octokit.pulls.create({
+        owner,
+        repo,
+        title,
+        body,
+        head,
+        base,
+      });
+
+      logger.info(`Created PR #${response.data.number}: "${title}" in ${owner}/${repo}`);
+
+      return {
+        number: response.data.number,
+        title: response.data.title,
+        url: response.data.html_url,
+      };
+    } catch (error) {
+      logger.error(`Failed to create PR in ${owner}/${repo}:`, error);
+      throw new Error('Failed to create pull request on GitHub');
+    }
+  }
+
+  /**
    * Check if GitHub is configured with a valid token
    */
   isEnabled(): boolean {

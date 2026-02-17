@@ -292,7 +292,7 @@ export class JiraService {
     return this.enabled;
   }
 
-  private async transitionIssue(issueKey: string, status: JiraIssueStatus): Promise<void> {
+  async transitionIssue(issueKey: string, status: JiraIssueStatus): Promise<void> {
     this.checkEnabled();
 
     try {
@@ -324,6 +324,21 @@ export class JiraService {
     } catch (error) {
       logger.error(`Failed to transition Jira issue ${issueKey}:`, error);
       throw new Error('Failed to transition Jira issue');
+    }
+  }
+
+  /**
+   * Add a comment to a Jira issue.
+   */
+  async addComment(issueKey: string, body: string): Promise<void> {
+    this.checkEnabled();
+
+    try {
+      await this.client!.addComment(issueKey, { body });
+      logger.info(`Added comment to Jira issue ${issueKey}`);
+    } catch (error) {
+      logger.error(`Failed to add comment to ${issueKey}:`, error);
+      throw new Error('Failed to add comment to Jira issue');
     }
   }
 }
