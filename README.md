@@ -61,16 +61,7 @@
 
 *AI-powered failure analysis with Agentic Copilot — search Jira, query Confluence, check pipelines, and analyze failures through natural language conversation*
 
----
 
-Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](docs/DEMO.md)** with:
-- 🎨 Interactive UI mockups using Mermaid diagrams
-- 📊 Dashboard and analytics visualizations
-- 🔍 Failure Knowledge Base in action
-- 📚 RCA documentation workflow
-- 🎬 User journey flows and scenarios
-
-**[View Demo & Screenshots →](docs/DEMO.md)**
 
 ## ✨ Features
 
