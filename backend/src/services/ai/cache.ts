@@ -8,18 +8,12 @@
  */
 
 import * as crypto from 'crypto';
-import Redis from 'ioredis';
+import { redis } from '../../lib/redis';
 import { AIResponse, Embedding } from './types';
 
 export interface CacheConfig {
   enabled: boolean;
   ttlSeconds: number;
-  redis?: {
-    host: string;
-    port: number;
-    password?: string;
-    db?: number;
-  };
 }
 
 export interface CacheStats {
@@ -33,7 +27,6 @@ export interface CacheStats {
  * AI Response Cache
  */
 export class AICache {
-  private redis: Redis | null = null;
   private config: CacheConfig;
   private enabled: boolean;
   private stats: { hits: number; misses: number } = { hits: 0, misses: 0 };
@@ -41,28 +34,6 @@ export class AICache {
   constructor(config: CacheConfig) {
     this.config = config;
     this.enabled = config.enabled;
-
-    if (this.enabled && config.redis) {
-      this.redis = new Redis({
-        host: config.redis.host,
-        port: config.redis.port,
-        password: config.redis.password,
-        db: config.redis.db || 0,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            console.warn('Redis connection failed, disabling cache');
-            this.enabled = false;
-            return null;
-          }
-          return Math.min(times * 100, 2000);
-        },
-      });
-
-      this.redis.on('error', (err) => {
-        console.error('Redis error:', err);
-        this.enabled = false;
-      });
-    }
   }
 
   /**
@@ -77,11 +48,11 @@ export class AICache {
    * Cache an AI response
    */
   async cacheResponse(prompt: string, response: AIResponse): Promise<void> {
-    if (!this.enabled || !this.redis) return;
+    if (!this.enabled) return;
 
     try {
       const key = this.generateKey('response', prompt);
-      await this.redis.setex(
+      await redis.setex(
         key,
         this.config.ttlSeconds,
         JSON.stringify(response)
@@ -95,14 +66,14 @@ export class AICache {
    * Get cached AI response
    */
   async getResponse(prompt: string): Promise<AIResponse | null> {
-    if (!this.enabled || !this.redis) {
+    if (!this.enabled) {
       this.stats.misses++;
       return null;
     }
 
     try {
       const key = this.generateKey('response', prompt);
-      const cached = await this.redis.get(key);
+      const cached = await redis.get(key);
 
       if (cached) {
         this.stats.hits++;
@@ -124,11 +95,11 @@ export class AICache {
    * Cache an embedding
    */
   async cacheEmbedding(text: string, embedding: Embedding): Promise<void> {
-    if (!this.enabled || !this.redis) return;
+    if (!this.enabled) return;
 
     try {
       const key = this.generateKey('embedding', text);
-      await this.redis.setex(
+      await redis.setex(
         key,
         this.config.ttlSeconds,
         JSON.stringify(embedding)
@@ -142,14 +113,14 @@ export class AICache {
    * Get cached embedding
    */
   async getEmbedding(text: string): Promise<Embedding | null> {
-    if (!this.enabled || !this.redis) {
+    if (!this.enabled) {
       this.stats.misses++;
       return null;
     }
 
     try {
       const key = this.generateKey('embedding', text);
-      const cached = await this.redis.get(key);
+      const cached = await redis.get(key);
 
       if (cached) {
         this.stats.hits++;
@@ -169,11 +140,11 @@ export class AICache {
    * Cache a summary
    */
   async cacheSummary(logHash: string, summary: any): Promise<void> {
-    if (!this.enabled || !this.redis) return;
+    if (!this.enabled) return;
 
     try {
       const key = `ai:summary:${logHash}`;
-      await this.redis.setex(
+      await redis.setex(
         key,
         this.config.ttlSeconds,
         JSON.stringify(summary)
@@ -187,14 +158,14 @@ export class AICache {
    * Get cached summary
    */
   async getSummary(logHash: string): Promise<any | null> {
-    if (!this.enabled || !this.redis) {
+    if (!this.enabled) {
       this.stats.misses++;
       return null;
     }
 
     try {
       const key = `ai:summary:${logHash}`;
-      const cached = await this.redis.get(key);
+      const cached = await redis.get(key);
 
       if (cached) {
         this.stats.hits++;
@@ -214,14 +185,12 @@ export class AICache {
    * Clear all caches
    */
   async clear(prefix?: string): Promise<void> {
-    if (!this.redis) return;
-
     try {
       const pattern = prefix ? `ai:${prefix}:*` : 'ai:*';
-      const keys = await this.redis.keys(pattern);
+      const keys = await redis.keys(pattern);
 
       if (keys.length > 0) {
-        await this.redis.del(...keys);
+        await redis.del(...keys);
       }
     } catch (error) {
       console.error('Failed to clear cache:', error);
@@ -250,12 +219,10 @@ export class AICache {
 
   /**
    * Close Redis connection
+   * (No-op as connection is managed by shared client)
    */
   async close(): Promise<void> {
-    if (this.redis) {
-      await this.redis.quit();
-      this.redis = null;
-    }
+    // Shared client, do not close here
   }
 }
 
@@ -267,12 +234,6 @@ export function getCache(config?: CacheConfig): AICache {
     const finalConfig: CacheConfig = config || {
       enabled: process.env.AI_CACHE_ENABLED === 'true',
       ttlSeconds: parseInt(process.env.AI_CACHE_TTL_SECONDS || '604800', 10),
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-        password: process.env.REDIS_PASSWORD,
-        db: parseInt(process.env.AI_CACHE_REDIS_DB || '1', 10),
-      },
     };
     cacheInstance = new AICache(finalConfig);
   }

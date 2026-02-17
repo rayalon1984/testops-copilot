@@ -7,11 +7,11 @@ const { combine, timestamp, printf, colorize } = format;
 // Custom log format
 const logFormat = printf(({ level, message, timestamp, ...metadata }) => {
   let msg = `${timestamp} [${level}]: ${message}`;
-  
+
   if (Object.keys(metadata).length > 0) {
     msg += `\n${JSON.stringify(metadata, null, 2)}`;
   }
-  
+
   return msg;
 });
 
@@ -25,26 +25,27 @@ export const logger = winston.createLogger({
     logFormat
   ),
   transports: [
-    // Console transport
+    // Console transport for all environments
     new transports.Console({
       format: combine(
         colorize(),
         logFormat
       )
     }),
-    // File transport for errors
-    new transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    }),
-    // File transport for all logs
-    new transports.File({
-      filename: 'logs/combined.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5
-    })
+    // File transports only in development
+    ...(process.env.NODE_ENV === 'development' ? [
+      new transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+        maxsize: 5242880, // 5MB
+        maxFiles: 5
+      }),
+      new transports.File({
+        filename: 'logs/combined.log',
+        maxsize: 5242880, // 5MB
+        maxFiles: 5
+      })
+    ] : [])
   ]
 });
 

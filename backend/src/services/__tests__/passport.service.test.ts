@@ -55,10 +55,11 @@ describe('PassportService', () => {
     });
 
     describe('SAML Verify Callback', () => {
-        let verifyCallback: Function;
+        let verifyCallback: (profile: any, done: (err: any, user?: any) => void) => void;
 
         beforeEach(() => {
             // Extract the verify callback passed to the Strategy constructor
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const StrategyMock = require('passport-saml').Strategy;
             const call = StrategyMock.mock.calls[0];
             if (call) {

@@ -12,14 +12,29 @@ import {
   TokenPayload,
   UserResponse
 } from '../types/user';
+import { auditService } from '../services/audit.service';
+
+// Helper interface for audit context
+export interface AuditContext {
+  ip: string;
+  userAgent: string;
+}
 
 export class AuthController {
-  async register(data: CreateUserDTO) {
+  async register(data: CreateUserDTO, context?: AuditContext) {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email }
     });
 
     if (existingUser) {
+      void auditService.log(
+        'AUTH_REGISTER_FAILURE',
+        'User',
+        'N/A',
+        'anonymous',
+        { email: data.email, reason: 'Email already registered' },
+        context
+      );
       throw new AuthenticationError('Email already registered');
     }
 
@@ -38,6 +53,15 @@ export class AuthController {
       }
     });
 
+    void auditService.log(
+      'AUTH_REGISTER_SUCCESS',
+      'User',
+      user.id,
+      user.id,
+      { email: user.email },
+      context
+    );
+
     const tokenPayload: TokenPayload = {
       userId: user.id,
       role: user.role as UserRole
@@ -49,19 +73,44 @@ export class AuthController {
     };
   }
 
-  async login(data: LoginDTO) {
+  async login(data: LoginDTO, context?: AuditContext) {
     const user = await prisma.user.findUnique({
       where: { email: data.email }
     });
 
     if (!user) {
+      void auditService.log(
+        'AUTH_LOGIN_FAILURE',
+        'User',
+        'N/A',
+        'anonymous',
+        { email: data.email, reason: 'User not found' },
+        context
+      );
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const isValidPassword = await bcrypt.compare(data.password, user.password);
     if (!isValidPassword) {
+      void auditService.log(
+        'AUTH_LOGIN_FAILURE',
+        'User',
+        user.id,
+        user.id,
+        { email: data.email, reason: 'Invalid password' },
+        context
+      );
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
+
+    void auditService.log(
+      'AUTH_LOGIN_SUCCESS',
+      'User',
+      user.id,
+      user.id,
+      { email: user.email },
+      context
+    );
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
@@ -74,7 +123,7 @@ export class AuthController {
     };
   }
 
-  async logout(userId: string, token?: string): Promise<void> {
+  async logout(userId: string, token?: string, context?: AuditContext): Promise<void> {
     // Blacklist the current token so it can't be reused
     if (token) {
       // Blacklist for the remaining lifetime of the token (24h max)
@@ -86,6 +135,15 @@ export class AuthController {
       where: { id: userId },
       data: { updatedAt: new Date() }
     });
+
+    void auditService.log(
+      'AUTH_LOGOUT',
+      'User',
+      userId,
+      userId,
+      {},
+      context
+    );
   }
 
   async getCurrentUser(userId: string): Promise<UserResponse> {
@@ -129,10 +187,27 @@ export class AuthController {
     });
   }
 
-  async ssoCallback(user: any) {
+  async ssoCallback(user: any, context?: AuditContext) {
     if (!user) {
+      void auditService.log(
+        'AUTH_SSO_FAILURE',
+        'User',
+        'N/A',
+        'anonymous',
+        { reason: 'SSO authentication failed' },
+        context
+      );
       throw new AuthenticationError('SSO authentication failed');
     }
+
+    void auditService.log(
+      'AUTH_SSO_SUCCESS',
+      'User',
+      user.id,
+      user.id,
+      { email: user.email, provider: 'SAML' },
+      context
+    );
 
     const tokenPayload: TokenPayload = {
       userId: user.id,

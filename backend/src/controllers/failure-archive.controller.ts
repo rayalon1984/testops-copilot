@@ -67,7 +67,8 @@ export class FailureArchiveController {
         severity: parsed.severity as FailureSeverity | undefined
       };
       const userId = req.user!.id; // Auth middleware ensures user exists
-      const failure = await FailureArchiveService.createFailure(data, userId);
+      const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
+      const failure = await FailureArchiveService.createFailure(data, userId, context);
 
       // Find similar failures for immediate feedback
       const similarFailures = await FailureArchiveService.findSimilarFailures(
@@ -104,10 +105,11 @@ export class FailureArchiveController {
       const data = documentRCASchema.parse(req.body);
 
       const userId = req.user!.id;
+      const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
       const failure = await FailureArchiveService.documentRCA({
         id,
         ...data
-      }, userId);
+      }, userId, context);
 
       res.json({
         failure,
@@ -247,11 +249,13 @@ export class FailureArchiveController {
       }
 
       const userId = req.user!.id;
+      const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
       const failure = await FailureArchiveService.markResolved(
         id,
         resolvedBy,
         userId,
-        timeToResolve
+        timeToResolve,
+        context
       );
 
       res.json({
@@ -263,6 +267,4 @@ export class FailureArchiveController {
       res.status(500).json({ error: 'Failed to resolve failure' });
     }
   }
-
-
 }

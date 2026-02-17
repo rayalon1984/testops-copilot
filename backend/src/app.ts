@@ -68,8 +68,16 @@ app.use(asMiddleware(express.json({ limit: '1mb' })));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 
+
+import { redis } from './lib/redis';
+
+// Workaround for TS resolution issue with connect-redis v9 in CommonJS env
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const RedisStore = require('connect-redis').RedisStore as any;
+
 // Session configuration
 app.use(session({
+  store: new RedisStore({ client: redis }),
   secret: config.security.sessionSecret || 'default_secret', // Should be in env
   resave: false,
   saveUninitialized: false,
@@ -100,6 +108,12 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // Register API routes
 registerRoutes(app);
+
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger';
+
+// Swagger UI
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling middleware
 app.use((err: Error | ApiError, req: Request, res: Response, next: NextFunction) => {

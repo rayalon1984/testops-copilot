@@ -16,11 +16,42 @@ interface TypedRequest<T> extends Request {
 const authController = new AuthController();
 
 // Register new user
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Validation error
+ */
 router.post(
   '/register',
   validateRegisterInput,
   asyncHandler(async (req: TypedRequest<CreateUserDTO>, res: Response) => {
-    const { user, accessToken, refreshToken } = await authController.register(req.body);
+    const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
+    const { user, accessToken, refreshToken } = await authController.register(req.body, context);
 
     // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
@@ -35,11 +66,38 @@ router.post(
 );
 
 // Login user
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ */
 router.post(
   '/login',
   validateLoginInput,
   asyncHandler(async (req: TypedRequest<LoginDTO>, res: Response) => {
-    const { user, accessToken, refreshToken } = await authController.login(req.body);
+    const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
+    const { user, accessToken, refreshToken } = await authController.login(req.body, context);
 
     // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
@@ -59,7 +117,8 @@ router.post(
   authenticate,
   asyncHandler(async (req: Request, res: Response) => {
     if (req.user) {
-      await authController.logout(req.user.id, req.token);
+      const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
+      await authController.logout(req.user.id, req.token, context);
     }
 
     res.clearCookie('refreshToken');
@@ -142,7 +201,8 @@ router.post(
   passport.authenticate('saml', { failureRedirect: '/login', failureFlash: true }),
   asyncHandler(async (req, res) => {
     // req.user contains the authenticated user from passport.service
-    const { user, accessToken, refreshToken } = await authController.ssoCallback(req.user);
+    const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
+    const { user, accessToken, refreshToken } = await authController.ssoCallback(req.user, context);
 
     // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {

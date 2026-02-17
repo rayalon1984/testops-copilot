@@ -56,11 +56,16 @@ We're seeking **5-10 teams** that:
 ### Immediate Access To:
 
 - ✅ Full TestOps Companion platform
-- ✅ **AI-Powered Features** *(NEW in v2.5.3-v2.5.4)*:
+- ✅ **Enterprise Readiness** *(NEW in v2.8.5)*:
+  - 🔐 SSO/SAML Integration (Okta/Azure AD)
+  - 📜 Audit Logging with PII redaction
+  - 🛡️ Advanced RBAC (Granular permissions)
+  - ⚡ High Availability (Redis Cluster)
+- ✅ **AI-Powered Features** *(v2.5.3+)*:
   - 🤖 Smart RCA Matching with semantic search
-  - 🏷️ Automated Failure Categorization (6 categories with confidence scoring)
-  - 📝 Intelligent Log Summarization with root cause extraction
-  - 🔌 Multi-Provider Support (Claude, GPT-4, Gemini, Azure OpenAI)
+  - 🏷️ Automated Failure Categorization
+  - 📝 Intelligent Log Summarization
+  - 🔌 Multi-Provider Support
   - 💰 Cost tracking and intelligent caching
 - ✅ All integrations (Jira, Confluence, TestRail, Monday.com, etc.)
 - ✅ Failure Knowledge Base with RCA tracking
@@ -173,4 +178,4 @@ Have questions before applying?
 
 **Current Status:** ✅ **Accepting Applications**
 
-Last Updated: November 2025
+Last Updated: February 2026

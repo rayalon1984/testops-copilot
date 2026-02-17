@@ -121,10 +121,7 @@ export class FailureArchiveService {
   /**
    * Create a new failure archive entry
    */
-  /**
-   * Create a new failure archive entry
-   */
-  static async createFailure(input: CreateFailureArchiveInput, userId: string): Promise<FailureArchive> {
+  static async createFailure(input: CreateFailureArchiveInput, userId: string, context?: { ip?: string; userAgent?: string }): Promise<FailureArchive> {
     // Check if similar failure exists based on testName and errorMessage
     const existing = await prisma.failureArchive.findFirst({
       where: {
@@ -149,14 +146,10 @@ export class FailureArchiveService {
     const failure = await prisma.failureArchive.create({
       data: {
         ...input,
-        // screenshots: null, // Removed
-        // relatedDocumentation: null, // Removed
         tags: input.tags?.join(',') || null,
         severity: input.severity || FailureSeverity.MEDIUM,
-        // status: FailureStatus.NEW, // Prod schema doesn't have status, uses 'resolved' boolean
         resolved: false,
         occurrenceCount: 1,
-        // isKnownIssue: false, // Prod schema doesn't have isKnownIssue
       }
     }) as unknown as FailureArchive;
 
@@ -166,7 +159,8 @@ export class FailureArchiveService {
       'FailureArchive',
       failure.id,
       userId,
-      { testName: failure.testName }
+      { testName: failure.testName },
+      context
     );
 
     return failure;
@@ -175,34 +169,23 @@ export class FailureArchiveService {
   /**
    * Document root cause analysis for a failure
    */
-  static async documentRCA(input: DocumentRCAInput, userId: string): Promise<FailureArchive> {
+  static async documentRCA(input: DocumentRCAInput, userId: string, context?: { ip?: string; userAgent?: string }): Promise<FailureArchive> {
     const updateData: Record<string, unknown> = {
       rootCause: input.rootCause,
-      // detailedAnalysis: input.detailedAnalysis, // Prod schema does NOT have detailedAnalysis
       solution: input.solution,
-      prevention: input.prevention, // Prod uses 'prevention' not 'preventionSteps'
-      // workaround: input.workaround, // Prod schema does NOT have workaround
-      // relatedDocumentation: input.relatedDocumentation || [], 
-      // status: FailureStatus.DOCUMENTED,
+      prevention: input.prevention,
       rcaDocumented: true,
-      tags: input.tags?.join(',') // Handle tags string
+      tags: input.tags?.join(',')
     };
 
     if (input.jiraIssueKey) {
-      // updateData.jiraIssueKey = input.jiraIssueKey; // Prod doesn't have jiraIssueKey on FailureArchive, only relation 'relatedJiraIssue''? No, Prod has relatedJiraIssue String?
-      // Prod schema: relatedJiraIssue String?
       updateData.relatedJiraIssue = input.jiraIssueKey;
     }
 
     if (input.timeToResolve) {
-      // updateData.timeToResolve = input.timeToResolve; // Prod schema does NOT have timeToResolve?
-      // Prod schema: resolvedAt DateTime?
       updateData.resolvedAt = new Date();
       updateData.resolved = true;
     }
-
-    // resolvedBy? Prod doesn't have resolvedBy? Check.
-    // Prod schema: resolvedAt, resolved. NO resolvedBy.
 
     const failure = await prisma.failureArchive.update({
       where: { id: input.id },
@@ -215,7 +198,8 @@ export class FailureArchiveService {
       'FailureArchive',
       failure.id,
       userId,
-      { rootCause: input.rootCause }
+      { rootCause: input.rootCause },
+      context
     );
 
     return failure;
@@ -395,15 +379,14 @@ export class FailureArchiveService {
     id: string,
     resolvedBy: string,
     userId: string,
-    timeToResolve?: number
+    timeToResolve: number | undefined,
+    context?: { ip?: string; userAgent?: string }
   ): Promise<FailureArchive> {
     const failure = await prisma.failureArchive.update({
       where: { id },
       data: {
         resolved: true,
         resolvedAt: new Date(),
-        // resolvedBy, // Not in schema
-        // timeToResolve // Not in schema
       }
     }) as unknown as FailureArchive;
 
@@ -413,7 +396,8 @@ export class FailureArchiveService {
       'FailureArchive',
       id,
       userId,
-      { resolvedBy }
+      { resolvedBy },
+      context
     );
 
     return failure;
@@ -428,5 +412,4 @@ export class FailureArchiveService {
       // include: { jiraIssue: true } // Removed
     }) as unknown as FailureArchive | null;
   }
-  // detectPatterns removed
 }

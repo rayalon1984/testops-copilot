@@ -8,25 +8,36 @@ export class AuditService {
      * Log an action to the audit log asynchronously.
      * We don't await this in the main flow to avoid blocking response times.
      */
+    /**
+     * Log an action to the audit log asynchronously.
+     */
     async log(
         action: string,
         entityType: string,
         entityId: string,
         userId: string,
-        metadata?: Record<string, any>
+        metadata?: Record<string, any>,
+        reqInfo?: { ip?: string; userAgent?: string }
     ): Promise<void> {
         try {
+            const safeMetadata = this.redactMetadata(metadata || {});
+
+            // Add request info to metadata if provided
+            if (reqInfo) {
+                if (reqInfo.ip) safeMetadata.ip = reqInfo.ip;
+                if (reqInfo.userAgent) safeMetadata.userAgent = reqInfo.userAgent;
+            }
+
             await prismaClient.auditLog.create({
                 data: {
                     action,
                     entityType,
                     entityId,
                     userId,
-                    metadata: metadata || {},
+                    metadata: safeMetadata,
                 },
             });
         } catch (error) {
-            // enhanced error logging for audit failures
             logger.error('Failed to create audit log', {
                 action,
                 entityType,
@@ -34,8 +45,27 @@ export class AuditService {
                 userId,
                 error,
             });
-            // We do NOT throw here to prevent blocking the main user action
         }
+    }
+
+    /**
+     * Redact sensitive information from metadata
+     */
+    private redactMetadata(metadata: Record<string, any>): Record<string, any> {
+        const sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'cookie', 'key', 'accessToken', 'refreshToken'];
+        const redacted: Record<string, any> = { ...metadata };
+
+        for (const key in redacted) {
+            if (Object.prototype.hasOwnProperty.call(redacted, key)) {
+                if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
+                    redacted[key] = '***REDACTED***';
+                } else if (typeof redacted[key] === 'object' && redacted[key] !== null) {
+                    redacted[key] = this.redactMetadata(redacted[key]);
+                }
+            }
+        }
+
+        return redacted;
     }
 
     /**

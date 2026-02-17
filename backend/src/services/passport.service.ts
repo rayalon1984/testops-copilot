@@ -4,6 +4,7 @@ import { PrismaClient, UserRole } from '@prisma/client';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
+import bcrypt from 'bcrypt';
 
 export class PassportService {
     constructor() {
@@ -43,7 +44,7 @@ export class PassportService {
                         cert: config.sso.saml.cert,
                         // Optional: map attributes if needed
                     },
-                    async (profile: any, done: Function) => {
+                    async (profile: any, done: (error: any, user?: any, info?: any) => void) => {
                         try {
                             if (!profile.email) {
                                 return done(new Error('SAML profile missing email'));
@@ -64,7 +65,6 @@ export class PassportService {
                                 // ideally SSO users shouldn't have a password or it should be nullable.
                                 // For now, we'll generate a random unguessable string.
                                 const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-                                const bcrypt = require('bcrypt'); // Lazy load
                                 const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
                                 user = await prisma.user.create({

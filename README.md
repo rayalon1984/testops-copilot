@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.8.1](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.1) - Modern Dashboard UX Overhaul | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.8.5](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.5) - Enterprise Readiness (SSO, Audit, RBAC) | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
@@ -159,6 +159,13 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
   - Dashboard auto-refresh
   - Live test execution monitoring
 
+- **🏢 Enterprise Readiness** *(v2.8.5)*
+  - **SSO/SAML**: Integration with Okta, Azure AD, and other IdPs
+  - **Audit Logging**: Compliance-ready logging with PII redaction (Who, When, What, Where)
+  - **Advanced RBAC**: Fine-grained permissions (Admin, Editor, Viewer, Billing)
+  - **High Availability**: Redis Cluster support and stateless architecture
+  - **API Documentation**: Automated Swagger/OpenAPI spec at `/api/docs`
+
 ## 🛠 Tech Stack
 
 ### Backend
@@ -188,8 +195,9 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
 - **Build Tool**: Vite
 
 ### DevOps
-- **Containerization**: Docker with multi-stage builds
-- **CI/CD**: GitHub Actions
+- **Containerization**: Docker with multi-stage builds (Alpine based)
+- **CI/CD**: GitHub Actions (Lint, Test, Build, Publish)
+- **Documentation**: Swagger/OpenAPI 3.0
 - **Linting**: ESLint with TypeScript rules
 - **Code Quality**: Prettier, Husky pre-commit hooks
 

@@ -64,6 +64,20 @@ const envSchema = z.object({
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
   SESSION_SECRET: z.string().optional(),
 
+  // Redis
+  REDIS_MODE: z.enum(['standalone', 'cluster', 'sentinel']).default('standalone'),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.string().transform(Number).default('6379'),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.string().transform(Number).default('0'),
+  REDIS_NODES: z.string().optional(), // Comma separated host:port for cluster/sentinel
+  REDIS_MASTER_NAME: z.string().optional(), // For sentinel
+
+  // OpenTelemetry
+  OTEL_ENABLED: z.string().transform(val => val === 'true').default('false'),
+  OTEL_SERVICE_NAME: z.string().default('testops-companion-backend'),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().default('http://localhost:4318/v1/traces'),
+
   // SSO
   SSO_ENABLED: z.string().transform(val => val === 'true').default('false'),
   SAML_ENTRY_POINT: z.string().optional(),
@@ -155,6 +169,20 @@ export interface Config {
     bcryptSaltRounds: number;
     secureCookie: boolean;
     sessionSecret?: string;
+  };
+  redis: {
+    mode: 'standalone' | 'cluster' | 'sentinel';
+    host: string;
+    port: number;
+    password?: string;
+    db: number;
+    nodes: string[];
+    masterName?: string;
+  };
+  otel: {
+    enabled: boolean;
+    serviceName: string;
+    exporterEndpoint: string;
   };
   sso: {
     enabled: boolean;
@@ -254,6 +282,20 @@ export const config: Config = {
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
     secureCookie: env.SECURE_COOKIE,
     sessionSecret: env.SESSION_SECRET,
+  },
+  redis: {
+    mode: env.REDIS_MODE,
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+    password: env.REDIS_PASSWORD,
+    db: env.REDIS_DB,
+    nodes: env.REDIS_NODES ? env.REDIS_NODES.split(',') : [],
+    masterName: env.REDIS_MASTER_NAME,
+  },
+  otel: {
+    enabled: env.OTEL_ENABLED,
+    serviceName: env.OTEL_SERVICE_NAME,
+    exporterEndpoint: env.OTEL_EXPORTER_OTLP_ENDPOINT,
   },
   sso: {
     enabled: env.SSO_ENABLED,
