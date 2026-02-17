@@ -23,6 +23,7 @@ model User {
   
   notifications Notification[]
   testRuns      TestRun[]
+  chatSessions  ChatSession[]
 }
 
 model TestRun {
@@ -223,4 +224,32 @@ model TestResult {
   
   testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
   @@index([testRunId])
+}
+
+// ─── AI Copilot Chat Persistence ───
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String   // user | assistant | tool_start | tool_result | thinking | error
+  content   String
+  toolName  String?
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }

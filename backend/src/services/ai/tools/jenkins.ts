@@ -2,6 +2,9 @@
  * Jenkins Tools — Read-only wrappers for Phase 1
  *
  * - jenkins_get_status: Get the status and test results of a Jenkins pipeline
+ * 
+ * NOTE: Compatible with both production schema (enabled, lastRunAt, testRuns)
+ * and dev schema (status, no testRuns relation).
  */
 
 import { Tool, ToolResult, ToolContext } from './types';
@@ -34,16 +37,10 @@ export const jenkinsGetStatusTool: Tool = {
             const pipelineName = args.pipelineName as string;
             const limit = (args.limit as number) || 3;
 
-            // Query the database for pipeline and its recent test runs
+            // Query pipeline — use raw query approach for schema compatibility
             const pipeline = await prisma.pipeline.findFirst({
                 where: {
-                    name: { contains: pipelineName, mode: 'insensitive' },
-                },
-                include: {
-                    testRuns: {
-                        orderBy: { createdAt: 'desc' },
-                        take: limit,
-                    },
+                    name: { contains: pipelineName },
                 },
             });
 
@@ -55,8 +52,20 @@ export const jenkinsGetStatusTool: Tool = {
                 };
             }
 
-            // Map fields from Prisma schema: startedAt, completedAt, no error field
-            const runs = pipeline.testRuns.map(run => ({
+            // Fetch test runs separately for schema compatibility
+            let runs: any[] = [];
+            try {
+                runs = await (prisma.testRun as any).findMany({
+                    where: { pipelineId: pipeline.id },
+                    orderBy: { createdAt: 'desc' },
+                    take: limit,
+                });
+            } catch {
+                // testRun might not exist in simpler schemas
+                logger.warn('[jenkins_get_status] Could not query test runs');
+            }
+
+            const mappedRuns = runs.map((run: any) => ({
                 id: run.id,
                 name: run.name,
                 status: run.status,
@@ -64,26 +73,30 @@ export const jenkinsGetStatusTool: Tool = {
                 passed: run.passed,
                 failed: run.failed,
                 skipped: run.skipped,
-                flaky: run.flaky,
                 duration: run.duration,
                 totalTests: run.totalTests,
-                startedAt: run.startedAt,
+                startedAt: run.startedAt || run.createdAt,
                 completedAt: run.completedAt,
             }));
+
+            // Use whatever fields are available on the pipeline model
+            const pipelineData: Record<string, unknown> = {
+                id: pipeline.id,
+                name: pipeline.name,
+                type: (pipeline as any).type,
+            };
+            // Add optional fields if they exist
+            if ('enabled' in pipeline) pipelineData.enabled = (pipeline as any).enabled;
+            if ('status' in pipeline) pipelineData.status = (pipeline as any).status;
+            if ('lastRunAt' in pipeline) pipelineData.lastRunAt = (pipeline as any).lastRunAt;
 
             return {
                 success: true,
                 data: {
-                    pipeline: {
-                        id: pipeline.id,
-                        name: pipeline.name,
-                        type: pipeline.type,
-                        enabled: pipeline.enabled,
-                        lastRunAt: pipeline.lastRunAt,
-                    },
-                    recentRuns: runs,
+                    pipeline: pipelineData,
+                    recentRuns: mappedRuns,
                 },
-                summary: `Pipeline "${pipeline.name}": ${runs.length} recent run(s). Latest: ${runs[0]?.status || 'no runs'}.`,
+                summary: `Pipeline "${pipeline.name}": ${mappedRuns.length} recent run(s). Latest: ${mappedRuns[0]?.status || 'no runs'}.`,
             };
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'Unknown error';

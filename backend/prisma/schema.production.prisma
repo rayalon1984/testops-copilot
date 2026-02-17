@@ -22,6 +22,7 @@ model User {
 
   notifications Notification[]
   testRuns      TestRun[]
+  chatSessions  ChatSession[]
 
   @@map("users")
 }
@@ -242,4 +243,34 @@ model TestRailRun {
 
   @@index([projectId])
   @@map("testrail_runs")
+}
+
+// ─── AI Copilot Chat Persistence ───
+
+model ChatSession {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  sessionId String   @db.Uuid
+  role      String   // user | assistant | tool_start | tool_result | thinking | error
+  content   String
+  toolName  String?
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
 }

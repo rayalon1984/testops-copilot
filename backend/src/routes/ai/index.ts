@@ -14,6 +14,7 @@ import { CategorizationOptions } from '../../services/ai/features/categorization
 import { SummarizationOptions } from '../../services/ai/features/log-summary';
 import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
 import { handleChatStream } from '../../services/ai/AIChatService';
+import * as chatSession from '../../services/ai/ChatSessionService';
 
 const router: IRouter = Router();
 
@@ -423,6 +424,71 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
       res.write(`data: ${JSON.stringify({ type: 'error', data: 'Internal server error' })}\n\n`);
       res.end();
     }
+  }
+});
+
+// ─── Chat Session CRUD ───
+
+/**
+ * GET /api/ai/sessions
+ * List all sessions for the authenticated user.
+ */
+router.get('/sessions', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user || {};
+    const sessions = await chatSession.getUserSessions(user.id);
+    res.json({ data: sessions });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list sessions' });
+  }
+});
+
+/**
+ * GET /api/ai/sessions/:id
+ * Get a session with all messages.
+ */
+router.get('/sessions/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user || {};
+    const session = await chatSession.getSessionWithMessages(req.params.id as string, user.id);
+    if (!session) {
+      res.status(404).json({ error: 'Session not found' });
+      return;
+    }
+    res.json({ data: session });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get session' });
+  }
+});
+
+/**
+ * POST /api/ai/sessions
+ * Create a new chat session.
+ */
+router.post('/sessions', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user || {};
+    const session = await chatSession.createSession({
+      userId: user.id,
+      title: req.body.title,
+    });
+    res.status(201).json({ data: session });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
+/**
+ * DELETE /api/ai/sessions/:id
+ * Delete a session and all messages.
+ */
+router.delete('/sessions/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user || {};
+    await chatSession.deleteSession(req.params.id as string, user.id);
+    res.json({ message: 'Session deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete session' });
   }
 });
 
