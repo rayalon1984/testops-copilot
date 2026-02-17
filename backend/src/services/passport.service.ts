@@ -1,6 +1,7 @@
 import passport from 'passport';
 import { Strategy as SamlStrategy } from 'passport-saml';
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { UserRole } from '../constants';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
