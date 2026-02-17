@@ -15,6 +15,7 @@ import { SummarizationOptions } from '../../services/ai/features/log-summary';
 import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
 import { handleChatStream } from '../../services/ai/AIChatService';
 import * as chatSession from '../../services/ai/ChatSessionService';
+import * as confirmation from '../../services/ai/ConfirmationService';
 
 const router: IRouter = Router();
 
@@ -489,6 +490,43 @@ router.delete('/sessions/:id', async (req: Request, res: Response): Promise<void
     res.json({ message: 'Session deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete session' });
+  }
+});
+
+// ─── Action Confirmation ───
+
+/**
+ * POST /api/ai/confirm
+ * Approve or deny a pending write-tool action.
+ */
+router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user || {};
+    const { actionId, approved } = req.body;
+
+    if (!actionId || typeof approved !== 'boolean') {
+      res.status(400).json({ error: 'actionId (string) and approved (boolean) are required' });
+      return;
+    }
+
+    const result = await confirmation.resolveAction(actionId, user.id, approved);
+    res.json({ data: result });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to resolve action';
+    res.status(400).json({ error: message });
+  }
+});
+
+/**
+ * GET /api/ai/sessions/:id/pending
+ * Get pending actions for a session.
+ */
+router.get('/sessions/:id/pending', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const actions = await confirmation.getSessionPendingActions(req.params.id as string);
+    res.json({ data: actions });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get pending actions' });
   }
 });
 

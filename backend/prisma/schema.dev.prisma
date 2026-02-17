@@ -21,9 +21,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  notifications Notification[]
-  testRuns      TestRun[]
-  chatSessions  ChatSession[]
+  notifications    Notification[]
+  testRuns         TestRun[]
+  chatSessions     ChatSession[]
+  pendingActions   PendingAction[]
 }
 
 model TestRun {
@@ -235,8 +236,9 @@ model ChatSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages ChatMessage[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages       ChatMessage[]
+  pendingActions PendingAction[]
 
   @@index([userId])
 }
@@ -252,4 +254,25 @@ model ChatMessage {
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+}
+
+// ─── AI Copilot Confirmation System ───
+
+model PendingAction {
+  id         String   @id @default(uuid())
+  sessionId  String
+  userId     String
+  toolName   String
+  parameters String   // JSON-serialized tool parameters
+  status     String   @default("PENDING") // PENDING | APPROVED | DENIED | EXPIRED
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([status])
 }

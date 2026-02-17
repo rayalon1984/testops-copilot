@@ -84,6 +84,8 @@ export type SSEEventType =
     | 'thinking'       // LLM is reasoning
     | 'tool_start'     // About to call a tool
     | 'tool_result'    // Tool returned a result
+    | 'confirmation_request'  // Write-tool needs user approval
+    | 'confirmation_resolved' // User approved/denied
     | 'answer'         // Final response text
     | 'error'          // Something went wrong
     | 'done';          // Stream complete
