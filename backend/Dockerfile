@@ -24,9 +24,9 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
-# Stage 3: Runner
+# Stage 3: Production
 # Final image with only production dependencies and artifacts
-FROM base AS runner
+FROM base AS production
 # Copy package files
 COPY package*.json ./
 # Install production dependencies only
