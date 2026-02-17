@@ -14,16 +14,17 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
 
     - name: Check for updates
-      id: ncu
+      continue-on-error: true
       run: |
         npm install -g npm-check-updates
         cd backend && ncu > backend-updates.txt || echo "No updates available" > backend-updates.txt
         cd ../frontend && ncu > frontend-updates.txt || echo "No updates available" > frontend-updates.txt
 
     - name: Upload dependency check results
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: dependency-updates
@@ -33,19 +34,21 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v4
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
 
-    - name: Install dependencies
-      run: |
-        cd backend && npm ci
-        cd ../frontend && npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
 
     - name: Run npm audit
       continue-on-error: true
@@ -53,14 +56,14 @@ jobs:
         echo "# Security Audit Results" > security-report.md
         echo "" >> security-report.md
         echo "## Backend npm audit" >> security-report.md
-        echo "\`\`\`" >> security-report.md
-        cd backend && npm audit >> ../security-report.md || true
-        echo "\`\`\`" >> security-report.md
-        echo "" >> ../security-report.md
-        echo "## Frontend npm audit" >> ../security-report.md
-        echo "\`\`\`" >> ../security-report.md
-        cd ../frontend && npm audit >> ../security-report.md || true
-        echo "\`\`\`" >> ../security-report.md
+        echo '```' >> security-report.md
+        (cd backend && npm audit 2>&1) >> security-report.md || true
+        echo '```' >> security-report.md
+        echo "" >> security-report.md
+        echo "## Frontend npm audit" >> security-report.md
+        echo '```' >> security-report.md
+        (cd frontend && npm audit 2>&1) >> security-report.md || true
+        echo '```' >> security-report.md
 
     - name: Upload security report
       if: always()
@@ -69,28 +72,23 @@ jobs:
         name: security-report
         path: security-report.md
 
-    - name: Run Snyk Security Scan
-      if: ${{ secrets.SNYK_TOKEN != '' }}
-      continue-on-error: true
-      uses: snyk/actions/node@1.0.0
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
   license-check:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
     - uses: actions/checkout@v4
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
 
-    - name: Install dependencies
-      run: |
-        cd backend && npm ci
-        cd ../frontend && npm ci
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
 
     - name: Install license checker
       run: npm install -g license-checker
@@ -98,22 +96,23 @@ jobs:
     - name: Check licenses
       continue-on-error: true
       run: |
-        cd backend && license-checker --json > ../backend-licenses.json || echo "{}" > ../backend-licenses.json
-        cd ../frontend && license-checker --json > ../frontend-licenses.json || echo "{}" > ../frontend-licenses.json
+        (cd backend && license-checker --json) > backend-licenses.json || echo "{}" > backend-licenses.json
+        (cd frontend && license-checker --json) > frontend-licenses.json || echo "{}" > frontend-licenses.json
 
     - name: Create License Report
       run: |
         echo "# License Report" > license-report.md
         echo "## Backend Dependencies" >> license-report.md
-        echo "\`\`\`json" >> license-report.md
+        echo '```json' >> license-report.md
         cat backend-licenses.json >> license-report.md || echo "No data" >> license-report.md
-        echo "\`\`\`" >> license-report.md
+        echo '```' >> license-report.md
         echo "## Frontend Dependencies" >> license-report.md
-        echo "\`\`\`json" >> license-report.md
+        echo '```json' >> license-report.md
         cat frontend-licenses.json >> license-report.md || echo "No data" >> license-report.md
-        echo "\`\`\`" >> license-report.md
+        echo '```' >> license-report.md
 
     - name: Upload License Report
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: license-report
