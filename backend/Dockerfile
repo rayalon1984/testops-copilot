@@ -38,6 +38,8 @@ RUN npm install -g prisma@5 && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 # Copy Prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
+# Copy generated Prisma Client from builder
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Copy start script
 COPY start.sh ./start.sh
 RUN chmod +x ./start.sh

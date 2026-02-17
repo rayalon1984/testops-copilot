@@ -1,153 +1,58 @@
-// Production PostgreSQL Schema
-// This schema uses PostgreSQL with proper enums and features
+// SQLite Development Schema for Demo Mode
+// This is a simplified version using SQLite instead of PostgreSQL
+// Note: SQLite doesn't support enums, so we use String with validation
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String
   firstName String?
   lastName  String?
-  role      UserRole @default(USER)
+  role      String   @default("USER") // ADMIN | USER
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  
   notifications Notification[]
   testRuns      TestRun[]
-  auditLogs     AuditLog[]
-
-  @@map("users")
-}
-
-enum UserRole {
-  ADMIN
-  EDITOR
-  VIEWER
-  BILLING
-  USER // Deprecated, treated as EDITOR
 }
 
 model TestRun {
-  id         String   @id @default(uuid()) @db.Uuid
-  pipelineId String   @db.Uuid
-  userId     String?   @db.Uuid
+  id         String    @id @default(uuid())
+  pipelineId String
+  userId     String?
   name       String
-  status     TestStatus
-  startedAt  DateTime @default(now())
-  completedAt DateTime?
-  duration   Int?
-  totalTests Int      @default(0)
-  passed     Int      @default(0)
-  failed     Int      @default(0)
-  skipped    Int      @default(0)
-  flaky      Int      @default(0)
+  status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
   branch     String?
   commit     String?
-  buildNumber String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  startedAt  DateTime? @default(now())
+  completedAt DateTime?
+  duration   Int?
+  // results string removed in favor of relation to match prod
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  user        User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pipeline    Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
-  results     TestResult[]
-  notifications Notification[]
+  // Relations
+  pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
+  results    TestResult[]
 
-  @@index([userId])
   @@index([pipelineId])
-  @@index([status])
-  @@index([startedAt])
-  @@map("test_runs")
-}
-
-enum TestStatus {
-  PENDING
-  RUNNING
-  PASSED
-  FAILED
-  SKIPPED
-  FLAKY
-}
-
-model Pipeline {
-  id          String       @id @default(uuid()) @db.Uuid
-  name        String
-  type        PipelineType
-  repository  String?
-  branch      String?
-  config      Json?
-  enabled     Boolean      @default(true)
-  lastRunAt   DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  testRuns    TestRun[]
-
-  @@map("pipelines")
-}
-
-enum PipelineType {
-  GITHUB_ACTIONS
-  JENKINS
-  CUSTOM
-}
-
-model TestResult {
-  id          String   @id @default(uuid()) @db.Uuid
-  testRunId   String   @db.Uuid
-  name        String
-  className   String?
-  status      TestStatus
-  duration    Int?
-  error       String?
-  stackTrace  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
-
-  @@index([testRunId])
-  @@index([status])
-  @@map("test_results")
-}
-
-model Notification {
-  id        String            @id @default(uuid()) @db.Uuid
-  userId    String            @db.Uuid
-  testRunId String?           @db.Uuid
-  type      NotificationType
-  title     String
-  message   String
-  read      Boolean           @default(false)
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  testRun   TestRun?          @relation(fields: [testRunId], references: [id], onDelete: Cascade)
-
   @@index([userId])
-  @@index([read])
-  @@map("notifications")
-}
-
-enum NotificationType {
-  TEST_FAILED
-  TEST_PASSED
-  PIPELINE_FAILED
-  PIPELINE_PASSED
-  SYSTEM
+  @@index([status])
 }
 
 model FailureArchive {
-  id              String    @id @default(uuid()) @db.Uuid
+  id              String    @id @default(uuid())
   testName        String
   errorMessage    String
   stackTrace      String?
@@ -158,8 +63,8 @@ model FailureArchive {
   solution        String?
   prevention      String?
   relatedJiraIssue String?
-  tags            String?   // Comma-separated string for compatibility
-  metadata        Json?
+  tags            String?   // Comma-separated string (SQLite doesn't support arrays)
+  metadata        String?   // JSON string
   firstOccurrence DateTime  @default(now())
   lastOccurrence  DateTime  @default(now())
   occurrenceCount Int       @default(1)
@@ -171,30 +76,36 @@ model FailureArchive {
   @@index([testName])
   @@index([category])
   @@index([resolved])
-  @@map("failure_archive")
 }
 
+// Simplified AI usage tracking for demo
 model AIUsage {
-  id            String   @id @default(uuid()) @db.Uuid
-  provider      String
-  model         String
-  feature       String
-  promptTokens  Int
-  completionTokens Int
-  totalTokens   Int
-  cost          Float
-  userId        String?  @db.Uuid
-  metadata      Json?
-  createdAt     DateTime @default(now())
+  id              String   @id @default(uuid())
+  provider        String   // "anthropic", "openai", "google"
+  model           String
+  tokens          Int
+  cost            Float
+  cacheHit        Boolean  @default(false)
+  responseTimeMs  Int
+  createdAt       DateTime @default(now())
 
   @@index([provider])
-  @@index([feature])
   @@index([createdAt])
-  @@map("ai_usage")
+}
+
+// Jira integration models (optional for demo)
+model JiraConfig {
+  id            String    @id @default(uuid())
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   String    @default("BUG") // BUG | TASK | STORY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model JiraIssue {
-  id              String    @id @default(uuid()) @db.Uuid
+  id              String    @id @default(uuid())
   jiraKey         String    @unique
   jiraId          String
   projectKey      String
@@ -205,61 +116,111 @@ model JiraIssue {
   priority        String?
   assignee        String?
   reporter        String?
-  testRunId       String?   @db.Uuid
-  failureArchiveId String?  @db.Uuid
-  metadata        Json?
+  testRunId       String?
+  failureArchiveId String?
+  metadata        String?   // JSON string
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([jiraKey])
   @@index([projectKey])
-  @@map("jira_issues")
 }
 
-model ConfluencePage {
-  id              String    @id @default(uuid()) @db.Uuid
-  pageId          String    @unique
-  spaceKey        String
-  title           String
-  url             String
-  failureArchiveId String?  @db.Uuid
-  publishedBy     String?
-  metadata        Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+// Pipeline model
+model Pipeline {
+  id          String     @id @default(uuid())
+  name        String
+  type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
+  status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
+  config      String     // JSON stored as string
+  description String?
+  // userId removed to match prod schema
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  @@index([spaceKey])
-  @@map("confluence_pages")
+  // Relations
+  testRuns    TestRun[]
+
+  @@index([type])
+  @@index([status])
+}
+
+// Failure pattern detection
+model FailurePattern {
+  id                    String    @id @default(uuid())
+  signature             String    @unique
+  patternName           String
+  description           String
+  affectedTests         String?   // Comma-separated test names (SQLite doesn't support arrays)
+  commonRootCause       String?
+  matchCount            Int       @default(0)
+  lastMatched           DateTime  @default(now())
+  recurrenceRule        String?
+  confidence            Float     @default(0.0)
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([signature])
+  @@index([isActive])
+}
+
+// Added during Refactor for missing models
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  data      String?  // JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id])
+  @@index([userId])
 }
 
 model TestRailRun {
-  id              String    @id @default(uuid()) @db.Uuid
-  testRailRunId   Int       @unique
-  projectId       Int
-  suiteId         Int?
-  name            String
-  description     String?
-  testRunId       String?   @db.Uuid
-  metadata        Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([projectId])
-  @@map("testrail_runs")
+  id            String   @id @default(uuid())
+  testRailRunId Int      @unique
+  projectId     Int
+  suiteId       Int?
+  name          String
+  testRunId     String?  // nullable and not unique in prod?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
-model AuditLog {
-  id          String   @id @default(uuid()) @db.Uuid
-  action      String
-  entityType  String
-  entityId    String
-  userId      String   @db.Uuid
-  user        User     @relation(fields: [userId], references: [id])
-  metadata    Json?
+model ConfluencePage {
+  id          String   @id @default(uuid())
+  pageId      String
+  title       String
+  spaceKey    String
+  version     Int?
+  url         String
+  testRunId   String?
+  type        String?
+  sourceId    String?
+  metadata    String?  // JSON string
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-  @@index([entityType, entityId])
-  @@index([userId])
-  @@index([createdAt])
-  @@map("audit_logs")
+model TestResult {
+  id          String   @id @default(uuid())
+  testRunId   String
+  testName    String
+  testCaseId  String?
+  message     String?
+  status      String
+  duration    Int?
+  error       String?
+  stackTrace  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  @@index([testRunId])
 }
