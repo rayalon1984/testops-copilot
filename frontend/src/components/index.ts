@@ -15,3 +15,4 @@ export { default as FormField } from './FormField/FormField';
 export { default as LogViewer } from './LogViewer/LogViewer';
 export { default as ScreenshotGallery } from './ScreenshotGallery/ScreenshotGallery';
 export { default as NotificationBadge } from './NotificationBadge/NotificationBadge';
+export { default as AICopilot } from './AICopilot/AICopilot';

@@ -43,6 +43,8 @@ import {
   OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
+import AICopilot from '../components/AICopilot/AICopilot';
+import { useAuth } from '../hooks/useAuth';
 
 interface DashboardMetrics {
   totalTestsAnalyzed: number;
@@ -202,6 +204,7 @@ function MetricGauge({
 export default function Dashboard() {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { user } = useAuth();
   const [selectedFailure, setSelectedFailure] = useState<
     DashboardMetrics['recentFailures'][number] | null
   >(null);
@@ -367,6 +370,7 @@ export default function Dashboard() {
                 fontWeight: 500,
               }}
             />
+            <AICopilot userRole={user?.role} />
           </Box>
         </Box>
       </Fade>
@@ -384,10 +388,10 @@ export default function Dashboard() {
                   transition: 'all 0.25s ease',
                   '&:hover': card.onClick
                     ? {
-                        transform: 'translateY(-4px)',
-                        borderColor: alpha(card.color, 0.3),
-                        boxShadow: `0 8px 24px ${alpha(card.color, 0.12)}`,
-                      }
+                      transform: 'translateY(-4px)',
+                      borderColor: alpha(card.color, 0.3),
+                      boxShadow: `0 8px 24px ${alpha(card.color, 0.12)}`,
+                    }
                     : {},
                   '&::before': {
                     content: '""',
@@ -766,11 +770,10 @@ export default function Dashboard() {
                           sx={{
                             p: 2,
                             borderRadius: 2,
-                            border: `1px solid ${
-                              provider.isActive
-                                ? alpha(theme.palette.primary.main, 0.25)
-                                : alpha(theme.palette.divider, 0.6)
-                            }`,
+                            border: `1px solid ${provider.isActive
+                              ? alpha(theme.palette.primary.main, 0.25)
+                              : alpha(theme.palette.divider, 0.6)
+                              }`,
                             backgroundColor: provider.isActive
                               ? alpha(theme.palette.primary.main, 0.04)
                               : 'transparent',
