@@ -16,6 +16,11 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
+    env:
+      DATABASE_URL: "postgresql://postgres:password@localhost:5432/testops"
+      JWT_SECRET: "test-jwt-secret-must-be-at-least-32-chars-long"
+      JWT_REFRESH_SECRET: "test-jwt-refresh-secret-must-be-at-least-32-chars-long"
+      PORT: 3000
 
     steps:
     - uses: actions/checkout@v4
