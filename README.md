@@ -64,7 +64,7 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ### AI-Powered Agentic Command Center
 
-![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.webp)
+![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
 
 *AI-powered failure analysis with Agentic Copilot — search Jira, query Confluence, check pipelines, and analyze failures through natural language conversation*
 
