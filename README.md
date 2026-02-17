@@ -63,86 +63,23 @@
 
 ## ✨ Features
 
-### Core Capabilities
+### 🤖 AI Autonomous Engineer
+*   **Agentic Copilot**: ReAct-based AI that interprets logs, searches Jira/Confluence, and autonomously fixes bugs.
+*   **Auto-Fix Workflow**: Analyzes failure → Creates Branch → Commits Fix → Opens PR.
+*   **Smart Context**: Enrichment from GitHub commits, Jira tickets, and Wiki docs.
+*   **Intelligent Analysis**: Auto-categorization (Bug vs Flaky vs Env) and Root Cause Analysis.
 
-- **🔄 Multi-Pipeline Management**
-  - Support for GitHub Actions, Jenkins, and custom CI/CD systems
-  - Real-time pipeline status monitoring
-  - Automated test run tracking and historical analysis
+### 📊 TestOps Platform
+*   **Multi-Pipeline**: Unified view for Jenkins, GitHub Actions, and custom CI.
+*   **Failure Analysis**: Historical trending, flaky test detection, and log summarization.
+*   **Mission Control**: Real-time dashboard with streaming AI insights.
 
-- **📊 Advanced Test Analytics**
-  - Comprehensive test run tracking and visualization
-  - Failure analysis with trends and patterns
-  - Flaky test detection and reporting
-  - Performance metrics and regression tracking
+### 🏢 Enterprise & Integrations
+*   **Seamless Sync**: Jira, GitHub, Slack, Confluence, Monday.com, TestRail.
+*   **Enterprise Ready**: SSO/SAML, Audit Logging, RBAC, and Redis Clustering.
+*   **Secure**: PII redaction and role-based access control.
 
-- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4 | Phase 3: v2.8.0 | Phase 4: v2.9.0)*
-  - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
-  - **Automated Failure Categorization**: AI-powered classification into 6 categories (bug_critical, bug_minor, environment, flaky, configuration, unknown) with confidence scoring and suggested actions *(v2.5.4)*
-  - **Intelligent Log Summarization**: AI analysis of test logs with root cause extraction, error location identification, and suggested fixes *(v2.5.4)*
-  - **Cross-Platform Context Enrichment** *(v2.8.0)*: Automatically gathers context from Jira, Confluence, and GitHub to produce richer failure analysis
-    - **Jira Similar Issue Search**: JQL text search finds existing Jira issues matching the failure, preventing duplicates and surfacing related work
-    - **Confluence Knowledge Reader**: CQL search finds relevant RCA docs, runbooks, and architecture pages from your wiki
-    - **GitHub Code Awareness**: Fetches commit diffs, finds associated PRs, and highlights file changes relevant to the failing test
-    - **AI-Synthesized Insights**: An LLM connects the dots across all three sources to produce an actionable root cause analysis
-    - **Agentic Command Center**: Persistent, 3-column "Mission Control" interface (Navigation | Dashboard | AI Sidebar)
-    - **Smart Cards**: Static interactive cards for Insights, Actions, and Integrations (replacing simple text chat)
-    - **Dark Agentic Theme**: High-end dark mode aesthetics with glassmorphism and neon accents
-    - **ReAct Loop**: Autonomous reasoning + action cycle — the copilot thinks, calls tools, and synthesizes answers
-    - **7 Read-Only Tools**: Search Jira, get issues, fetch commits/PRs, search Confluence, check pipeline status, query dashboard metrics
-    - **SSE Streaming**: Real-time streamed responses with thinking indicators, tool call visibility, and final answers
-    - **Chat Persistence**: Sessions stored in database with auto-titling, history browsing, and full message archive
-    - **Role-Aware Prompts**: System prompt adapts based on user role (Admin vs User)
-  - **Multi-Provider Support**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 (2M token context), Azure OpenAI
-  - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
-  - **Semantic Search**: Find similar failures even with different error messages
-  - **AI-Enhanced Explanations**: Get detailed analysis of why failures are similar and suggested fixes
-  - **Resolution Tracking**: Build organizational knowledge by storing solutions for future reference
-  - **Provider Comparison**: From ultra-cheap Gemini Flash ($0.375/1M tokens) to enterprise Azure with SLAs
-  - CLI & API access for all AI features
-
-- **🔍 Intelligent Failure Analysis**
-  - Automatic failure categorization
-  - Root cause analysis suggestions
-  - Historical failure pattern matching
-  - Log aggregation and smart search
-
-- **📚 Failure Knowledge Base & RCA Archive**
-  - Smart failure fingerprinting with exact, fuzzy, and pattern matching
-  - Root Cause Analysis (RCA) documentation and archiving
-  - Automatic detection of recurring issues and patterns
-  - Instant lookup of similar past failures with documented solutions
-  - Knowledge retention: Never lose institutional knowledge when team members leave
-  - 95% faster resolution for known issues
-
-- **🔗 Powerful Integrations**
-  - **Jira**: Automatic issue creation, synchronization, and similar issue search *(search: v2.8.0)*
-  - **Monday.com**: Work OS integration for task management
-  - **TestRail**: Test case management and result synchronization
-  - **Confluence**: Automated RCA documentation, test reporting, and knowledge retrieval *(reader: v2.8.0)*
-  - **Grafana & Prometheus**: Metrics visualization and alerting
-  - **GitHub**: Workflow triggers, status updates, commit diffs, and PR awareness *(code awareness: v2.8.0)*
-  - **Slack**: Real-time notifications and alerts
-  - **Email**: Customizable notification templates
-  - **Pushover**: Mobile push notifications
-
-- **👥 User Management**
-  - Role-based access control (Admin, Developer, Viewer)
-  - JWT-based authentication
-  - User preferences and notification settings
-  - Team collaboration features
-
-- **⚡ Real-time Updates**
-  - WebSocket-based live updates
-  - Dashboard auto-refresh
-  - Live test execution monitoring
-
-- **🏢 Enterprise Readiness** *(v2.8.5)*
-  - **SSO/SAML**: Integration with Okta, Azure AD, and other IdPs
-  - **Audit Logging**: Compliance-ready logging with PII redaction (Who, When, What, Where)
-  - **Advanced RBAC**: Fine-grained permissions (Admin, Editor, Viewer, Billing)
-  - **High Availability**: Redis Cluster support and stateless architecture
-  - **API Documentation**: Automated Swagger/OpenAPI spec at `/api/docs`
+> 📖 **[View Detailed Features Guide](docs/features.md)** for a complete list of capabilities.
 
 ## 🛠 Tech Stack
 
