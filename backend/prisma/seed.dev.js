@@ -4,6 +4,7 @@
  */
 
 const { PrismaClient } = require('@prisma/client');
+const crypto = require('crypto');
 const prisma = new PrismaClient();
 
 // Dramatically increased counts for demo impact - ALL 6 CATEGORIES
@@ -219,9 +220,9 @@ async function seedDevelopmentData() {
   console.log(`✅ Created ${pipelines.length} pipelines`);
 
   // Create MANY test runs with variety
-  const testRuns = [];
-  const now = Date.now();
-
+  // Create MANY test runs with variety - BATCHED
+  console.log('Generating test runs...');
+  const testRunPayloads = [];
   for (let i = 0; i < 150; i++) {
     const pipeline = pipelines[i % pipelines.length];
     const hoursAgo = Math.floor(Math.random() * 720); // Up to 30 days ago
@@ -233,63 +234,54 @@ async function seedDevelopmentData() {
     const failed = Math.random() > 0.7 ? Math.floor(Math.random() * 50) : 0;
     const status = failed > 0 ? 'FAILED' : 'PASSED';
 
-    const run = await prisma.testRun.create({
-      data: {
-        pipelineId: pipeline.id,
-        // userId: admin.id,
-        name: `${pipeline.name} - Run #${i + 1}`,
-        status,
-        branch: Math.random() > 0.7 ? 'main' : Math.random() > 0.5 ? 'develop' : `feature/test-${i}`,
-        commit: `${Math.random().toString(36).substring(2, 9)}`,
-        startedAt: startTime,
-        completedAt: endTime,
-        duration,
-        // results removed - use TestResult relation instead
-      },
+    testRunPayloads.push({
+      id: crypto.randomUUID(), // SQLite needs manual ID sometimes for relations, but here just creating
+      pipelineId: pipeline.id,
+      name: `${pipeline.name} - Run #${i + 1}`,
+      status,
+      branch: Math.random() > 0.7 ? 'main' : Math.random() > 0.5 ? 'develop' : `feature/test-${i}`,
+      commit: `${Math.random().toString(36).substring(2, 9)}`,
+      startedAt: startTime,
+      completedAt: endTime,
+      duration,
     });
-    testRuns.push(run);
   }
+  await prisma.testRun.createMany({ data: testRunPayloads });
+  const testRuns = await prisma.testRun.findMany(); // Re-fetch to have IDs if needed
+
 
   console.log(`✅ Created ${testRuns.length} test runs`);
 
   // Create massive failure dataset
-  const failures = [];
+  // Create massive failure dataset - BATCHED
+  console.log('Generating failure archives...');
+  const failurePayloads = [];
   for (const [category, config] of Object.entries(FAILURE_CATEGORIES)) {
     for (let i = 0; i < config.count; i++) {
       const template = SAMPLE_FAILURES[Math.floor(Math.random() * SAMPLE_FAILURES.length)];
       const daysAgo = Math.floor(Math.random() * 60);
       const occurredAt = new Date(now - daysAgo * 86400000);
 
-      const failure = await prisma.failureArchive.create({
-        data: {
-          // testRunId removed - not in Dev schema
-          testName: `${template.testName}_${category}_${i}`,
-          // failureSignature removed - not in Dev schema
-          errorMessage: template.errorMessage,
-          category: template.errorType, // Use category field
-          stackTrace: template.stackTrace,
-          // logSnippet removed - not in Dev schema
-          // occurredAt -> use firstOccurrence/lastOccurrence
-          // environment, buildNumber, commitSha, branch removed - not in Dev schema
-          rootCause: template.rootCause,
-          // detailedAnalysis removed - not in Dev schema
-          solution: template.solution,
-          prevention: template.preventionSteps,
-          // workaround removed - not in Dev schema
-          // status removed - use resolved boolean
-          severity: config.severity,
-          // isRecurring removed - check occurrenceCount instead
-          occurrenceCount: Math.floor(Math.random() * 25) + 1,
-          // isKnownIssue removed - not in Dev schema
-          firstOccurrence: new Date(occurredAt.getTime() - Math.random() * 14 * 86400000),
-          lastOccurrence: occurredAt,
-          rcaDocumented: Math.random() > 0.5,
-          resolved: Math.random() > 0.7,
-        },
+      failurePayloads.push({
+        testName: `${template.testName}_${category}_${i}`,
+        errorMessage: template.errorMessage,
+        category: template.errorType,
+        stackTrace: template.stackTrace,
+        rootCause: template.rootCause,
+        solution: template.solution,
+        prevention: template.preventionSteps,
+        severity: config.severity,
+        occurrenceCount: Math.floor(Math.random() * 25) + 1,
+        firstOccurrence: new Date(occurredAt.getTime() - Math.random() * 14 * 86400000),
+        lastOccurrence: occurredAt,
+        rcaDocumented: Math.random() > 0.5,
+        resolved: Math.random() > 0.7,
       });
-      failures.push(failure);
     }
   }
+  await prisma.failureArchive.createMany({ data: failurePayloads });
+  const failures = failurePayloads; // Just for summary count
+
 
   console.log(`✅ Created ${failures.length} test failures across all categories`);
 
