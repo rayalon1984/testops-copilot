@@ -52,10 +52,8 @@
 - [Contributing](#-contributing)
 - [License](#-license)
 
-## 📸 Screenshots & Demo
+## AI-Powered Agentic Command Center
 
-
-### AI-Powered Agentic Command Center
 
 ![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
 
