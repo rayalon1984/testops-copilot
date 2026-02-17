@@ -62,21 +62,9 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ---
 
-### AI-Powered Dashboard with Agentic Copilot
+### AI-Powered Agentic Command Center
 
-<details open>
-<summary><strong>Dark Mode</strong></summary>
-
-![TestOps Companion Dashboard - Dark](docs/assets/screenshots/dashboard-modern-dark.png)
-
-</details>
-
-<details>
-<summary><strong>Light Mode</strong></summary>
-
-![TestOps Companion Dashboard - Light](docs/assets/screenshots/dashboard-modern-light.png)
-
-</details>
+![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.webp)
 
 *AI-powered failure analysis with Agentic Copilot — search Jira, query Confluence, check pipelines, and analyze failures through natural language conversation*
 
@@ -115,13 +103,14 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
     - **Confluence Knowledge Reader**: CQL search finds relevant RCA docs, runbooks, and architecture pages from your wiki
     - **GitHub Code Awareness**: Fetches commit diffs, finds associated PRs, and highlights file changes relevant to the failing test
     - **AI-Synthesized Insights**: An LLM connects the dots across all three sources to produce an actionable root cause analysis
-  - **🧠 Agentic AI Copilot** *(v2.9.0)*: Interactive conversational assistant embedded in the dashboard
+    - **Agentic Command Center**: Persistent, 3-column "Mission Control" interface (Navigation | Dashboard | AI Sidebar)
+    - **Smart Cards**: Static interactive cards for Insights, Actions, and Integrations (replacing simple text chat)
+    - **Dark Agentic Theme**: High-end dark mode aesthetics with glassmorphism and neon accents
     - **ReAct Loop**: Autonomous reasoning + action cycle — the copilot thinks, calls tools, and synthesizes answers
     - **7 Read-Only Tools**: Search Jira, get issues, fetch commits/PRs, search Confluence, check pipeline status, query dashboard metrics
     - **SSE Streaming**: Real-time streamed responses with thinking indicators, tool call visibility, and final answers
     - **Chat Persistence**: Sessions stored in database with auto-titling, history browsing, and full message archive
     - **Role-Aware Prompts**: System prompt adapts based on user role (Admin vs User)
-    - **Glassmorphism UI**: Premium chat drawer with sparkle button, suggested prompts, and dark/light theme support
   - **Multi-Provider Support**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 (2M token context), Azure OpenAI
   - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
   - **Semantic Search**: Find similar failures even with different error messages
