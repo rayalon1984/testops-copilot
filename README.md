@@ -26,7 +26,7 @@
 
 > **🚀 New to TestOps Companion?** Get started in 5 minutes with our **[Quick Start Guide](docs/quickstart.md)**!
 >
-> **Latest Release**: [v2.8.5](https://github.com/rayalon1984/testops-companion/releases/tag/v2.8.5) - Enterprise Readiness (SSO, Audit, RBAC) | [MCP Quick Start →](docs/README_MCP.md)
+> **Latest Release**: [v2.9.0](https://github.com/rayalon1984/testops-companion/releases/tag/v2.9.0) - Agentic AI Copilot | [MCP Quick Start →](docs/README_MCP.md)
 
 ### 🔐 Default Login Credentials
 
@@ -106,7 +106,7 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
   - Flaky test detection and reporting
   - Performance metrics and regression tracking
 
-- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4 | Phase 3: v2.8.0)*
+- **🤖 AI-Powered Analysis** *(Phase 1: v2.5.3 | Phase 2: v2.5.4 | Phase 3: v2.8.0 | Phase 4: v2.9.0)*
   - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
   - **Automated Failure Categorization**: AI-powered classification into 6 categories (bug_critical, bug_minor, environment, flaky, configuration, unknown) with confidence scoring and suggested actions *(v2.5.4)*
   - **Intelligent Log Summarization**: AI analysis of test logs with root cause extraction, error location identification, and suggested fixes *(v2.5.4)*
@@ -115,6 +115,13 @@ Want to see TestOps Companion in action? Check out our **[Visual Demo Guide](doc
     - **Confluence Knowledge Reader**: CQL search finds relevant RCA docs, runbooks, and architecture pages from your wiki
     - **GitHub Code Awareness**: Fetches commit diffs, finds associated PRs, and highlights file changes relevant to the failing test
     - **AI-Synthesized Insights**: An LLM connects the dots across all three sources to produce an actionable root cause analysis
+  - **🧠 Agentic AI Copilot** *(v2.9.0)*: Interactive conversational assistant embedded in the dashboard
+    - **ReAct Loop**: Autonomous reasoning + action cycle — the copilot thinks, calls tools, and synthesizes answers
+    - **7 Read-Only Tools**: Search Jira, get issues, fetch commits/PRs, search Confluence, check pipeline status, query dashboard metrics
+    - **SSE Streaming**: Real-time streamed responses with thinking indicators, tool call visibility, and final answers
+    - **Chat Persistence**: Sessions stored in database with auto-titling, history browsing, and full message archive
+    - **Role-Aware Prompts**: System prompt adapts based on user role (Admin vs User)
+    - **Glassmorphism UI**: Premium chat drawer with sparkle button, suggested prompts, and dark/light theme support
   - **Multi-Provider Support**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 (2M token context), Azure OpenAI
   - **Cost-Conscious**: Built-in budget tracking, alerts, and intelligent caching (up to 80% cost reduction)
   - **Semantic Search**: Find similar failures even with different error messages
@@ -684,7 +691,19 @@ testops-companion/
 │   │   │   ├── errorHandler.ts
 │   │   │   └── validation.ts  # Request validation
 │   │   ├── routes/            # API routes
+│   │   │   └── ai/            # AI & Copilot routes (v2.9.0)
 │   │   ├── services/          # Business logic
+│   │   │   ├── ai/            # AI services (v2.9.0)
+│   │   │   │   ├── AIChatService.ts    # ReAct loop + SSE streaming
+│   │   │   │   ├── ChatSessionService.ts # Chat persistence CRUD
+│   │   │   │   └── tools/     # Agentic tool wrappers
+│   │   │   │       ├── types.ts       # Tool interfaces
+│   │   │   │       ├── registry.ts    # Tool registry
+│   │   │   │       ├── jira.ts        # Jira search/get
+│   │   │   │       ├── github.ts      # Commit/PR lookup
+│   │   │   │       ├── confluence.ts   # Confluence search
+│   │   │   │       ├── jenkins.ts     # Pipeline status
+│   │   │   │       └── dashboard.ts   # Dashboard metrics
 │   │   │   ├── github.service.ts
 │   │   │   ├── jenkins.service.ts
 │   │   │   ├── jira.service.ts
@@ -701,6 +720,7 @@ testops-companion/
 │   ├── public/                # Static assets
 │   ├── src/
 │   │   ├── components/        # Reusable components
+│   │   │   ├── AICopilot/     # AI Copilot drawer + sparkle button (v2.9.0)
 │   │   │   ├── ConfirmDialog/
 │   │   │   ├── FormField/
 │   │   │   ├── LogViewer/
@@ -709,8 +729,9 @@ testops-companion/
 │   │   │   └── SearchField/
 │   │   ├── contexts/          # React contexts
 │   │   ├── hooks/             # Custom hooks
+│   │   │   └── useAICopilot.ts # SSE chat hook (v2.9.0)
 │   │   ├── pages/             # Page components
-│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Dashboard.tsx  # Dashboard with AI Copilot button
 │   │   │   ├── Login.tsx
 │   │   │   ├── PipelineList.tsx
 │   │   │   ├── PipelineDetail.tsx
@@ -804,7 +825,7 @@ PUT    /api/v1/failure-archive/:id/resolve      # Mark failure as resolved
 POST   /api/v1/failure-archive/detect-patterns  # Detect recurring patterns
 ```
 
-### AI Endpoints *(v2.5.3-v2.8.0)*
+### AI Endpoints *(v2.5.3-v2.9.0)*
 
 ```
 # RCA Matching (v2.5.3)
@@ -820,6 +841,13 @@ POST   /api/ai/summarize            # Summarize test logs with AI
 
 # Cross-Platform Context Enrichment (v2.8.0)
 POST   /api/ai/enrich               # Enrich failure with Jira/Confluence/GitHub context
+
+# Agentic AI Copilot (v2.9.0)
+POST   /api/ai/chat                 # SSE streaming chat with ReAct loop
+GET    /api/ai/sessions             # List user's chat sessions
+POST   /api/ai/sessions             # Create new chat session
+GET    /api/ai/sessions/:id         # Get session with messages
+DELETE /api/ai/sessions/:id         # Delete session and messages
 
 # Monitoring & Stats
 GET    /api/ai/health               # Check AI services health
