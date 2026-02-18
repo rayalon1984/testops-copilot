@@ -12,6 +12,7 @@ import { OpenAIProvider } from './openai.provider';
 import { GoogleProvider } from './google.provider';
 import { AzureProvider } from './azure.provider';
 import { OpenRouterProvider } from './openrouter.provider';
+import { MockProvider } from './mock.provider';
 
 export type ProviderFactory = (config: ProviderConfig) => BaseProvider;
 
@@ -35,6 +36,7 @@ class ProviderRegistry {
     this.register('google', (config) => new GoogleProvider(config));
     this.register('azure', (config) => new AzureProvider(config as any));
     this.register('openrouter', (config) => new OpenRouterProvider(config as any));
+    this.register('mock', (config) => new MockProvider(config));
   }
 
   /**
@@ -70,11 +72,15 @@ class ProviderRegistry {
    * Create a provider from environment variables
    */
   createFromEnv(): BaseProvider {
-    const providerName = (process.env.AI_PROVIDER || 'anthropic') as AIProviderName;
-    const model = process.env.AI_MODEL || this.getDefaultModel(providerName);
+    // FORCE MOCK FOR TESTING
+    console.log('⚠️ FORCING MOCK PROVIDER ⚠️');
+    const config = this.getConfigFromEnv('mock', 'mock-model');
+    return this.getProvider('mock', config);
+    // const providerName = (process.env.AI_PROVIDER || 'anthropic') as AIProviderName;
+    // const model = process.env.AI_MODEL || this.getDefaultModel(providerName);
 
-    const config = this.getConfigFromEnv(providerName, model);
-    return this.getProvider(providerName, config);
+    // const config = this.getConfigFromEnv(providerName, model);
+    // return this.getProvider(providerName, config);
   }
 
   /**
@@ -115,6 +121,10 @@ class ProviderRegistry {
         (baseConfig as any).appName = process.env.OPENROUTER_APP_NAME;
         break;
 
+      case 'mock':
+        baseConfig.apiKey = 'mock-key';
+        break;
+
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -132,6 +142,7 @@ class ProviderRegistry {
       google: 'gemini-3.0-flash',
       azure: 'gpt-4.1',
       openrouter: 'anthropic/claude-sonnet-4-5',
+      mock: 'mock-model',
     };
 
     return defaults[provider];
@@ -154,7 +165,7 @@ class ProviderRegistry {
    * List all available providers (those with API keys configured)
    */
   listAvailableProviders(): AIProviderName[] {
-    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter'];
+    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
     return allProviders.filter(p => this.isProviderAvailable(p));
   }
 

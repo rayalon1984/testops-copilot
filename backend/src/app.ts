@@ -69,7 +69,7 @@ app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 
 
-import { redis } from './lib/redis';
+// import { redis } from './lib/redis';
 
 // Workaround for TS resolution issue with connect-redis v9 in CommonJS env
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -77,7 +77,7 @@ const RedisStore = require('connect-redis').RedisStore as any;
 
 // Session configuration
 app.use(session({
-  store: new RedisStore({ client: redis }),
+  // store: new RedisStore({ client: redis }), // Disabled for demo/simple mode without Docker
   secret: config.security.sessionSecret || 'default_secret', // Should be in env
   resave: false,
   saveUninitialized: false,

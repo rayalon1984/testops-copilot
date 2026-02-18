@@ -141,6 +141,11 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
 
     let toolCallCount = 0;
 
+    // Get tool definitions for native tool calling
+    const toolDefinitions = toolRegistry.getToolDefinitions();
+    logger.info(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
+    console.log(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
+
     // ReAct Loop
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
         // 1. Call the LLM
@@ -148,10 +153,11 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
 
         let aiResponse;
         try {
-            // Use the provider via the internal chat method
+            // Use the provider via the internal chat method, passing tools
             aiResponse = await (aiManager as any).provider.chat(messages, {
                 maxTokens: 2048,
                 temperature: 0.3,
+                tools: toolDefinitions // Native tool definitions
             });
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'LLM call failed';
@@ -163,12 +169,24 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
 
         const responseText = aiResponse.content;
 
-        // 2. Check if the LLM wants to call a tool
-        const toolCall = parseToolCall(responseText);
+        // 2. Determine if tools are called (Native vs Legacy Regex)
+        let toolCalls = aiResponse.toolCalls;
 
-        if (!toolCall) {
+        // Fallback to regex parsing if no native tool calls found (for backward compatibility/mock provider)
+        if (!toolCalls || toolCalls.length === 0) {
+            const legacyToolCall = parseToolCall(responseText);
+            if (legacyToolCall) {
+                toolCalls = [{
+                    id: 'legacy_call_' + Date.now(),
+                    name: legacyToolCall.tool,
+                    arguments: legacyToolCall.args
+                }];
+            }
+        }
+
+        if (!toolCalls || toolCalls.length === 0) {
             // No tool call → this is the final answer
-            // Strip any ```tool_call blocks that might be malformed
+            // Strip any ```tool_call blocks that might be malformed (legacy cleanup)
             const cleanAnswer = responseText.replace(/```tool_call[\s\S]*?```/g, '').trim();
             sendSSE(res, createEvent('answer', cleanAnswer));
             sendSSE(res, createEvent('done', ''));
@@ -178,111 +196,104 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
             return;
         }
 
-        // 3. Execute the tool
+        // 3. Process Tool Calls
         if (toolCallCount >= MAX_TOOL_CALLS) {
             sendSSE(res, createEvent('error', `Tool call limit reached (${MAX_TOOL_CALLS}). Providing answer with available information.`));
             // Force the LLM to answer without more tools
-            messages.push({
-                role: 'assistant',
-                content: responseText,
-            });
-            messages.push({
-                role: 'user',
-                content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.',
-            });
-            continue;
-        }
-
-        const tool = toolRegistry.get(toolCall.tool);
-        if (!tool) {
-            // Unknown tool — tell the LLM
             messages.push({ role: 'assistant', content: responseText });
-            messages.push({
-                role: 'user',
-                content: `Error: Tool "${toolCall.tool}" does not exist. Available tools: ${toolRegistry.getAll().map(t => t.name).join(', ')}. Please try again or provide an answer.`,
-            });
+            messages.push({ role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' });
             continue;
         }
 
-        // Check for confirmation requirement
-        if (tool.requiresConfirmation) {
-            // Write tools require a session for persistence
-            if (!req.sessionId) {
-                messages.push({ role: 'assistant', content: responseText });
+        // Add assistant message with tool calls to history
+        messages.push({
+            role: 'assistant',
+            content: responseText,
+            toolCalls: toolCalls
+        });
+
+        // Execute each tool
+        for (const toolCall of toolCalls) {
+            const tool = toolRegistry.get(toolCall.name);
+            console.log(`[AIChatService] Processing tool call: ${toolCall.name}, Found: ${!!tool}, SessionID: ${req.sessionId}`);
+            logger.info(`[AIChatService] Processing tool call: ${toolCall.name}, Found: ${!!tool}, SessionID: ${req.sessionId}`);
+
+            if (!tool) {
                 messages.push({
-                    role: 'user',
-                    content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided. Write actions are not allowed in anonymous chat.`
+                    role: 'tool',
+                    toolCallId: toolCall.id,
+                    name: toolCall.name,
+                    content: `Error: Tool "${toolCall.name}" does not exist.`
                 });
                 continue;
             }
 
-            try {
-                // Create pending action in DB
-                const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.args)}`;
-                const pendingAction = await confirmationService.createPendingAction({
-                    sessionId: req.sessionId,
-                    userId: req.userId,
-                    toolName: tool.name,
-                    parameters: toolCall.args,
-                });
+            // Check for confirmation requirement
+            if (tool.requiresConfirmation) {
+                if (!req.sessionId) {
+                    messages.push({
+                        role: 'tool',
+                        toolCallId: toolCall.id,
+                        name: tool.name,
+                        content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
+                    });
+                    continue;
+                }
 
-                // Notify frontend
-                sendSSE(res, createEvent('confirmation_request', JSON.stringify({
-                    actionId: pendingAction.id,
-                    tool: tool.name,
-                    args: toolCall.args,
-                    summary
-                })));
-                sendSSE(res, createEvent('done', ''));
+                try {
+                    const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.arguments)}`;
+                    const pendingAction = await confirmationService.createPendingAction({
+                        sessionId: req.sessionId,
+                        userId: req.userId,
+                        toolName: tool.name,
+                        parameters: toolCall.arguments,
+                    });
 
-                // Save state to history so we can resume later
-                // We save the assistant's "intent" to call the tool
-                await chatSessionService.saveMessage({
-                    sessionId: req.sessionId,
-                    role: 'assistant',
-                    content: responseText,
-                    toolName: tool.name
-                });
+                    sendSSE(res, createEvent('confirmation_request', JSON.stringify({
+                        actionId: pendingAction.id,
+                        tool: tool.name,
+                        args: toolCall.arguments,
+                        summary
+                    })));
+                    sendSSE(res, createEvent('done', ''));
 
-                return; // Stop stream and wait for user
-            } catch (error) {
-                logger.error('[AIChatService] Failed to create pending action:', error);
-                sendSSE(res, createEvent('error', 'Failed to request confirmation. Please try again.'));
-                sendSSE(res, createEvent('done', ''));
-                return;
+                    // Stop stream here. Client must resume after approval.
+                    return;
+                } catch (error) {
+                    logger.error('[AIChatService] Failed to create pending action:', error);
+                    sendSSE(res, createEvent('error', 'Failed to request confirmation.'));
+                    sendSSE(res, createEvent('done', ''));
+                    return;
+                }
             }
+
+            // Notify frontend
+            sendSSE(res, createEvent('tool_start', `Calling ${tool.name}...`, tool.name));
+
+            let toolResult;
+            try {
+                toolResult = await tool.execute(toolCall.arguments, context);
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : 'Tool execution failed';
+                toolResult = { success: false, error: msg, summary: msg };
+            }
+
+            toolCallCount++;
+
+            // Notify frontend: tool result
+            sendSSE(res, createEvent('tool_result', toolResult.summary, tool.name));
+
+            // Feed result back
+            messages.push({
+                role: 'tool',
+                toolCallId: toolCall.id,
+                name: tool.name,
+                content: JSON.stringify(toolResult.data ?? toolResult.error)
+            });
         }
-
-        // Notify frontend: tool is starting
-        sendSSE(res, createEvent('tool_start', `Calling ${tool.name}...`, tool.name));
-
-        let toolResult;
-        try {
-            toolResult = await tool.execute(toolCall.args, context);
-        } catch (error) {
-            const msg = error instanceof Error ? error.message : 'Tool execution failed';
-            logger.error(`[AIChatService] Tool ${tool.name} threw:`, error);
-            toolResult = {
-                success: false,
-                error: msg,
-                summary: `Tool ${tool.name} failed: ${msg}`,
-            };
-        }
-
-        toolCallCount++;
-
-        // Notify frontend: tool result
-        sendSSE(res, createEvent('tool_result', toolResult.summary, tool.name));
-
-        // 4. Feed tool result back to the LLM
-        messages.push({ role: 'assistant', content: responseText });
-        messages.push({
-            role: 'user',
-            content: `Tool result for ${tool.name}:\n${JSON.stringify(toolResult.data ?? toolResult.error, null, 2)}\n\nUse this information to continue answering the original question. If you need more data, call another tool. Otherwise, provide your final answer.`,
-        });
     }
 
-    // If we exhausted iterations without a final answer
-    sendSSE(res, createEvent('error', 'Reached maximum reasoning iterations. Please try a more specific question.'));
+    // If we exhausted iterations
+    sendSSE(res, createEvent('error', 'Reached maximum reasoning iterations.'));
     sendSSE(res, createEvent('done', ''));
 }

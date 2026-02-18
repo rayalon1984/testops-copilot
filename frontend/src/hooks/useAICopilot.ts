@@ -2,15 +2,16 @@
  * useAICopilot — React hook for SSE chat with the AI Copilot backend.
  *
  * Manages:
- *  - Message list state (user + assistant + tool events)
+ *  - Message list state (user + assistant + tool events + confirmation requests)
  *  - SSE connection to POST /api/v1/ai/chat
  *  - Loading/streaming state
  *  - Error handling
+ *  - Action confirmation (approve/deny)
  */
 
 import { useState, useCallback, useRef } from 'react';
 
-export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error';
+export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request';
 
 export interface ChatMessage {
     id: string;
@@ -18,6 +19,10 @@ export interface ChatMessage {
     content: string;
     toolName?: string;
     timestamp: Date;
+    // Metadata for confirmation items
+    actionId?: string;
+    toolArgs?: Record<string, unknown>;
+    confirmationStatus?: 'pending' | 'approved' | 'denied';
 }
 
 interface UseAICopilotReturn {
@@ -25,6 +30,7 @@ interface UseAICopilotReturn {
     isStreaming: boolean;
     error: string | null;
     sendMessage: (message: string) => void;
+    confirmAction: (actionId: string, approved: boolean) => Promise<void>;
     clearMessages: () => void;
 }
 
@@ -88,6 +94,7 @@ export function useAICopilot(): UseAICopilotReturn {
             let buffer = '';
             let currentAssistantId: string | null = null;
 
+            // eslint-disable-next-line
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -134,6 +141,22 @@ export function useAICopilot(): UseAICopilotReturn {
                                 }]);
                                 break;
 
+                            case 'confirmation_request': {
+                                // event.data is a JSON string with details
+                                const { actionId, tool, args, summary } = JSON.parse(event.data);
+                                setMessages(prev => [...prev, {
+                                    id: generateId(),
+                                    role: 'confirmation_request',
+                                    content: summary,
+                                    toolName: tool,
+                                    actionId: actionId,
+                                    toolArgs: args,
+                                    confirmationStatus: 'pending',
+                                    timestamp: new Date(),
+                                }]);
+                                break;
+                            }
+
                             case 'answer':
                                 currentAssistantId = generateId();
                                 setMessages(prev => [...prev, {
@@ -157,7 +180,8 @@ export function useAICopilot(): UseAICopilotReturn {
                                 // Stream complete
                                 break;
                         }
-                    } catch {
+                    } catch (e) {
+                        console.error('Failed to parse SSE event:', jsonStr, e);
                         // Skip malformed JSON lines
                     }
                 }
@@ -177,6 +201,64 @@ export function useAICopilot(): UseAICopilotReturn {
         }
     }, [isStreaming, messages]);
 
+    const confirmAction = useCallback(async (actionId: string, approved: boolean) => {
+        // Optimistic update
+        setMessages(prev => prev.map(msg =>
+            msg.actionId === actionId
+                ? { ...msg, confirmationStatus: approved ? 'approved' : 'denied' }
+                : msg
+        ));
+
+        // If approved, we might want to resume streaming or just wait for the outcome
+        // Ideally, the confirm endpoint returns the tool result which we can append
+
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch('/api/v1/ai/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ actionId, approved }),
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'Failed to confirm action');
+            }
+
+            const result = await response.json();
+
+            // If approved and tool executed successfully, append the result
+            if (approved && result.toolResult) {
+                setMessages(prev => [...prev, {
+                    id: generateId(),
+                    role: 'tool_result',
+                    content: result.toolResult.summary || JSON.stringify(result.toolResult),
+                    toolName: result.data.toolName,
+                    timestamp: new Date(),
+                }]);
+
+                // Note: The backend doesn't automatically resume the chat stream here. 
+                // In a full implementation, we might want to automatically trigger a new chat request 
+                // with the updated history (tool result included) to let the AI finish its thought.
+                // For now, we'll just show the result.
+            }
+
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Confirmation failed';
+            setError(msg);
+            // Revert optimistic update on error? Or just show error message.
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'error',
+                content: `Confirmation failed: ${msg}`,
+                timestamp: new Date(),
+            }]);
+        }
+    }, []);
+
     const clearMessages = useCallback(() => {
         abortRef.current?.abort();
         setMessages([]);
@@ -184,5 +266,5 @@ export function useAICopilot(): UseAICopilotReturn {
         setIsStreaming(false);
     }, []);
 
-    return { messages, isStreaming, error, sendMessage, clearMessages };
+    return { messages, isStreaming, error, sendMessage, confirmAction, clearMessages };
 }

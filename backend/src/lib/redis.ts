@@ -10,9 +10,14 @@ const redisConfig: RedisOptions = {
     password: config.redis.password,
     db: config.redis.db,
     retryStrategy: (times) => {
+        if (times > 5) {
+            logger.warn('Redis retry limit reached. Redis features will be disabled.');
+            return null; // Stop retrying
+        }
         const delay = Math.min(times * 50, 2000);
         return delay;
     },
+    lazyConnect: true, // Do not connect on instantiation
 };
 
 if (config.redis.mode === 'cluster') {
@@ -24,6 +29,7 @@ if (config.redis.mode === 'cluster') {
     redisClient = new Redis.Cluster(nodes, {
         redisOptions: {
             password: config.redis.password,
+            lazyConnect: true
         }
     });
 } else if (config.redis.mode === 'sentinel') {
@@ -37,11 +43,17 @@ if (config.redis.mode === 'cluster') {
         name: config.redis.masterName || 'mymaster',
         password: config.redis.password,
         db: config.redis.db,
+        lazyConnect: true
     });
 } else {
     logger.info('Initializing Redis in Standalone mode');
     redisClient = new Redis(redisConfig);
 }
+
+// Attempt to connect but don't crash if it fails
+redisClient.connect().catch(err => {
+    logger.error('Failed to connect to Redis. Redis features will be disabled.', err);
+});
 
 redisClient.on('connect', () => {
     logger.info('Redis connected successfully');

@@ -222,8 +222,14 @@ async function seedDevelopmentData() {
   console.log(`✅ Created ${pipelines.length} pipelines`);
 
   // Create MANY test runs with variety - BATCHED
-  console.log('Generating test runs...');
+  console.log('Generating test runs and results...');
+
+  // Pre-generate commits to ensure we have multiple runs per commit (for flaky detection)
+  const commits = Array.from({ length: 20 }, () => Math.random().toString(36).substring(2, 9));
+
   const testRunPayloads = [];
+  const testResultPayloads = [];
+
   for (let i = 0; i < 150; i++) {
     const pipeline = pipelines[i % pipelines.length];
     const hoursAgo = Math.floor(Math.random() * 720); // Up to 30 days ago
@@ -231,27 +237,52 @@ async function seedDevelopmentData() {
     const duration = 600 + Math.floor(Math.random() * 2400); // 10-50 minutes
     const endTime = new Date(startTime.getTime() + duration * 1000);
 
+    const runId = crypto.randomUUID();
+    const commit = commits[i % commits.length]; // Cycle through 20 commits
+
     const passed = Math.floor(Math.random() * 500) + 200;
     const failed = Math.random() > 0.7 ? Math.floor(Math.random() * 50) : 0;
     const status = failed > 0 ? 'FAILED' : 'PASSED';
 
     testRunPayloads.push({
-      id: crypto.randomUUID(), // SQLite needs manual ID sometimes for relations, but here just creating
+      id: runId,
       pipelineId: pipeline.id,
       name: `${pipeline.name} - Run #${i + 1}`,
       status,
       branch: Math.random() > 0.7 ? 'main' : Math.random() > 0.5 ? 'develop' : `feature/test-${i}`,
-      commit: `${Math.random().toString(36).substring(2, 9)}`,
+      commit,
       startedAt: startTime,
       completedAt: endTime,
       duration,
     });
+
+    // Generate Test Results for this run
+    // 1. A guaranteed Flaky Test (PaymentProcessor.processCheckout)
+    // Flip-flop status based on run index even for same commit
+    const isFlakyRun = i % 3 === 0; // Every 3rd run fails
+    testResultPayloads.push({
+      testRunId: runId,
+      testName: 'PaymentProcessor.processCheckout',
+      status: isFlakyRun ? 'FAILED' : 'PASSED',
+      duration: 100 + Math.random() * 50,
+      createdAt: endTime
+    });
+
+    // 2. A guaranteed Stable Test
+    testResultPayloads.push({
+      testRunId: runId,
+      testName: 'AuthService.login',
+      status: 'PASSED',
+      duration: 50 + Math.random() * 20,
+      createdAt: endTime
+    });
   }
+
   await prisma.testRun.createMany({ data: testRunPayloads });
-  const testRuns = await prisma.testRun.findMany(); // Re-fetch to have IDs if needed
+  await prisma.testResult.createMany({ data: testResultPayloads }); // Bulk insert results
 
-
-  console.log(`✅ Created ${testRuns.length} test runs`);
+  const testRuns = await prisma.testRun.findMany(); // Re-fetch only if needed
+  console.log(`✅ Created ${testRuns.length} test runs and ${testResultPayloads.length} test results`);
 
   // Create massive failure dataset - BATCHED
   console.log('Generating failure archives...');

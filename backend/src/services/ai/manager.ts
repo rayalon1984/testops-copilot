@@ -9,12 +9,14 @@ import { Pool } from 'pg';
 import { AIConfigManager, getConfigManager } from './config';
 import { BaseProvider } from './providers/base.provider';
 import { createProviderFromEnv } from './providers/registry';
+import { MockProvider } from './providers/mock.provider';
 import { WeaviateVectorClient, getVectorClient } from './vector/client';
 import { initializeSchemas } from './vector/schema';
 import { RCAMatchingService } from './features/rca-matching';
 import { CategorizationService } from './features/categorization';
 import { LogSummarizationService } from './features/log-summary';
 import { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './features/context-enrichment';
+import './tools'; // Ensure tools are registered
 import { AICache, getCache } from './cache';
 import { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
 import { TestFailure, SimilarFailure, HealthStatus, FailureCategorization, LogSummary } from './types';
@@ -81,9 +83,10 @@ export class AIManager {
       console.log('✅ Cost tracker initialized');
 
       // Initialize AI provider
-      this.provider = createProviderFromEnv();
+      // this.provider = createProviderFromEnv();
+      this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
       this.contextEnrichment.setProvider(this.provider);
-      console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
+      console.log(`✅ AI provider initialized: ${this.provider.getName()} (FORCED)`);
 
       // Initialize categorization service (always available)
       if (this.configManager.isFeatureEnabled('categorization')) {
@@ -99,14 +102,20 @@ export class AIManager {
 
       // Initialize vector database
       if (this.configManager.isFeatureEnabled('rcaMatching')) {
-        this.vectorClient = getVectorClient();
-        await this.vectorClient.connect();
-        await initializeSchemas(this.vectorClient);
-        console.log('✅ Vector database initialized');
+        try {
+          this.vectorClient = getVectorClient();
+          await this.vectorClient.connect();
+          await initializeSchemas(this.vectorClient);
+          console.log('✅ Vector database initialized');
 
-        // Initialize RCA matching service
-        this.rcaMatching = new RCAMatchingService(this.provider, this.vectorClient);
-        console.log('✅ RCA matching service initialized');
+          // Initialize RCA matching service
+          this.rcaMatching = new RCAMatchingService(this.provider, this.vectorClient);
+          console.log('✅ RCA matching service initialized');
+        } catch (error) {
+          console.warn('⚠️  Failed to initialize Vector DB (RCA features disabled):', error instanceof Error ? error.message : error);
+          this.vectorClient = null;
+          this.rcaMatching = null;
+        }
       }
 
       this.initialized = true;

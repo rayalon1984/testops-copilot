@@ -51,13 +51,45 @@ export class AnthropicProvider extends BaseProvider {
       const chatMessages = messages.filter(m => m.role !== 'system');
 
       // Convert messages to Anthropic format
-      const anthropicMessages = chatMessages.map(msg => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-      }));
+      const anthropicMessages: any[] = chatMessages.map(msg => {
+        if (msg.role === 'user') {
+          return { role: 'user', content: msg.content };
+        }
 
-      // Make API call
-      const response = await this.client.messages.create({
+        if (msg.role === 'assistant') {
+          const content: any[] = [];
+          if (msg.content) content.push({ type: 'text', text: msg.content });
+          if (msg.toolCalls) {
+            msg.toolCalls.forEach(tc => {
+              content.push({
+                type: 'tool_use',
+                id: tc.id,
+                name: tc.name,
+                input: tc.arguments
+              });
+            });
+          }
+          return { role: 'assistant', content };
+        }
+
+        if (msg.role === 'tool') {
+          return {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: msg.toolCallId,
+                content: msg.content
+              }
+            ]
+          };
+        }
+
+        return { role: 'user', content: msg.content };
+      });
+
+      // Prepare params
+      const params: any = {
         model: this.config.model,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
@@ -65,13 +97,46 @@ export class AnthropicProvider extends BaseProvider {
         messages: anthropicMessages,
         stop_sequences: options?.stopSequences,
         top_p: options?.topP,
-      });
+      };
 
-      // Extract text content
-      const content = response.content
-        .filter(block => block.type === 'text')
-        .map(block => (block as any).text)
-        .join('\n');
+      // Add tools if provided
+      if (options?.tools && options.tools.length > 0) {
+        params.tools = options.tools.map(t => ({
+          name: t.name,
+          description: t.description,
+          input_schema: {
+            type: 'object',
+            properties: t.parameters.reduce((acc: any, p: any) => {
+              acc[p.name] = {
+                type: p.type,
+                description: p.description,
+                enum: p.enum
+              };
+              return acc;
+            }, {}),
+            required: t.parameters.filter((p: any) => p.required).map((p: any) => p.name)
+          }
+        }));
+      }
+
+      // Make API call
+      const response = await this.client.messages.create(params);
+
+      // Process content and tools
+      let content = '';
+      const toolCalls: any[] = [];
+
+      response.content.forEach(block => {
+        if (block.type === 'text') {
+          content += block.text;
+        } else if (block.type === 'tool_use') {
+          toolCalls.push({
+            id: block.id,
+            name: block.name,
+            arguments: block.input
+          });
+        }
+      });
 
       // Calculate costs
       const inputTokens = response.usage.input_tokens;
@@ -80,6 +145,7 @@ export class AnthropicProvider extends BaseProvider {
 
       return {
         content,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         provider: this.getName(),
         model: this.config.model,
         usage: {

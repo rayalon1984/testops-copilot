@@ -21,6 +21,7 @@ export interface CompletionOptions {
   stopSequences?: string[];
   topP?: number;
   systemPrompt?: string;
+  tools?: any[]; // Tool definitions (ToolSchema from tools/types.ts)
 }
 
 export interface EmbeddingOptions {

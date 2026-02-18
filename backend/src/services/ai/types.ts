@@ -8,7 +8,7 @@
 /**
  * Supported AI providers
  */
-export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter';
+export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter' | 'mock';
 
 /**
  * AI feature categories
@@ -90,11 +90,24 @@ export interface AIModel {
 }
 
 /**
+ * Tool call definition
+ */
+export interface ToolCall {
+  id: string;
+  name: string;
+  arguments: Record<string, any>;
+}
+
+/**
  * Chat message
  */
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  toolOnly?: boolean; // If true, content is ignored (for pure tool calls)
+  toolCalls?: ToolCall[]; // For assistant messages
+  toolCallId?: string; // For tool results
+  name?: string; // For tool results (tool name)
 }
 
 /**
@@ -105,6 +118,7 @@ export interface ChatOptions {
   maxTokens?: number;
   temperature?: number;
   stream?: boolean;
+  tools?: any[]; // Tool definitions
 }
 
 /**
@@ -112,6 +126,7 @@ export interface ChatOptions {
  */
 export interface AIResponse {
   content: string;
+  toolCalls?: ToolCall[];
   provider: AIProviderName;
   model: string;
   usage: {

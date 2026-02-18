@@ -149,10 +149,10 @@ export class AIConfigManager {
 
     // Features
     if (env.AI_FEATURE_RCA_MATCHING !== undefined ||
-        env.AI_FEATURE_CATEGORIZATION !== undefined ||
-        env.AI_FEATURE_LOG_SUMMARY !== undefined ||
-        env.AI_FEATURE_NL_QUERIES !== undefined ||
-        env.AI_FEATURE_TICKET_GENERATION !== undefined) {
+      env.AI_FEATURE_CATEGORIZATION !== undefined ||
+      env.AI_FEATURE_LOG_SUMMARY !== undefined ||
+      env.AI_FEATURE_NL_QUERIES !== undefined ||
+      env.AI_FEATURE_TICKET_GENERATION !== undefined) {
       config.features = {
         rcaMatching: (env.AI_FEATURE_RCA_MATCHING ?? 'true') === 'true',
         categorization: (env.AI_FEATURE_CATEGORIZATION ?? 'true') === 'true',
@@ -261,7 +261,7 @@ export class AIConfigManager {
 
     if (this.config.enabled) {
       // Check provider is valid
-      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter'];
+      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
       if (!validProviders.includes(this.config.provider)) {
         errors.push(`Invalid provider: ${this.config.provider}`);
       }

@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
+import FlakyTestsWidget from '../components/FlakyTestsWidget/FlakyTestsWidget';
 
 interface DashboardMetrics {
   totalTestsAnalyzed: number;
@@ -654,6 +655,19 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
+
+
+      {/* ─── Flaky Tests Row ─── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={6}>
+          <Grow in timeout={1000}>
+            <Box sx={{ height: '400px' }}>
+              <FlakyTestsWidget />
+            </Box>
+          </Grow>
+        </Grid>
+      </Grid>
+
       {/* ─── Bottom Row: AI Performance + Providers ─── */}
       <Grid container spacing={3}>
         {/* AI Performance */}
@@ -1091,6 +1105,6 @@ export default function Dashboard() {
           </>
         )}
       </Dialog>
-    </Container>
+    </Container >
   );
 }

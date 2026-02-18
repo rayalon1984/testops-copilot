@@ -13,6 +13,7 @@ export class JiraService {
   private client: JiraClient | null = null;
   private projectKey: string = '';
   private enabled: boolean = false;
+  private mockMode: boolean = false;
 
   constructor() {
     if (!config.jira) {
@@ -31,7 +32,13 @@ export class JiraService {
       });
       this.projectKey = config.jira.projectKey;
       this.enabled = true;
-      logger.info('Jira integration initialized successfully');
+
+      if (config.jira.apiToken === 'mock-token') {
+        this.mockMode = true;
+        logger.info('Jira integration initialized in MOCK MODE');
+      } else {
+        logger.info('Jira integration initialized successfully');
+      }
     } catch (error) {
       logger.error('Failed to initialize Jira client:', error);
       this.enabled = false;
@@ -48,16 +55,23 @@ export class JiraService {
     this.checkEnabled();
 
     try {
-      // Create issue in Jira
-      const issue = await this.client!.addNewIssue({
-        fields: {
-          project: { key: this.projectKey },
-          summary: data.summary,
-          description: data.description,
-          issuetype: { name: data.type },
-          labels: data.labels || [],
-        },
-      });
+      let issue: any;
+
+      if (this.mockMode) {
+        logger.info('[MOCK] Creating Jira Issue:', data);
+        issue = { key: `MOCK-${Date.now()}`, id: `mock-id-${Date.now()}` };
+      } else {
+        // Create issue in Jira
+        issue = await this.client!.addNewIssue({
+          fields: {
+            project: { key: this.projectKey },
+            summary: data.summary,
+            description: data.description,
+            issuetype: { name: data.type },
+            labels: data.labels || [],
+          },
+        });
+      }
 
       // Store issue in our database
       await prisma.jiraIssue.create({
