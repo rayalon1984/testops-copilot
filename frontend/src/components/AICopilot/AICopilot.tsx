@@ -18,6 +18,7 @@ import {
     DeleteOutline as ClearIcon,
 } from '@mui/icons-material';
 import { useAICopilot, ChatMessage } from '../../hooks/useAICopilot';
+import { useAuth } from '../../hooks/useAuth';
 
 // Message components
 import UserMessage from './messages/UserMessage';
@@ -41,10 +42,9 @@ import ChatInput from './ChatInput';
 import EmptyState from './EmptyState';
 import MessageActions from './MessageActions';
 
-// TODO: Get actual user role from auth context. Hardcoded for now.
 function useUserRole(): string {
-    // In production, this would come from auth context: useAuth().user.role
-    return 'EDITOR';
+    const { user } = useAuth();
+    return user?.role?.toUpperCase() || 'VIEWER';
 }
 
 function ConfirmationPreview({ msg, onConfirm, onDeny, userRole }: {

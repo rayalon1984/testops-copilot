@@ -277,17 +277,27 @@ export function useAICopilot(): UseAICopilotReturn {
 
             const result = await response.json();
 
-            // If approved and tool executed successfully, append the result
+            // If approved and tool executed successfully, append the result card
             if (approved && result.toolResult) {
+                const toolName = result.data?.toolName;
                 setMessages(prev => [...prev, {
                     id: generateId(),
                     role: 'tool_result',
                     content: result.toolResult.summary || JSON.stringify(result.toolResult),
-                    toolName: result.data?.toolName,
+                    toolName,
                     toolData: result.toolResult.data as Record<string, unknown> | undefined,
                     cardState: 'idle',
                     timestamp: new Date(),
                 }]);
+
+                // Auto-resume: send a continuation message so the AI can finish
+                // its reasoning with the tool result. Short delay to let the card render.
+                setTimeout(() => {
+                    sendMessage(
+                        `The tool ${toolName || 'action'} was executed successfully. ` +
+                        `Please summarize the result and suggest any follow-up actions.`
+                    );
+                }, 500);
             }
 
         } catch (err) {
@@ -300,7 +310,7 @@ export function useAICopilot(): UseAICopilotReturn {
                 timestamp: new Date(),
             }]);
         }
-    }, []);
+    }, [sendMessage]);
 
     const clearMessages = useCallback(() => {
         abortRef.current?.abort();
