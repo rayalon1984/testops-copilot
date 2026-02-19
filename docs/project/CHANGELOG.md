@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Phase D: Production Hardening
+- **Token blacklist → Redis**: Migrated in-memory Map to Redis SETEX with TTL; in-memory fallback when Redis unavailable
+- **SSRF validation**: Shared `ssrf-validator.ts` utility blocking RFC 1918, loopback, link-local, and IPv6 ULA ranges; applied to Jenkins, Confluence, TestRail, Monday.com
+- **Notification persistence**: Replaced 18 hardcoded mock notifications with Prisma queries and `toNotificationDTO` mapping
+- **Performance monitoring**: HTTP response-time middleware (circular buffer, p50/p95/p99), AI cache hit/miss metrics in Prometheus export
+
+### Added — Phase E: Remaining v2.9.0 Features
+
+#### E1: Predictive Failure Analysis
+- Time-series trend aggregation (daily failure counts via raw SQL with DATE())
+- Risk scoring per test (weighted composite: recurrence 30%, severity 25%, trend 25%, recency 20%)
+- Anomaly detection using z-score over rolling window (configurable sensitivity)
+- New AI tool `failure_predictions` for ReAct loop
+- Three new endpoints: `/trends`, `/predictions`, `/anomalies`
+- Frontend: FailureTrendChart (Chart.js bar + moving average line), RiskScoreTable (MUI)
+- Fixed route ordering: static routes before `/:id` params in failure-archive
+
+#### E2: Team Workspaces Foundation
+- Team, TeamMember, DashboardConfig Prisma models
+- Team CRUD service with slug uniqueness, role hierarchy (OWNER > ADMIN > MEMBER > VIEWER)
+- Member management: add, remove, role updates with authorization checks
+- Pipeline scoping via optional `teamId` FK
+- Dashboard config CRUD with per-user/team scoping and default management
+- Team routes at `/api/v1/teams` with RBAC-gated endpoints
+- Frontend: TeamSelector dropdown in sidebar, TeamSettings page with member management
+- Global ADMIN bypass on all team operations
+
+#### E3: Collaborative RCA Foundation
+- RCARevision + FailureComment Prisma models with indexes and cascade deletes
+- `rcaVersion` field on FailureArchive for optimistic locking
+- `documentRCAWithLocking`: snapshot old state before overwrite, 409 Conflict on version mismatch
+- Comments CRUD: create, list (paginated with total count), delete (ownership check, 403)
+- Activity feed: merged revisions + comments timeline
+- Frontend: FailureComments component, FailureActivityFeed timeline component
+- RCADocumentModal: sends `expectedVersion`, handles 409 Conflict, edit summary field for revisions
+
 ## [2.8.0] - 2026-02-11
 
 ### Added
