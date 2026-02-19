@@ -6,6 +6,7 @@
  */
 
 import { AIProviderName } from '../types';
+import { AIConfigManager, getConfigManager } from '../config';
 import { BaseProvider, ProviderConfig } from './base.provider';
 import { AnthropicProvider } from './anthropic.provider';
 import { OpenAIProvider } from './openai.provider';
@@ -69,63 +70,47 @@ class ProviderRegistry {
   }
 
   /**
-   * Create a provider from environment variables
+   * Create a provider from AIConfigManager (central config source)
    */
-  createFromEnv(): BaseProvider {
-    const providerName = (process.env.AI_PROVIDER || 'anthropic') as AIProviderName;
-    const model = process.env.AI_MODEL || this.getDefaultModel(providerName);
+  createFromConfig(configManager?: AIConfigManager): BaseProvider {
+    const cm = configManager || getConfigManager();
+    const providerName = cm.getProvider();
+    const model = cm.getModel() || this.getDefaultModel(providerName);
+    const settings = cm.getProviderSettings();
+    const secrets = cm.getProviderSecrets();
 
-    const config = this.getConfigFromEnv(providerName, model);
-    return this.getProvider(providerName, config);
+    const baseConfig: ProviderConfig = {
+      apiKey: cm.getApiKeyForProvider(providerName),
+      model,
+      maxTokens: settings.maxTokens,
+      temperature: settings.temperature,
+      timeout: settings.timeoutMs,
+    };
+
+    // Add provider-specific config
+    switch (providerName) {
+      case 'openai':
+        (baseConfig as any).orgId = secrets.openaiOrgId;
+        break;
+      case 'azure':
+        (baseConfig as any).endpoint = secrets.azureOpenaiEndpoint;
+        (baseConfig as any).deploymentName = secrets.azureDeploymentName;
+        break;
+      case 'openrouter':
+        (baseConfig as any).siteUrl = secrets.openrouterSiteUrl;
+        (baseConfig as any).appName = secrets.openrouterAppName;
+        break;
+    }
+
+    return this.getProvider(providerName, baseConfig);
   }
 
   /**
-   * Get provider configuration from environment variables
+   * Create a provider from environment variables
+   * @deprecated Use createFromConfig() instead — reads from AIConfigManager
    */
-  private getConfigFromEnv(provider: AIProviderName, model: string): ProviderConfig {
-    const baseConfig: ProviderConfig = {
-      apiKey: '',
-      model,
-      maxTokens: parseInt(process.env.AI_MAX_TOKENS || '4096', 10),
-      temperature: parseFloat(process.env.AI_TEMPERATURE || '1.0'),
-      timeout: parseInt(process.env.AI_TIMEOUT_MS || '60000', 10),
-    };
-
-    switch (provider) {
-      case 'anthropic':
-        baseConfig.apiKey = process.env.ANTHROPIC_API_KEY || '';
-        break;
-
-      case 'openai':
-        baseConfig.apiKey = process.env.OPENAI_API_KEY || '';
-        (baseConfig as any).orgId = process.env.OPENAI_ORG_ID;
-        break;
-
-      case 'google':
-        baseConfig.apiKey = process.env.GOOGLE_API_KEY || '';
-        break;
-
-      case 'azure':
-        baseConfig.apiKey = process.env.AZURE_OPENAI_KEY || '';
-        (baseConfig as any).endpoint = process.env.AZURE_OPENAI_ENDPOINT;
-        (baseConfig as any).deploymentName = process.env.AZURE_DEPLOYMENT_NAME;
-        break;
-
-      case 'openrouter':
-        baseConfig.apiKey = process.env.OPENROUTER_API_KEY || '';
-        (baseConfig as any).siteUrl = process.env.OPENROUTER_SITE_URL;
-        (baseConfig as any).appName = process.env.OPENROUTER_APP_NAME;
-        break;
-
-      case 'mock':
-        baseConfig.apiKey = 'mock-key';
-        break;
-
-      default:
-        throw new Error(`Unknown provider: ${provider}`);
-    }
-
-    return baseConfig;
+  createFromEnv(): BaseProvider {
+    return this.createFromConfig();
   }
 
   /**
@@ -148,13 +133,9 @@ class ProviderRegistry {
    * Check if a provider is available (has API key configured)
    */
   isProviderAvailable(provider: AIProviderName): boolean {
-    try {
-      const model = this.getDefaultModel(provider);
-      const config = this.getConfigFromEnv(provider, model);
-      return !!config.apiKey;
-    } catch {
-      return false;
-    }
+    const cm = getConfigManager();
+    const apiKey = cm.getApiKeyForProvider(provider);
+    return !!apiKey;
   }
 
   /**
@@ -181,8 +162,13 @@ export function getProvider(name: AIProviderName, config: ProviderConfig): BaseP
   return providerRegistry.getProvider(name, config);
 }
 
+export function createProviderFromConfig(configManager?: AIConfigManager): BaseProvider {
+  return providerRegistry.createFromConfig(configManager);
+}
+
+/** @deprecated Use createProviderFromConfig() instead */
 export function createProviderFromEnv(): BaseProvider {
-  return providerRegistry.createFromEnv();
+  return providerRegistry.createFromConfig();
 }
 
 export function listAvailableProviders(): AIProviderName[] {

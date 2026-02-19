@@ -58,6 +58,30 @@ export interface AIConfig {
     ticketGeneration: boolean;
   };
 
+  providerSettings: {
+    maxTokens: number;
+    temperature: number;
+    timeoutMs: number;
+  };
+
+  providerSecrets: {
+    anthropicApiKey?: string;
+    openaiApiKey?: string;
+    openaiOrgId?: string;
+    googleApiKey?: string;
+    azureOpenaiKey?: string;
+    azureOpenaiEndpoint?: string;
+    azureDeploymentName?: string;
+    openrouterApiKey?: string;
+    openrouterSiteUrl?: string;
+    openrouterAppName?: string;
+  };
+
+  vectorDB: {
+    url: string;
+    apiKey?: string;
+  };
+
   cost: {
     monthlyBudgetUSD: number;
     alertThresholdPercent: number;

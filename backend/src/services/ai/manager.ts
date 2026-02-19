@@ -8,7 +8,7 @@
 import { Pool } from 'pg';
 import { AIConfigManager, getConfigManager } from './config';
 import { BaseProvider } from './providers/base.provider';
-import { createProviderFromEnv } from './providers/registry';
+import { createProviderFromConfig } from './providers/registry';
 import { MockProvider } from './providers/mock.provider';
 import { WeaviateVectorClient, getVectorClient } from './vector/client';
 import { initializeSchemas } from './vector/schema';
@@ -48,7 +48,7 @@ export class AIManager {
   constructor(config: AIManagerConfig) {
     this.db = config.db;
     this.configManager = getConfigManager();
-    this.cache = getCache();
+    this.cache = getCache(this.configManager.getCacheConfig());
     this.costTracker = getCostTracker(this.db, this.configManager.getCostConfig());
     this.contextEnrichment = new ContextEnrichmentService();
   }
@@ -82,8 +82,8 @@ export class AIManager {
       await this.costTracker.initialize();
       console.log('✅ Cost tracker initialized');
 
-      // Initialize AI provider
-      this.provider = createProviderFromEnv();
+      // Initialize AI provider from central config
+      this.provider = createProviderFromConfig(this.configManager);
       // this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
       this.contextEnrichment.setProvider(this.provider);
       console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
@@ -103,7 +103,7 @@ export class AIManager {
       // Initialize vector database
       if (this.configManager.isFeatureEnabled('rcaMatching')) {
         try {
-          this.vectorClient = getVectorClient();
+          this.vectorClient = getVectorClient(this.configManager.getVectorDBConfig());
           await this.vectorClient.connect();
           await initializeSchemas(this.vectorClient);
           console.log('✅ Vector database initialized');

@@ -10,6 +10,7 @@
 import * as crypto from 'crypto';
 import { redis } from '../../lib/redis';
 import { AIResponse, Embedding } from './types';
+import { getConfigManager } from './config';
 
 export interface CacheConfig {
   enabled: boolean;
@@ -231,10 +232,7 @@ let cacheInstance: AICache | null = null;
 
 export function getCache(config?: CacheConfig): AICache {
   if (!cacheInstance) {
-    const finalConfig: CacheConfig = config || {
-      enabled: process.env.AI_CACHE_ENABLED === 'true',
-      ttlSeconds: parseInt(process.env.AI_CACHE_TTL_SECONDS || '604800', 10),
-    };
+    const finalConfig = config || getConfigManager().getCacheConfig();
     cacheInstance = new AICache(finalConfig);
   }
   return cacheInstance;
