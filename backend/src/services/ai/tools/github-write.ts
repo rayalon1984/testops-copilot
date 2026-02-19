@@ -13,6 +13,7 @@ export const githubCreatePRTool: Tool = {
     description: 'Create a pull request on GitHub. Use after proposing a code fix to submit changes for review. REQUIRES USER CONFIRMATION before execution.',
     category: 'github',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'owner',

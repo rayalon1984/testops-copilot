@@ -14,6 +14,7 @@ export const githubCreateBranchTool: Tool = {
     description: 'Create a new feature branch from the main branch. Use before making code changes.',
     category: 'github',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'owner',
@@ -71,6 +72,7 @@ export const githubUpdateFileTool: Tool = {
     description: 'Commit changes to a specific file in the repository. Use to apply code fixes.',
     category: 'github',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'owner',

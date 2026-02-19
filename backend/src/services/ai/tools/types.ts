@@ -71,10 +71,39 @@ export interface Tool {
     requiresConfirmation: boolean;
 
     /**
+     * Minimum role required to use this tool.
+     * Checked in the ReAct loop before execution.
+     * Omit for tools accessible to all authenticated users.
+     * Values: 'ADMIN' | 'EDITOR' | 'USER' | 'BILLING' | 'VIEWER'
+     */
+    requiredRole?: string;
+
+    /**
      * Execute the tool with the given arguments and context.
      * Must handle its own errors gracefully and return a ToolResult.
      */
     execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult>;
+}
+
+/**
+ * Role hierarchy for authorization checks.
+ * Higher number = more privileges.
+ */
+export const ROLE_HIERARCHY: Record<string, number> = {
+    ADMIN: 40,
+    EDITOR: 30,
+    USER: 30,
+    BILLING: 20,
+    VIEWER: 10,
+};
+
+/**
+ * Check if the user's role meets the required minimum.
+ */
+export function hasRequiredRole(userRole: string, requiredRole: string): boolean {
+    const userLevel = ROLE_HIERARCHY[userRole?.toUpperCase()] ?? 0;
+    const requiredLevel = ROLE_HIERARCHY[requiredRole?.toUpperCase()] ?? 0;
+    return userLevel >= requiredLevel;
 }
 
 /**
@@ -86,7 +115,8 @@ export type SSEEventType =
     | 'tool_result'    // Tool returned a result
     | 'confirmation_request'  // Write-tool needs user approval
     | 'confirmation_resolved' // User approved/denied
-    | 'answer'         // Final response text
+    | 'answer_chunk'   // Partial answer chunk for typewriter streaming
+    | 'answer'         // Final complete response text
     | 'error'          // Something went wrong
     | 'done';          // Stream complete
 

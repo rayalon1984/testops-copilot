@@ -16,6 +16,7 @@ export const jiraCreateIssueTool: Tool = {
     description: 'Create a new Jira issue (Bug, Task, Story, or Epic). Use when you identify a bug or want to create a follow-up task. REQUIRES USER CONFIRMATION.',
     category: 'jira',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'summary',
@@ -75,6 +76,7 @@ export const jiraTransitionIssueTool: Tool = {
     description: 'Move a Jira issue to a new status (To Do, In Progress, Done). REQUIRES USER CONFIRMATION.',
     category: 'jira',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'issueKey',
@@ -120,6 +122,7 @@ export const jiraCommentTool: Tool = {
     description: 'Add a comment to an existing Jira issue. Use for adding analysis notes, test results, or status updates. REQUIRES USER CONFIRMATION.',
     category: 'jira',
     requiresConfirmation: true,
+    requiredRole: 'EDITOR',
     parameters: [
         {
             name: 'issueKey',
