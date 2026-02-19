@@ -1,7 +1,7 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-19
-> **Current Version**: 2.8.5 (February 2026)
+> **Current Version**: 2.9.0-rc.1 (February 2026)
 
 ---
 
@@ -59,18 +59,18 @@
 
 ### v2.9.0 — Agentic AI Copilot (Q2 2026)
 
-**Agentic System** (in progress):
-- [ ] ReAct loop with streaming SSE (Reason → Act → Observe → Answer)
-- [ ] 13 tools: 7 read-only (auto-approved) + 6 write (confirmation required)
-- [ ] Human-in-the-loop confirmation gates for write operations (5-min TTL)
-- [ ] Role-aware system prompts (Admin/Engineer/Viewer)
-- [ ] 3-column Mission Control layout (sidebar | main | AI panel)
-- [ ] Chat session persistence with full message history
+**Agentic System** (shipped):
+- [x] ReAct loop with streaming SSE (Reason → Act → Observe → Answer)
+- [x] 13 tools: 7 read-only (auto-approved) + 6 write (confirmation required)
+- [x] Human-in-the-loop confirmation gates for write operations (5-min TTL)
+- [x] Role-aware system prompts (Admin/Engineer/Viewer)
+- [x] 3-column Mission Control layout (sidebar | main | AI panel)
+- [x] Chat session persistence with full message history
 
-**Test Intelligence**:
-- [ ] Flaky test detection with statistical scoring
-- [ ] Test impact analysis (code changes → affected tests)
-- [ ] Smart test selection (run only affected tests)
+**Test Intelligence** (3/4 shipped):
+- [x] Flaky test detection with statistical scoring
+- [x] Test impact analysis (code changes → affected tests)
+- [x] Smart test selection (run only affected tests)
 - [ ] Predictive failure analysis
 
 **Collaboration**:

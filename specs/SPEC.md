@@ -1,7 +1,7 @@
 # Product Specification — TestOps Companion
 
 > **Status**: Living document · **Owner**: AI Product Manager
-> **Last synced**: 2026-02-19 · **Version**: 2.8.5
+> **Last synced**: 2026-02-19 · **Version**: 2.9.0-rc.1
 
 ---
 

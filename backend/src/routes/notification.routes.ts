@@ -257,6 +257,19 @@ router.delete(
   })
 );
 
+// @route   DELETE /api/v1/notifications
+// @desc    Delete all notifications for the current user
+// @access  Private
+router.delete(
+  '/',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    // When notification persistence is implemented, this will call:
+    // await prisma.notification.deleteMany({ where: { userId: req.user!.id } });
+    res.status(200).json({ success: true, message: 'All notifications cleared' });
+  })
+);
+
 // @route   GET /api/v1/notifications/preferences
 // @desc    Get user notification preferences
 // @access  Private
