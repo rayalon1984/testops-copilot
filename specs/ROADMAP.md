@@ -1,7 +1,7 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-19
-> **Current Version**: 2.9.0-rc.1 (February 2026)
+> **Current Version**: 2.9.0-rc.2 (February 2026)
 
 ---
 
@@ -61,11 +61,21 @@
 
 **Agentic System** (shipped):
 - [x] ReAct loop with streaming SSE (Reason → Act → Observe → Answer)
-- [x] 13 tools: 7 read-only (auto-approved) + 6 write (confirmation required)
+- [x] 18 tools: 8 read-only (auto-approved) + 10 write (confirmation required)
+- [x] Phase 3 action tools: jenkins_trigger_build, testrun_cancel/retry, github_rerun_workflow
 - [x] Human-in-the-loop confirmation gates for write operations (5-min TTL)
 - [x] Role-aware system prompts (Admin/Engineer/Viewer)
+- [x] AI-layer role enforcement (requiredRole on Tool interface, checked in ReAct loop)
+- [x] Token-by-token answer streaming (typewriter effect via answer_chunk SSE events)
 - [x] 3-column Mission Control layout (sidebar | main | AI panel)
+- [x] Service-native card UX: 9 result cards + 6 preview cards + confirmation shell
 - [x] Chat session persistence with full message history
+- [x] In-chat AI provider picker (hot-swap Anthropic/OpenAI/Google/Azure/OpenRouter/Mock)
+- [x] API key encrypted at rest (AES-256-GCM), provider config stored in DB
+- [x] Full-spectrum demo mode: mock provider triggers all 18 tools with realistic data
+- [x] Dark mode color audit (ServiceBadge, StatusChip, ConfirmationShell)
+- [x] Accessibility audit (ARIA roles, keyboard navigation, focus management)
+- [x] Card analytics hook (track expansions, actions, confirmation rates)
 
 **Test Intelligence** (shipped):
 - [x] Flaky test detection with statistical scoring
@@ -88,7 +98,15 @@
 
 ## Medium Term
 
-### v3.0.0 — Enterprise & Scale (Q3/Q4 2026)
+### v3.0.0 — Agentic AI Release (Q2/Q3 2026)
+
+**Release Polish** (rc.2 → GA):
+- [ ] Onboarding wizard (first-run provider setup, sample queries)
+- [ ] Rate limit UI feedback (quota indicators in chat)
+- [ ] Usage dashboard per-session (cost breakdown by tool/provider)
+- [ ] Error recovery UX (retry failed tool calls, connection lost handling)
+- [ ] E2E smoke tests for full agentic flow (Playwright)
+- [ ] Release notes and changelog
 
 **Enterprise**:
 - [ ] LDAP integration

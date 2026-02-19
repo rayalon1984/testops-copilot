@@ -16,6 +16,7 @@ jest.mock('@/utils/logger', () => ({
 }));
 
 import { tokenBlacklist } from '../tokenBlacklist.service';
+import { redis } from '@/lib/redis';
 
 describe('TokenBlacklistService', () => {
   afterAll(() => {
@@ -74,8 +75,6 @@ describe('TokenBlacklistService', () => {
 
   describe('Redis integration', () => {
     it('should try Redis first, then fall back to in-memory', async () => {
-      const { redis } = require('@/lib/redis');
-
       await tokenBlacklist.add('redis-test', 60000);
 
       // Redis was called (even though it failed)
@@ -86,8 +85,6 @@ describe('TokenBlacklistService', () => {
     });
 
     it('should use Redis exists when available', async () => {
-      const { redis } = require('@/lib/redis');
-
       // Make Redis return that the key exists
       (redis.exists as jest.Mock).mockResolvedValueOnce(1);
 

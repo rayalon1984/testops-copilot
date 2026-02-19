@@ -84,11 +84,14 @@ model Pipeline {
   config      Json?
   enabled     Boolean      @default(true)
   lastRunAt   DateTime?
+  teamId      String?      @db.Uuid
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   testRuns    TestRun[]
+  team        Team?        @relation(fields: [teamId], references: [id])
 
+  @@index([teamId])
   @@map("pipelines")
 }
 
@@ -163,13 +166,70 @@ model FailureArchive {
   occurrenceCount Int       @default(1)
   resolved        Boolean   @default(false)
   resolvedAt      DateTime?
+  rcaVersion      Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  revisions       RCARevision[]
+  comments        FailureComment[]
 
   @@index([testName])
   @@index([category])
   @@index([resolved])
   @@map("failure_archive")
+}
+
+model RCARevision {
+  id               String   @id @default(uuid()) @db.Uuid
+  failureArchiveId String   @db.Uuid
+  version          Int
+  rootCause        String?
+  solution         String?
+  prevention       String?
+  tags             String?
+  editedBy         String
+  editSummary      String?
+  createdAt        DateTime @default(now())
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+  @@map("rca_revisions")
+}
+
+model FailureComment {
+  id               String   @id @default(uuid()) @db.Uuid
+  failureArchiveId String   @db.Uuid
+  userId           String
+  content          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+  @@index([userId])
+  @@map("failure_comments")
+}
+
+model FailurePattern {
+  id                    String    @id @default(uuid()) @db.Uuid
+  signature             String    @unique
+  patternName           String
+  description           String
+  affectedTests         String?
+  commonRootCause       String?
+  matchCount            Int       @default(0)
+  lastMatched           DateTime  @default(now())
+  recurrenceRule        String?
+  confidence            Float     @default(0.0)
+  isActive              Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([signature])
+  @@index([isActive])
+  @@map("failure_patterns")
 }
 
 model AIUsage {
@@ -297,4 +357,69 @@ model PendingAction {
   @@index([userId])
   @@index([status])
   @@map("pending_actions")
+}
+
+// ─── In-App AI Provider Configuration ───
+
+model AIProviderConfig {
+  id          String   @id @default("singleton")
+  provider    String   @default("mock") // anthropic | openai | google | azure | openrouter | mock
+  model       String   @default("mock-model")
+  apiKey      String?  // AES-256-GCM encrypted
+  extraConfig String?  // JSON: azure endpoint, openrouter app name, etc.
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("ai_provider_config")
+}
+
+// ─── Team Workspaces ───
+
+model Team {
+  id          String          @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String          @unique
+  description String?
+  createdBy   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  members     TeamMember[]
+  pipelines   Pipeline[]
+  dashboards  DashboardConfig[]
+
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(uuid()) @db.Uuid
+  teamId   String   @db.Uuid
+  userId   String
+  role     String   @default("MEMBER") // OWNER | ADMIN | MEMBER | VIEWER
+  joinedAt DateTime @default(now())
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model DashboardConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  teamId    String?  @db.Uuid
+  userId    String
+  name      String
+  layout    String   // JSON widget config
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@index([userId])
+  @@map("dashboard_configs")
 }
