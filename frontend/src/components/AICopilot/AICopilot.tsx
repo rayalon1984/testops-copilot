@@ -1,11 +1,11 @@
 /**
- * AICopilot — Agentic Command Center (Floating Widget)
- * 
- * DESIGN SPEC: "Floating Card" Style
- * - Fixed bottom-right
- * - 400px width, max 600px height
- * - Distinct drop shadow & border radius
- * - Non-blocking overlay
+ * AICopilot — Agentic Command Center (Embedded Panel)
+ *
+ * DESIGN SPEC: DESIGN_LANG_V2.md §3.2
+ * - Embedded in 3-column grid (column 3)
+ * - 360px width, full viewport height
+ * - Always visible on lg+ breakpoints
+ * - borderLeft divider separating from main content
  */
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
@@ -16,27 +16,21 @@ import {
     IconButton,
     InputBase,
     useTheme,
-    Fade,
     Button,
     alpha
 } from '@mui/material';
 import {
-    Close as CloseIcon,
     Send as SendIcon,
     AutoAwesome as SparkleIcon,
     ThumbUp as ThumbUpIcon,
-    ThumbDown as ThumbDownIcon,
-    SmartToy as BotIcon
+    SmartToy as BotIcon,
+    DeleteOutline as ClearIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
 import { useAICopilot, ChatMessage } from '../../hooks/useAICopilot';
-// Removed AICopilot.css import as we are using MUI sx
 
 export default function AICopilot() {
     const [input, setInput] = useState('');
-    const [isOpen, setIsOpen] = useState(false); // Default to closed (FAB state)
-    const { user } = useAuth();
-    const { messages, isStreaming, error, sendMessage, confirmAction, clearMessages } = useAICopilot();
+    const { messages, isStreaming, sendMessage, confirmAction, clearMessages } = useAICopilot();
     const bottomRef = useRef<HTMLDivElement>(null);
     const theme = useTheme();
 
@@ -44,13 +38,6 @@ export default function AICopilot() {
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isStreaming]);
-
-    // Open chat automatically if there are messages (e.g. from context trigger)
-    useEffect(() => {
-        if (messages.length > 0 && !isOpen) {
-            setIsOpen(true);
-        }
-    }, [messages.length]);
 
     const handleSend = () => {
         if (!input.trim() || isStreaming) return;
@@ -133,16 +120,9 @@ export default function AICopilot() {
             case 'confirmation_request': {
                 const isResolved = msg.confirmationStatus !== 'pending';
                 const isApproved = msg.confirmationStatus === 'approved';
-                // const statusColor = isResolved ? (isApproved ? 'success.main' : 'error.main') : 'warning.main'; // Unused
                 const bgGradient = isResolved
                     ? (isApproved ? 'linear-gradient(45deg, #1b5e20, #2e7d32)' : 'linear-gradient(45deg, #c62828, #d32f2f)')
                     : 'linear-gradient(45deg, #ed6c02, #ff9800)';
-
-                const getToolIcon = (name?: string) => {
-                    if (name?.includes('jira')) return <BotIcon />; // Placeholder, ideally BugReportIcon
-                    if (name?.includes('github')) return <BotIcon />; // Placeholder, ideally GitHubIcon
-                    return <SparkleIcon />;
-                };
 
                 return (
                     <Paper key={msg.id} elevation={3} sx={{
@@ -164,12 +144,15 @@ export default function AICopilot() {
                             color: 'white'
                         }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {getToolIcon(msg.toolName)}
+                                <SparkleIcon fontSize="small" />
                                 <Typography variant="subtitle2" fontWeight="bold" sx={{ letterSpacing: 0.5 }}>
                                     {isResolved ? (isApproved ? 'ACTION APPROVED' : 'ACTION DENIED') : 'APPROVAL REQUIRED'}
                                 </Typography>
                             </Box>
-                            {isResolved ? (isApproved ? '✅' : '🚫') : <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.2)', px: 1, borderRadius: 1 }}>WAITING</Typography>}
+                            {isResolved
+                                ? <Typography variant="caption">{isApproved ? 'Approved' : 'Denied'}</Typography>
+                                : <Typography variant="caption" sx={{ bgcolor: 'rgba(255,255,255,0.2)', px: 1, borderRadius: 1 }}>WAITING</Typography>
+                            }
                         </Box>
 
                         <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
@@ -185,7 +168,6 @@ export default function AICopilot() {
                                     borderRadius: 2,
                                     border: '1px dashed',
                                     borderColor: 'divider',
-                                    position: 'relative',
                                     overflow: 'hidden'
                                 }}>
                                     <Box sx={{
@@ -263,172 +245,133 @@ export default function AICopilot() {
         }
     };
 
-    // FAB implementation using MUI
-    if (!isOpen) {
-        return (
-            <IconButton
-                onClick={() => setIsOpen(true)}
-                sx={{
-                    position: 'fixed',
-                    bottom: 24,
-                    right: 24,
-                    width: 56,
-                    height: 56,
-                    borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                    color: 'common.white',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
-                    zIndex: 1000,
-                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    '&:hover': {
-                        transform: 'scale(1.1)'
-                    }
-                }}
-            >
-                <SparkleIcon fontSize="large" />
-            </IconButton>
-        );
-    }
-
     return (
-        <Fade in={isOpen}>
-            <Paper
-                elevation={10}
-                sx={{
-                    position: 'fixed',
-                    bottom: 90,
-                    right: 24,
-                    width: 400,
-                    maxHeight: 'min(70vh, 600px)',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 3,
-                    zIndex: 1001,
-                    overflow: 'hidden',
-                    borderColor: 'divider',
-                    borderWidth: 1,
-                    borderStyle: 'solid',
-                    bgcolor: 'background.paper' // Uses theme background
-                }}
-            >
-                {/* Header */}
-                <Box sx={{
-                    p: 2,
-                    borderBottom: 1,
-                    borderColor: 'divider',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    bgcolor: 'background.default'
-                }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <SparkleIcon color="primary" />
-                        <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {isStreaming && (
-                            <Typography variant="caption" color="text.secondary" className="dot-pulse">
-                                typing...
-                            </Typography>
-                        )}
-                        <IconButton size="small" onClick={() => setIsOpen(false)}>
-                            <CloseIcon fontSize="small" />
-                        </IconButton>
-                    </Box>
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            borderLeft: 1,
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+        }}>
+            {/* Header */}
+            <Box sx={{
+                px: 2,
+                py: 1.5,
+                borderBottom: 1,
+                borderColor: 'divider',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                bgcolor: 'background.default',
+                minHeight: 56,
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <SparkleIcon color="primary" fontSize="small" />
+                    <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
                 </Box>
-
-                {/* Chat Area */}
-                <Box sx={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    bgcolor: 'background.paper'
-                }}>
-                    {messages.length === 0 && (
-                        <Box sx={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'text.secondary',
-                            textAlign: 'center',
-                            p: 3
-                        }}>
-                            <BotIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
-                            <Typography variant="body1" fontWeight={500} gutterBottom>How can I help you?</Typography>
-                            <Typography variant="caption">
-                                Try &quot;Analyze the last failure&quot; or &quot;Create a Jira ticket&quot;.
-                            </Typography>
-                        </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {isStreaming && (
+                        <Typography variant="caption" color="text.secondary" className="dot-pulse">
+                            typing...
+                        </Typography>
                     )}
-
-                    {messages.map(renderMessage)}
-                    <div ref={bottomRef} />
-                </Box>
-
-                {/* Input Area */}
-                <Box sx={{
-                    p: 2,
-                    borderTop: 1,
-                    borderColor: 'divider',
-                    bgcolor: 'background.default'
-                }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: '2px 4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            bgcolor: 'background.paper',
-                            border: 1,
-                            borderColor: 'divider',
-                            borderRadius: 3,
-                            '&:hover': {
-                                borderColor: 'text.secondary'
-                            },
-                            '&:focus-within': {
-                                borderColor: 'primary.main',
-                                boxShadow: `0 0 0 1px ${theme.palette.primary.main}`
-                            }
-                        }}
-                    >
-                        <InputBase
-                            sx={{ ml: 2, flex: 1, fontSize: '0.95rem' }}
-                            placeholder="Ask Copilot..."
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            disabled={isStreaming}
-                            autoFocus
-                        />
-                        <IconButton
-                            color="primary"
-                            sx={{ p: '10px' }}
-                            onClick={handleSend}
-                            disabled={!input.trim() || isStreaming}
-                        >
-                            <SendIcon />
+                    {messages.length > 0 && (
+                        <IconButton size="small" onClick={clearMessages} title="Clear chat">
+                            <ClearIcon fontSize="small" />
                         </IconButton>
-                    </Paper>
+                    )}
                 </Box>
+            </Box>
 
-                <style>{`
-                    .dot-pulse::after {
-                        content: '.';
-                        animation: dots 1.5s steps(5, end) infinite;
-                    }
-                    @keyframes dots {
-                        0%, 20% { content: '.'; }
-                        40% { content: '..'; }
-                        60% { content: '...'; }
-                        80%, 100% { content: ''; }
-                    }
-                `}</style>
-            </Paper>
-        </Fade>
+            {/* Chat Area */}
+            <Box sx={{
+                flex: 1,
+                overflowY: 'auto',
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+            }}>
+                {messages.length === 0 && (
+                    <Box sx={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'text.secondary',
+                        textAlign: 'center',
+                        p: 3
+                    }}>
+                        <BotIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
+                        <Typography variant="body1" fontWeight={500} gutterBottom>How can I help you?</Typography>
+                        <Typography variant="caption">
+                            Try &quot;Analyze the last failure&quot; or &quot;Create a Jira ticket&quot;.
+                        </Typography>
+                    </Box>
+                )}
+
+                {messages.map(renderMessage)}
+                <div ref={bottomRef} />
+            </Box>
+
+            {/* Input Area */}
+            <Box sx={{
+                p: 2,
+                borderTop: 1,
+                borderColor: 'divider',
+                bgcolor: 'background.default'
+            }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: '2px 4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: 'background.paper',
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 3,
+                        '&:hover': {
+                            borderColor: 'text.secondary'
+                        },
+                        '&:focus-within': {
+                            borderColor: 'primary.main',
+                            boxShadow: `0 0 0 1px ${theme.palette.primary.main}`
+                        }
+                    }}
+                >
+                    <InputBase
+                        sx={{ ml: 2, flex: 1, fontSize: '0.95rem' }}
+                        placeholder="Ask Copilot..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={isStreaming}
+                    />
+                    <IconButton
+                        color="primary"
+                        sx={{ p: '10px' }}
+                        onClick={handleSend}
+                        disabled={!input.trim() || isStreaming}
+                    >
+                        <SendIcon />
+                    </IconButton>
+                </Paper>
+            </Box>
+
+            <style>{`
+                .dot-pulse::after {
+                    content: '.';
+                    animation: dots 1.5s steps(5, end) infinite;
+                }
+                @keyframes dots {
+                    0%, 20% { content: '.'; }
+                    40% { content: '..'; }
+                    60% { content: '...'; }
+                    80%, 100% { content: ''; }
+                }
+            `}</style>
+        </Box>
     );
 }

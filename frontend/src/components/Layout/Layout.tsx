@@ -268,8 +268,7 @@ export default function Layout() {
       className="app-container"
       sx={{
         display: { xs: 'block', md: 'grid' }, /* Block on mobile, Grid on desktop */
-        gridTemplateColumns: { md: '250px 1fr 400px' },
-        /* Override class specific styles if needed via sx */
+        gridTemplateColumns: { md: '240px 1fr', lg: '240px 1fr 360px' },
         bgcolor: 'background.default',
         height: '100vh',
         overflow: 'hidden'
@@ -358,10 +357,10 @@ export default function Layout() {
         </Box>
       </Box>
 
-      {/* 3. AI Sidebar Column (Desktop Only) */}
+      {/* 3. AI Copilot Column (Wide Desktop Only) */}
       <Box
         sx={{
-          display: { xs: 'none', md: 'block' },
+          display: { xs: 'none', lg: 'block' },
           height: '100%',
           overflow: 'hidden'
         }}
