@@ -20,6 +20,8 @@ import * as confirmation from '../../services/ai/ConfirmationService';
 import * as providerConfig from '../../services/ai/provider-config.service';
 import { toolRegistry } from '../../services/ai/tools';
 import { ToolResult } from '../../services/ai/tools/types';
+import { getConfigManager } from '../../services/ai/config';
+import { getMockToolResult } from '../../services/ai/mock-tool-results';
 import { logger } from '../../utils/logger';
 
 const router: IRouter = Router();
@@ -615,8 +617,12 @@ router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
       const tool = toolRegistry.get(result.toolName);
       if (tool) {
         try {
-          // Execute the tool
-          const executionResult = await tool.execute(result.parameters, {
+          // Demo mode: use mock result instead of calling real external APIs
+          const mockResult = getConfigManager().getProvider() === 'mock'
+            ? getMockToolResult(result.toolName, result.parameters)
+            : null;
+
+          const executionResult = mockResult || await tool.execute(result.parameters, {
             userId: user.id,
             userRole: user.role || 'viewer',
             sessionId: result.sessionId,

@@ -15,6 +15,8 @@ import * as confirmationService from './ConfirmationService';
 import * as chatSessionService from './ChatSessionService';
 import { SSEEvent, SSEEventType, ToolContext, hasRequiredRole } from './tools/types';
 import { ChatMessage } from './types';
+import { getConfigManager } from './config';
+import { getMockToolResult } from './mock-tool-results';
 import { logger } from '@/utils/logger';
 
 /** Chunk size for token-by-token answer streaming (characters) */
@@ -328,11 +330,19 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
             sendSSE(res, createEvent('tool_start', `Calling ${tool.name}...`, tool.name));
 
             let toolResult;
-            try {
-                toolResult = await tool.execute(toolCall.arguments, context);
-            } catch (error) {
-                const msg = error instanceof Error ? error.message : 'Tool execution failed';
-                toolResult = { success: false, error: msg, summary: msg };
+            // Demo mode: use mock tool results instead of calling real external APIs
+            const mockResult = getConfigManager().getProvider() === 'mock'
+                ? getMockToolResult(toolCall.name, toolCall.arguments)
+                : null;
+            if (mockResult) {
+                toolResult = mockResult;
+            } else {
+                try {
+                    toolResult = await tool.execute(toolCall.arguments, context);
+                } catch (error) {
+                    const msg = error instanceof Error ? error.message : 'Tool execution failed';
+                    toolResult = { success: false, error: msg, summary: msg };
+                }
             }
 
             toolCallCount++;
