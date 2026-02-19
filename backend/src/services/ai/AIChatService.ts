@@ -292,8 +292,11 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
 
             toolCallCount++;
 
-            // Notify frontend: tool result
-            sendSSE(res, createEvent('tool_result', toolResult.summary, tool.name));
+            // Notify frontend: tool result (v3: include structured data for rich cards)
+            sendSSE(res, createEvent('tool_result', JSON.stringify({
+                summary: toolResult.summary,
+                data: toolResult.data,
+            }), tool.name));
 
             // Feed result back
             messages.push({
