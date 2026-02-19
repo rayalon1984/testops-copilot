@@ -53,13 +53,18 @@ AICopilot/
 │   ├── ErrorMessage.tsx                  # Error display
 │   └── ToolResultCard.tsx                # Router: dispatches to service card by toolName
 ├── cards/
-│   ├── JiraIssueCard.tsx                 # Jira issue display + status transition
-│   ├── JiraCreatePreview.tsx             # Pre-creation preview (for confirmations)
+│   ├── JiraIssueCard.tsx                 # Jira issue display + inline actions (stateful)
+│   ├── JiraCreatePreview.tsx             # Pre-creation confirmation preview
+│   ├── JiraTransitionPreview.tsx         # Status transition confirmation (current → new)
+│   ├── JiraCommentPreview.tsx            # Comment confirmation with context
 │   ├── GitHubCommitCard.tsx              # Commit with file diff summary
 │   ├── GitHubPRCard.tsx                  # PR status, review, merge status
-│   ├── JenkinsStatusCard.tsx             # Pipeline + runs with re-run action
+│   ├── GitHubPRPreview.tsx               # PR creation confirmation
+│   ├── GitHubBranchPreview.tsx           # Branch creation confirmation
+│   ├── GitHubFileChangePreview.tsx       # File update confirmation with diff
+│   ├── JenkinsStatusCard.tsx             # Pipeline + runs with re-run action (stateful)
 │   ├── ConfluenceDocCard.tsx             # Doc snippet with "Read full page"
-│   ├── MetricsCard.tsx                   # Dashboard numbers with sparklines
+│   ├── MetricsCard.tsx                   # Dashboard numbers with trend arrows
 │   ├── PredictionCard.tsx                # Risk gauge + trend + anomaly alerts
 │   └── GenericResultCard.tsx             # Fallback for unknown tools
 ├── cards/shared/
@@ -79,15 +84,28 @@ AICopilot/
 **Current**: `tool_result` SSE event → `{ data: "summary string" }` → plain text
 **New**: `tool_result` SSE event → `{ data: JSON.stringify({ summary, toolData, tool }) }` → dispatched to service card
 
-The hook `useAICopilot.ts` gets a new field on `ChatMessage`:
+The hook `useAICopilot.ts` gets two new capabilities:
+
 ```typescript
 interface ChatMessage {
     // ... existing fields
     toolData?: Record<string, unknown>;  // Structured data from tool execution
+    cardState?: 'idle' | 'action_pending' | 'updated';  // Dynamic card state
+}
+
+interface UseAICopilotReturn {
+    // ... existing fields
+    updateMessage: (id: string, patch: Partial<ChatMessage>) => void;  // Mutate card in-place
+    sendActionPrompt: (prompt: string, sourceMessageId: string) => void;  // Card-triggered action
 }
 ```
 
-The `tool_result` handler parses the JSON data to extract both `summary` (fallback text) and `toolData` (structured payload for rich cards).
+- `toolData` holds the structured payload from tool execution (parsed from SSE)
+- `cardState` tracks the card's lifecycle for loading/mutation animations
+- `updateMessage` allows cards to be patched in-place (e.g., status chip change after transition)
+- `sendActionPrompt` sends a message AND links it to the source card, so the result can mutate the original
+
+The `tool_result` handler parses the JSON data to extract both `summary` (fallback text) and `toolData` (structured payload for rich cards). When a tool_result arrives that corresponds to a card action, the source card is found and its `toolData` + `cardState` are updated.
 
 Backend change: `AIChatService` sends `result.data` alongside `result.summary` in the SSE event.
 
@@ -351,17 +369,181 @@ Common elements:
 
 ---
 
+## Dynamic Card Behavior — The Slack Model
+
+Cards are **live, stateful components**, not static renders. This is the core differentiator.
+
+### Card State Machine
+
+Every service card has 3 possible states:
+
+```
+IDLE → ACTION_PENDING → UPDATED
+ │         │               │
+ │    (user clicked       (action completed,
+ │     an action)          card reflects new state)
+ │         │
+ │    shows spinner on
+ │    action button
+ └─────────────────────────┘
+       (timeout/cancel)
+```
+
+**Implementation**: `useAICopilot.ts` gets a new `updateMessage(id, patch)` function. When a write tool completes successfully, the hook finds the original card message and patches its `toolData` with the new state.
+
+### In-Card Inline Forms
+
+When "Comment" is clicked on a Jira card, the card **expands** to show an inline text input — no modal, no new message, just the card growing:
+
+```
+┌─────────────────────────────────────────────┐
+│  ⬡ Jira                                     │
+│                                              │
+│  BUG-1234                          ┌──────┐ │
+│  NullPointer in UserService.ts     │In Prg│ │
+│                                    └──────┘ │
+│  ┌────┐  ┌──────┐  ┌─────┐                 │
+│  │ Bug│  │ P-High│  │ Auth│                 │
+│  └────┘  └──────┘  └─────┘                 │
+│                                              │
+│  ┌─ Add Comment ──────────────────────────┐ │
+│  │ This was caused by the session token   │ │
+│  │ expiry change in PR #347.              │ │
+│  └────────────────────────────────────────┘ │
+│                        [ Cancel ] [ Send ▸ ]│
+│                                              │
+│  [ → Move to Done ]                  [ ↗ ] │
+└─────────────────────────────────────────────┘
+```
+
+Same pattern for any write action that needs user input — the form lives *inside* the card.
+
+### Action Loading States
+
+When a user clicks an action button:
+
+```
+[ → Move to Done ]  →  [ ◌ Moving... ]  →  [ ✓ Done ]
+     (idle)              (pending)           (completed)
+```
+
+- Button shows spinner + disabled state during execution
+- On success: brief "check" animation (300ms), then card updates in-place
+- On failure: button returns to idle + inline error toast below the card
+
+### Post-Action Card Mutation
+
+After "Move to Done" is approved and executed, the **original card** mutates:
+
+**Before:**
+```
+  BUG-1234                          ┌──────┐
+  NullPointer in UserService.ts     │In Prg│  ← blue
+                                    └──────┘
+```
+
+**After (animated transition, 300ms):**
+```
+  BUG-1234                          ┌──────┐
+  NullPointer in UserService.ts     │ Done │  ← green, with check
+                                    └──────┘
+```
+
+The status chip color-transitions from blue → green. Action buttons update to reflect the new valid transitions. This is the Slack-like moment — the card is a **live object** that reflects the current state of the external resource.
+
+### Multi-Card Search Results
+
+When `jira_search` returns 3 issues, they render as **individually interactive cards**, not a single list:
+
+```
+┌─ ⬡ Jira Search: 3 results ─────────────────┐
+│                                              │
+│  ┌─ BUG-1234 ──────────────────── In Prg ─┐ │
+│  │  NullPointer in UserService.ts          │ │
+│  │  Bug · P-High · @john     [ Actions ▾ ]│ │
+│  └─────────────────────────────────────────┘ │
+│                                              │
+│  ┌─ BUG-1189 ──────────────────── To Do ──┐ │
+│  │  UserService.findById crash             │ │
+│  │  Bug · P-Med · unassigned [ Actions ▾ ]│ │
+│  └─────────────────────────────────────────┘ │
+│                                              │
+│  ┌─ BUG-1102 ─────────────────── Done ────┐ │
+│  │  Missing null check in auth             │ │
+│  │  Task · P-Low · @jane     [ Actions ▾ ]│ │
+│  └─────────────────────────────────────────┘ │
+└──────────────────────────────────────────────┘
+```
+
+Each sub-card is independently expandable and actionable. The wrapper shows result count.
+
+### GitHub Write Tool Previews
+
+The confirmation table lists them, but they need explicit preview designs:
+
+**`github_create_pr` confirmation:**
+```
+┌─────────────────────────────────────────────┐
+│  ◑ Create Pull Request              REVIEW  │
+│                                              │
+│  Fix null pointer in auth flow               │
+│  main ← fix/null-check                      │
+│                                              │
+│  ┌─ Description ───────────────────────────┐│
+│  │ Adds null check before UserService      ││
+│  │ query to prevent TypeError on expired   ││
+│  │ sessions.                               ││
+│  └─────────────────────────────────────────┘│
+│                                              │
+│  ████████████░░░░░░░░░  3:42 remaining      │
+│  [ Deny  ⎋ ]              [ ✓ Create PR ⏎ ]│
+└─────────────────────────────────────────────┘
+```
+
+**`github_create_branch` confirmation:**
+```
+┌─────────────────────────────────────────────┐
+│  ◑ Create Branch                    REVIEW  │
+│                                              │
+│  fix/null-check                              │
+│  branching from: main                        │
+│                                              │
+│  [ Deny  ⎋ ]          [ ✓ Create Branch ⏎ ]│
+└─────────────────────────────────────────────┘
+```
+
+**`github_update_file` confirmation:**
+```
+┌─────────────────────────────────────────────┐
+│  ◑ Update File                      REVIEW  │
+│                                              │
+│  src/services/UserService.ts                 │
+│  on branch: fix/null-check                   │
+│                                              │
+│  Commit: "Add null check to findById"        │
+│                                              │
+│  ┌─ Preview ───────────────────────────────┐│
+│  │  + if (!id) throw new ValidationError() ││
+│  │    const user = await db.user.find...   ││
+│  └─────────────────────────────────────────┘│
+│                                              │
+│  [ Deny  ⎋ ]           [ ✓ Commit File ⏎ ] │
+└─────────────────────────────────────────────┘
+```
+
+---
+
 ## In-Card Actions — Human-in-the-Loop
 
 When a user clicks an action button inside a card (e.g., "Move to Done" on a Jira card):
 
-1. **Button click** → generates a prompt message as if user typed it:
-   `"Transition BUG-1234 to Done"`
-2. **Sent to chat** → AI processes → hits the write tool → confirmation flow triggers
-3. **Confirmation card** appears inline below, service-native
-4. **User approves** → tool executes → original card updates to reflect new state
+1. **Button click** → card enters ACTION_PENDING state (spinner on button)
+2. **Prompt generated** → sent to chat as if user typed: `"Transition BUG-1234 to Done"`
+3. **AI processes** → hits the write tool → service-native confirmation card appears below
+4. **User approves** → tool executes → original card mutates to reflect new state (animated)
+5. **User denies** → original card returns to IDLE, no change
 
-This creates a **conversational action loop** — cards trigger prompts, prompts trigger cards.
+This creates a **conversational action loop** — cards trigger prompts, prompts trigger confirmations, confirmations mutate cards.
 
 ---
 
@@ -494,15 +676,45 @@ This gives the frontend structured data to render service cards, while maintaini
 
 ## Success Criteria
 
-- [ ] User can see a Jira issue card (with status chip, labels, assignee) directly in chat
-- [ ] User can click "Move to Done" on a Jira card and have it trigger a confirmation flow
-- [ ] Confirmation cards show service-native previews, not raw JSON
-- [ ] Jenkins card shows pipeline runs with pass-rate bars and a re-run button
-- [ ] GitHub PR card shows review status
-- [ ] Viewer role sees cards but not action buttons
-- [ ] Code blocks in assistant messages have syntax highlighting and copy buttons
-- [ ] Empty state shows 4 clickable quick-action cards
-- [ ] Input supports multiline with keyboard shortcuts
+### Service-Native Cards (all 15 tools covered)
+- [ ] Jira issue card: status chip, labels, assignee, type/priority badges
+- [ ] Jira search: stacked individually-actionable sub-cards with result count
+- [ ] GitHub commit card: SHA badge, file list, additions/deletions
+- [ ] GitHub PR card: status badge, branch arrows, review indicator
+- [ ] Jenkins pipeline card: pass-rate bars, run metadata, status badge
+- [ ] Confluence doc card: title, excerpt, labels, external link
+- [ ] Metrics card: compact tiles with trend arrows, color-coded pass rate
+- [ ] Prediction card: risk scores with severity colors, anomaly table
+- [ ] Generic fallback card: summary + expandable raw payload
+
+### Dynamic Card Behavior (Slack-like)
+- [ ] Cards are stateful: idle → action_pending (spinner) → updated (mutated)
+- [ ] Clicking "Move to Done" on Jira card shows spinner, triggers confirmation, then status chip animates from blue → green
+- [ ] Inline comment form expands inside the Jira card (no modal)
+- [ ] Action buttons adapt after mutation (e.g., "Done" card no longer shows "Move to Done")
+- [ ] Search result sub-cards are each independently actionable
+
+### Service-Aware Confirmations (all 6 write tools)
+- [ ] `jira_create_issue` → JiraCreatePreview (form-like, not JSON)
+- [ ] `jira_transition_issue` → current status → new status with colors
+- [ ] `jira_comment` → comment preview under issue context
+- [ ] `github_create_pr` → PR preview with branch arrows
+- [ ] `github_create_branch` → branch name + base
+- [ ] `github_update_file` → file path + diff preview
+- [ ] Countdown timer on all confirmations (5min TTL, green→amber→red)
+- [ ] Keyboard shortcuts: Enter=approve, Esc=deny
+
+### Role-Aware
+- [ ] Admins/Editors see action buttons on cards
+- [ ] Viewers see read-only cards (no action buttons)
+
+### Chat Shell
+- [ ] Assistant messages render markdown with syntax-highlighted code blocks
+- [ ] Copy button on code blocks
+- [ ] Thumbs up/down feedback on assistant messages
+- [ ] Multi-line input with Shift+Enter for newline
+- [ ] Animated thinking indicator with pulsing dots
+- [ ] Empty state with 4 clickable quick-action cards
 
 ---
 
