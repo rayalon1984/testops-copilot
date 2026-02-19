@@ -6,6 +6,7 @@
 
 import weaviate, { WeaviateClient, ApiKey } from 'weaviate-ts-client';
 import { Embedding } from '../types';
+import { getConfigManager } from '../config';
 
 export interface VectorDBConfig {
   url: string;
@@ -324,10 +325,7 @@ let vectorClient: WeaviateVectorClient | null = null;
 
 export function getVectorClient(config?: VectorDBConfig): WeaviateVectorClient {
   if (!vectorClient) {
-    const finalConfig: VectorDBConfig = config || {
-      url: process.env.WEAVIATE_URL || 'http://localhost:8080',
-      apiKey: process.env.WEAVIATE_API_KEY,
-    };
+    const finalConfig = config || getConfigManager().getVectorDBConfig();
     vectorClient = new WeaviateVectorClient(finalConfig);
   }
   return vectorClient;

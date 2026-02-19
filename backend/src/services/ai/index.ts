@@ -20,6 +20,7 @@ export { AzureProvider, AzureProviderConfig } from './providers/azure.provider';
 export {
   providerRegistry,
   getProvider,
+  createProviderFromConfig,
   createProviderFromEnv,
   listAvailableProviders,
 } from './providers/registry';

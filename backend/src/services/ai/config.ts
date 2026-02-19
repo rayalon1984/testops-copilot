@@ -23,6 +23,15 @@ const DEFAULT_CONFIG: AIConfig = {
     nlQueries: false,
     ticketGeneration: true,
   },
+  providerSettings: {
+    maxTokens: 4096,
+    temperature: 1.0,
+    timeoutMs: 60000,
+  },
+  providerSecrets: {},
+  vectorDB: {
+    url: 'http://localhost:8080',
+  },
   cost: {
     monthlyBudgetUSD: 100,
     alertThresholdPercent: 80,
@@ -112,6 +121,15 @@ export class AIConfigManager {
         nlQueries: yaml.features.nl_queries,
         ticketGeneration: yaml.features.ticket_generation,
       } : undefined,
+      providerSettings: yaml.provider_settings ? {
+        maxTokens: yaml.provider_settings.max_tokens,
+        temperature: yaml.provider_settings.temperature,
+        timeoutMs: yaml.provider_settings.timeout_ms,
+      } : undefined,
+      vectorDB: yaml.vector_db ? {
+        url: yaml.vector_db.url,
+        apiKey: yaml.vector_db.api_key,
+      } : undefined,
       cost: yaml.cost ? {
         monthlyBudgetUSD: yaml.cost.monthly_budget_usd,
         alertThresholdPercent: yaml.cost.alert_threshold_percent,
@@ -187,6 +205,37 @@ export class AIConfigManager {
       };
     }
 
+    // Provider settings
+    if (env.AI_MAX_TOKENS || env.AI_TEMPERATURE || env.AI_TIMEOUT_MS) {
+      config.providerSettings = {
+        maxTokens: parseInt(env.AI_MAX_TOKENS || '4096', 10),
+        temperature: parseFloat(env.AI_TEMPERATURE || '1.0'),
+        timeoutMs: parseInt(env.AI_TIMEOUT_MS || '60000', 10),
+      };
+    }
+
+    // Provider secrets (always load if present — these are sensitive)
+    config.providerSecrets = {
+      anthropicApiKey: env.ANTHROPIC_API_KEY || undefined,
+      openaiApiKey: env.OPENAI_API_KEY || undefined,
+      openaiOrgId: env.OPENAI_ORG_ID || undefined,
+      googleApiKey: env.GOOGLE_API_KEY || undefined,
+      azureOpenaiKey: env.AZURE_OPENAI_KEY || undefined,
+      azureOpenaiEndpoint: env.AZURE_OPENAI_ENDPOINT || undefined,
+      azureDeploymentName: env.AZURE_DEPLOYMENT_NAME || undefined,
+      openrouterApiKey: env.OPENROUTER_API_KEY || undefined,
+      openrouterSiteUrl: env.OPENROUTER_SITE_URL || undefined,
+      openrouterAppName: env.OPENROUTER_APP_NAME || undefined,
+    };
+
+    // Vector DB
+    if (env.WEAVIATE_URL || env.WEAVIATE_API_KEY) {
+      config.vectorDB = {
+        url: env.WEAVIATE_URL || 'http://localhost:8080',
+        apiKey: env.WEAVIATE_API_KEY || undefined,
+      };
+    }
+
     return config;
   }
 
@@ -244,6 +293,44 @@ export class AIConfigManager {
    */
   getRateLimitConfig() {
     return { ...this.config.rateLimit };
+  }
+
+  /**
+   * Get provider settings (maxTokens, temperature, timeout)
+   */
+  getProviderSettings() {
+    return { ...this.config.providerSettings };
+  }
+
+  /**
+   * Get provider secrets (API keys and related credentials)
+   */
+  getProviderSecrets() {
+    return { ...this.config.providerSecrets };
+  }
+
+  /**
+   * Get the API key for the currently configured provider
+   */
+  getApiKeyForProvider(provider?: AIProviderName): string {
+    const p = provider || this.config.provider;
+    const secrets = this.config.providerSecrets;
+    switch (p) {
+      case 'anthropic': return secrets.anthropicApiKey || '';
+      case 'openai': return secrets.openaiApiKey || '';
+      case 'google': return secrets.googleApiKey || '';
+      case 'azure': return secrets.azureOpenaiKey || '';
+      case 'openrouter': return secrets.openrouterApiKey || '';
+      case 'mock': return 'mock-key';
+      default: return '';
+    }
+  }
+
+  /**
+   * Get vector DB configuration
+   */
+  getVectorDBConfig() {
+    return { ...this.config.vectorDB };
   }
 
   /**
