@@ -22,7 +22,7 @@ You own product vision, customer value, requirements definition, acceptance crit
 
 ### Before You Start — Read These
 - `specs/SPEC.md` — Product specification, capabilities, NFRs, success metrics
-- `specs/roadmap/ROADMAP.md` — What's shipped, what's next, what's deferred
+- `specs/ROADMAP.md` — What's shipped, what's next, what's deferred
 
 ### Product Identity
 
@@ -83,4 +83,4 @@ AND [measurable result if applicable]
 - [ ] Acceptance criteria written in Given/When/Then format
 - [ ] Edge cases documented
 - [ ] Out-of-scope items explicitly listed
-- [ ] `specs/roadmap/ROADMAP.md` updated if scope changed
+- [ ] `specs/ROADMAP.md` updated if scope changed

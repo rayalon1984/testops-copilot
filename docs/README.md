@@ -54,7 +54,7 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### Project Management
 - [Changelog](project/CHANGELOG.md) - Version history
-- [Roadmap](project/ROADMAP.md) - Future plans
+- [Roadmap](../specs/ROADMAP.md) - Future plans (canonical location: `specs/ROADMAP.md`)
 - [Contributing Guide](project/CONTRIBUTING.md) - How to contribute
 - [Code of Conduct](project/CODE_OF_CONDUCT.md) - Community guidelines
 - [Release Process](project/RELEASE_PROCESS.md) - Release procedures
@@ -105,11 +105,13 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 
 ### Failure Knowledge Base
 - Smart failure fingerprinting and matching
-- Root Cause Analysis (RCA) documentation
+- Root Cause Analysis (RCA) documentation with collaborative editing *(v2.9.0)*
 - Automatic detection of recurring issues
 - Instant lookup of similar past failures
 - Knowledge retention across team changes
 - 95% faster resolution for known issues
+- Predictive failure analysis: trends, risk scoring, anomaly detection *(v2.9.0)*
+- Comments and activity feed on failure entries *(v2.9.0)*
 
 ### Notifications
 - Email notifications
@@ -128,7 +130,14 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 ### AI-Powered Analysis
 - AI failure categorization, log summarization, and RCA matching
 - Cross-platform context enrichment *(v2.8.0)*: gathers context from Jira, Confluence, and GitHub
+- Predictive failure analysis AI tool for agentic ReAct loop *(v2.9.0)*
 - Multi-provider support: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI
+
+### Team Workspaces *(v2.9.0)*
+- Create and manage teams with role hierarchy (OWNER > ADMIN > MEMBER > VIEWER)
+- Scope pipelines and dashboards per team
+- Member management with invitation and role updates
+- Saveable dashboard configurations per user and team
 
 ### Integrations
 
@@ -200,6 +209,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](../LIC
 
 Stay updated with the latest changes:
 - Follow our [Changelog](../CHANGELOG.md)
-- Check our [Roadmap](../ROADMAP.md)
+- Check our [Roadmap](../specs/ROADMAP.md)
 - Join our [Newsletter](https://newsletter.testops-companion.com)
 - Follow us on [Twitter](https://twitter.com/testops-companion)

@@ -68,16 +68,20 @@
 *   **Auto-Fix Workflow**: Analyzes failure → Creates Branch → Commits Fix → Opens PR.
 *   **Smart Context**: Enrichment from GitHub commits, Jira tickets, and Wiki docs.
 *   **Intelligent Analysis**: Auto-categorization (Bug vs Flaky vs Env) and Root Cause Analysis.
+*   **Predictive Failure Analysis**: Trend aggregation, risk scoring per test, z-score anomaly detection.
 
 ### 📊 TestOps Platform
 *   **Multi-Pipeline**: Unified view for Jenkins, GitHub Actions, and custom CI.
 *   **Failure Analysis**: Historical trending, flaky test detection, and log summarization.
 *   **Mission Control**: Real-time dashboard with streaming AI insights.
+*   **Team Workspaces**: Create teams, manage members (OWNER/ADMIN/MEMBER/VIEWER), scope pipelines and dashboards per team.
+*   **Collaborative RCA**: Comments on failures, version-tracked RCA revisions with optimistic locking, activity feed.
 
 ### 🏢 Enterprise & Integrations
 *   **Seamless Sync**: Jira, GitHub, Slack, Confluence, Monday.com, TestRail.
 *   **Enterprise Ready**: SSO/SAML, Audit Logging, RBAC, and Redis Clustering.
-*   **Secure**: PII redaction and role-based access control.
+*   **Secure**: PII redaction, role-based access control, SSRF protection, Redis token blacklist.
+*   **Performance Monitoring**: HTTP latency percentiles (p50/p95/p99), AI cache metrics in Prometheus.
 
 > 📖 **[View Detailed Features Guide](docs/features.md)** for a complete list of capabilities.
 
@@ -607,11 +611,16 @@ testops-companion/
 │   │   │   │   └── tools/     # Agentic tool wrappers
 │   │   │   │       ├── types.ts       # Tool interfaces
 │   │   │   │       ├── registry.ts    # Tool registry
+│   │   │   │       ├── predictions.ts # Failure predictions tool
 │   │   │   │       ├── jira.ts        # Jira search/get
 │   │   │   │       ├── github.ts      # Commit/PR lookup
 │   │   │   │       ├── confluence.ts   # Confluence search
 │   │   │   │       ├── jenkins.ts     # Pipeline status
 │   │   │   │       └── dashboard.ts   # Dashboard metrics
+│   │   │   ├── prediction-analysis.service.ts # Trend, risk, anomaly engine
+│   │   │   ├── team.service.ts         # Team workspace logic
+│   │   │   ├── dashboard-config.service.ts # Saveable dashboard layouts
+│   │   │   ├── failure-archive.service.ts  # Failure KB + collaborative RCA
 │   │   │   ├── github.service.ts
 │   │   │   ├── jenkins.service.ts
 │   │   │   ├── jira.service.ts
@@ -628,7 +637,13 @@ testops-companion/
 │   ├── public/                # Static assets
 │   ├── src/
 │   │   ├── components/        # Reusable components
-│   │   │   ├── AICopilot/     # AI Copilot drawer + sparkle button (v2.9.0)
+│   │   │   ├── AICopilot/     # AI Copilot panel (v2.9.0)
+│   │   │   ├── FailureTrendChart/  # Chart.js trend visualization (v2.9.0)
+│   │   │   ├── RiskScoreTable/     # Risk score table (v2.9.0)
+│   │   │   ├── FailureComments/    # Collaborative comments (v2.9.0)
+│   │   │   ├── FailureActivityFeed/ # RCA activity timeline (v2.9.0)
+│   │   │   ├── TeamSelector/       # Team workspace switcher (v2.9.0)
+│   │   │   ├── RCADocumentModal/   # RCA form with conflict detection (v2.9.0)
 │   │   │   ├── ConfirmDialog/
 │   │   │   ├── FormField/
 │   │   │   ├── LogViewer/
@@ -639,12 +654,15 @@ testops-companion/
 │   │   ├── hooks/             # Custom hooks
 │   │   │   └── useAICopilot.ts # SSE chat hook (v2.9.0)
 │   │   ├── pages/             # Page components
-│   │   │   ├── Dashboard.tsx  # Dashboard with AI Copilot button
+│   │   │   ├── Dashboard.tsx
 │   │   │   ├── Login.tsx
 │   │   │   ├── PipelineList.tsx
 │   │   │   ├── PipelineDetail.tsx
 │   │   │   ├── TestRunList.tsx
 │   │   │   ├── TestRunDetail.tsx
+│   │   │   ├── FailureKnowledgeBase.tsx  # KB + trends + risk table
+│   │   │   ├── TeamSettings.tsx          # Team management (v2.9.0)
+│   │   │   ├── CostTracker.tsx
 │   │   │   ├── Settings.tsx
 │   │   │   └── NotificationList.tsx
 │   │   ├── services/          # API clients
@@ -724,13 +742,41 @@ DELETE /api/notifications/:id # Delete notification
 
 ```
 POST   /api/v1/failure-archive                  # Create failure entry
-PUT    /api/v1/failure-archive/:id/document-rca # Document root cause analysis
+PUT    /api/v1/failure-archive/:id/document-rca # Document RCA (version-aware, 409 on conflict)
 GET    /api/v1/failure-archive/:id              # Get failure by ID
 GET    /api/v1/failure-archive/search           # Search failures with filters
 POST   /api/v1/failure-archive/find-similar     # Find similar past failures
 GET    /api/v1/failure-archive/insights         # Get statistics and analytics
 PUT    /api/v1/failure-archive/:id/resolve      # Mark failure as resolved
-POST   /api/v1/failure-archive/detect-patterns  # Detect recurring patterns
+
+# Predictive Analysis (v2.9.0)
+GET    /api/v1/failure-archive/trends           # Time-series failure trends
+GET    /api/v1/failure-archive/predictions      # Risk scores per test
+GET    /api/v1/failure-archive/anomalies        # Anomaly detection results
+
+# Collaborative RCA (v2.9.0)
+GET    /api/v1/failure-archive/:id/revisions    # RCA revision history
+POST   /api/v1/failure-archive/:id/comments     # Add comment
+GET    /api/v1/failure-archive/:id/comments     # List comments (paginated)
+DELETE /api/v1/failure-archive/:id/comments/:cid # Delete own comment
+GET    /api/v1/failure-archive/:id/activity     # Activity feed
+```
+
+### Team Endpoints *(v2.9.0)*
+
+```
+POST   /api/v1/teams                            # Create team
+GET    /api/v1/teams                            # List user's teams
+GET    /api/v1/teams/:id                        # Get team with members
+PUT    /api/v1/teams/:id                        # Update team
+DELETE /api/v1/teams/:id                        # Delete team (OWNER/ADMIN)
+POST   /api/v1/teams/:id/members               # Add member
+DELETE /api/v1/teams/:id/members/:userId        # Remove member
+PUT    /api/v1/teams/:id/members/:userId/role   # Update member role
+GET    /api/v1/teams/:id/pipelines              # Team pipelines
+POST   /api/v1/teams/:id/pipelines/:pid         # Assign pipeline to team
+GET    /api/v1/teams/:id/dashboards             # Team dashboards
+POST   /api/v1/teams/:id/dashboards             # Create dashboard config
 ```
 
 ### AI Endpoints *(v2.5.3-v2.9.0)*

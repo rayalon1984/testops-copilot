@@ -8,7 +8,7 @@ This directory contains project management and governance documentation.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community guidelines
 - **[RELEASE_PROCESS.md](RELEASE_PROCESS.md)** - Release procedures
-- **[ROADMAP.md](ROADMAP.md)** - Product roadmap and future plans
+- **[ROADMAP.md](../../specs/ROADMAP.md)** - Product roadmap and future plans (canonical: `specs/ROADMAP.md`)
 - **[SECURITY.md](SECURITY.md)** - Security policies and vulnerability reporting
 - **[SETUP_COMPLETE.md](SETUP_COMPLETE.md)** - Post-setup verification checklist
 
@@ -22,5 +22,5 @@ If you're contributing to TestOps Companion, please read:
 ## For Maintainers
 
 - [RELEASE_PROCESS.md](RELEASE_PROCESS.md) - How to cut releases
-- [ROADMAP.md](ROADMAP.md) - Update regularly with product direction
+- [ROADMAP.md](../../specs/ROADMAP.md) - Update regularly with product direction
 - [CHANGELOG.md](CHANGELOG.md) - Document all notable changes
