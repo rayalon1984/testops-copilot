@@ -180,6 +180,9 @@ jobs:
 
           echo "✅ Prisma schemas are correctly configured"
 
+      - name: Check schema model parity
+        run: node scripts/validate-schema.js
+
       - name: Check required files exist
         run: |
           required_files=(
