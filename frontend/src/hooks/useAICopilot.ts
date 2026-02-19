@@ -1,17 +1,15 @@
 /**
  * useAICopilot — React hook for SSE chat with the AI Copilot backend.
  *
- * Manages:
- *  - Message list state (user + assistant + tool events + confirmation requests)
- *  - SSE connection to POST /api/v1/ai/chat
- *  - Loading/streaming state
- *  - Error handling
- *  - Action confirmation (approve/deny)
+ * v3: Extended with toolData for rich cards, cardState for lifecycle,
+ *     updateMessage for in-card mutations, sendActionPrompt for card actions.
  */
 
 import { useState, useCallback, useRef } from 'react';
 
 export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request';
+
+export type CardState = 'idle' | 'action_pending' | 'updated';
 
 export interface ChatMessage {
     id: string;
@@ -19,19 +17,29 @@ export interface ChatMessage {
     content: string;
     toolName?: string;
     timestamp: Date;
+    // v3: structured tool result data for rich card rendering
+    toolData?: Record<string, unknown>;
+    // v3: card lifecycle state
+    cardState?: CardState;
     // Metadata for confirmation items
     actionId?: string;
     toolArgs?: Record<string, unknown>;
     confirmationStatus?: 'pending' | 'approved' | 'denied';
+    // v3: link card action back to source card
+    sourceMessageId?: string;
 }
 
-interface UseAICopilotReturn {
+export interface UseAICopilotReturn {
     messages: ChatMessage[];
     isStreaming: boolean;
     error: string | null;
     sendMessage: (message: string) => void;
     confirmAction: (actionId: string, approved: boolean) => Promise<void>;
     clearMessages: () => void;
+    // v3: mutate a card in-place (e.g., after action completes)
+    updateMessage: (id: string, patch: Partial<ChatMessage>) => void;
+    // v3: card-triggered action — sends prompt linked to source card
+    sendActionPrompt: (prompt: string, sourceMessageId: string) => void;
 }
 
 let messageIdCounter = 0;
@@ -52,6 +60,12 @@ export function useAICopilot(): UseAICopilotReturn {
     const [error, setError] = useState<string | null>(null);
     const sessionIdRef = useRef<string>(generateSessionId());
     const abortRef = useRef<AbortController | null>(null);
+
+    const updateMessage = useCallback((id: string, patch: Partial<ChatMessage>) => {
+        setMessages(prev => prev.map(msg =>
+            msg.id === id ? { ...msg, ...patch } : msg
+        ));
+    }, []);
 
     const sendMessage = useCallback(async (message: string) => {
         if (!message.trim() || isStreaming) return;
@@ -143,15 +157,30 @@ export function useAICopilot(): UseAICopilotReturn {
                                 }]);
                                 break;
 
-                            case 'tool_result':
+                            case 'tool_result': {
+                                // v3: parse { summary, data } JSON format with legacy fallback
+                                let content = event.data;
+                                let toolData: Record<string, unknown> | undefined;
+                                try {
+                                    const parsed = JSON.parse(event.data);
+                                    if (parsed.summary !== undefined) {
+                                        content = parsed.summary;
+                                        toolData = parsed.data as Record<string, unknown>;
+                                    }
+                                } catch {
+                                    // Legacy string format — content is already the summary
+                                }
                                 setMessages(prev => [...prev, {
                                     id: generateId(),
                                     role: 'tool_result',
-                                    content: event.data,
+                                    content,
                                     toolName: event.tool,
+                                    toolData,
+                                    cardState: 'idle',
                                     timestamp: new Date(),
                                 }]);
                                 break;
+                            }
 
                             case 'confirmation_request': {
                                 // event.data is a JSON string with details
@@ -213,6 +242,15 @@ export function useAICopilot(): UseAICopilotReturn {
         }
     }, [isStreaming, messages]);
 
+    const sendActionPrompt = useCallback((prompt: string, sourceMessageId: string) => {
+        // Mark the source card as pending
+        setMessages(prev => prev.map(msg =>
+            msg.id === sourceMessageId ? { ...msg, cardState: 'action_pending' as CardState } : msg
+        ));
+        // Send the prompt as a normal message (it will trigger the AI to call the write tool)
+        sendMessage(prompt);
+    }, [sendMessage]);
+
     const confirmAction = useCallback(async (actionId: string, approved: boolean) => {
         // Optimistic update
         setMessages(prev => prev.map(msg =>
@@ -220,9 +258,6 @@ export function useAICopilot(): UseAICopilotReturn {
                 ? { ...msg, confirmationStatus: approved ? 'approved' : 'denied' }
                 : msg
         ));
-
-        // If approved, we might want to resume streaming or just wait for the outcome
-        // Ideally, the confirm endpoint returns the tool result which we can append
 
         try {
             const token = localStorage.getItem('accessToken');
@@ -248,20 +283,16 @@ export function useAICopilot(): UseAICopilotReturn {
                     id: generateId(),
                     role: 'tool_result',
                     content: result.toolResult.summary || JSON.stringify(result.toolResult),
-                    toolName: result.data.toolName,
+                    toolName: result.data?.toolName,
+                    toolData: result.toolResult.data as Record<string, unknown> | undefined,
+                    cardState: 'idle',
                     timestamp: new Date(),
                 }]);
-
-                // Note: The backend doesn't automatically resume the chat stream here. 
-                // In a full implementation, we might want to automatically trigger a new chat request 
-                // with the updated history (tool result included) to let the AI finish its thought.
-                // For now, we'll just show the result.
             }
 
         } catch (err) {
             const msg = err instanceof Error ? err.message : 'Confirmation failed';
             setError(msg);
-            // Revert optimistic update on error? Or just show error message.
             setMessages(prev => [...prev, {
                 id: generateId(),
                 role: 'error',
@@ -278,5 +309,9 @@ export function useAICopilot(): UseAICopilotReturn {
         setIsStreaming(false);
     }, []);
 
-    return { messages, isStreaming, error, sendMessage, confirmAction, clearMessages };
+    return {
+        messages, isStreaming, error,
+        sendMessage, confirmAction, clearMessages,
+        updateMessage, sendActionPrompt,
+    };
 }
