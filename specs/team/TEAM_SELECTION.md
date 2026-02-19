@@ -1,111 +1,97 @@
-# TEAM_SELECTION.md
+# TEAM_SELECTION.md — Persona Routing Rubric
 
-## Purpose
-
-This document is a **repeatable rubric** for selecting the right agent persona for a task.
-
-Goal:
-- Reduce ambiguity and hand-offs
-- Route work to the persona with the **highest leverage + accountability**
-
-## Available personas (in `specs/team/`)
-
-- **AI_ARCHITECT** — AI behavior, orchestration, AI UX, cross-cutting architecture
-- **AI_PRODUCT_MANAGER** — requirements, acceptance criteria, scope and prioritization
-- **SENIOR_ENGINEER** — feature implementation, refactors, maintainability
-- **DATA_ENGINEER** — schema/modeling, persistence, query performance, migrations
-- **TEST_ENGINEER** — test strategy, coverage, CI quality gates, contract/parity testing
-- **UX_DESIGNER** — UX flows, IA, interaction design, UI clarity/trust
-- **SECURITY_ENGINEER** — threat modeling, authn/authz boundaries, secure design
-- **DEVOPS_ENGINEER** — CI/CD, Docker, deployment, observability, operational safety
-- **PERFORMANCE_ENGINEER** — latency/load profiling, benchmarking, perf regressions
+> **Purpose**: Repeatable rubric for selecting the right agent persona for a task.
+> Route work to the persona with the **highest leverage + accountability**.
 
 ---
 
-## Quick selection flow (first “yes” wins)
+## Available Personas
 
-### 1) Security boundary / risk
-Does this change affect **authn/authz**, sensitive data handling, threat surfaces, or hard-to-reverse security posture?
-
-➡️ Select: **SECURITY_ENGINEER**
-
----
-
-### 2) AI behavior / system-level architecture
-Does this materially affect AI behavior, trust/explainability, tool execution policy, or cross-cutting architecture?
-
-➡️ Select: **AI_ARCHITECT**
-
----
-
-### 3) Data correctness / persistence / migrations
-Does this affect schema, migrations, data integrity, query patterns, DB performance, or storage growth?
-
-➡️ Select: **DATA_ENGINEER**
+| Persona | File | Domain |
+|---------|------|--------|
+| `SENIOR_ENGINEER` | `specs/team/SENIOR_ENGINEER.md` | Implementation, refactors, code quality |
+| `AI_ARCHITECT` | `specs/team/AI_ARCHITECT.md` | AI behavior, tool policy, system architecture |
+| `DATA_ENGINEER` | `specs/team/DATA_ENGINEER.md` | Schema, migrations, queries, data integrity |
+| `UX_DESIGNER` | `specs/team/UX_DESIGNER.md` | UX flows, interaction design, UI clarity |
+| `PERFORMANCE_ENGINEER` | `specs/team/PERFORMANCE_ENGINEER.md` | Latency, throughput, profiling |
+| `TEST_ENGINEER` | `specs/team/TEST_ENGINEER.md` | Test strategy, coverage, CI quality gates |
+| `DEVOPS_ENGINEER` | `specs/team/DEVOPS_ENGINEER.md` | Pipelines, Docker, deployment, observability |
+| `AI_PRODUCT_MANAGER` | `specs/team/AI_PRODUCT_MANAGER.md` | Requirements, acceptance criteria, scope |
+| `SECURITY_ENGINEER` | `specs/team/SECURITY_ENGINEER.md` | Auth, secrets, threat modeling |
 
 ---
 
-### 4) UX / interaction design
-Is the core output a user flow, interaction pattern, information hierarchy, or design language compliance?
+## Quick Selection (First "Yes" Wins)
 
-➡️ Select: **UX_DESIGNER**
+### 1. Security boundary?
+Affects authn/authz, secrets, token handling, sensitive data, or security posture?
+→ **SECURITY_ENGINEER** (read `specs/SECURITY.md` first)
 
----
+### 2. AI behavior or architecture?
+Affects AI behavior, tool policy, ReAct loop, provider selection, or cross-cutting architecture?
+→ **AI_ARCHITECT** (read `specs/AI_TOOLS.md` first)
 
-### 5) Performance / scalability incidents
-Is the primary goal reducing latency, improving throughput, load resilience, or profiling a hotspot?
+### 3. Data or persistence?
+Affects Prisma schema, migrations, data integrity, query patterns, or storage?
+→ **DATA_ENGINEER** (read `specs/ARCHITECTURE.md` §4 first)
 
-➡️ Select: **PERFORMANCE_ENGINEER**
+### 4. UX or interaction design?
+Core output is a user flow, layout, interaction pattern, or visual hierarchy?
+→ **UX_DESIGNER** (read `specs/DESIGN_LANG_V2.md` first)
 
----
+### 5. Performance?
+Goal is reducing latency, improving throughput, or profiling a hotspot?
+→ **PERFORMANCE_ENGINEER**
 
-### 6) Testing / quality gates
-Is the primary goal improving test coverage/strategy, CI quality, or V1↔V2 parity/contract testing?
+### 6. Test coverage or CI quality?
+Goal is test strategy, coverage improvement, or CI gate quality?
+→ **TEST_ENGINEER**
 
-➡️ Select: **TEST_ENGINEER**
+### 7. Deployment or ops?
+About pipelines, Docker, environments, releases, or runtime observability?
+→ **DEVOPS_ENGINEER**
 
----
+### 8. Product definition?
+Clarifying requirements, defining acceptance criteria, or prioritizing scope?
+→ **AI_PRODUCT_MANAGER** (read `specs/SPEC.md` first)
 
-### 7) Deployment / ops / CI-CD
-Is the task about pipelines, releases, environments, Docker, runtime observability, or operational risk?
-
-➡️ Select: **DEVOPS_ENGINEER**
-
----
-
-### 8) Product definition
-Is the task clarifying requirements, defining acceptance criteria, or prioritizing scope?
-
-➡️ Select: **AI_PRODUCT_MANAGER**
-
----
-
-### 9) Default: implementation / refactor
-If it’s primarily about implementing, refactoring, or maintaining code:
-
-➡️ Select: **SENIOR_ENGINEER**
+### 9. Default
+Implementation or refactor?
+→ **SENIOR_ENGINEER**
 
 ---
 
-## Cross-domain tasks
+## Cross-Domain Tasks
 
-If multiple categories apply:
-- **Primary owner** = persona for the highest-risk/least-reversible part
-- Other personas contribute within their domain
-- Document key trade-offs when decisions are hard to undo
+When a task spans multiple domains:
+
+1. **Primary owner** = persona for the highest-risk or least-reversible aspect
+2. **Supporting personas** = read their files for relevant sections
+3. **Document trade-offs** in code comments or PR description
+
+| Example Task | Primary | Supporting |
+|-------------|---------|------------|
+| New AI tool + DB schema + UI | AI_ARCHITECT | DATA_ENGINEER, UX_DESIGNER |
+| Auth system change | SECURITY_ENGINEER | SENIOR_ENGINEER, TEST_ENGINEER |
+| Perf fix on API endpoint | PERFORMANCE_ENGINEER | DATA_ENGINEER |
+| New notification channel | SENIOR_ENGINEER | UX_DESIGNER, TEST_ENGINEER |
+| Schema migration + UI update | DATA_ENGINEER | UX_DESIGNER, SENIOR_ENGINEER |
 
 ---
 
-## Example routing scenarios
+## Spec Reading Matrix
 
-| Task | Persona |
-|---|---|
-| Add a new AI tool + update tool-call policy | AI_ARCHITECT |
-| Add/modify Prisma models + migration | DATA_ENGINEER |
-| Define acceptance criteria for Workstreams vNext | AI_PRODUCT_MANAGER |
-| Redesign Planning board interactions | UX_DESIGNER |
-| Investigate slow `/api/ai/assist` responses | PERFORMANCE_ENGINEER |
-| Add V1↔V2 parity tests for migrated endpoints | TEST_ENGINEER |
-| Harden auth middleware / scope enforcement | SECURITY_ENGINEER |
-| Add CI job to run `pytest` + `vitest` + Playwright | DEVOPS_ENGINEER |
-| Ship a new page/feature with tests | SENIOR_ENGINEER |
+Every persona should read at least these specs before working:
+
+| Persona | Required Reading |
+|---------|-----------------|
+| All | `AGENTS.md`, `specs/SPEC.md` |
+| SENIOR_ENGINEER | + `specs/ARCHITECTURE.md`, `specs/API_CONTRACT.md` |
+| AI_ARCHITECT | + `specs/AI_TOOLS.md`, `specs/ARCHITECTURE.md` §5 |
+| DATA_ENGINEER | + `specs/ARCHITECTURE.md` §4, Prisma schema |
+| UX_DESIGNER | + `specs/DESIGN_LANG_V2.md` |
+| SECURITY_ENGINEER | + `specs/SECURITY.md` |
+| TEST_ENGINEER | + `specs/ARCHITECTURE.md`, test directories |
+| DEVOPS_ENGINEER | + `specs/ARCHITECTURE.md` §8, Docker configs |
+| PERFORMANCE_ENGINEER | + `specs/ARCHITECTURE.md` §4–5 |
+| AI_PRODUCT_MANAGER | + `specs/SPEC.md`, `specs/roadmap/ROADMAP.md` |
