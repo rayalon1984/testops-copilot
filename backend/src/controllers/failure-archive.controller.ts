@@ -267,4 +267,69 @@ export class FailureArchiveController {
       res.status(500).json({ error: 'Failed to resolve failure' });
     }
   }
+
+  // ─── Collaborative RCA endpoints ────────────────────────────
+
+  static async getRevisions(req: Request, res: Response): Promise<void> {
+    try {
+      const id = String(req.params.id);
+      const revisions = await FailureArchiveService.getRCARevisions(id);
+      res.json({ success: true, data: revisions });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: msg });
+    }
+  }
+
+  static async addComment(req: Request, res: Response): Promise<void> {
+    try {
+      const id = String(req.params.id);
+      const userId = String(req.user!.id);
+      const schema = z.object({ content: z.string().min(1).max(5000) });
+      const { content } = schema.parse(req.body);
+      const comment = await FailureArchiveService.addComment(id, userId, content);
+      res.status(201).json({ success: true, data: comment });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: msg });
+    }
+  }
+
+  static async getComments(req: Request, res: Response): Promise<void> {
+    try {
+      const id = String(req.params.id);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const result = await FailureArchiveService.getComments(id, limit, offset);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: msg });
+    }
+  }
+
+  static async deleteComment(req: Request, res: Response): Promise<void> {
+    try {
+      const commentId = String(req.params.commentId);
+      const userId = String(req.user!.id);
+      await FailureArchiveService.deleteComment(commentId, userId);
+      res.json({ success: true, message: 'Comment deleted' });
+    } catch (error) {
+      const statusCode = (error as Record<string, number>).statusCode || 500;
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(statusCode).json({ error: msg });
+    }
+  }
+
+  static async getActivityFeed(req: Request, res: Response): Promise<void> {
+    try {
+      const id = String(req.params.id);
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
+      const feed = await FailureArchiveService.getActivityFeed(id, limit);
+      res.json({ success: true, data: feed });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: msg });
+    }
+  }
 }

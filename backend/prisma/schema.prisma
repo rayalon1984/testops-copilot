@@ -72,12 +72,47 @@ model FailureArchive {
   occurrenceCount Int       @default(1)
   resolved        Boolean   @default(false)
   resolvedAt      DateTime?
+  rcaVersion      Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  revisions       RCARevision[]
+  comments        FailureComment[]
 
   @@index([testName])
   @@index([category])
   @@index([resolved])
+}
+
+model RCARevision {
+  id               String   @id @default(uuid())
+  failureArchiveId String
+  version          Int
+  rootCause        String?
+  solution         String?
+  prevention       String?
+  tags             String?
+  editedBy         String
+  editSummary      String?
+  createdAt        DateTime @default(now())
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+}
+
+model FailureComment {
+  id               String   @id @default(uuid())
+  failureArchiveId String
+  userId           String
+  content          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+  @@index([userId])
 }
 
 // Simplified AI usage tracking for demo

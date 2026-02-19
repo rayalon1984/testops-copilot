@@ -24,6 +24,7 @@ interface RCADocumentModalProps {
   failureId: string;
   testName: string;
   errorMessage: string;
+  rcaVersion?: number;
   onSuccess?: () => void;
 }
 
@@ -33,6 +34,7 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
   failureId,
   testName,
   errorMessage,
+  rcaVersion,
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
@@ -44,7 +46,8 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
     jiraIssueKey: '',
     prUrl: '',
     timeToResolve: '',
-    tagInput: ''
+    tagInput: '',
+    editSummary: ''
   });
 
   const [tags, setTags] = useState<string[]>([]);
@@ -77,9 +80,13 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
     setError(null);
 
     try {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/v1/failure-archive/${failureId}/document-rca`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           rootCause: formData.rootCause,
           detailedAnalysis: formData.detailedAnalysis || undefined,
@@ -89,9 +96,16 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
           jiraIssueKey: formData.jiraIssueKey || undefined,
           prUrl: formData.prUrl || undefined,
           timeToResolve: formData.timeToResolve ? parseInt(formData.timeToResolve) : undefined,
-          tags: tags.length > 0 ? tags : undefined
+          tags: tags.length > 0 ? tags : undefined,
+          expectedVersion: rcaVersion,
+          editSummary: formData.editSummary || undefined,
         })
       });
+
+      if (response.status === 409) {
+        setError('Conflict: This RCA was modified by another user. Please reload and try again.');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to document RCA');
@@ -244,6 +258,18 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
             ))}
           </Box>
         </Box>
+
+        {rcaVersion !== undefined && rcaVersion > 0 && (
+          <TextField
+            fullWidth
+            label="Edit Summary"
+            value={formData.editSummary}
+            onChange={handleChange('editSummary')}
+            placeholder="Brief description of changes made"
+            helperText="Optional: Describe what you changed in this revision"
+            sx={{ mb: 2 }}
+          />
+        )}
       </DialogContent>
 
       <DialogActions>
