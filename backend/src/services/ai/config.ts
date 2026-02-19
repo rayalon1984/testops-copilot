@@ -334,6 +334,25 @@ export class AIConfigManager {
   }
 
   /**
+   * Apply a runtime override (e.g. from DB-stored provider config).
+   * Merges the override into the current config without touching disk/env sources.
+   */
+  applyRuntimeOverride(override: Partial<AIConfig>): void {
+    if (override.provider !== undefined) this.config.provider = override.provider;
+    if (override.model !== undefined) this.config.model = override.model;
+    if (override.enabled !== undefined) this.config.enabled = override.enabled;
+    if (override.providerSecrets) {
+      this.config.providerSecrets = { ...this.config.providerSecrets, ...override.providerSecrets };
+    }
+    if (override.providerSettings) {
+      this.config.providerSettings = { ...this.config.providerSettings, ...override.providerSettings };
+    }
+    if (override.features) {
+      this.config.features = { ...this.config.features, ...override.features };
+    }
+  }
+
+  /**
    * Reload configuration from disk
    */
   reload(): void {
