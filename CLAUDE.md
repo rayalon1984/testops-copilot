@@ -6,7 +6,7 @@ Each persona represents a principal-level specialist. **Always consult the right
 
 ---
 
-## Persona Files Location: `specs/team/`
+## Persona Files Location: `specs/a-team/`
 
 - `AI_ARCHITECT.md` — AI behavior, orchestration, trust, cross-cutting architecture
 - `AI_PRODUCT_MANAGER.md` — Requirements, acceptance criteria, scope, prioritization
