@@ -1,48 +1,25 @@
-# CLAUDE.md — A-Team Vibe Coding Rules
+# CLAUDE.md — TestOps Companion
 
-## What is this?
-This project uses a team of expert personas defined in markdown files under `specs/team/`.
-Each persona represents a principal-level specialist. **Always consult the right persona before writing code, designing UI, or making architecture decisions.**
-
----
-
-## Persona Files Location: `specs/a-team/`
-
-- `AI_ARCHITECT.md` — AI behavior, orchestration, trust, cross-cutting architecture
-- `AI_PRODUCT_MANAGER.md` — Requirements, acceptance criteria, scope, prioritization
-- `SENIOR_ENGINEER.md` — Feature implementation, refactors, code quality
-- `DATA_ENGINEER.md` — Schema, DB choice, query optimization, migrations, COGS
-- `TEST_ENGINEER.md` — Test strategy, coverage, CI quality gates
-- `UX_DESIGNER.md` — UX flows, interaction design, UI clarity and trust
-- `SECURITY_ENGINEER.md` — Threat modeling, authn/authz, secure design
-- `DEVOPS_ENGINEER.md` — CI/CD, Docker, deployment, observability
-- `PERFORMANCE_ENGINEER.md` — Latency, load profiling, benchmarking
-- `TEAM_SELECTION.md` — Routing rubric for choosing the right persona
+> **Start here**: Read `AGENTS.md` first. It is the master entrypoint for all AI agents.
+> This file adds Claude Code-specific shortcuts and overrides.
 
 ---
 
-## Core Rule: Route → Read → Build
+## Persona Routing (Quick Reference)
 
-### Step 1: Route the task
-Before ANY implementation, determine the primary persona using this priority (first "yes" wins):
+Before ANY implementation, route to the right persona. First "yes" wins:
 
-1. Affects authn/authz, secrets, or security posture → read `SECURITY_ENGINEER.md`
-2. Affects AI behavior, tool policy, or system architecture → read `AI_ARCHITECT.md`
-3. Affects schema, migrations, data integrity, or query patterns → read `DATA_ENGINEER.md`
-4. Core output is a UX flow, interaction, or visual hierarchy → read `UX_DESIGNER.md`
-5. Goal is reducing latency, improving throughput, or profiling → read `PERFORMANCE_ENGINEER.md`
-6. Goal is test coverage, CI quality, or contract testing → read `TEST_ENGINEER.md`
-7. About pipelines, deploys, Docker, or runtime observability → read `DEVOPS_ENGINEER.md`
-8. Clarifying requirements, defining AC, or prioritizing scope → read `AI_PRODUCT_MANAGER.md`
-9. Default (implementation or refactor) → read `SENIOR_ENGINEER.md`
+1. Affects authn/authz, secrets, or security posture → `specs/team/SECURITY_ENGINEER.md`
+2. Affects AI behavior, tool policy, or system architecture → `specs/team/AI_ARCHITECT.md`
+3. Affects schema, migrations, data integrity, or query patterns → `specs/team/DATA_ENGINEER.md`
+4. Core output is a UX flow, interaction, or visual hierarchy → `specs/team/UX_DESIGNER.md`
+5. Goal is reducing latency, improving throughput, or profiling → `specs/team/PERFORMANCE_ENGINEER.md`
+6. Goal is test coverage, CI quality, or contract testing → `specs/team/TEST_ENGINEER.md`
+7. About pipelines, deploys, Docker, or runtime observability → `specs/team/DEVOPS_ENGINEER.md`
+8. Clarifying requirements, defining AC, or prioritizing scope → `specs/team/AI_PRODUCT_MANAGER.md`
+9. Default (implementation or refactor) → `specs/team/SENIOR_ENGINEER.md`
 
-For full routing details, read `specs/team/TEAM_SELECTION.md`.
-
-### Step 2: Read the persona file
-Actually read the `.md` file before proceeding. Adopt its mindset, philosophy, constraints, and quality standards.
-
-### Step 3: Build according to persona standards
-Write code, tests, and documentation that meet the loaded persona's bar.
+Full rubric: `specs/team/TEAM_SELECTION.md`
 
 ---
 
@@ -60,19 +37,9 @@ Examples:
 
 ---
 
-## Quality Standards (All Personas Share These)
+## Verification Checklist
 
-- **Ship incrementally** — small, reversible steps over big bangs
-- **Boring > clever** — proven patterns over novelty
-- **Measure first** — profile/benchmark before optimizing
-- **Test what matters** — high-signal coverage, not vanity metrics
-- **Explain trade-offs** — in code comments, PR descriptions, or ADRs
-- **Trust is earned** — AI features need explainability and user control
-- **Code is a long-lived asset** — write for the next maintainer, not yourself
-
----
-
-## Before Completing Any Task, Verify:
+Before completing any task:
 
 - [ ] Code meets `SENIOR_ENGINEER.md` standards (clean, tested, documented)
 - [ ] Tests satisfy `TEST_ENGINEER.md` strategy (right layer, high signal)
