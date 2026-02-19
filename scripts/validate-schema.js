@@ -136,8 +136,6 @@ function checkMigrationsExist() {
 function checkSchemaConsistency() {
   log(`\nChecking schema consistency...`, colors.blue);
 
-  const productionSchema = path.join(__dirname, '../backend/prisma/schema.production.prisma');
-  const devSchema = path.join(__dirname, '../backend/prisma/schema.dev.prisma');
   const currentSchema = path.join(__dirname, '../backend/prisma/schema.prisma');
 
   if (!fs.existsSync(currentSchema)) {
@@ -163,6 +161,65 @@ function checkSchemaConsistency() {
   }
 
   return true;
+}
+
+/**
+ * Extract model names from a Prisma schema file.
+ */
+function extractModelNames(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  const content = fs.readFileSync(filePath, 'utf8');
+  const matches = content.match(/^model\s+(\w+)\s*\{/gm) || [];
+  return matches.map(m => m.match(/^model\s+(\w+)/)[1]).sort();
+}
+
+/**
+ * Check that production and dev schema files declare the same set of models.
+ * Intentional differences (e.g. JiraConfig only in dev) can be allowlisted.
+ */
+function checkModelParity() {
+  log(`\nChecking model parity across schemas...`, colors.blue);
+
+  const productionSchema = path.join(__dirname, '../backend/prisma/schema.production.prisma');
+  const devSchema = path.join(__dirname, '../backend/prisma/schema.dev.prisma');
+
+  if (!fs.existsSync(productionSchema) || !fs.existsSync(devSchema)) {
+    log(`⚠️  Cannot check parity — one or both schema files missing`, colors.yellow);
+    return true;
+  }
+
+  const prodModels = extractModelNames(productionSchema);
+  const devModels = extractModelNames(devSchema);
+
+  // Models that intentionally exist only in one schema
+  const allowlist = new Set(['JiraConfig']);
+
+  let valid = true;
+
+  // Check: models in production but not in dev
+  const prodOnly = prodModels.filter(m => !devModels.includes(m) && !allowlist.has(m));
+  if (prodOnly.length > 0) {
+    log(`❌ Models in schema.production.prisma but MISSING from schema.dev.prisma:`, colors.red);
+    prodOnly.forEach(m => log(`     - ${m}`, colors.red));
+    log(`\n   Fix: Add the missing models to schema.dev.prisma (SQLite version)`, colors.yellow);
+    valid = false;
+  }
+
+  // Check: models in dev but not in production
+  const devOnly = devModels.filter(m => !prodModels.includes(m) && !allowlist.has(m));
+  if (devOnly.length > 0) {
+    log(`❌ Models in schema.dev.prisma but MISSING from schema.production.prisma:`, colors.red);
+    devOnly.forEach(m => log(`     - ${m}`, colors.red));
+    log(`\n   Fix: Add the missing models to schema.production.prisma (PostgreSQL version)`, colors.yellow);
+    valid = false;
+  }
+
+  if (valid) {
+    const shared = devModels.filter(m => prodModels.includes(m));
+    log(`✅ Model parity OK — ${shared.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+  }
+
+  return valid;
 }
 
 // Main validation
@@ -199,6 +256,10 @@ function main() {
   // Check current schema
   checkSchemaConsistency();
 
+  // Check model parity across schemas
+  const parityValid = checkModelParity();
+  allValid = allValid && parityValid;
+
   // Summary
   log('\n' + '='.repeat(70), colors.blue);
   if (allValid) {
@@ -207,13 +268,10 @@ function main() {
     process.exit(0);
   } else {
     log('❌ Schema validation failed!', colors.red);
-    log('\nCritical Issues:', colors.red);
-    log('  - Production schema MUST use PostgreSQL', colors.red);
-    log('  - Development schema MUST use SQLite', colors.red);
     log('\nTo fix:', colors.yellow);
-    log('  1. Check backend/prisma/schema.production.prisma', colors.yellow);
-    log('  2. Check backend/prisma/schema.dev.prisma', colors.yellow);
-    log('  3. Ensure datasource provider is correct', colors.yellow);
+    log('  1. Ensure production schema uses PostgreSQL, dev schema uses SQLite', colors.yellow);
+    log('  2. Ensure all models exist in BOTH schema.production.prisma and schema.dev.prisma', colors.yellow);
+    log('  3. See model parity errors above for specific missing models', colors.yellow);
     log('='.repeat(70), colors.blue);
     process.exit(1);
   }
