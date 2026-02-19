@@ -29,6 +29,7 @@ const NotificationList = lazy(() => import('./pages/NotificationList'));
 const Settings = lazy(() => import('./pages/Settings'));
 const FailureKnowledgeBase = lazy(() => import('./pages/FailureKnowledgeBase').then(module => ({ default: module.FailureKnowledgeBase })));
 const CostTracker = lazy(() => import('./pages/CostTracker'));
+const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Create Query Client
@@ -85,6 +86,9 @@ function AppContent() {
 
                     {/* Notifications */}
                     <Route path="/notifications" element={<NotificationList />} />
+
+                    {/* Teams */}
+                    <Route path="/teams" element={<TeamSettings />} />
 
                     {/* Settings */}
                     <Route path="/settings" element={<Settings />} />

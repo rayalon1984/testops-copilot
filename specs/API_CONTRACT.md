@@ -128,7 +128,15 @@ Production responses include `message` only. Development adds `stack` and `detai
 | POST | `/api/v1/failure-archive/find-similar` | Yes | VIEWER | Find similar failures (signature matching) |
 | GET | `/api/v1/failure-archive/insights` | Yes | VIEWER | Get trends and patterns |
 | PUT | `/api/v1/failure-archive/:id/resolve` | Yes | EDITOR | Mark as resolved |
-| PUT | `/api/v1/failure-archive/:id/document-rca` | Yes | EDITOR | Document root cause analysis |
+| PUT | `/api/v1/failure-archive/:id/document-rca` | Yes | EDITOR | Document root cause analysis (version-aware) |
+| GET | `/api/v1/failure-archive/trends` | Yes | VIEWER | Failure trend time-series |
+| GET | `/api/v1/failure-archive/predictions` | Yes | VIEWER | Risk scores per test |
+| GET | `/api/v1/failure-archive/anomalies` | Yes | VIEWER | Anomaly detection results |
+| GET | `/api/v1/failure-archive/:id/revisions` | Yes | VIEWER | RCA revision history |
+| POST | `/api/v1/failure-archive/:id/comments` | Yes | EDITOR | Add comment to failure |
+| GET | `/api/v1/failure-archive/:id/comments` | Yes | VIEWER | List comments (paginated) |
+| DELETE | `/api/v1/failure-archive/:id/comments/:commentId` | Yes | EDITOR | Delete own comment |
+| GET | `/api/v1/failure-archive/:id/activity` | Yes | VIEWER | Activity feed (revisions + comments) |
 
 ### 4.7 Notifications
 
@@ -217,6 +225,28 @@ Production responses include `message` only. Development adds `stack` and `detai
 | POST | `/api/v1/monday/test-failures` | Yes | VIEWER | Create from test failure |
 | GET | `/api/v1/monday/test-connection` | Yes | VIEWER | Test API connection |
 
+### 4.13 Teams
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| POST | `/api/v1/teams` | Yes | EDITOR | Create team (creator becomes OWNER) |
+| GET | `/api/v1/teams` | Yes | VIEWER | List user's teams |
+| GET | `/api/v1/teams/:teamId` | Yes | VIEWER | Get team with members |
+| PUT | `/api/v1/teams/:teamId` | Yes | EDITOR | Update team (requires team ADMIN) |
+| DELETE | `/api/v1/teams/:teamId` | Yes | ADMIN | Delete team (requires team OWNER or global ADMIN) |
+| GET | `/api/v1/teams/:teamId/members` | Yes | VIEWER | List team members |
+| POST | `/api/v1/teams/:teamId/members` | Yes | EDITOR | Add member (requires team ADMIN) |
+| DELETE | `/api/v1/teams/:teamId/members/:userId` | Yes | EDITOR | Remove member (requires team ADMIN) |
+| PUT | `/api/v1/teams/:teamId/members/:userId/role` | Yes | EDITOR | Update member role (requires team ADMIN) |
+| GET | `/api/v1/teams/:teamId/pipelines` | Yes | VIEWER | List team pipelines |
+| POST | `/api/v1/teams/:teamId/pipelines/:pipelineId` | Yes | EDITOR | Assign pipeline to team |
+| GET | `/api/v1/teams/:teamId/dashboards` | Yes | VIEWER | List team dashboards |
+| POST | `/api/v1/teams/:teamId/dashboards` | Yes | EDITOR | Create dashboard config |
+| PUT | `/api/v1/teams/:teamId/dashboards/:dashboardId` | Yes | EDITOR | Update dashboard config |
+| DELETE | `/api/v1/teams/:teamId/dashboards/:dashboardId` | Yes | EDITOR | Delete dashboard config |
+
+**Team roles** (hierarchy): `OWNER` > `ADMIN` > `MEMBER` > `VIEWER`
+
 ---
 
 ## 5. Endpoint Summary
@@ -228,14 +258,15 @@ Production responses include `message` only. Development adds `stack` and `detai
 | Pipelines | 11 | 11 | 0 |
 | Test Runs | 2 | 2 | 0 |
 | Flaky Tests | 2 | 2 | 0 |
-| Failure Archive | 7 | 7 | 0 |
+| Failure Archive | 15 | 15 | 0 |
 | Notifications | 14 | 14 | 4 |
 | AI Services | 9 | 9 | 0 |
 | AI Chat | 7 | 7 | 0 |
 | Dashboard/Metrics | 5 | 5 | 0 |
 | CI | 1 | 1 | 0 |
 | Monday.com | 9 | 9 | 0 |
-| **Total** | **76** | **71** | **4** |
+| Teams | 15 | 15 | 1 |
+| **Total** | **99** | **94** | **5** |
 
 ---
 

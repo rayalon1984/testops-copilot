@@ -67,16 +67,16 @@
 - [x] 3-column Mission Control layout (sidebar | main | AI panel)
 - [x] Chat session persistence with full message history
 
-**Test Intelligence** (3/4 shipped):
+**Test Intelligence** (shipped):
 - [x] Flaky test detection with statistical scoring
 - [x] Test impact analysis (code changes → affected tests)
 - [x] Smart test selection (run only affected tests)
-- [ ] Predictive failure analysis
+- [x] Predictive failure analysis (trends, risk scoring, anomaly detection)
 
-**Collaboration**:
-- [ ] Team workspaces with shared dashboards
-- [ ] Comments and discussions on failures
-- [ ] Real-time collaborative RCA documentation
+**Collaboration** (shipped):
+- [x] Team workspaces with shared dashboards
+- [x] Comments and discussions on failures
+- [x] Real-time collaborative RCA documentation (optimistic locking, revision history)
 
 **Notifications v2**:
 - [ ] Microsoft Teams integration
@@ -109,10 +109,10 @@
 - [ ] Coverage requirements and thresholds
 - [ ] Performance regression gates
 
-**Infrastructure**:
-- [ ] Token blacklist migration to Redis
+**Infrastructure** (3/4 shipped):
+- [x] Token blacklist migration to Redis
 - [ ] WebSocket support for real-time updates
-- [ ] Notification persistence (replace mock data)
+- [x] Notification persistence (replace mock data)
 - [ ] Multi-origin CORS support
 
 ---
@@ -143,11 +143,11 @@
 
 | Item | Severity | Location | Notes |
 |------|----------|----------|-------|
-| Token blacklist in-memory | Medium | `tokenBlacklist.service.ts` | Migrate to Redis |
-| Notification mock data | Medium | `notification.routes.ts` | Implement DB persistence |
+| ~~Token blacklist in-memory~~ | ~~Medium~~ | ~~`tokenBlacklist.service.ts`~~ | **Resolved** — Redis with fallback |
+| ~~Notification mock data~~ | ~~Medium~~ | ~~`notification.routes.ts`~~ | **Resolved** — Prisma persistence |
 | No WebSocket support | Low | Backend | Add Socket.IO for real-time |
 | Single CORS origin | Low | `app.ts` | Multi-origin config |
-| No SSRF URL validation | Medium | External service URLs | Add private-IP blocklist |
+| ~~No SSRF URL validation~~ | ~~Medium~~ | ~~External service URLs~~ | **Resolved** — Shared ssrf-validator |
 
 ---
 
