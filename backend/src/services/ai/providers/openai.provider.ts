@@ -123,11 +123,16 @@ export class OpenAIProvider extends BaseProvider {
       }
 
       // Parse tool calls if present
-      const toolCalls = (choice.message as any).tool_calls?.map((tc: any) => ({
-        id: tc.id,
-        name: tc.function.name,
-        arguments: JSON.parse(tc.function.arguments)
-      }));
+      const toolCalls = (choice.message as any).tool_calls?.map((tc: any) => {
+        let args: Record<string, unknown>;
+        try {
+          args = JSON.parse(tc.function.arguments);
+        } catch {
+          console.warn(`Failed to parse tool call arguments for ${tc.function.name}:`, tc.function.arguments);
+          args = {};
+        }
+        return { id: tc.id, name: tc.function.name, arguments: args };
+      });
 
       // Calculate costs
       const inputTokens = response.usage?.prompt_tokens || 0;

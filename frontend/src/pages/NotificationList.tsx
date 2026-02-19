@@ -80,6 +80,19 @@ export default function NotificationList() {
     },
   });
 
+  // Clear all notifications mutation
+  const clearAllNotifications = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/v1/notifications', {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to clear all notifications');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'success':
@@ -172,12 +185,14 @@ export default function NotificationList() {
           <Button
             variant="outlined"
             color="error"
+            disabled={clearAllNotifications.isPending}
             onClick={() => {
-              // TODO: Implement clear all functionality
-              alert('Clear all notifications functionality to be implemented');
+              if (window.confirm('Are you sure you want to clear all notifications?')) {
+                clearAllNotifications.mutate();
+              }
             }}
           >
-            Clear All
+            {clearAllNotifications.isPending ? 'Clearing...' : 'Clear All'}
           </Button>
         </Box>
       )}
