@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
+import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 
 // Confluence API Types
 export interface ConfluenceConfig {
@@ -92,6 +93,8 @@ export class ConfluenceService {
     }
 
     try {
+      validateUrlForSSRF(config.confluence.baseUrl);
+
       const auth = Buffer.from(
         `${config.confluence.username}:${config.confluence.apiToken}`
       ).toString('base64');

@@ -6,6 +6,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 import {
   MondayConfig,
   MondayBoard,
@@ -30,6 +31,8 @@ export class MondayService {
       apiUrl: config.apiUrl || 'https://api.monday.com/v2',
       ...config,
     };
+
+    validateUrlForSSRF(this.config.apiUrl!);
 
     this.client = axios.create({
       baseURL: this.config.apiUrl,
