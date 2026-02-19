@@ -21,9 +21,9 @@
 | `specs/ARCHITECTURE.md` | SENIOR_ENGINEER | System design — layers, services, data model, AI architecture, deployment |
 | `specs/SECURITY.md` | SECURITY_ENGINEER | Security — auth, RBAC, transport, rate limiting, AI gates, known gaps |
 | `specs/AI_TOOLS.md` | AI_ARCHITECT | AI tool registry — 13 tools, ReAct loop, providers, cost, MCP |
-| `specs/API_CONTRACT.md` | SENIOR_ENGINEER | API contract — 76 endpoints, auth, roles, validation, schemas |
+| `specs/API_CONTRACT.md` | SENIOR_ENGINEER | API contract — 99 endpoints, auth, roles, validation, schemas |
 | `specs/DESIGN_LANG_V2.md` | UX_DESIGNER | Design language — layout, colors, typography, components, a11y |
-| `specs/roadmap/ROADMAP.md` | AI_PRODUCT_MANAGER | Roadmap — shipped versions, planned features, tech debt |
+| `specs/ROADMAP.md` | AI_PRODUCT_MANAGER | Roadmap — shipped versions, planned features, tech debt |
 
 ---
 

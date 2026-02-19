@@ -94,4 +94,4 @@ Every persona should read at least these specs before working:
 | TEST_ENGINEER | + `specs/ARCHITECTURE.md`, test directories |
 | DEVOPS_ENGINEER | + `specs/ARCHITECTURE.md` §8, Docker configs |
 | PERFORMANCE_ENGINEER | + `specs/ARCHITECTURE.md` §4–5 |
-| AI_PRODUCT_MANAGER | + `specs/SPEC.md`, `specs/roadmap/ROADMAP.md` |
+| AI_PRODUCT_MANAGER | + `specs/SPEC.md`, `specs/ROADMAP.md` |
