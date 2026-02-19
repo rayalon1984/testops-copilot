@@ -267,11 +267,12 @@ model TestResult {
 // ─── AI Copilot Chat Persistence ───
 
 model ChatSession {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String   @default("New Chat")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  userId         String
+  title          String   @default("New Chat")
+  activePersona  String?  // Last persona used in this session
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages       ChatMessage[]
@@ -286,6 +287,7 @@ model ChatMessage {
   role      String   // user | assistant | tool_start | tool_result | thinking | error
   content   String
   toolName  String?
+  persona   String?  // Which virtual team persona generated this message
   createdAt DateTime @default(now())
 
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)

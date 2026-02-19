@@ -111,6 +111,7 @@ export function hasRequiredRole(userRole: string, requiredRole: string): boolean
  */
 export type SSEEventType =
     | 'thinking'       // LLM is reasoning
+    | 'persona_selected' // Virtual team persona routed for this query
     | 'tool_start'     // About to call a tool
     | 'tool_result'    // Tool returned a result
     | 'confirmation_request'  // Write-tool needs user approval

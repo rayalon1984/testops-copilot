@@ -12,10 +12,11 @@
  */
 
 import { useRef, useEffect } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
+import { Box, Typography, IconButton, Chip } from '@mui/material';
 import {
     AutoAwesome as SparkleIcon,
     DeleteOutline as ClearIcon,
+    Person as PersonIcon,
 } from '@mui/icons-material';
 import { useAICopilot, ChatMessage } from '../../hooks/useAICopilot';
 import { useAuth } from '../../hooks/useAuth';
@@ -86,7 +87,7 @@ function ConfirmationPreview({ msg, onConfirm, onDeny, userRole }: {
 
 export default function AICopilot() {
     const {
-        messages, isStreaming,
+        messages, isStreaming, activePersona,
         sendMessage, confirmAction, clearMessages,
         sendActionPrompt,
     } = useAICopilot();
@@ -98,7 +99,7 @@ export default function AICopilot() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isStreaming]);
 
-    const renderMessage = (msg: ChatMessage) => {
+    const renderMessage = (msg: ChatMessage, index: number) => {
         switch (msg.role) {
             case 'user':
                 return <UserMessage key={msg.id} content={msg.content} />;
@@ -111,8 +112,32 @@ export default function AICopilot() {
                     </Box>
                 );
 
-            case 'thinking':
-                return <ThinkingIndicator key={msg.id} text={msg.content || 'Thinking'} />;
+            case 'thinking': {
+                // Show persona badge on first thinking indicator per exchange
+                const prevMsg = index > 0 ? messages[index - 1] : null;
+                const isFirst = !prevMsg || prevMsg.role === 'user';
+                return (
+                    <Box key={msg.id}>
+                        {isFirst && activePersona && (
+                            <Box sx={{ textAlign: 'center', mb: 0.5 }}>
+                                <Chip
+                                    icon={<PersonIcon sx={{ fontSize: 14 }} />}
+                                    label={`${activePersona.displayName} is handling this`}
+                                    size="small"
+                                    color="primary"
+                                    variant="outlined"
+                                    sx={{
+                                        fontSize: '0.7rem',
+                                        height: 24,
+                                        '& .MuiChip-icon': { ml: 0.5 },
+                                    }}
+                                />
+                            </Box>
+                        )}
+                        <ThinkingIndicator text={msg.content || 'Thinking'} />
+                    </Box>
+                );
+            }
 
             case 'tool_start':
                 return (
@@ -204,7 +229,7 @@ export default function AICopilot() {
                     <EmptyState onSend={sendMessage} />
                 )}
 
-                {messages.map(renderMessage)}
+                {messages.map((msg, idx) => renderMessage(msg, idx))}
                 <div ref={bottomRef} />
             </Box>
 

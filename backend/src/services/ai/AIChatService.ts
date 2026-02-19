@@ -17,6 +17,8 @@ import { SSEEvent, SSEEventType, ToolContext, hasRequiredRole } from './tools/ty
 import { ChatMessage } from './types';
 import { getConfigManager } from './config';
 import { getMockToolResult } from './mock-tool-results';
+import { routeToPersona, PersonaSelection } from './PersonaRouter';
+import { getPersonaInstruction } from './PersonaInstructions';
 import { logger } from '@/utils/logger';
 
 /** Chunk size for token-by-token answer streaming (characters) */
@@ -38,9 +40,9 @@ const MAX_TOOL_CALLS = 5;
 const MAX_REACT_ITERATIONS = 8;
 
 /**
- * Build the system prompt with tool definitions and role context.
+ * Build the system prompt with tool definitions, role context, and persona instructions.
  */
-function buildSystemPrompt(userRole: string): string {
+function buildSystemPrompt(userRole: string, persona?: PersonaSelection): string {
     const toolDefs = toolRegistry.formatForSystemPrompt(/* readOnlyOnly */ false);
 
     const roleGreetings: Record<string, string> = {
@@ -52,9 +54,14 @@ function buildSystemPrompt(userRole: string): string {
 
     const roleContext = roleGreetings[userRole] || roleGreetings.viewer;
 
+    // Persona-specific instructions injected when the router selects a team member
+    const personaBlock = persona
+        ? `\n## Your Role\n${getPersonaInstruction(persona.persona).systemPromptAddon}\n`
+        : '';
+
     return `You are TestOps Copilot, an intelligent assistant for the TestOps Companion platform.
 ${roleContext}
-
+${personaBlock}
 ## Available Tools
 You can use the following tools to look up information. To call a tool, respond with a JSON block like:
 \`\`\`tool_call
@@ -153,7 +160,19 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         return;
     }
 
-    const systemPrompt = buildSystemPrompt(req.userRole);
+    // Route query to the right virtual team persona
+    const persona = await routeToPersona(req.message, req.userRole);
+    logger.info(`[AIChatService] Persona: ${persona.displayName} (${persona.tier}, confidence: ${persona.confidence})`);
+
+    // Emit persona_selected SSE event before the ReAct loop
+    sendSSE(res, createEvent('persona_selected', JSON.stringify({
+        persona: persona.persona,
+        displayName: persona.displayName,
+        confidence: persona.confidence,
+        reasoning: persona.reasoning,
+    })));
+
+    const systemPrompt = buildSystemPrompt(req.userRole, persona);
     const context: ToolContext = {
         userId: req.userId,
         userRole: req.userRole,

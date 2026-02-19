@@ -22,6 +22,7 @@ import { toolRegistry } from '../../services/ai/tools';
 import { ToolResult } from '../../services/ai/tools/types';
 import { getConfigManager } from '../../services/ai/config';
 import { getMockToolResult } from '../../services/ai/mock-tool-results';
+import { getAvailablePersonas } from '../../services/ai/PersonaRouter';
 import { logger } from '../../utils/logger';
 
 const router: IRouter = Router();
@@ -57,6 +58,17 @@ router.get('/health', async (req: Request, res: Response) => {
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
+});
+
+// ─── Virtual Team Personas ───
+
+/**
+ * GET /api/ai/personas
+ * List all available virtual team personas with metadata.
+ */
+router.get('/personas', (_req: Request, res: Response) => {
+  const personas = getAvailablePersonas();
+  return res.json({ data: personas });
 });
 
 // ─── Provider Configuration (In-Chat AI Picker) ───

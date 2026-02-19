@@ -11,6 +11,14 @@ export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 
 
 export type CardState = 'idle' | 'action_pending' | 'updated';
 
+/** Virtual team persona selected by the PersonaRouter */
+export interface PersonaInfo {
+    persona: string;
+    displayName: string;
+    confidence: number;
+    reasoning: string;
+}
+
 export interface ChatMessage {
     id: string;
     role: MessageRole;
@@ -33,6 +41,8 @@ export interface UseAICopilotReturn {
     messages: ChatMessage[];
     isStreaming: boolean;
     error: string | null;
+    /** Currently active persona for the latest query */
+    activePersona: PersonaInfo | null;
     sendMessage: (message: string) => void;
     confirmAction: (actionId: string, approved: boolean) => Promise<void>;
     clearMessages: () => void;
@@ -58,6 +68,7 @@ export function useAICopilot(): UseAICopilotReturn {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isStreaming, setIsStreaming] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activePersona, setActivePersona] = useState<PersonaInfo | null>(null);
     const sessionIdRef = useRef<string>(generateSessionId());
     const abortRef = useRef<AbortController | null>(null);
 
@@ -139,6 +150,17 @@ export function useAICopilot(): UseAICopilotReturn {
                         const event = JSON.parse(jsonStr);
 
                         switch (event.type) {
+                            case 'persona_selected': {
+                                const personaData = JSON.parse(event.data);
+                                setActivePersona({
+                                    persona: personaData.persona,
+                                    displayName: personaData.displayName,
+                                    confidence: personaData.confidence,
+                                    reasoning: personaData.reasoning,
+                                });
+                                break;
+                            }
+
                             case 'thinking':
                                 setMessages(prev => [...prev, {
                                     id: generateId(),
@@ -351,10 +373,11 @@ export function useAICopilot(): UseAICopilotReturn {
         setMessages([]);
         setError(null);
         setIsStreaming(false);
+        setActivePersona(null);
     }, []);
 
     return {
-        messages, isStreaming, error,
+        messages, isStreaming, error, activePersona,
         sendMessage, confirmAction, clearMessages,
         updateMessage, sendActionPrompt,
     };
