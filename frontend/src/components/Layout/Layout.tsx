@@ -32,9 +32,11 @@ import {
   LightMode as LightModeIcon,
   BugReport as BugReportIcon,
   AttachMoney as CostIcon,
+  Groups as TeamsIcon,
 } from '@mui/icons-material';
 import { useDesignMode } from '../../contexts/DesignModeContext';
 import AICopilot from '../AICopilot/AICopilot';
+import TeamSelector from '../TeamSelector/TeamSelector';
 
 const drawerWidth = 250; // Updated to match Grid
 
@@ -67,6 +69,7 @@ const navSections: NavSection[] = [
   {
     label: 'System',
     items: [
+      { text: 'Teams', icon: <TeamsIcon />, path: '/teams' },
       { text: 'Cost Tracker', icon: <CostIcon />, path: '/cost-tracker' },
       { text: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
       { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
@@ -143,6 +146,11 @@ export default function Layout() {
           </IconButton>
         )}
       </Box>
+
+      <Divider sx={{ mx: 2, opacity: 0.6 }} />
+
+      {/* Team Selector */}
+      <TeamSelector />
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 

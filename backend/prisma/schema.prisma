@@ -171,15 +171,17 @@ model Pipeline {
   status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
   config      String     // JSON stored as string
   description String?
-  // userId removed to match prod schema
+  teamId      String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   // Relations
   testRuns    TestRun[]
+  team        Team?      @relation(fields: [teamId], references: [id])
 
   @@index([type])
   @@index([status])
+  @@index([teamId])
 }
 
 // Failure pattern detection
@@ -310,4 +312,51 @@ model PendingAction {
   @@index([sessionId])
   @@index([userId])
   @@index([status])
+}
+
+// ─── Team Workspaces ───
+
+model Team {
+  id          String          @id @default(uuid())
+  name        String
+  slug        String          @unique
+  description String?
+  createdBy   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  members     TeamMember[]
+  pipelines   Pipeline[]
+  dashboards  DashboardConfig[]
+
+  @@index([slug])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid())
+  teamId   String
+  userId   String
+  role     String   @default("MEMBER") // OWNER | ADMIN | MEMBER | VIEWER
+  joinedAt DateTime @default(now())
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model DashboardConfig {
+  id        String   @id @default(uuid())
+  teamId    String?
+  userId    String
+  name      String
+  layout    String   // JSON widget config
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@index([userId])
 }
