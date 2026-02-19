@@ -33,6 +33,8 @@ import {
   Repeat as RepeatIcon
 } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader/PageHeader';
+import FailureTrendChart from '../components/FailureTrendChart/FailureTrendChart';
+import RiskScoreTable from '../components/RiskScoreTable/RiskScoreTable';
 
 interface FailureInsights {
   totalFailures: number;
@@ -176,6 +178,10 @@ export const FailureKnowledgeBase: React.FC = () => {
           </Grid>
         </Grid>
       )}
+
+      {/* Predictive Analysis */}
+      <FailureTrendChart />
+      <RiskScoreTable />
 
       {/* Most Common Failures */}
       {insights && insights.mostCommonFailures.length > 0 && (

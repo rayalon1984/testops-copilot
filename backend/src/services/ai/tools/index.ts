@@ -13,6 +13,7 @@ import { githubGetCommitTool, githubGetPRTool } from './github';
 import { confluenceSearchTool } from './confluence';
 import { jenkinsGetStatusTool } from './jenkins';
 import { dashboardMetricsTool } from './dashboard';
+import { failurePredictionsTool } from './predictions';
 
 // Phase 2: Write tools
 import { githubCreatePRTool } from './github-write';
@@ -28,6 +29,7 @@ const phase1Tools = [
     confluenceSearchTool,
     jenkinsGetStatusTool,
     dashboardMetricsTool,
+    failurePredictionsTool,
 ];
 
 // Register all Phase 2 tools
