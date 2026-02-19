@@ -41,8 +41,8 @@ async function main() {
             password
         });
 
-        console.log('Login Response Keys:', Object.keys(loginRes.data));
-        const token = loginRes.data.token || loginRes.data.accessToken;
+        console.log('Login Response Data:', JSON.stringify(loginRes.data, null, 2));
+        const token = loginRes.data.token || loginRes.data.accessToken || loginRes.data.data?.token;
 
         if (!token) {
             throw new Error('No token returned from login');

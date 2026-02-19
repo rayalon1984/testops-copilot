@@ -270,7 +270,7 @@ export default function Layout() {
         display: { xs: 'block', md: 'grid' }, /* Block on mobile, Grid on desktop */
         gridTemplateColumns: { md: '250px 1fr 400px' },
         /* Override class specific styles if needed via sx */
-        bgcolor: 'var(--bg-app)',
+        bgcolor: 'background.default',
         height: '100vh',
         overflow: 'hidden'
       }}
@@ -282,8 +282,9 @@ export default function Layout() {
         component="nav"
         sx={{
           display: { xs: 'none', md: 'block' },
-          borderRight: '1px solid var(--border-subtle)',
-          bgcolor: 'var(--bg-sidebar)',
+          borderRight: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
           height: '100%',
           overflow: 'hidden'
         }}
@@ -320,8 +321,9 @@ export default function Layout() {
           position="static"
           elevation={0}
           sx={{
-            bgcolor: 'transparent',
-            borderBottom: '1px solid var(--border-subtle)',
+            bgcolor: 'background.default', // match main content bg
+            borderBottom: 1,
+            borderColor: 'divider',
             color: 'text.primary'
           }}
         >

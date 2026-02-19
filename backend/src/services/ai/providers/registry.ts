@@ -72,15 +72,11 @@ class ProviderRegistry {
    * Create a provider from environment variables
    */
   createFromEnv(): BaseProvider {
-    // FORCE MOCK FOR TESTING
-    console.log('⚠️ FORCING MOCK PROVIDER ⚠️');
-    const config = this.getConfigFromEnv('mock', 'mock-model');
-    return this.getProvider('mock', config);
-    // const providerName = (process.env.AI_PROVIDER || 'anthropic') as AIProviderName;
-    // const model = process.env.AI_MODEL || this.getDefaultModel(providerName);
+    const providerName = (process.env.AI_PROVIDER || 'anthropic') as AIProviderName;
+    const model = process.env.AI_MODEL || this.getDefaultModel(providerName);
 
-    // const config = this.getConfigFromEnv(providerName, model);
-    // return this.getProvider(providerName, config);
+    const config = this.getConfigFromEnv(providerName, model);
+    return this.getProvider(providerName, config);
   }
 
   /**

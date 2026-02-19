@@ -39,10 +39,18 @@ function generateId(): string {
     return `msg-${Date.now()}-${++messageIdCounter}`;
 }
 
+function generateSessionId(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
 export function useAICopilot(): UseAICopilotReturn {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isStreaming, setIsStreaming] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const sessionIdRef = useRef<string>(generateSessionId());
     const abortRef = useRef<AbortController | null>(null);
 
     const sendMessage = useCallback(async (message: string) => {
@@ -77,7 +85,11 @@ export function useAICopilot(): UseAICopilotReturn {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ message, history }),
+                body: JSON.stringify({
+                    message,
+                    history,
+                    sessionId: sessionIdRef.current
+                }),
                 signal: controller.signal,
             });
 

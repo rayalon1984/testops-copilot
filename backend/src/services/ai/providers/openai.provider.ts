@@ -25,24 +25,19 @@ export class OpenAIProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Pricing for OpenAI models as of February 2026
-    // Check https://openai.com/pricing for latest pricing
-    // Note: Prices vary by model
+    // Pricing for OpenAI models
     const modelPricing: Record<string, ProviderPricing> = {
-      'gpt-4.1': {
-        inputTokenCostPer1k: 0.008,
-        outputTokenCostPer1k: 0.032,
-        embeddingCostPer1k: undefined,
+      'gpt-4o': {
+        inputTokenCostPer1k: 0.0025,
+        outputTokenCostPer1k: 0.01,
       },
-      'gpt-4.1-mini': {
-        inputTokenCostPer1k: 0.0004,
-        outputTokenCostPer1k: 0.0016,
-        embeddingCostPer1k: undefined,
+      'gpt-4o-mini': {
+        inputTokenCostPer1k: 0.00015,
+        outputTokenCostPer1k: 0.0006,
       },
-      'gpt-4.1-nano': {
-        inputTokenCostPer1k: 0.0001,
-        outputTokenCostPer1k: 0.0004,
-        embeddingCostPer1k: undefined,
+      'gpt-3.5-turbo': {
+        inputTokenCostPer1k: 0.0005,
+        outputTokenCostPer1k: 0.0015,
       },
       'text-embedding-3-small': {
         inputTokenCostPer1k: 0.00002,
@@ -56,16 +51,15 @@ export class OpenAIProvider extends BaseProvider {
       },
     };
 
-    return modelPricing[this.config.model] || modelPricing['gpt-4.1'];
+    return modelPricing[this.config.model] || modelPricing['gpt-4o'];
   }
 
   getLimits(): ProviderLimits {
-    // Limits vary by tier - these are for Tier 1
     return {
-      maxInputTokens: 1047576,     // ~1M for GPT-4.1
-      maxOutputTokens: 32768,
-      requestsPerMinute: 500,
-      tokensPerMinute: 30000,
+      maxInputTokens: 128000,
+      maxOutputTokens: 4096,
+      requestsPerMinute: 3500,
+      tokensPerMinute: 60000,
     };
   }
 
@@ -74,10 +68,25 @@ export class OpenAIProvider extends BaseProvider {
 
     try {
       // Convert messages to OpenAI format
-      const openaiMessages = messages.map(msg => ({
-        role: msg.role as 'system' | 'user' | 'assistant',
-        content: msg.content,
-      }));
+      const openaiMessages: any[] = messages.map(msg => {
+        const out: any = {
+          role: msg.role === 'tool' ? 'tool' : (msg.role as 'system' | 'user' | 'assistant'),
+          content: msg.content,
+        };
+        if (msg.toolCallId) out.tool_call_id = msg.toolCallId;
+        if (msg.name) out.name = msg.name;
+        if (msg.toolCalls) {
+          out.tool_calls = msg.toolCalls.map(tc => ({
+            id: tc.id,
+            type: 'function',
+            function: {
+              name: tc.name,
+              arguments: JSON.stringify(tc.arguments)
+            }
+          }));
+        }
+        return out;
+      });
 
       // Add system prompt if provided in options
       if (options?.systemPrompt && !messages.find(m => m.role === 'system')) {
@@ -87,10 +96,21 @@ export class OpenAIProvider extends BaseProvider {
         });
       }
 
+      // Format tools for OpenAI
+      const tools = options?.tools?.map(t => ({
+        type: 'function',
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: t.parameters
+        }
+      }));
+
       // Make API call
       const response = await this.client.chat.completions.create({
         model: this.config.model,
         messages: openaiMessages,
+        tools: tools && tools.length > 0 ? (tools as any) : undefined,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
         top_p: options?.topP,
@@ -102,6 +122,13 @@ export class OpenAIProvider extends BaseProvider {
         throw new Error('No response from OpenAI');
       }
 
+      // Parse tool calls if present
+      const toolCalls = (choice.message as any).tool_calls?.map((tc: any) => ({
+        id: tc.id,
+        name: tc.function.name,
+        arguments: JSON.parse(tc.function.arguments)
+      }));
+
       // Calculate costs
       const inputTokens = response.usage?.prompt_tokens || 0;
       const outputTokens = response.usage?.completion_tokens || 0;
@@ -109,6 +136,7 @@ export class OpenAIProvider extends BaseProvider {
 
       return {
         content: choice.message.content || '',
+        toolCalls,
         provider: this.getName(),
         model: this.config.model,
         usage: {

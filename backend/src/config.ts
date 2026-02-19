@@ -105,6 +105,11 @@ const envSchema = z.object({
   // Pushover
   PUSHOVER_USER_KEY: z.string().optional(),
   PUSHOVER_APP_TOKEN: z.string().optional(),
+
+  // AI
+  AI_PROVIDER: z.enum(['openai', 'anthropic', 'mock']).default('mock'),
+  AI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().optional(),
 });
 
 // Parse and validate environment variables
@@ -217,6 +222,11 @@ export interface Config {
       userKey: string;
       appToken: string;
     };
+  };
+  ai: {
+    provider: 'openai' | 'anthropic' | 'mock';
+    apiKey: string;
+    model: string;
   };
 }
 
@@ -340,5 +350,10 @@ export const config: Config = {
         appToken: env.PUSHOVER_APP_TOKEN,
       },
     }),
+  },
+  ai: {
+    provider: env.AI_PROVIDER as 'openai' | 'anthropic' | 'mock',
+    apiKey: env.AI_API_KEY || 'demo-key',
+    model: env.AI_MODEL || 'gpt-4o',
   },
 };

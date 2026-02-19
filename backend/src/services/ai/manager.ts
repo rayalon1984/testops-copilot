@@ -83,10 +83,10 @@ export class AIManager {
       console.log('✅ Cost tracker initialized');
 
       // Initialize AI provider
-      // this.provider = createProviderFromEnv();
-      this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
+      this.provider = createProviderFromEnv();
+      // this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
       this.contextEnrichment.setProvider(this.provider);
-      console.log(`✅ AI provider initialized: ${this.provider.getName()} (FORCED)`);
+      console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
 
       // Initialize categorization service (always available)
       if (this.configManager.isFeatureEnabled('categorization')) {

@@ -132,6 +132,18 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         sessionId: req.sessionId || 'anonymous',
     };
 
+    // Ensure session exists in DB to satisfy foreign key constraints for PendingAction/Messages
+    if (req.sessionId && req.sessionId !== 'anonymous') {
+        try {
+            await chatSessionService.ensureSession(req.sessionId, req.userId);
+            logger.info(`[AIChatService] Ensured session ${req.sessionId} exists for user ${req.userId}`);
+        } catch (error) {
+            logger.error(`[AIChatService] Failed to ensure session ${req.sessionId}:`, error);
+            // Continue anyway? If session creation failed, pending actions will fail too.
+            // But maybe valid for pure chat?
+        }
+    }
+
     // Build conversation history
     const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },

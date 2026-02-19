@@ -90,7 +90,10 @@ export class AuthController {
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
+    console.log('[DEBUG] AuthController: comparing password');
     const isValidPassword = await bcrypt.compare(data.password, user.password);
+    console.log('[DEBUG] AuthController: password valid', isValidPassword);
+
     if (!isValidPassword) {
       void auditService.log(
         'AUTH_LOGIN_FAILURE',
@@ -103,23 +106,32 @@ export class AuthController {
       throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    void auditService.log(
-      'AUTH_LOGIN_SUCCESS',
-      'User',
-      user.id,
-      user.id,
-      { email: user.email },
-      context
-    );
+    console.log('[DEBUG] AuthController: logging audit');
+    try {
+      await auditService.log(
+        'AUTH_LOGIN_SUCCESS',
+        'User',
+        user.id,
+        user.id,
+        { email: user.email },
+        context
+      );
+    } catch (e) {
+      console.error('[DEBUG] Audit log failed', e);
+    }
 
     const tokenPayload: TokenPayload = {
       userId: user.id,
       role: user.role as UserRole
     };
 
+    console.log('[DEBUG] AuthController: generating tokens');
+    const tokens = JwtService.generateTokenPair(tokenPayload);
+    console.log('[DEBUG] AuthController: tokens generated');
+
     return {
       user: this.mapUserToResponse(user),
-      ...JwtService.generateTokenPair(tokenPayload)
+      ...tokens
     };
   }
 

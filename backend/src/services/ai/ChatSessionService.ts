@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 
 export interface CreateSessionInput {
+    id?: string;
     userId: string;
     title?: string;
 }
@@ -28,6 +29,7 @@ export interface SessionSummary {
     messageCount: number;
 }
 
+
 /**
  * Create a new chat session for a user.
  */
@@ -35,6 +37,7 @@ export async function createSession(input: CreateSessionInput) {
     try {
         const session = await prisma.chatSession.create({
             data: {
+                id: input.id, // Optional: use provided ID or generate new
                 userId: input.userId,
                 title: input.title || 'New Chat',
             },
@@ -46,6 +49,26 @@ export async function createSession(input: CreateSessionInput) {
         throw error;
     }
 }
+
+/**
+ * Ensure a session exists (create if missing).
+ */
+export async function ensureSession(sessionId: string, userId: string) {
+    const existing = await prisma.chatSession.findUnique({
+        where: { id: sessionId },
+    });
+
+    if (existing) {
+        return existing;
+    }
+
+    return createSession({
+        id: sessionId,
+        userId,
+        title: 'New Chat',
+    });
+}
+
 
 /**
  * Get all sessions for a user (newest first), with message count.
