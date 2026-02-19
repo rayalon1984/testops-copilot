@@ -1,6 +1,11 @@
-import { tokenBlacklist } from '../tokenBlacklist.service';
+// Mock Redis before importing the service (Redis import triggers config Zod validation)
+jest.mock('@/lib/redis', () => ({
+  redis: {
+    set: jest.fn().mockRejectedValue(new Error('Redis unavailable')),
+    exists: jest.fn().mockRejectedValue(new Error('Redis unavailable')),
+  },
+}));
 
-// Mock the logger to prevent console output during tests
 jest.mock('@/utils/logger', () => ({
   logger: {
     debug: jest.fn(),
@@ -10,21 +15,20 @@ jest.mock('@/utils/logger', () => ({
   },
 }));
 
+import { tokenBlacklist } from '../tokenBlacklist.service';
+
 describe('TokenBlacklistService', () => {
   afterAll(() => {
-    // Clean up the interval timer to prevent open handles
     tokenBlacklist.destroy();
   });
 
   beforeEach(() => {
-    // Reset the internal blacklist state between tests by destroying and
-    // relying on the exported singleton. We access the private map via
-    // bracket notation for test purposes.
-    (tokenBlacklist as any).blacklist.clear();
+    // Clear the in-memory fallback between tests
+    (tokenBlacklist as any).fallback.clear();
   });
 
-  describe('add', () => {
-    it('should add a token to the blacklist', async () => {
+  describe('add (fallback mode)', () => {
+    it('should add a token to the fallback blacklist when Redis is unavailable', async () => {
       await tokenBlacklist.add('test-token-1', 60000);
 
       const isBlacklisted = await tokenBlacklist.isBlacklisted('test-token-1');
@@ -47,75 +51,54 @@ describe('TokenBlacklistService', () => {
     });
 
     it('should return true for a token that has been added and is not expired', async () => {
-      await tokenBlacklist.add('active-token', 300000); // 5 minutes
-
+      await tokenBlacklist.add('active-token', 300000);
       const result = await tokenBlacklist.isBlacklisted('active-token');
       expect(result).toBe(true);
     });
 
     it('should return false for a token whose blacklist entry has expired', async () => {
-      // Add a token that expired 1 second ago (negative TTL effectively)
-      // We manipulate the internal map directly for this edge case
-      (tokenBlacklist as any).blacklist.set('expired-token', Date.now() - 1000);
+      (tokenBlacklist as any).fallback.set('expired-token', Date.now() - 1000);
 
       const result = await tokenBlacklist.isBlacklisted('expired-token');
       expect(result).toBe(false);
     });
 
-    it('should remove an expired token from the blacklist on access', async () => {
-      (tokenBlacklist as any).blacklist.set('expired-token-2', Date.now() - 1000);
+    it('should remove an expired token from the fallback on access', async () => {
+      (tokenBlacklist as any).fallback.set('expired-token-2', Date.now() - 1000);
 
-      // First call should detect expiry and remove it
       await tokenBlacklist.isBlacklisted('expired-token-2');
 
-      // Verify it was removed from the internal map
-      expect((tokenBlacklist as any).blacklist.has('expired-token-2')).toBe(false);
+      expect((tokenBlacklist as any).fallback.has('expired-token-2')).toBe(false);
     });
   });
 
-  describe('cleanup', () => {
-    it('should remove expired tokens during cleanup', () => {
-      const now = Date.now();
+  describe('Redis integration', () => {
+    it('should try Redis first, then fall back to in-memory', async () => {
+      const { redis } = require('@/lib/redis');
 
-      // Add expired tokens directly to the internal map
-      (tokenBlacklist as any).blacklist.set('expired-1', now - 5000);
-      (tokenBlacklist as any).blacklist.set('expired-2', now - 10000);
-      // Add a valid token
-      (tokenBlacklist as any).blacklist.set('valid-1', now + 60000);
+      await tokenBlacklist.add('redis-test', 60000);
 
-      // Call the private cleanup method
-      (tokenBlacklist as any).cleanup();
+      // Redis was called (even though it failed)
+      expect(redis.set).toHaveBeenCalled();
 
-      // Expired tokens should be removed
-      expect((tokenBlacklist as any).blacklist.has('expired-1')).toBe(false);
-      expect((tokenBlacklist as any).blacklist.has('expired-2')).toBe(false);
-      // Valid token should still exist
-      expect((tokenBlacklist as any).blacklist.has('valid-1')).toBe(true);
+      // Token was still stored in fallback
+      expect(await tokenBlacklist.isBlacklisted('redis-test')).toBe(true);
     });
 
-    it('should not remove tokens that have not yet expired', () => {
-      const now = Date.now();
+    it('should use Redis exists when available', async () => {
+      const { redis } = require('@/lib/redis');
 
-      (tokenBlacklist as any).blacklist.set('future-token', now + 300000);
+      // Make Redis return that the key exists
+      (redis.exists as jest.Mock).mockResolvedValueOnce(1);
 
-      (tokenBlacklist as any).cleanup();
-
-      expect((tokenBlacklist as any).blacklist.has('future-token')).toBe(true);
-    });
-
-    it('should handle an empty blacklist without errors', () => {
-      (tokenBlacklist as any).blacklist.clear();
-
-      expect(() => {
-        (tokenBlacklist as any).cleanup();
-      }).not.toThrow();
+      const result = await tokenBlacklist.isBlacklisted('redis-token');
+      expect(result).toBe(true);
+      expect(redis.exists).toHaveBeenCalledWith('token:blacklist:redis-token');
     });
   });
 
   describe('destroy', () => {
-    it('should clear the cleanup interval without throwing', () => {
-      // Create a separate instance to test destroy without affecting the singleton
-      // We just ensure calling destroy does not throw
+    it('should not throw when called', () => {
       expect(() => {
         tokenBlacklist.destroy();
       }).not.toThrow();

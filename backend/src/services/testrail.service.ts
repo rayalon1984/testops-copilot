@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
+import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 
 // TestRail API Types
 export interface TestRailConfig {
@@ -73,6 +74,8 @@ export class TestRailService {
     }
 
     try {
+      validateUrlForSSRF(config.testrail.baseUrl);
+
       const auth = Buffer.from(`${config.testrail.username}:${config.testrail.apiKey}`).toString('base64');
 
       this.client = axios.create({

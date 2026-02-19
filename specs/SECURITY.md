@@ -217,8 +217,8 @@ LLM proposes write tool → PendingAction created (DB) → SSE notification → 
 
 | Gap | Severity | Status | Mitigation |
 |-----|----------|--------|------------|
-| Token blacklist in-memory | Medium | Known | Migrate to Redis TTL set |
-| No SSRF validation on external URLs | Medium | Known | Add private-IP blocklist + protocol/port validation |
+| Token blacklist in-memory | Medium | **Resolved** | Migrated to Redis with TTL; in-memory fallback when Redis unavailable |
+| No SSRF validation on external URLs | Medium | **Resolved** | Shared `validateUrlForSSRF()` in `utils/ssrf-validator.ts`; applied to Jenkins, Confluence, TestRail, Monday.com |
 | Single CORS origin | Low | Known | Multi-origin config |
 | No 2FA | Medium | Planned v3.0 | TOTP / WebAuthn |
 | No secret rotation mechanism | Low | Planned | Add rotation API + expiry tracking |

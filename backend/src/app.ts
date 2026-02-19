@@ -98,6 +98,10 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Response time recording for Prometheus p95/p99 metrics
+import { recordResponseTime } from './middleware/responseTime';
+app.use(recordResponseTime);
+
 // Health check endpoint (no sensitive system info)
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({

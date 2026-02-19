@@ -2,7 +2,7 @@
 
 ## [2.9.0-rc.1] - 2026-02-19
 
-> **Agentic AI Copilot (Backend Complete)** — The full agentic backend is in place: ReAct reasoning loop, 13 tools, confirmation gates, and test intelligence. UI polish (Phase B) pending.
+> **Agentic AI Copilot** — Full agentic backend + 3-column Mission Control UI + consolidated AI config + production hardening.
 
 ---
 
@@ -40,6 +40,28 @@
 - Updated ROADMAP.md to reflect shipped vs. planned status accurately
 - Wired cost tracker budget alerts to existing email notification service
 - Implemented "Clear All" notification functionality in frontend
+
+---
+
+### Production Hardening
+
+**Token Blacklist → Redis** — JWT revocation list migrated from in-memory Map to Redis with automatic TTL expiration. Falls back to in-memory when Redis is unavailable.
+
+**SSRF Validation** — Shared `validateUrlForSSRF()` utility blocks requests to private/internal networks (localhost, RFC 1918, link-local, IPv6 ULA). Applied to Jenkins, Confluence, TestRail, and Monday.com service constructors. Jenkins' existing protection refactored to use the shared utility.
+
+**Notification Persistence** — Replaced 18 hardcoded mock notifications with real Prisma database queries. GET, PATCH (mark read), and DELETE endpoints now operate on the Notification table.
+
+**Performance Monitoring** — Added HTTP response time tracking middleware with circular buffer for p50/p95/p99 computation. AI cache hit/miss rates now exported to Prometheus. New metrics: `testops_http_request_duration_p95_seconds`, `testops_ai_cache_hits_total`, `testops_ai_cache_hit_rate`.
+
+---
+
+### AI Config Consolidation
+
+- All AI environment variables (25+) now load through a single `AIConfigManager`
+- Provider settings (maxTokens, temperature, timeout), API keys, and vector DB config centralized
+- `createProviderFromConfig()` replaces direct env var reads in provider registry
+- Cache and vector client singletons now read config from AIConfigManager
+- `.env.example` updated with all AI env vars organized by section
 
 ---
 
