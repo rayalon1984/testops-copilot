@@ -15,10 +15,15 @@ import { jenkinsGetStatusTool } from './jenkins';
 import { dashboardMetricsTool } from './dashboard';
 import { failurePredictionsTool } from './predictions';
 
-// Phase 2: Write tools
+// Phase 2: Write tools (require confirmation)
 import { githubCreatePRTool } from './github-write';
 import { githubCreateBranchTool, githubUpdateFileTool } from './github-advanced-write';
 import { jiraCreateIssueTool, jiraTransitionIssueTool, jiraCommentTool } from './jira-write';
+
+// Phase 3: Action-gap tools (require confirmation)
+import { jenkinsTriggerBuildTool } from './jenkins-write';
+import { testrunCancelTool, testrunRetryTool } from './testrun';
+import { githubRerunWorkflowTool } from './github-workflow';
 
 // Register all Phase 1 tools
 const phase1Tools = [
@@ -42,8 +47,17 @@ const phase2Tools = [
     jiraCommentTool,
 ];
 
-[...phase1Tools, ...phase2Tools].forEach(tool => toolRegistry.register(tool));
+// Register all Phase 3 tools
+const phase3Tools = [
+    jenkinsTriggerBuildTool,
+    testrunCancelTool,
+    testrunRetryTool,
+    githubRerunWorkflowTool,
+];
+
+[...phase1Tools, ...phase2Tools, ...phase3Tools].forEach(tool => toolRegistry.register(tool));
 
 // Re-export for convenience
 export { toolRegistry } from './registry';
 export type { Tool, ToolResult, ToolContext, ToolSchema, SSEEvent, SSEEventType } from './types';
+export { hasRequiredRole, ROLE_HIERARCHY } from './types';

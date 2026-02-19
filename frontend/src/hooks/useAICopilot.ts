@@ -119,6 +119,7 @@ export function useAICopilot(): UseAICopilotReturn {
             const decoder = new TextDecoder();
             let buffer = '';
             let currentAssistantId: string | null = null;
+            let streamingContent = ''; // Accumulates answer_chunk data
 
             // eslint-disable-next-line
             while (true) {
@@ -198,14 +199,47 @@ export function useAICopilot(): UseAICopilotReturn {
                                 break;
                             }
 
+                            case 'answer_chunk': {
+                                // Typewriter streaming: append chunk to current assistant message
+                                streamingContent += event.data;
+                                if (!currentAssistantId) {
+                                    currentAssistantId = generateId();
+                                    const id = currentAssistantId;
+                                    setMessages(prev => [...prev, {
+                                        id,
+                                        role: 'assistant',
+                                        content: streamingContent,
+                                        timestamp: new Date(),
+                                    }]);
+                                } else {
+                                    const id = currentAssistantId;
+                                    const content = streamingContent;
+                                    setMessages(prev => prev.map(msg =>
+                                        msg.id === id ? { ...msg, content } : msg
+                                    ));
+                                }
+                                break;
+                            }
+
                             case 'answer':
-                                currentAssistantId = generateId();
-                                setMessages(prev => [...prev, {
-                                    id: currentAssistantId!,
-                                    role: 'assistant',
-                                    content: event.data,
-                                    timestamp: new Date(),
-                                }]);
+                                // Final complete answer — update or create the message
+                                if (currentAssistantId) {
+                                    const id = currentAssistantId;
+                                    setMessages(prev => prev.map(msg =>
+                                        msg.id === id ? { ...msg, content: event.data } : msg
+                                    ));
+                                } else {
+                                    currentAssistantId = generateId();
+                                    setMessages(prev => [...prev, {
+                                        id: currentAssistantId!,
+                                        role: 'assistant',
+                                        content: event.data,
+                                        timestamp: new Date(),
+                                    }]);
+                                }
+                                // Reset streaming state for next answer
+                                streamingContent = '';
+                                currentAssistantId = null;
                                 break;
 
                             case 'error':

@@ -13,9 +13,14 @@ import { getAIManager } from './manager';
 import { toolRegistry } from './tools';
 import * as confirmationService from './ConfirmationService';
 import * as chatSessionService from './ChatSessionService';
-import { SSEEvent, SSEEventType, ToolContext } from './tools/types';
+import { SSEEvent, SSEEventType, ToolContext, hasRequiredRole } from './tools/types';
 import { ChatMessage } from './types';
 import { logger } from '@/utils/logger';
+
+/** Chunk size for token-by-token answer streaming (characters) */
+const STREAM_CHUNK_SIZE = 12;
+/** Delay between chunks in ms for typewriter effect */
+const STREAM_CHUNK_DELAY = 30;
 
 /** Configuration for a single chat request */
 export interface ChatRequest {
@@ -105,6 +110,27 @@ function createEvent(type: SSEEventType, data: string, tool?: string): SSEEvent 
         data,
         timestamp: new Date().toISOString(),
     };
+}
+
+/**
+ * Stream an answer in chunks for a typewriter effect.
+ * Splits the text into small chunks and sends each as an 'answer_chunk' event,
+ * finishing with a full 'answer' event for clients that don't support streaming.
+ */
+async function streamAnswer(res: Response, text: string): Promise<void> {
+    const chunks: string[] = [];
+    for (let i = 0; i < text.length; i += STREAM_CHUNK_SIZE) {
+        chunks.push(text.slice(i, i + STREAM_CHUNK_SIZE));
+    }
+
+    for (const chunk of chunks) {
+        if (res.writableEnded) return;
+        sendSSE(res, createEvent('answer_chunk' as SSEEventType, chunk));
+        await new Promise(resolve => setTimeout(resolve, STREAM_CHUNK_DELAY));
+    }
+
+    // Send final complete answer for clients that buffer
+    sendSSE(res, createEvent('answer', text));
 }
 
 /**
@@ -200,7 +226,9 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
             // No tool call → this is the final answer
             // Strip any ```tool_call blocks that might be malformed (legacy cleanup)
             const cleanAnswer = responseText.replace(/```tool_call[\s\S]*?```/g, '').trim();
-            sendSSE(res, createEvent('answer', cleanAnswer));
+
+            // Stream answer in chunks for typewriter effect
+            await streamAnswer(res, cleanAnswer);
             sendSSE(res, createEvent('done', ''));
 
             // Add assistant message to history for persistence
@@ -236,6 +264,23 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                     toolCallId: toolCall.id,
                     name: toolCall.name,
                     content: `Error: Tool "${toolCall.name}" does not exist.`
+                });
+                continue;
+            }
+
+            // Role enforcement: check if user has sufficient privileges
+            if (tool.requiredRole && !hasRequiredRole(req.userRole, tool.requiredRole)) {
+                const msg = `Access denied: tool "${tool.name}" requires ${tool.requiredRole} role or higher. Your role: ${req.userRole}.`;
+                logger.warn(`[AIChatService] ${msg}`);
+                sendSSE(res, createEvent('tool_result', JSON.stringify({
+                    summary: msg,
+                    data: null,
+                }), tool.name));
+                messages.push({
+                    role: 'tool',
+                    toolCallId: toolCall.id,
+                    name: tool.name,
+                    content: msg,
                 });
                 continue;
             }

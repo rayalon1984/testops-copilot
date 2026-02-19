@@ -349,6 +349,34 @@ export class GitHubService {
   }
 
   /**
+   * Re-run a GitHub Actions workflow by dispatching a new workflow run.
+   */
+  async rerunWorkflow(
+    owner: string,
+    repo: string,
+    workflowId: string,
+    branch: string = 'main'
+  ): Promise<void> {
+    try {
+      const response = await this.octokit.actions.createWorkflowDispatch({
+        owner,
+        repo,
+        workflow_id: workflowId,
+        ref: branch,
+      });
+
+      if (response.status !== 204) {
+        throw new Error(`Unexpected status ${response.status} from workflow dispatch`);
+      }
+
+      logger.info(`[GitHubService] Dispatched workflow ${workflowId} on ${owner}/${repo} (${branch})`);
+    } catch (error) {
+      logger.error(`Failed to rerun workflow ${workflowId}:`, error);
+      throw new Error(`Failed to dispatch workflow ${workflowId}`);
+    }
+  }
+
+  /**
    * Check if GitHub is configured with a valid token
    */
   isEnabled(): boolean {
