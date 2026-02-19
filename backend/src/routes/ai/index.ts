@@ -7,7 +7,8 @@
 
 import { Router, Request, Response, IRouter } from 'express';
 import { getAIManager } from '../../services/ai';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, authorize } from '../../middleware/auth';
+import { UserRole } from '../../constants';
 import { TestFailure } from '../../services/ai/types';
 import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
@@ -16,6 +17,7 @@ import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
 import { handleChatStream } from '../../services/ai/AIChatService';
 import * as chatSession from '../../services/ai/ChatSessionService';
 import * as confirmation from '../../services/ai/ConfirmationService';
+import * as providerConfig from '../../services/ai/provider-config.service';
 import { toolRegistry } from '../../services/ai/tools';
 import { ToolResult } from '../../services/ai/tools/types';
 import { logger } from '../../utils/logger';
@@ -50,6 +52,100 @@ router.get('/health', async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(500).json({
       error: 'Health check failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// ─── Provider Configuration (In-Chat AI Picker) ───
+
+/**
+ * GET /api/ai/config
+ * Return current provider configuration (no secrets).
+ */
+router.get('/config', async (_req: Request, res: Response) => {
+  try {
+    const config = await providerConfig.getProviderConfig();
+    return res.json({
+      data: config,
+      providers: providerConfig.PROVIDER_MODELS,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Failed to get provider config',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * PUT /api/ai/config
+ * Update provider configuration. ADMIN only.
+ */
+router.put('/config', authorize(UserRole.ADMIN), async (req: Request, res: Response) => {
+  try {
+    const { provider, model, apiKey, extraConfig } = req.body;
+
+    if (!provider || !model) {
+      return res.status(400).json({ error: 'provider and model are required' });
+    }
+
+    const validProviders = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
+    if (!validProviders.includes(provider)) {
+      return res.status(400).json({ error: `Invalid provider. Must be one of: ${validProviders.join(', ')}` });
+    }
+
+    if (provider !== 'mock' && !apiKey) {
+      // Check if there's already a stored key
+      const existing = await providerConfig.getProviderConfig();
+      if (!existing.hasApiKey) {
+        return res.status(400).json({ error: 'API key is required for non-mock providers' });
+      }
+    }
+
+    const user = (req as any).user || {};
+    const result = await providerConfig.updateProviderConfig(
+      { provider, model, apiKey, extraConfig },
+      user.id || 'unknown',
+    );
+
+    return res.json({ data: result });
+  } catch (error) {
+    logger.error('[AI Config] Update failed:', error);
+    return res.status(500).json({
+      error: 'Failed to update provider config',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /api/ai/config/test
+ * Test a provider connection without saving.
+ */
+router.post('/config/test', async (req: Request, res: Response) => {
+  try {
+    const { provider, model, apiKey, extraConfig } = req.body;
+
+    if (!provider || !model) {
+      return res.status(400).json({ error: 'provider and model are required' });
+    }
+
+    if (provider !== 'mock' && !apiKey) {
+      return res.status(400).json({ error: 'apiKey is required for connection test' });
+    }
+
+    const result = await providerConfig.testProviderConnection(
+      provider,
+      model,
+      apiKey || 'mock-key',
+      extraConfig,
+    );
+
+    return res.json({ data: result });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Connection test failed',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }

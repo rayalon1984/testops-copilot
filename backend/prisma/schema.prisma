@@ -314,6 +314,19 @@ model PendingAction {
   @@index([status])
 }
 
+// ─── In-App AI Provider Configuration ───
+
+model AIProviderConfig {
+  id          String   @id @default("singleton")
+  provider    String   @default("mock") // anthropic | openai | google | azure | openrouter | mock
+  model       String   @default("mock-model")
+  apiKey      String?  // AES-256-GCM encrypted
+  extraConfig String?  // JSON: azure endpoint, openrouter app name, etc.
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
 // ─── Team Workspaces ───
 
 model Team {

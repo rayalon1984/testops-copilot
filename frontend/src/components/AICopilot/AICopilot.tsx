@@ -41,6 +41,7 @@ import GenericResultCard from './cards/GenericResultCard';
 import ChatInput from './ChatInput';
 import EmptyState from './EmptyState';
 import MessageActions from './MessageActions';
+import ProviderPicker from './ProviderPicker';
 
 function useUserRole(): string {
     const { user } = useAuth();
@@ -179,6 +180,7 @@ export default function AICopilot() {
                     <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <ProviderPicker />
                     {isStreaming && (
                         <ThinkingIndicator text="typing" />
                     )}
