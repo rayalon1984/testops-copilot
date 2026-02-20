@@ -33,15 +33,33 @@ You are the default implementation persona. You own feature delivery, refactors,
 
 | Pattern | Location | Rule |
 |---------|----------|------|
-| Route → Controller → Service → Model | `backend/src/` | Never put business logic in controllers |
+| Route → Controller → Service → Prisma | `backend/src/` | **Controllers are thin HTTP adapters — no Prisma imports, no business logic** |
+| Service owns domain logic | `backend/src/services/` | All Prisma queries, calculations, and transforms live in services |
 | Zod validation | `backend/src/validation/` | Validate all request bodies before controller |
 | asyncHandler wrapper | `backend/src/middleware/` | All async routes must use `asyncHandler` |
 | React Query for data | `frontend/src/` | Never use raw `fetch` — always React Query hooks |
 | Zustand for global state | `frontend/src/` | Minimal stores — prefer React Query cache |
 
+### Thin Controller Rule (Sprint 7 Convention)
+
+Controllers MUST NOT:
+- Import `prisma` or any ORM client directly
+- Contain business logic (calculations, transforms, conditional workflows)
+- Format or reshape data beyond setting HTTP status codes
+
+Controllers MUST:
+- Validate/extract HTTP params and delegate to a service
+- Return the service result as-is
+- Handle only HTTP concerns (status codes, headers)
+
+> **Rationale**: Adopted from the emhub stability analysis. Fat controllers that mixed
+> Prisma queries with business logic made unit testing difficult and scattered domain
+> code across horizontal layers. Extraction to services resolved this.
+
 ### File Conventions
 - Backend services: `backend/src/services/{domain}.service.ts`
 - Backend routes: `backend/src/routes/{domain}.routes.ts`
+- Backend route sub-modules: `backend/src/routes/{domain}/{sub}.ts` (composed via index)
 - Frontend pages: `frontend/src/pages/{PageName}.tsx`
 - Frontend components: `frontend/src/components/{ComponentName}.tsx`
 
@@ -64,7 +82,8 @@ loosely-typed definitions. When accessing deeply nested fields from external pay
 - [ ] Lint clean (`npm run lint`)
 - [ ] No credentials or secrets in code
 - [ ] New API endpoints documented in `specs/API_CONTRACT.md`
-- [ ] New services follow Controller → Service → Model pattern
+- [ ] Controllers are thin — no `prisma` imports, no business logic
+- [ ] New services follow Route → Controller → Service → Prisma pattern
 - [ ] Schema changes propagated to all three `.prisma` files (see `DATA_ENGINEER.md`)
 
 ---
