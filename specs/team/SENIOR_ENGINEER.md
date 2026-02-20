@@ -52,7 +52,7 @@ Controllers MUST:
 - Return the service result as-is
 - Handle only HTTP concerns (status codes, headers)
 
-> **Rationale**: Adopted from the emhub stability analysis. Fat controllers that mixed
+> **Rationale**: Identified during the Sprint 6 stability analysis. Fat controllers that mixed
 > Prisma queries with business logic made unit testing difficult and scattered domain
 > code across horizontal layers. Extraction to services resolved this.
 

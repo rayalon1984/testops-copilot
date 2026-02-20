@@ -7,7 +7,7 @@
 
 ## Shipped
 
-### v2.9.0-rc.6 — Sprint 8 Emhub Patterns: AI Provider + Seeding (February 2026)
+### v2.9.0-rc.6 — Sprint 8: Global AI Context + High-Fidelity Seeding (February 2026)
 - [x] Global AIProvider React Context (page + entity awareness for AI Copilot)
 - [x] usePageContext hook — 7 pages report context (Dashboard, Pipelines, Test Runs, Failures, Cost)
 - [x] Context injection into AI chat requests (uiContext field)

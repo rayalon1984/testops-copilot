@@ -2,11 +2,11 @@
 
 ## [2.9.0-rc.6] - 2026-02-20
 
-> **Sprint 8 — Emhub Patterns: AI Provider Context + High-Fidelity Seeding**
+> **Sprint 8 — Global AI Context + High-Fidelity Seeding**
 
 ---
 
-### Pervasive AI Provider (Pattern 2 — emhub port)
+### Pervasive AI Provider Context
 
 **AIContext** — Global React Context wrapping the entire application. Every page reports its current context (page type, focused entity with ID/label/metadata) so the AI Copilot always knows what the user is viewing.
 
@@ -16,7 +16,7 @@
 
 ---
 
-### High-Fidelity Database Seeding (Pattern 3 — emhub port)
+### High-Fidelity Database Seeding
 
 **seed.dev.ts** — Complete TypeScript rewrite of seed.dev.js using `@faker-js/faker`. Covers **all 20 models** in the Prisma schema:
 
@@ -126,7 +126,7 @@ All 4 tools include mock results for demo mode.
 
 ---
 
-### Backend Stability Refactor (emhub Pattern Adoption)
+### Backend Stability Refactor (Thin Controller Pattern)
 
 **Fat controller extraction** — 4 controllers refactored from fat (Prisma + business logic) to thin HTTP adapters. All business logic and data access moved to dedicated services:
 

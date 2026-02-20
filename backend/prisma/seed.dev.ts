@@ -7,7 +7,7 @@
  * Usage:  npx ts-node prisma/seed.dev.ts
  *         (or via npm run dev:simple:seed after updating package.json)
  *
- * Pattern ported from emhub's thick seed.ts approach.
+ * Uses a comprehensive seeding approach with Faker for realistic demo data.
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
