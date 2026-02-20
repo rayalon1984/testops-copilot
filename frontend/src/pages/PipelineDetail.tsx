@@ -34,6 +34,7 @@ import {
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
 
+import { api } from '../api';
 import type { ApiSchemas } from '../api';
 type Pipeline = ApiSchemas['Pipeline'];
 type TestRun = ApiSchemas['TestRun'];
@@ -49,48 +50,18 @@ export default function PipelineDetail() {
   // Fetch pipeline details
   const { data: pipeline, isLoading: isPipelineLoading } = useQuery<Pipeline>({
     queryKey: ['pipeline', id],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/pipelines/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch pipeline');
-      return response.json();
-    },
+    queryFn: () => api.get<Pipeline>(`/pipelines/${id}`),
   });
 
   // Fetch recent test runs
   const { data: testRuns, isLoading: isTestRunsLoading} = useQuery<TestRun[]>({
     queryKey: ['pipeline', id, 'test-runs'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/pipelines/${id}/test-runs`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch test runs');
-      return response.json();
-    },
+    queryFn: () => api.get<TestRun[]>(`/pipelines/${id}/test-runs`),
   });
 
   // Update pipeline mutation
   const updatePipeline = useMutation({
-    mutationFn: async (data: Partial<Pipeline>) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/pipelines/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update pipeline');
-      return response.json();
-    },
+    mutationFn: (data: Partial<Pipeline>) => api.put<Pipeline>(`/pipelines/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipeline', id] });
       setOpenEditDialog(false);
@@ -102,16 +73,7 @@ export default function PipelineDetail() {
 
   // Delete pipeline mutation
   const deletePipeline = useMutation({
-    mutationFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/pipelines/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to delete pipeline');
-    },
+    mutationFn: () => api.delete(`/pipelines/${id}`),
     onSuccess: () => {
       navigate('/pipelines');
     },

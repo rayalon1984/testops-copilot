@@ -15,13 +15,10 @@ import {
   Edit as EditIcon,
   Comment as CommentIcon,
 } from '@mui/icons-material';
+import { api } from '../../api';
+import type { ApiSchemas } from '../../api';
 
-interface ActivityItem {
-  type: 'revision' | 'comment' | 'status_change';
-  timestamp: string;
-  userId: string;
-  content: string;
-}
+type ActivityItem = ApiSchemas['ActivityFeedItem'];
 
 interface FailureActivityFeedProps {
   failureId: string;
@@ -40,11 +37,7 @@ const FailureActivityFeed: React.FC<FailureActivityFeedProps> = ({ failureId }) 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const res = await fetch(`/api/v1/failure-archive/${failureId}/activity?limit=30`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
+        const json = await api.get<{ success: boolean; data: ActivityItem[] }>(`/failure-archive/${failureId}/activity?limit=30`);
         if (json.success) {
           setFeed(json.data);
         }

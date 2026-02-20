@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../api';
 
 interface Notification {
   id: string;
@@ -40,31 +41,13 @@ export default function NotificationBadge() {
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['notifications', 'unread'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/notifications/unread', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch notifications');
-      return response.json();
-    },
+    queryFn: () => api.get<Notification[]>('/notifications/unread'),
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Mark notification as read mutation
   const markAsRead = useMutation({
-    mutationFn: async (id: string) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to mark notification as read');
-    },
+    mutationFn: (id: string) => api.patch(`/notifications/${id}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -72,16 +55,7 @@ export default function NotificationBadge() {
 
   // Mark all as read mutation
   const markAllAsRead = useMutation({
-    mutationFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/notifications/mark-all-read', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to mark all notifications as read');
-    },
+    mutationFn: () => api.post('/notifications/mark-all-read'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       handleClose();
