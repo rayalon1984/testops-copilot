@@ -60,14 +60,17 @@ export const jiraSearchTool: Tool = {
             }
 
             // JiraIssueResponse has data nested under .fields
-            const formatted = issues.map(issue => ({
-                key: issue.key,
-                summary: issue.fields.summary,
-                status: issue.fields.status?.name || 'Unknown',
-                type: issue.fields.issuetype?.name || 'Unknown',
-                labels: issue.fields.labels || [],
-                assignee: issue.fields.assignee?.displayName || 'Unassigned',
-            }));
+            const formatted = issues.map(issue => {
+                const assignee = issue.fields.assignee as { displayName?: string } | null | undefined;
+                return {
+                    key: issue.key,
+                    summary: issue.fields.summary,
+                    status: issue.fields.status?.name || 'Unknown',
+                    type: issue.fields.issuetype?.name || 'Unknown',
+                    labels: issue.fields.labels || [],
+                    assignee: assignee?.displayName || 'Unassigned',
+                };
+            });
 
             return {
                 success: true,
@@ -114,7 +117,7 @@ export const jiraGetTool: Tool = {
                     type: issue.fields.issuetype?.name || 'Unknown',
                     description: issue.fields.description || '',
                     labels: issue.fields.labels || [],
-                    assignee: issue.fields.assignee?.displayName || 'Unassigned',
+                    assignee: (issue.fields.assignee as { displayName?: string } | null)?.displayName || 'Unassigned',
                 },
                 summary: `Retrieved Jira issue ${issueKey}: "${issue.fields.summary}" (${issue.fields.status?.name || 'Unknown'}).`,
             };

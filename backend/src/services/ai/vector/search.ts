@@ -5,7 +5,7 @@
  */
 
 import { WeaviateVectorClient } from './client';
-import { TestFailure, SimilarFailure, Embedding } from '../types';
+import { TestFailure, SimilarFailure, Embedding, FailureCategory } from '../types';
 
 export interface SearchOptions {
   limit?: number;
@@ -53,22 +53,24 @@ export class VectorSearch {
         continue; // Skip low similarity results
       }
 
+      const props = result.properties as Record<string, string | number | undefined>;
+
       const failure: TestFailure = {
         id: result.id,
-        testId: result.properties.testId,
-        testName: result.properties.testName,
-        errorMessage: result.properties.errorMessage,
-        stackTrace: result.properties.stackTrace,
-        logSnippet: result.properties.logSnippet,
-        pipeline: result.properties.pipeline,
-        branch: result.properties.branch,
-        commitHash: result.properties.commitHash,
-        timestamp: new Date(result.properties.timestamp),
-        category: result.properties.category,
-        categoryConfidence: result.properties.categoryConfidence,
-        summary: result.properties.summary,
+        testId: props.testId as string,
+        testName: props.testName as string,
+        errorMessage: props.errorMessage as string,
+        stackTrace: props.stackTrace as string | undefined,
+        logSnippet: props.logSnippet as string | undefined,
+        pipeline: props.pipeline as string,
+        branch: props.branch as string,
+        commitHash: props.commitHash as string,
+        timestamp: new Date(props.timestamp as string),
+        category: props.category as FailureCategory | undefined,
+        categoryConfidence: props.categoryConfidence as number | undefined,
+        summary: props.summary as string | undefined,
         embedding: {
-          model: result.properties.embeddingModel,
+          model: props.embeddingModel as string,
           vector: [], // Don't return full embedding vector
           dimensions: 0,
         },
@@ -78,10 +80,10 @@ export class VectorSearch {
         failure,
         similarity,
         explanation: this.generateExplanation(similarity, failure),
-        resolution: result.properties.resolution,
-        resolvedAt: result.properties.resolvedAt ? new Date(result.properties.resolvedAt) : undefined,
-        resolvedBy: result.properties.resolvedBy,
-        ticketUrl: result.properties.ticketUrl,
+        resolution: props.resolution as string | undefined,
+        resolvedAt: props.resolvedAt ? new Date(props.resolvedAt as string) : undefined,
+        resolvedBy: props.resolvedBy as string | undefined,
+        ticketUrl: props.ticketUrl as string | undefined,
       });
     }
 
