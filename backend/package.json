@@ -53,7 +53,7 @@
     "@prisma/instrumentation": "^7.4.0",
     "@slack/web-api": "^7.13.0",
     "axios": "^1.13.5",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "compression": "^1.7.4",
     "connect-redis": "^9.0.0",
     "cors": "^2.8.6",
@@ -72,7 +72,7 @@
     "openai": "^6.22.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "passport-saml": "^3.2.4",
+    "@node-saml/passport-saml": "^5.0.0",
     "pg": "^8.18.0",
     "pushover-notifications": "^1.2.3",
     "swagger-jsdoc": "^6.2.8",
@@ -94,7 +94,6 @@
     "@types/nodemailer": "^7.0.3",
     "@types/passport": "^1.0.17",
     "@types/passport-google-oauth20": "^2.0.17",
-    "@types/passport-saml": "^1.1.7",
     "@types/supertest": "^2.0.16",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
@@ -117,6 +116,8 @@
     "npm": ">=9.0.0"
   },
   "overrides": {
-    "eslint": "^8.56.0"
+    "eslint": "^8.56.0",
+    "minimatch": ">=10.2.1",
+    "glob": ">=11.0.0"
   }
 }
