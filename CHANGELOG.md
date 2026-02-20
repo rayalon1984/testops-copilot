@@ -1,5 +1,47 @@
 # Changelog
 
+## [2.9.0-rc.2] - 2026-02-20
+
+> **Virtual Team Persona Routing + Stability Fixes** — AI queries routed to specialist personas, dotenv crash fix, schema drift prevention.
+
+---
+
+### Virtual Team Persona Routing (v3.0.0 Phase 1)
+
+**PersonaRouter** — Two-tier query classifier routes every AI copilot query to the right specialist persona before fulfillment.
+
+- **Tier 1: Keyword rules** (zero cost, <1ms) — pattern matching against domain vocabulary
+- **Tier 2: LLM micro-classification** (fallback, ~200 tokens) — lightweight AI classification when no keyword match
+- **9 personas**: Security Engineer, AI Architect, Data Engineer, UX Designer, Performance Engineer, Test Engineer, DevOps Engineer, Product Manager, Senior Engineer (default)
+- **PersonaInstructions** — condensed ~200-token system prompt addons per persona
+- **`persona_selected` SSE event** — emitted before ReAct loop, frontend renders persona badge
+- **Frontend persona badge** — "Test Engineer is handling this" chip on thinking indicator
+- **`GET /api/v1/ai/personas`** — endpoint returns all available personas with metadata
+- **Schema**: `activePersona` on ChatSession, `persona` on ChatMessage (all 3 schemas)
+
+---
+
+### Stability & DevOps
+
+**dotenv fallback chain** — `npm run dev` no longer crashes when no `.env` file exists. Uses `dotenv.config({ path: ['.env', '.env.dev'] })` — first file's values win, `.env.dev` fills gaps, real env vars always take precedence.
+
+**Schema parity CI guardrail** — `validate-schema.js` now checks model parity between `schema.dev.prisma` and `schema.production.prisma`. CI fails if models are added to one schema but not the other (with allowlist for intentional differences).
+
+**Schema drift fix** — Synced `schema.dev.prisma` with `schema.prisma` (6 missing models restored: RCARevision, FailureComment, AIProviderConfig, Team, TeamMember, DashboardConfig).
+
+---
+
+### Documentation Overhaul
+
+- **README.md** — Complete rewrite: persona routing section, updated features, fixed dead links, streamlined structure
+- **DEMO.md** — Added copilot workflow diagrams, confirmation system mockups, persona routing examples
+- **HOW_DOES_IT_WORK.md** — Added AI copilot section, virtual team explanation, ReAct loop, human-in-the-loop FAQ
+- **CHANGELOG.md** — Added rc.2 entry (this)
+- **ROADMAP.md** — Added Virtual Team Routing items under v3.0.0
+- **CI doc freshness check** — Automated validation that key docs reference current version
+
+---
+
 ## [2.9.0-rc.1] - 2026-02-19
 
 > **Agentic AI Copilot** — Full agentic backend + 3-column Mission Control UI + consolidated AI config + production hardening.
