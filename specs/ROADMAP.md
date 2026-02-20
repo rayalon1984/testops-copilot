@@ -118,6 +118,16 @@
 - [ ] Persona override picker (user selects persona manually)
 - [ ] Persona analytics (track which personas are used most)
 
+**Autonomous AI & Proactive UX** (Phase 3 — spec: `specs/AUTONOMOUS_AI_SPEC.md`):
+- [ ] Three-tier autonomy model (Full Auto / AI-in-the-Loop / Human-in-the-Loop)
+- [ ] ProactiveSuggestionEngine — AI anticipates next action, presents pre-built cards
+- [ ] Inline code diff viewer in PR cards (syntax-highlighted, Approve & Merge / Review Diff buttons)
+- [ ] Smart retry with play button (auto-retry transient failures, batch retry)
+- [ ] Jira autonomous housekeeping (auto-link related issues, auto-label, undo card)
+- [ ] Giphy integration — contextual, work-appropriate GIFs for status events
+- [ ] User autonomy preferences (Conservative / Balanced / Autonomous)
+- [ ] 4 new tools: `jira_link_issues`, `jira_add_label`, `github_merge_pr`, `giphy_search`
+
 **Multi-Channel AI** (Phase 2-3 planned):
 - [ ] Slack Bot (Events API + Block Kit responses)
 - [ ] Microsoft Teams Bot (Bot Framework + Adaptive Cards)
