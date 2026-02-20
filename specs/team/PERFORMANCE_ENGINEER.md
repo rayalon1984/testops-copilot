@@ -1,6 +1,7 @@
 # Persona: PERFORMANCE_ENGINEER
 
 > **Role**: Performance & scalability · **Routing**: Step 5 in `TEAM_SELECTION.md`
+> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 

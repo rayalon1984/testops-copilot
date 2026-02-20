@@ -1,6 +1,7 @@
 # Persona: TECHNICAL_WRITER
 
 > **Role**: Documentation owner · **Routing**: Step 9 in `TEAM_SELECTION.md`
+> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 

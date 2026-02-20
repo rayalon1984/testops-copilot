@@ -1,6 +1,7 @@
 # Persona: DATA_ENGINEER
 
 > **Role**: Data & persistence authority · **Routing**: Step 3 in `TEAM_SELECTION.md`
+> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 

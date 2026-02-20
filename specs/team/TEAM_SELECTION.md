@@ -2,6 +2,7 @@
 
 > **Purpose**: Repeatable rubric for selecting the right agent persona for a task.
 > Route work to the persona with the **highest leverage + accountability**.
+> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 

@@ -3,7 +3,7 @@
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 2.9.0-rc.2 | **Updated**: 2026-02-19
+> **Version**: 2.9.0-rc.6 | **Updated**: 2026-02-20
 
 ---
 
@@ -157,7 +157,7 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 |---------|------|
 | Providers | Implement `BaseProvider`. Register in `providers/registry.ts`. |
 | Tools | Define in `backend/src/services/ai/tools/`. Register in `tools/index.ts`. |
-| Read vs Write | Read tools are safe. Write tools MUST require confirmation. |
+| Autonomy tiers | Tier 1 (auto-execute) for read/reversible. Tier 2 (activity card) for team-visible. Tier 3 (full confirm) for destructive. |
 | Cost tracking | Every AI call logged. Budget alerts configured. Cache aggressively. |
 | Vector search | Use Weaviate for semantic similarity. Not keyword matching. |
 | ReAct loop | Max 5 tool calls, max 8 iterations. Safety limits enforced. |

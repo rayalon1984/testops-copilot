@@ -1,5 +1,7 @@
 # TestOps Companion Documentation
 
+> **Version**: 2.9.0-rc.6 · **Last updated**: 2026-02-20
+
 Welcome to the TestOps Companion documentation. This guide will help you understand, install, and use TestOps Companion effectively.
 
 ## 📚 Table of Contents
@@ -61,7 +63,8 @@ Welcome to the TestOps Companion documentation. This guide will help you underst
 - [Security Policy](project/SECURITY.md) - Security information
 
 ### Technical Specifications
-- [AI Integration Spec](specs/ai-integration/) - Complete AI feature specification
+- [AI Tools Registry](../specs/AI_TOOLS.md) - AI tool registry and ReAct loop design
+- [Autonomous AI Spec](../specs/AUTONOMOUS_AI_SPEC.md) - Graduated autonomy and proactive UX
 
 ## 🚀 Quick Links
 
