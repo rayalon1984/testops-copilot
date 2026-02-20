@@ -222,6 +222,55 @@ function checkModelParity() {
   return valid;
 }
 
+/**
+ * Check that key documentation files reference the current version.
+ * Prevents docs from drifting behind development.
+ */
+function checkDocFreshness() {
+  log(`\nChecking documentation freshness...`, colors.blue);
+
+  const pkgPath = path.join(__dirname, '../package.json');
+  if (!fs.existsSync(pkgPath)) {
+    log(`⚠️  Cannot check doc freshness — package.json not found`, colors.yellow);
+    return true;
+  }
+
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const version = pkg.version; // e.g. "2.9.0-rc.2"
+
+  // Key docs that should reference the current version
+  const docsToCheck = [
+    { file: 'CHANGELOG.md', description: 'Changelog' },
+    { file: 'specs/ROADMAP.md', description: 'Roadmap' },
+  ];
+
+  let valid = true;
+
+  for (const doc of docsToCheck) {
+    const filePath = path.join(__dirname, '..', doc.file);
+    if (!fs.existsSync(filePath)) {
+      log(`⚠️  ${doc.description} not found: ${doc.file}`, colors.yellow);
+      continue;
+    }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (content.includes(version)) {
+      log(`✅ ${doc.description} references v${version}`, colors.green);
+    } else {
+      log(`❌ ${doc.description} does NOT reference v${version}`, colors.red);
+      log(`   File: ${doc.file}`, colors.red);
+      log(`   Action: Update ${doc.file} to include version ${version}`, colors.yellow);
+      valid = false;
+    }
+  }
+
+  if (valid) {
+    log(`✅ Documentation freshness OK — all key docs reference v${version}`, colors.green);
+  }
+
+  return valid;
+}
+
 // Main validation
 function main() {
   log('='.repeat(70), colors.blue);
@@ -259,6 +308,10 @@ function main() {
   // Check model parity across schemas
   const parityValid = checkModelParity();
   allValid = allValid && parityValid;
+
+  // Check documentation freshness
+  const docFreshValid = checkDocFreshness();
+  allValid = allValid && docFreshValid;
 
   // Summary
   log('\n' + '='.repeat(70), colors.blue);

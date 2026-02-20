@@ -100,6 +100,21 @@
 
 ### v3.0.0 — Agentic AI Release (Q2/Q3 2026)
 
+**Virtual Team Routing** (Phase 1 shipped):
+- [x] PersonaRouter — two-tier classifier (keyword rules + LLM fallback)
+- [x] PersonaInstructions — 9 persona system prompt addons
+- [x] `persona_selected` SSE event + frontend persona badge
+- [x] `GET /api/v1/ai/personas` endpoint
+- [x] Schema: `activePersona` on ChatSession, `persona` on ChatMessage
+- [ ] Persona override picker (user selects persona manually)
+- [ ] Persona analytics (track which personas are used most)
+
+**Multi-Channel AI** (Phase 2-3 planned):
+- [ ] Slack Bot (Events API + Block Kit responses)
+- [ ] Microsoft Teams Bot (Bot Framework + Adaptive Cards)
+- [ ] Channel user mapping (external ID to internal user)
+- [ ] Buffered chat handler for non-streaming channels
+
 **Release Polish** (rc.2 → GA):
 - [ ] Onboarding wizard (first-run provider setup, sample queries)
 - [ ] Rate limit UI feedback (quota indicators in chat)
