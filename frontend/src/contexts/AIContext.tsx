@@ -9,7 +9,7 @@
  * Pages call `setAIContext(...)` when they mount/update.
  * The AICopilot reads `aiContext` and injects it into every message.
  *
- * Pattern ported from emhub's <AIProvider /> approach.
+ * Uses a global React Context provider pattern for page-aware AI assistance.
  */
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
