@@ -50,7 +50,7 @@ jobs:
       working-directory: ./frontend
       run: npm ci
 
-    - name: Run npm audit
+    - name: Run npm audit (report)
       continue-on-error: true
       run: |
         echo "# Security Audit Results" > security-report.md
@@ -64,6 +64,13 @@ jobs:
         echo '```' >> security-report.md
         (cd frontend && npm audit 2>&1) >> security-report.md || true
         echo '```' >> security-report.md
+
+    - name: Fail on high-severity vulnerabilities
+      run: |
+        echo "Checking backend for high-severity vulnerabilities..."
+        (cd backend && npm audit --audit-level=high)
+        echo "Checking frontend for high-severity vulnerabilities..."
+        (cd frontend && npm audit --audit-level=high)
 
     - name: Upload security report
       if: always()
