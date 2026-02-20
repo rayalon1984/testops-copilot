@@ -8,6 +8,7 @@ import flakyTestRouter from './flaky-test.routes';
 import testImpactRouter from './test-impact.routes';
 import teamRouter from './team.routes';
 import aiRouter from './ai';
+import channelRouter from './channel.routes';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -41,6 +42,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/ci', testImpactRouter);
   app.use('/api/v1/teams', teamRouter);
   app.use('/api/v1/ai', aiRouter);
+  app.use('/api/v1/channels', channelRouter);
 }
 
 export default registerRoutes;

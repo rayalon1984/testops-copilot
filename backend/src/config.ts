@@ -95,6 +95,7 @@ const envSchema = z.object({
   SLACK_BOT_TOKEN: z.string().optional(),
   SLACK_SIGNING_SECRET: z.string().optional(),
   SLACK_CHANNEL: z.string().optional(),
+  SLACK_APP_TOKEN: z.string().optional(), // xapp-... for Socket Mode / Events API
 
   // Email
   EMAIL_HOST: z.string().optional(),
