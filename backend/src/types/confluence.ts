@@ -131,7 +131,7 @@ export interface CreatePageRequest {
   }>;
   metadata?: {
     properties?: {
-      [key: string]: any;
+      [key: string]: unknown;
     };
   };
 }
@@ -151,7 +151,7 @@ export interface UpdatePageRequest {
   };
   metadata?: {
     properties?: {
-      [key: string]: any;
+      [key: string]: unknown;
     };
   };
 }
@@ -257,7 +257,7 @@ export interface ConfluenceError {
     errors: Array<{
       message: {
         key: string;
-        args: any[];
+        args: unknown[];
       };
     }>;
     successful: boolean;

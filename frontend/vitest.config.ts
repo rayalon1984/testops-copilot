@@ -26,8 +26,10 @@ export default defineConfig({
         '**/types/*',
       ],
     },
-    deps: {
-      inline: ['@testing-library/user-event'],
+    server: {
+      deps: {
+        inline: ['@testing-library/user-event'],
+      },
     },
   },
 });

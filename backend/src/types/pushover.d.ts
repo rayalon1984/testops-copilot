@@ -19,6 +19,6 @@ declare module 'pushover-notifications' {
 
   export default class Pushover {
     constructor(options: PushoverOptions);
-    send(message: PushoverMessage, callback?: (err: Error | null, result: any) => void): void;
+    send(message: PushoverMessage, callback?: (err: Error | null, result: unknown) => void): void;
   }
 }

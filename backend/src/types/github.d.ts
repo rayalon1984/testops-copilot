@@ -56,7 +56,7 @@ export type TestRun = Prisma.TestRunGetPayload<{
 export type PipelineStatus = 'pending' | 'running' | 'success' | 'failure' | 'cancelled' | 'timeout';
 
 // Type Guards
-export function isGitHubConfig(config: any): config is GitHubConfig {
+export function isGitHubConfig(config: unknown): config is GitHubConfig {
   return (
     typeof config === 'object' &&
     config !== null &&
