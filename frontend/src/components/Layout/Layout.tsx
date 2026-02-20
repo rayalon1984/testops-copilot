@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -37,6 +37,7 @@ import {
 import { useDesignMode } from '../../contexts/DesignModeContext';
 import AICopilot from '../AICopilot/AICopilot';
 import TeamSelector from '../TeamSelector/TeamSelector';
+import OnboardingWizard from '../OnboardingWizard/OnboardingWizard';
 
 const drawerWidth = 250; // Updated to match Grid
 
@@ -79,11 +80,20 @@ const navSections: NavSection[] = [
 
 export default function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode: designMode, colorMode, toggleColorMode } = useDesignMode();
+
+  // Show onboarding wizard on first visit
+  useEffect(() => {
+    const completed = localStorage.getItem('onboardingComplete');
+    if (!completed) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -234,7 +244,7 @@ export default function Layout() {
       {/* Bottom: Version & Theme Toggle */}
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
-          label="v2.9.0"
+          label="v3.0.0"
           size="small"
           variant="outlined"
           sx={{
@@ -375,6 +385,12 @@ export default function Layout() {
       >
         <AICopilot />
       </Box>
+
+      {/* Onboarding Wizard (first visit only) */}
+      <OnboardingWizard
+        open={showOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+      />
     </Box>
   );
 }

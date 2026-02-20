@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.0.2] - 2026-02-20
+
+> **UX Polish — Onboarding Wizard + Rate Limit UI + Error Recovery**
+
+### Onboarding Wizard
+- **OnboardingWizard** component: 3-step guided first-run experience (Welcome → AI Setup → Sample Queries)
+- Auto-shows on first login (localStorage flag), dismissible with "Skip setup"
+- Stepper progress bar, provider overview, sample query showcase
+- Integrated into Layout — renders as full-screen dialog overlay
+
+### Rate Limit / Quota UI
+- **QuotaIndicator** component: compact budget badge in Copilot header
+- Shows remaining budget ($X left), warning at 80%, error when over budget
+- Tooltip with detailed breakdown (spent, budget, cache hit rate, progress bar)
+- Auto-refreshes every 60s from GET /api/v1/ai/costs
+
+### Error Recovery UX
+- **Enhanced ErrorMessage** with error classification (network, rate limit, validation, unknown)
+- Network errors: automatic retry with countdown timer (5s) and cancel option
+- Rate limit errors: "View usage" link to Cost Tracker page
+- Manual "Try again" button re-sends the last user message with context
+- Error category icon and label for quick visual identification
+
+### Misc
+- Fixed version badge in sidebar: v2.9.0 → v3.0.0
+
+---
+
 ## [3.0.1] - 2026-02-20
 
 > **E2E Agentic Copilot Tests — Playwright Smoke Suite**

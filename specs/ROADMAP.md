@@ -171,12 +171,12 @@
 - [ ] Buffered chat handler for non-streaming channels
 
 **Release Polish** (rc.3 → GA):
-- [ ] Onboarding wizard (first-run provider setup, sample queries)
-- [ ] Rate limit UI feedback (quota indicators in chat)
+- [x] Onboarding wizard (first-run provider setup, sample queries) — 3-step wizard with stepper
+- [x] Rate limit UI feedback (quota indicators in chat) — QuotaIndicator with budget warnings
 - [ ] Usage dashboard per-session (cost breakdown by tool/provider)
-- [ ] Error recovery UX (retry failed tool calls, connection lost handling)
+- [x] Error recovery UX (retry failed tool calls, connection lost handling) — auto-retry + classification
 - [x] E2E smoke tests for full agentic flow (Playwright) — 10 tests, mock API fixtures
-- [ ] Release notes and changelog
+- [x] Release notes and changelog
 
 **Enterprise**:
 - [ ] LDAP integration
