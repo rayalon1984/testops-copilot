@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
 import { validateUrlForSSRF } from '@/utils/ssrf-validator';
+import { withResilience, circuitBreakers } from '@/lib/resilience';
+
+const CONFLUENCE_RESILIENCE = {
+  circuitBreaker: circuitBreakers.confluence,
+  retry: { maxRetries: 2, baseDelayMs: 1000 },
+  timeoutMs: 10_000,
+  label: 'confluence',
+};
 
 // Confluence API Types
 export interface ConfluenceConfig {
@@ -132,7 +140,10 @@ export class ConfluenceService {
     this.checkEnabled();
 
     try {
-      const response = await this.client!.get('/space');
+      const response = await withResilience(
+        () => this.client!.get('/space'),
+        CONFLUENCE_RESILIENCE,
+      );
       logger.info('Confluence connection validated successfully');
       return response.status === 200;
     } catch (error) {
@@ -153,7 +164,10 @@ export class ConfluenceService {
     }
 
     try {
-      const response = await this.client!.get(`/space/${key}`);
+      const response = await withResilience(
+        () => this.client!.get(`/space/${key}`),
+        CONFLUENCE_RESILIENCE,
+      );
       return response.data;
     } catch (error) {
       logger.error(`Failed to get Confluence space ${key}:`, error);
@@ -195,7 +209,10 @@ export class ConfluenceService {
         pageData.ancestors = [{ id: parent }];
       }
 
-      const response = await this.client!.post('/content', pageData);
+      const response = await withResilience(
+        () => this.client!.post('/content', pageData),
+        CONFLUENCE_RESILIENCE,
+      );
       const page: ConfluencePage = response.data;
 
       logger.info(`Created Confluence page: ${page.id} (${page.title})`);
@@ -232,7 +249,10 @@ export class ConfluenceService {
         },
       };
 
-      const response = await this.client!.put(`/content/${pageId}`, updateData);
+      const response = await withResilience(
+        () => this.client!.put(`/content/${pageId}`, updateData),
+        CONFLUENCE_RESILIENCE,
+      );
       logger.info(`Updated Confluence page: ${pageId}`);
       return response.data;
     } catch (error) {
@@ -248,11 +268,12 @@ export class ConfluenceService {
     this.checkEnabled();
 
     try {
-      const response = await this.client!.get(`/content/${pageId}`, {
-        params: {
-          expand: 'body.storage,version,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get(`/content/${pageId}`, {
+          params: { expand: 'body.storage,version,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
       return response.data;
     } catch (error) {
       logger.error(`Failed to get Confluence page ${pageId}:`, error);
@@ -272,13 +293,12 @@ export class ConfluenceService {
     }
 
     try {
-      const response = await this.client!.get('/content', {
-        params: {
-          spaceKey: space,
-          title: title,
-          expand: 'body.storage,version,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get('/content', {
+          params: { spaceKey: space, title: title, expand: 'body.storage,version,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
 
       const pages = response.data.results;
       return pages.length > 0 ? pages[0] : null;
@@ -297,10 +317,10 @@ export class ConfluenceService {
     try {
       await Promise.all(
         labels.map(label =>
-          this.client!.post(`/content/${pageId}/label`, {
-            prefix: 'global',
-            name: label,
-          })
+          withResilience(
+            () => this.client!.post(`/content/${pageId}/label`, { prefix: 'global', name: label }),
+            CONFLUENCE_RESILIENCE,
+          )
         )
       );
       logger.info(`Added ${labels.length} labels to page ${pageId}`);
@@ -500,13 +520,12 @@ export class ConfluenceService {
       }
       cql += ' ORDER BY lastModified DESC';
 
-      const response = await this.client!.get('/content/search', {
-        params: {
-          cql,
-          limit: maxResults,
-          expand: 'body.view,metadata.labels,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get('/content/search', {
+          params: { cql, limit: maxResults, expand: 'body.view,metadata.labels,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
 
       const results = (response.data.results || []).map((page: { id: string; title: string; body?: { view?: { value?: string } }; metadata?: { labels?: { results?: Array<{ name: string }> } }; _links?: { webui?: string } }) => {
         // Extract a text excerpt from the page body (strip HTML)
