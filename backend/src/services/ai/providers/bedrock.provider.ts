@@ -11,7 +11,8 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
-import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
+import { ToolParameter } from '../tools/types';
 
 export interface BedrockProviderConfig extends ProviderConfig {
   region: string;
@@ -146,12 +147,12 @@ export class BedrockProvider extends BaseProvider {
 
       // Add tools if provided
       if (options?.tools && options.tools.length > 0) {
-        body.tools = options.tools.map((t: Record<string, any>) => ({
+        body.tools = options.tools.map(t => ({
           name: t.name,
           description: t.description,
           input_schema: {
             type: 'object',
-            properties: t.parameters.reduce((acc: Record<string, unknown>, p: Record<string, any>) => {
+            properties: t.parameters.reduce((acc: Record<string, unknown>, p: ToolParameter) => {
               acc[p.name] = {
                 type: p.type,
                 description: p.description,
@@ -159,7 +160,7 @@ export class BedrockProvider extends BaseProvider {
               };
               return acc;
             }, {}),
-            required: t.parameters.filter((p: Record<string, any>) => p.required).map((p: Record<string, any>) => p.name),
+            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name),
           },
         }));
       }

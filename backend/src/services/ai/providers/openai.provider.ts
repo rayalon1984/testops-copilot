@@ -4,7 +4,7 @@
 
 import OpenAI from 'openai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
-import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
 
 export class OpenAIProvider extends BaseProvider {
   private client: OpenAI;
@@ -68,8 +68,8 @@ export class OpenAIProvider extends BaseProvider {
 
     try {
       // Convert messages to OpenAI format
-      const openaiMessages: any[] = messages.map(msg => {
-        const out: any = {
+      const openaiMessages = messages.map(msg => {
+        const out: Record<string, unknown> = {
           role: msg.role === 'tool' ? 'tool' : (msg.role as 'system' | 'user' | 'assistant'),
           content: msg.content,
         };
@@ -109,7 +109,9 @@ export class OpenAIProvider extends BaseProvider {
       // Make API call
       const response = await this.client.chat.completions.create({
         model: this.config.model,
-        messages: openaiMessages,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        messages: openaiMessages as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tools: tools && tools.length > 0 ? (tools as any) : undefined,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
@@ -123,7 +125,8 @@ export class OpenAIProvider extends BaseProvider {
       }
 
       // Parse tool calls if present
-      const toolCalls = (choice.message as any).tool_calls?.map((tc: any) => {
+      const rawToolCalls = choice.message.tool_calls;
+      const toolCalls: ToolCall[] | undefined = rawToolCalls?.map(tc => {
         let args: Record<string, unknown>;
         try {
           args = JSON.parse(tc.function.arguments);

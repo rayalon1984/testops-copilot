@@ -122,7 +122,7 @@ export class AnthropicProvider extends BaseProvider {
       });
 
       // Prepare params
-      const params: any = {
+      const params: AnthropicRequestParams = {
         model: this.config.model,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
@@ -139,7 +139,7 @@ export class AnthropicProvider extends BaseProvider {
           description: t.description,
           input_schema: {
             type: 'object',
-            properties: t.parameters.reduce((acc: any, p: any) => {
+            properties: t.parameters.reduce((acc: Record<string, { type: string; description: string; enum?: string[] }>, p: ToolParameter) => {
               acc[p.name] = {
                 type: p.type,
                 description: p.description,
@@ -147,7 +147,7 @@ export class AnthropicProvider extends BaseProvider {
               };
               return acc;
             }, {}),
-            required: t.parameters.filter((p: any) => p.required).map((p: any) => p.name)
+            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name)
           }
         }));
       }
@@ -157,7 +157,7 @@ export class AnthropicProvider extends BaseProvider {
 
       // Process content and tools
       let content = '';
-      const toolCalls: any[] = [];
+      const toolCalls: ToolCall[] = [];
 
       response.content.forEach(block => {
         if (block.type === 'text') {
