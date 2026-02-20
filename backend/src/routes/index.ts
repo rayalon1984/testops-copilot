@@ -9,6 +9,7 @@ import testImpactRouter from './test-impact.routes';
 import teamRouter from './team.routes';
 import aiRouter from './ai';
 import channelRouter from './channel.routes';
+import shareRouter from './share.routes';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -43,6 +44,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/teams', teamRouter);
   app.use('/api/v1/ai', aiRouter);
   app.use('/api/v1/channels', channelRouter);
+  app.use('/api/v1/shares', shareRouter);
 }
 
 export default registerRoutes;

@@ -226,6 +226,9 @@ export class AIConfigManager {
       openrouterApiKey: env.OPENROUTER_API_KEY || undefined,
       openrouterSiteUrl: env.OPENROUTER_SITE_URL || undefined,
       openrouterAppName: env.OPENROUTER_APP_NAME || undefined,
+      bedrockRegion: env.AWS_BEDROCK_REGION || undefined,
+      bedrockAccessKeyId: env.AWS_BEDROCK_ACCESS_KEY_ID || undefined,
+      bedrockSecretAccessKey: env.AWS_BEDROCK_SECRET_ACCESS_KEY || undefined,
     };
 
     // Vector DB
@@ -321,6 +324,7 @@ export class AIConfigManager {
       case 'google': return secrets.googleApiKey || '';
       case 'azure': return secrets.azureOpenaiKey || '';
       case 'openrouter': return secrets.openrouterApiKey || '';
+      case 'bedrock': return secrets.bedrockAccessKeyId || 'bedrock-iam-auth';
       case 'mock': return 'mock-key';
       default: return '';
     }

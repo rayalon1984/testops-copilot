@@ -92,6 +92,14 @@ export const PROVIDER_MODELS: Record<string, { label: string; models: { id: stri
             { id: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick' },
         ],
     },
+    bedrock: {
+        label: 'AWS Bedrock',
+        models: [
+            { id: 'us.anthropic.claude-opus-4-20250514-v1:0', label: 'Claude Opus 4 (Bedrock)' },
+            { id: 'anthropic.claude-sonnet-4-5-20250514-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
+            { id: 'anthropic.claude-haiku-4-5-20250514-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
+        ],
+    },
 };
 
 // ─── Public DTOs ───
@@ -220,6 +228,11 @@ export async function testProviderConnection(
             config.siteUrl = extraConfig?.siteUrl || '';
             config.appName = extraConfig?.appName || 'TestOps Companion';
         }
+        if (provider === 'bedrock') {
+            config.region = extraConfig?.region || 'us-east-1';
+            config.accessKeyId = extraConfig?.accessKeyId;
+            config.secretAccessKey = extraConfig?.secretAccessKey;
+        }
 
         const instance = providerRegistry.getProvider(provider, config);
         const healthy = await instance.healthCheck();
@@ -287,6 +300,11 @@ async function applyProviderConfig(
         if (extraConfig.siteUrl) secretsOverride.openrouterSiteUrl = extraConfig.siteUrl;
         if (extraConfig.appName) secretsOverride.openrouterAppName = extraConfig.appName;
     }
+    if (provider === 'bedrock' && extraConfig) {
+        if (extraConfig.region) secretsOverride.bedrockRegion = extraConfig.region;
+        if (extraConfig.accessKeyId) secretsOverride.bedrockAccessKeyId = extraConfig.accessKeyId;
+        if (extraConfig.secretAccessKey) secretsOverride.bedrockSecretAccessKey = extraConfig.secretAccessKey;
+    }
 
     // Apply runtime override to config manager
     cm.applyRuntimeOverride({
@@ -316,6 +334,7 @@ function getSecretsKeyForProvider(provider: AIProviderName): string | null {
         google: 'googleApiKey',
         azure: 'azureOpenaiKey',
         openrouter: 'openrouterApiKey',
+        bedrock: 'bedrockAccessKeyId',
     };
     return map[provider] || null;
 }

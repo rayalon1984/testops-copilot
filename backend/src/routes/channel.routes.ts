@@ -8,6 +8,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { handleSlackEvent, verifySlackSignature } from '../services/channels/slack-adapter';
+import { handleTeamsActivity, verifyTeamsToken } from '../services/channels/teams-adapter';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -59,6 +60,36 @@ function slackSignatureMiddleware(req: Request, res: Response, next: NextFunctio
  */
 router.post('/slack/events', slackSignatureMiddleware, async (req: Request, res: Response) => {
     await handleSlackEvent(req, res);
+});
+
+// ─── Teams JWT Verification Middleware ───
+
+function teamsAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
+    const appId = process.env.TEAMS_APP_ID;
+    if (!appId) {
+        logger.warn('[TeamsRoute] TEAMS_APP_ID not configured — rejecting request');
+        res.status(503).json({ error: 'Teams integration not configured' });
+        return;
+    }
+
+    const authHeader = req.headers.authorization as string | undefined;
+    if (!verifyTeamsToken(authHeader)) {
+        res.status(401).json({ error: 'Invalid or missing Bot Framework token' });
+        return;
+    }
+
+    next();
+}
+
+// ─── Teams Routes ───
+
+/**
+ * POST /api/v1/channels/teams/messages
+ * Bot Framework messaging endpoint for Teams.
+ * Handles message activities from Teams conversations.
+ */
+router.post('/teams/messages', teamsAuthMiddleware, async (req: Request, res: Response) => {
+    await handleTeamsActivity(req, res);
 });
 
 export default router;

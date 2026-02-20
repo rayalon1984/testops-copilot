@@ -51,7 +51,9 @@ const PERSONA_RULES: PersonaRule[] = [
             ['auth'], ['authentication'], ['authorization'],
             ['permission'], ['secret'], ['vulnerability'],
             ['cve'], ['security'], ['xss'], ['csrf'], ['injection'],
-            ['token', 'leak'], ['credential'],
+            ['token', 'leak'], ['credential'], ['oauth'], ['saml'],
+            ['oidc'], ['rbac'], ['role', 'access'], ['api', 'key'],
+            ['encrypt'], ['password'], ['sso'], ['mfa'],
         ],
         description: 'Authentication, authorization, secrets, security posture',
     },
@@ -61,7 +63,9 @@ const PERSONA_RULES: PersonaRule[] = [
         keywords: [
             ['ai', 'config'], ['ai', 'provider'], ['model', 'switch'],
             ['tool', 'policy'], ['ai', 'architect'], ['prompt', 'engineering'],
-            ['llm', 'config'],
+            ['llm', 'config'], ['bedrock'], ['anthropic', 'key'],
+            ['openai', 'key'], ['switch', 'provider'], ['ai', 'model'],
+            ['persona', 'routing'], ['ai', 'cost'], ['ai', 'budget'],
         ],
         description: 'AI configuration, provider selection, tool behavior',
     },
@@ -71,7 +75,9 @@ const PERSONA_RULES: PersonaRule[] = [
         keywords: [
             ['schema'], ['migration'], ['database'],
             ['query', 'slow'], ['data', 'integrity'], ['prisma'],
-            ['sql'], ['index', 'missing'],
+            ['sql'], ['index', 'missing'], ['table'], ['column'],
+            ['foreign', 'key'], ['relation'], ['data', 'model'],
+            ['backup'], ['restore'], ['etl'],
         ],
         description: 'Database, schema, migrations, data integrity',
     },
@@ -81,7 +87,9 @@ const PERSONA_RULES: PersonaRule[] = [
         keywords: [
             ['ux'], ['user experience'], ['ui', 'design'],
             ['layout'], ['accessibility'], ['a11y'],
-            ['responsive'], ['design', 'system'],
+            ['responsive'], ['design', 'system'], ['dark', 'mode'],
+            ['theme'], ['component', 'design'], ['wireframe'],
+            ['usability'], ['cognitive', 'load'],
         ],
         description: 'UX flows, interaction design, visual hierarchy, accessibility',
     },
@@ -92,6 +100,8 @@ const PERSONA_RULES: PersonaRule[] = [
             ['slow'], ['latency'], ['timeout'], ['performance'],
             ['throughput'], ['profiling'], ['memory', 'leak'],
             ['cpu'], ['bottleneck'], ['load', 'test'],
+            ['benchmark'], ['optimization'], ['cache', 'hit'],
+            ['p95'], ['p99'], ['response', 'time'],
         ],
         description: 'Performance, latency, throughput, profiling',
     },
@@ -103,6 +113,13 @@ const PERSONA_RULES: PersonaRule[] = [
             ['coverage'], ['ci', 'broken'], ['test', 'skip'],
             ['test', 'strategy'], ['regression'], ['test', 'suite'],
             ['e2e', 'test'], ['unit', 'test'], ['integration', 'test'],
+            ['test', 'result'], ['assertion'], ['test', 'run'],
+            ['spec', 'fail'], ['jest'], ['cypress'], ['playwright'],
+            ['selenium'], ['test', 'report'], ['failed', 'test'],
+            ['pass', 'rate'], ['test', 'status'], ['broken', 'test'],
+            ['quarantine'], ['test', 'data'], ['fixture'],
+            ['mock', 'test'], ['stub'], ['test', 'case'],
+            ['smoke', 'test'], ['sanity', 'test'],
         ],
         description: 'Test failures, flaky tests, CI quality, test coverage',
     },
@@ -114,6 +131,11 @@ const PERSONA_RULES: PersonaRule[] = [
             ['jenkins', 'build'], ['ci', 'cd'], ['ci/cd'],
             ['kubernetes'], ['k8s'], ['helm'],
             ['github', 'action'], ['build', 'fail'],
+            ['jenkins'], ['circleci'], ['gitlab', 'ci'],
+            ['artifact'], ['container'], ['devops'],
+            ['infrastructure'], ['terraform'], ['ansible'],
+            ['build', 'log'], ['pipeline', 'status'],
+            ['deployment'], ['rollback'], ['release'],
         ],
         description: 'Pipelines, deployments, Docker, CI/CD, build infrastructure',
     },
@@ -124,7 +146,10 @@ const PERSONA_RULES: PersonaRule[] = [
             ['what can'], ['help me'], ['feature'],
             ['roadmap'], ['capability'], ['what', 'do'],
             ['how', 'use'], ['getting', 'started'],
-            ['onboarding'], ['use case'],
+            ['onboarding'], ['use case'], ['what', 'tool'],
+            ['tell me about'], ['show me'], ['how does'],
+            ['what is'], ['can you'], ['tutorial'],
+            ['guide'], ['demo'], ['walkthrough'],
         ],
         description: 'Product capabilities, feature discovery, what the system can do',
     },
@@ -222,17 +247,60 @@ async function classifyWithLLM(message: string): Promise<PersonaSelection> {
     }
 }
 
+// ─── In-Memory Cache (TTL-based) ───
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const routingCache = new Map<string, { result: PersonaSelection; expiresAt: number }>();
+
+function getCachedResult(key: string): PersonaSelection | null {
+    const entry = routingCache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+        routingCache.delete(key);
+        return null;
+    }
+    return entry.result;
+}
+
+function setCachedResult(key: string, result: PersonaSelection): void {
+    // Evict stale entries when cache grows (prevent unbounded growth)
+    if (routingCache.size > 500) {
+        const now = Date.now();
+        for (const [k, v] of routingCache) {
+            if (now > v.expiresAt) routingCache.delete(k);
+        }
+    }
+    routingCache.set(key, { result, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+/**
+ * Normalize message for cache key — lowercase, collapse whitespace.
+ */
+function normalizeForCache(message: string): string {
+    return message.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 // ─── Public API ───
 
 /**
  * Route a user query to the appropriate team persona.
- * Tier 1 (keyword) is tried first; Tier 2 (LLM) is the fallback.
+ * Tier 0 (cache) → Tier 1 (keyword) → Tier 2 (LLM fallback).
  */
 export async function routeToPersona(message: string, _userRole: string): Promise<PersonaSelection> {
+    const cacheKey = normalizeForCache(message);
+
+    // Tier 0: check cache
+    const cached = getCachedResult(cacheKey);
+    if (cached) {
+        logger.debug(`[PersonaRouter] Cache hit: ${cached.persona}`);
+        return cached;
+    }
+
     // Tier 1: keyword rules
     const keywordMatch = matchKeywordRules(message);
     if (keywordMatch) {
         logger.info(`[PersonaRouter] Tier 1 match: ${keywordMatch.persona} — ${keywordMatch.reasoning}`);
+        setCachedResult(cacheKey, keywordMatch);
         return keywordMatch;
     }
 
@@ -240,6 +308,7 @@ export async function routeToPersona(message: string, _userRole: string): Promis
     logger.info('[PersonaRouter] No keyword match, falling back to LLM classification');
     const llmMatch = await classifyWithLLM(message);
     logger.info(`[PersonaRouter] Tier 2 result: ${llmMatch.persona} — ${llmMatch.reasoning}`);
+    setCachedResult(cacheKey, llmMatch);
     return llmMatch;
 }
 
