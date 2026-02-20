@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 
-export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request';
+export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request' | 'proactive_suggestion' | 'autonomous_action';
 
 export type CardState = 'idle' | 'action_pending' | 'updated';
 
@@ -35,6 +35,9 @@ export interface ChatMessage {
     confirmationStatus?: 'pending' | 'approved' | 'denied';
     // v3: link card action back to source card
     sourceMessageId?: string;
+    // v4: proactive suggestion data
+    suggestionData?: Record<string, unknown>;
+    suggestionStatus?: 'pending' | 'accepted' | 'dismissed';
 }
 
 export interface UseAICopilotReturn {
@@ -216,6 +219,45 @@ export function useAICopilot(): UseAICopilotReturn {
                                     actionId: actionId,
                                     toolArgs: args,
                                     confirmationStatus: 'pending',
+                                    timestamp: new Date(),
+                                }]);
+                                break;
+                            }
+
+                            case 'proactive_suggestion': {
+                                // AI-in-the-Loop: show a suggestion card with accept/dismiss
+                                const suggestion = JSON.parse(event.data);
+                                setMessages(prev => [...prev, {
+                                    id: generateId(),
+                                    role: 'proactive_suggestion',
+                                    content: suggestion.reason || 'AI has a suggestion',
+                                    toolName: suggestion.tool,
+                                    suggestionData: suggestion,
+                                    suggestionStatus: 'pending',
+                                    timestamp: new Date(),
+                                }]);
+                                break;
+                            }
+
+                            case 'autonomous_action': {
+                                // Tier 1: AI auto-executed — show notification card
+                                let content = event.data;
+                                let toolData: Record<string, unknown> | undefined;
+                                try {
+                                    const parsed = JSON.parse(event.data);
+                                    if (parsed.summary !== undefined) {
+                                        content = parsed.summary;
+                                        toolData = parsed.data as Record<string, unknown>;
+                                    }
+                                } catch {
+                                    // String format fallback
+                                }
+                                setMessages(prev => [...prev, {
+                                    id: generateId(),
+                                    role: 'autonomous_action',
+                                    content,
+                                    toolName: event.tool,
+                                    toolData,
                                     timestamp: new Date(),
                                 }]);
                                 break;

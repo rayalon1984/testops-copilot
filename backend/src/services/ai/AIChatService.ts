@@ -13,12 +13,14 @@ import { getAIManager } from './manager';
 import { toolRegistry } from './tools';
 import * as confirmationService from './ConfirmationService';
 import * as chatSessionService from './ChatSessionService';
-import { SSEEvent, SSEEventType, ToolContext, hasRequiredRole } from './tools/types';
+import { SSEEvent, SSEEventType, ToolContext, ToolResult, hasRequiredRole } from './tools/types';
 import { ChatMessage } from './types';
 import { getConfigManager } from './config';
 import { getMockToolResult } from './mock-tool-results';
 import { routeToPersona, PersonaSelection } from './PersonaRouter';
 import { getPersonaInstruction } from './PersonaInstructions';
+import { classifyTool, type AutonomyLevel } from './AutonomyClassifier';
+import { evaluateSuggestion } from './ProactiveSuggestionEngine';
 import { logger } from '@/utils/logger';
 
 /** Chunk size for token-by-token answer streaming (characters) */
@@ -33,6 +35,8 @@ export interface ChatRequest {
     userId: string;
     userRole: string;
     history?: ChatMessage[];
+    /** User's autonomy preference (defaults to 'balanced') */
+    autonomyLevel?: AutonomyLevel;
 }
 
 /** Safety limits */
@@ -195,6 +199,7 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
     ];
 
     let toolCallCount = 0;
+    const collectedResults: { name: string; result: ToolResult }[] = [];
 
     // Get tool definitions for native tool calling
     const toolDefinitions = toolRegistry.getToolDefinitions();
@@ -302,46 +307,95 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 continue;
             }
 
-            // Check for confirmation requirement
+            // Graduated Autonomy: classify the tool invocation into a tier
             if (tool.requiresConfirmation) {
-                if (!req.sessionId) {
-                    messages.push({
-                        role: 'tool',
-                        toolCallId: toolCall.id,
-                        name: tool.name,
-                        content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
-                    });
-                    continue;
+                const classification = classifyTool(tool, {
+                    autonomyLevel: req.autonomyLevel || 'balanced',
+                    toolArgs: toolCall.arguments as Record<string, unknown>,
+                });
+
+                // Tier 3: Full confirmation (current behavior — pause loop, wait for user)
+                if (classification.tier === 3) {
+                    if (!req.sessionId) {
+                        messages.push({
+                            role: 'tool',
+                            toolCallId: toolCall.id,
+                            name: tool.name,
+                            content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
+                        });
+                        continue;
+                    }
+
+                    try {
+                        const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.arguments)}`;
+                        const pendingAction = await confirmationService.createPendingAction({
+                            sessionId: req.sessionId,
+                            userId: req.userId,
+                            toolName: tool.name,
+                            parameters: toolCall.arguments,
+                        });
+
+                        sendSSE(res, createEvent('confirmation_request', JSON.stringify({
+                            actionId: pendingAction.id,
+                            tool: tool.name,
+                            args: toolCall.arguments,
+                            summary,
+                            tier: 3,
+                        })));
+                        sendSSE(res, createEvent('done', ''));
+                        return;
+                    } catch (error) {
+                        logger.error('[AIChatService] Failed to create pending action:', error);
+                        sendSSE(res, createEvent('error', 'Failed to request confirmation.'));
+                        sendSSE(res, createEvent('done', ''));
+                        return;
+                    }
                 }
 
-                try {
-                    const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.arguments)}`;
-                    const pendingAction = await confirmationService.createPendingAction({
-                        sessionId: req.sessionId,
-                        userId: req.userId,
-                        toolName: tool.name,
-                        parameters: toolCall.arguments,
-                    });
+                // Tier 2: AI-in-the-Loop — show a proactive suggestion card (don't pause loop)
+                // The tool is NOT executed yet — the frontend will show a card with approve/dismiss
+                if (classification.tier === 2) {
+                    if (!req.sessionId) {
+                        messages.push({
+                            role: 'tool',
+                            toolCallId: toolCall.id,
+                            name: tool.name,
+                            content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
+                        });
+                        continue;
+                    }
 
-                    sendSSE(res, createEvent('confirmation_request', JSON.stringify({
-                        actionId: pendingAction.id,
-                        tool: tool.name,
-                        args: toolCall.arguments,
-                        summary
-                    })));
-                    sendSSE(res, createEvent('done', ''));
+                    try {
+                        const summary = `Call ${tool.name} with args: ${JSON.stringify(toolCall.arguments)}`;
+                        const pendingAction = await confirmationService.createPendingAction({
+                            sessionId: req.sessionId,
+                            userId: req.userId,
+                            toolName: tool.name,
+                            parameters: toolCall.arguments,
+                        });
 
-                    // Stop stream here. Client must resume after approval.
-                    return;
-                } catch (error) {
-                    logger.error('[AIChatService] Failed to create pending action:', error);
-                    sendSSE(res, createEvent('error', 'Failed to request confirmation.'));
-                    sendSSE(res, createEvent('done', ''));
-                    return;
+                        sendSSE(res, createEvent('confirmation_request', JSON.stringify({
+                            actionId: pendingAction.id,
+                            tool: tool.name,
+                            args: toolCall.arguments,
+                            summary,
+                            tier: 2,
+                        })));
+                        sendSSE(res, createEvent('done', ''));
+                        return;
+                    } catch (error) {
+                        logger.error('[AIChatService] Failed to create pending action:', error);
+                        sendSSE(res, createEvent('error', 'Failed to request confirmation.'));
+                        sendSSE(res, createEvent('done', ''));
+                        return;
+                    }
                 }
+
+                // Tier 1: Full Autonomy — auto-execute and notify after
+                logger.info(`[AIChatService] Tier 1 auto-execute: ${tool.name} (${classification.reason})`);
             }
 
-            // Notify frontend
+            // Notify frontend (Tier 1 auto-execute tools get a different label)
             sendSSE(res, createEvent('tool_start', `Calling ${tool.name}...`, tool.name));
 
             let toolResult;
@@ -361,12 +415,39 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
             }
 
             toolCallCount++;
+            collectedResults.push({ name: tool.name, result: toolResult });
 
             // Notify frontend: tool result (v3: include structured data for rich cards)
-            sendSSE(res, createEvent('tool_result', JSON.stringify({
-                summary: toolResult.summary,
-                data: toolResult.data,
-            }), tool.name));
+            // For Tier 1 auto-executed write tools, use 'autonomous_action' event type
+            const wasTier1AutoExec = tool.requiresConfirmation && classifyTool(tool, {
+                autonomyLevel: req.autonomyLevel || 'balanced',
+                toolArgs: toolCall.arguments as Record<string, unknown>,
+            }).autoExecute;
+
+            if (wasTier1AutoExec) {
+                sendSSE(res, createEvent('autonomous_action' as SSEEventType, JSON.stringify({
+                    summary: toolResult.summary,
+                    data: toolResult.data,
+                    tool: tool.name,
+                }), tool.name));
+            } else {
+                sendSSE(res, createEvent('tool_result', JSON.stringify({
+                    summary: toolResult.summary,
+                    data: toolResult.data,
+                }), tool.name));
+            }
+
+            // Proactive Suggestion Engine: evaluate if AI should suggest a next action
+            const suggestion = evaluateSuggestion({
+                toolName: tool.name,
+                toolResult,
+                previousResults: collectedResults,
+                userMessage: req.message,
+            });
+            if (suggestion) {
+                sendSSE(res, createEvent('proactive_suggestion' as SSEEventType, JSON.stringify(suggestion)));
+                logger.info(`[AIChatService] Proactive suggestion: ${suggestion.tool} (confidence: ${suggestion.confidence})`);
+            }
 
             // Feed result back
             messages.push({

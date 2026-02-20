@@ -39,7 +39,7 @@ export default function ToolResultCard({ message, userRole, onAction }: ToolResu
         case 'github_get_commit':
             return <GitHubCommitCard data={toolData} />;
         case 'github_get_pr':
-            return <GitHubPRCard data={toolData} />;
+            return <GitHubPRCard data={toolData} onAction={handleAction} cardState={cardState} />;
         case 'confluence_search':
             return <ConfluenceDocCard results={toolData as unknown as Record<string, unknown>[]} />;
         case 'jenkins_get_status':

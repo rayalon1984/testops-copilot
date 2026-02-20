@@ -72,7 +72,7 @@ export const githubGetCommitTool: Tool = {
 
 export const githubGetPRTool: Tool = {
     name: 'github_get_pr',
-    description: 'Find the pull request associated with a commit SHA. Returns PR number, title, author, and URL.',
+    description: 'Find the pull request associated with a commit SHA. Returns PR number, title, author, URL, state, and changed files with inline diffs.',
     category: 'github',
     requiresConfirmation: false,
     parameters: [
@@ -113,6 +113,11 @@ export const githubGetPRTool: Tool = {
                 };
             }
 
+            // Fetch changed files with diff patches for inline display
+            const files = await githubService.getPullRequestFiles(owner, repo, pr.number);
+            const totalAdditions = files.reduce((sum, f) => sum + f.additions, 0);
+            const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
+
             return {
                 success: true,
                 data: {
@@ -120,9 +125,26 @@ export const githubGetPRTool: Tool = {
                     title: pr.title,
                     author: pr.author,
                     url: pr.url,
+                    state: 'open',
                     body: pr.body?.substring(0, 300) || '',
+                    // Diff metadata for InlineDiffViewer
+                    filesChanged: files.length,
+                    totalAdditions,
+                    totalDeletions,
+                    files: files.map(f => ({
+                        filename: f.filename,
+                        status: f.status,
+                        additions: f.additions,
+                        deletions: f.deletions,
+                        // Truncate large patches to avoid token bloat (2KB per file)
+                        patch: f.patch?.substring(0, 2048) || '',
+                    })),
+                    // Merge context for Approve & Merge action
+                    mergeable: true,
+                    owner,
+                    repo,
                 },
-                summary: `Found PR #${pr.number}: "${pr.title}" by ${pr.author}.`,
+                summary: `Found PR #${pr.number}: "${pr.title}" by ${pr.author} — ${files.length} file(s), +${totalAdditions}/-${totalDeletions}.`,
             };
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'Unknown error';
