@@ -1,5 +1,41 @@
 # Changelog
 
+## [2.9.0-rc.3] - 2026-02-20
+
+> **Sprint 5 Stabilization** — Type safety, schema integrity, security audit, CI hardening.
+
+---
+
+### Type Safety & Build Fixes
+
+**Bedrock provider import fix** — Removed broken `@aws-sdk/client-bedrock` import from provider registry. The correct SDK package (`@aws-sdk/client-bedrock-runtime`) was already in use; the phantom import blocked `tsc --noEmit`.
+
+---
+
+### Schema Integrity
+
+**Field-level drift reconciliation** — Synced 40 fields across 7 models between `schema.production.prisma` and `schema.dev.prisma`. Models reconciled: `Pipeline`, `TestExecution`, `TestCase`, `FailureAnalysis`, `RCARevision`, `SharedAnalysis`, `DashboardConfig`. SQLite-compatible type mappings applied (e.g., `@default(uuid())` → `@default(cuid())`).
+
+---
+
+### Security
+
+**passport-saml → @node-saml/passport-saml v5** — Replaced unmaintained `passport-saml@3` with the actively maintained `@node-saml/passport-saml@5`. Fixes critical SAML signature verification vulnerability (GHSA-4mxg-3p6v-xgq3). Updated API: `path` → `callbackUrl`, `cert` → `idpCert`, added required `logoutVerify` callback.
+
+**bcrypt 5 → 6** — Upgraded to bcrypt 6 which uses Node.js native crypto instead of C++ bindings via `node-pre-gyp`. Eliminates `tar` dependency entirely, fixing 4 high-severity path traversal vulnerabilities (GHSA-r6q2-hw4h-h46w, GHSA-34x7-hfp2-rc4v, GHSA-83g3-92jg-28cx, GHSA-8qq5-rm4j-mr97).
+
+**Transitive dependency overrides** — Added `minimatch >= 10.2.1` and `glob >= 11.0.0` overrides to backend `package.json`, matching root overrides. Resolves 37 high-severity ReDoS vulnerabilities in transitive dependencies.
+
+**Audit result**: 40 vulnerabilities (1 critical, 37 high, 2 moderate) → 8 moderate (all in ESLint 8 devDeps, no production exposure).
+
+---
+
+### CI/CD Hardening
+
+**`--strict-fields` CI gate** — Schema validation in `backend-ci.yml` and `installation-test.yml` now runs with `--strict-fields`, promoting field-level drift from warning to blocking failure. Closes the gap identified in the Sprint 4 postmortem.
+
+---
+
 ## [2.9.0-rc.2] - 2026-02-20
 
 > **Virtual Team Persona Routing + Stability Fixes** — AI queries routed to specialist personas, dotenv crash fix, schema drift prevention.

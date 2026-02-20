@@ -7,7 +7,7 @@
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-2.9.0--rc.2-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.9.0--rc.3-blue)](CHANGELOG.md)
 
 > **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/README_MCP.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 
@@ -407,6 +407,7 @@ testops-companion/
 | **[Development Modes](docs/DEV_MODE.md)** | Demo vs production mode details |
 | **[Roadmap](specs/ROADMAP.md)** | What's shipped and what's next |
 | **[Changelog](CHANGELOG.md)** | Version history |
+| **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry and prevention checklist |
 | **[MCP Server](docs/README_MCP.md)** | Model Context Protocol integration |
 
 ---
