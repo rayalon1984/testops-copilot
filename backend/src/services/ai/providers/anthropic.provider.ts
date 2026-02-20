@@ -4,7 +4,40 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
-import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
+import { ToolParameter } from '../tools/types';
+
+/** Anthropic Messages API message format */
+interface AnthropicMessage {
+  role: 'user' | 'assistant';
+  content: string | AnthropicContentBlock[];
+}
+
+/** Content block in an Anthropic message */
+type AnthropicContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+  | { type: 'tool_result'; tool_use_id: string | undefined; content: string };
+
+/** Anthropic API request parameters */
+interface AnthropicRequestParams {
+  model: string;
+  max_tokens: number;
+  temperature: number;
+  system: string | undefined;
+  messages: AnthropicMessage[];
+  stop_sequences: string[] | undefined;
+  top_p: number | undefined;
+  tools?: Array<{
+    name: string;
+    description: string;
+    input_schema: {
+      type: string;
+      properties: Record<string, { type: string; description: string; enum?: string[] }>;
+      required: string[];
+    };
+  }>;
+}
 
 export class AnthropicProvider extends BaseProvider {
   private client: Anthropic;
@@ -51,13 +84,13 @@ export class AnthropicProvider extends BaseProvider {
       const chatMessages = messages.filter(m => m.role !== 'system');
 
       // Convert messages to Anthropic format
-      const anthropicMessages: any[] = chatMessages.map(msg => {
+      const anthropicMessages: AnthropicMessage[] = chatMessages.map(msg => {
         if (msg.role === 'user') {
-          return { role: 'user', content: msg.content };
+          return { role: 'user' as const, content: msg.content };
         }
 
         if (msg.role === 'assistant') {
-          const content: any[] = [];
+          const content: AnthropicContentBlock[] = [];
           if (msg.content) content.push({ type: 'text', text: msg.content });
           if (msg.toolCalls) {
             msg.toolCalls.forEach(tc => {
@@ -69,15 +102,15 @@ export class AnthropicProvider extends BaseProvider {
               });
             });
           }
-          return { role: 'assistant', content };
+          return { role: 'assistant' as const, content };
         }
 
         if (msg.role === 'tool') {
           return {
-            role: 'user',
+            role: 'user' as const,
             content: [
               {
-                type: 'tool_result',
+                type: 'tool_result' as const,
                 tool_use_id: msg.toolCallId,
                 content: msg.content
               }
@@ -85,11 +118,11 @@ export class AnthropicProvider extends BaseProvider {
           };
         }
 
-        return { role: 'user', content: msg.content };
+        return { role: 'user' as const, content: msg.content };
       });
 
       // Prepare params
-      const params: any = {
+      const params: AnthropicRequestParams = {
         model: this.config.model,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
@@ -106,7 +139,7 @@ export class AnthropicProvider extends BaseProvider {
           description: t.description,
           input_schema: {
             type: 'object',
-            properties: t.parameters.reduce((acc: any, p: any) => {
+            properties: t.parameters.reduce((acc: Record<string, { type: string; description: string; enum?: string[] }>, p: ToolParameter) => {
               acc[p.name] = {
                 type: p.type,
                 description: p.description,
@@ -114,7 +147,7 @@ export class AnthropicProvider extends BaseProvider {
               };
               return acc;
             }, {}),
-            required: t.parameters.filter((p: any) => p.required).map((p: any) => p.name)
+            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name)
           }
         }));
       }
@@ -124,7 +157,7 @@ export class AnthropicProvider extends BaseProvider {
 
       // Process content and tools
       let content = '';
-      const toolCalls: any[] = [];
+      const toolCalls: ToolCall[] = [];
 
       response.content.forEach(block => {
         if (block.type === 'text') {

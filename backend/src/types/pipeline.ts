@@ -96,23 +96,23 @@ export function isTestRunWithPipeline(testRun: TestRun): testRun is TestRunWithP
 }
 
 // Convert Prisma pipeline to our Pipeline type
-export function toPipeline(prismaPipeline: any): Pipeline {
+export function toPipeline(prismaPipeline: Record<string, unknown>): Pipeline {
   return {
     ...prismaPipeline,
     type: prismaPipeline.type as PipelineType,
     status: (prismaPipeline.status || PipelineStatus.PENDING) as PipelineStatus,
-    userId: prismaPipeline.userId || '' // Default or empty if missing
-  };
+    userId: (prismaPipeline.userId as string) || '' // Default or empty if missing
+  } as Pipeline;
 }
 
 // Convert Prisma test run to our TestRun type
-export function toTestRun(prismaTestRun: any): TestRun {
+export function toTestRun(prismaTestRun: Record<string, unknown>): TestRun {
   return {
     ...prismaTestRun,
     status: prismaTestRun.status as TestStatus,
-    startTime: prismaTestRun.startedAt || prismaTestRun.startTime,
-    endTime: prismaTestRun.completedAt || prismaTestRun.endTime,
+    startTime: (prismaTestRun as Record<string, unknown>).startedAt || prismaTestRun.startTime,
+    endTime: (prismaTestRun as Record<string, unknown>).completedAt || prismaTestRun.endTime,
     results: prismaTestRun.results || {}, // Ensure generic JSON
-    error: prismaTestRun.metadata?.error || prismaTestRun.error || null
-  };
+    error: (prismaTestRun.metadata as Record<string, unknown> | undefined)?.error || prismaTestRun.error || null
+  } as TestRun;
 }

@@ -9,7 +9,7 @@
 
 import * as crypto from 'crypto';
 import { redis } from '../../lib/redis';
-import { AIResponse, Embedding } from './types';
+import { AIResponse, Embedding, LogSummary } from './types';
 import { getConfigManager } from './config';
 
 export interface CacheConfig {
@@ -140,7 +140,7 @@ export class AICache {
   /**
    * Cache a summary
    */
-  async cacheSummary(logHash: string, summary: any): Promise<void> {
+  async cacheSummary(logHash: string, summary: LogSummary): Promise<void> {
     if (!this.enabled) return;
 
     try {
@@ -158,7 +158,7 @@ export class AICache {
   /**
    * Get cached summary
    */
-  async getSummary(logHash: string): Promise<any | null> {
+  async getSummary(logHash: string): Promise<LogSummary | null> {
     if (!this.enabled) {
       this.stats.misses++;
       return null;

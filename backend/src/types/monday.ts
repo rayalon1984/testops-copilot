@@ -74,13 +74,13 @@ export interface CreateMondayItemInput {
   boardId: string;
   groupId?: string;
   itemName: string;
-  columnValues?: Record<string, any>;
+  columnValues?: Record<string, unknown>;
 }
 
 export interface UpdateMondayItemInput {
   itemId: string;
   boardId: string;
-  columnValues?: Record<string, any>;
+  columnValues?: Record<string, unknown>;
 }
 
 export interface CreateMondayUpdateInput {

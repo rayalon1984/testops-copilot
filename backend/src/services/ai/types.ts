@@ -5,6 +5,8 @@
  * Based on the AI Integration API specification.
  */
 
+import { ToolSchema } from './tools/types';
+
 /**
  * Supported AI providers
  */
@@ -122,7 +124,7 @@ export interface AIModel {
 export interface ToolCall {
   id: string;
   name: string;
-  arguments: Record<string, any>;
+  arguments: Record<string, unknown>;
 }
 
 /**
@@ -145,7 +147,7 @@ export interface ChatOptions {
   maxTokens?: number;
   temperature?: number;
   stream?: boolean;
-  tools?: any[]; // Tool definitions
+  tools?: ToolSchema[]; // Tool definitions
 }
 
 /**
@@ -252,10 +254,10 @@ export interface LogSummary {
 export interface NLQueryResult {
   query: string;
   answer: string;
-  data?: any;
+  data?: unknown;
   visualization?: {
     type: 'bar' | 'line' | 'pie' | 'table';
-    data: any;
+    data: unknown;
   };
   sources: string[];
   confidence: number;

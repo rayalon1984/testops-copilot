@@ -89,8 +89,8 @@ export namespace Prisma {
         id: string;
       };
     };
-    testRuns?: any;
-    jiraIssues?: any;
+    testRuns?: Record<string, unknown>;
+    jiraIssues?: Record<string, unknown>;
   }
 
   export interface PipelineUpdateInput {
@@ -99,8 +99,8 @@ export namespace Prisma {
     config?: InputJsonValue;
     status?: PipelineStatus;
     updatedAt?: Date | string;
-    user?: any;
-    testRuns?: any;
-    jiraIssues?: any;
+    user?: Record<string, unknown>;
+    testRuns?: Record<string, unknown>;
+    jiraIssues?: Record<string, unknown>;
   }
 }

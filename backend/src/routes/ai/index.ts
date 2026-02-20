@@ -117,10 +117,10 @@ router.put('/config', authorize(UserRole.ADMIN), async (req: Request, res: Respo
       }
     }
 
-    const user = (req as any).user || {};
+    const user = req.user;
     const result = await providerConfig.updateProviderConfig(
       { provider, model, apiKey, extraConfig },
-      user.id || 'unknown',
+      user?.id || 'unknown',
     );
 
     return res.json({ data: result });
@@ -509,14 +509,14 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
     res.flushHeaders();
 
     // Extract user info from auth middleware
-    const user = (req as any).user || {};
+    const user = req.user;
 
     await handleChatStream(
       {
         message,
         sessionId,
-        userId: user.id || 'anonymous',
-        userRole: user.role || 'viewer',
+        userId: user?.id || 'anonymous',
+        userRole: user?.role || 'viewer',
         history: history || [],
       },
       res
@@ -549,8 +549,8 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/sessions', async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user || {};
-    const sessions = await chatSession.getUserSessions(user.id);
+    const user = req.user;
+    const sessions = await chatSession.getUserSessions(user?.id || '');
     res.json({ data: sessions });
   } catch (error) {
     res.status(500).json({ error: 'Failed to list sessions' });
@@ -563,8 +563,8 @@ router.get('/sessions', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/sessions/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user || {};
-    const session = await chatSession.getSessionWithMessages(req.params.id as string, user.id);
+    const user = req.user;
+    const session = await chatSession.getSessionWithMessages(req.params.id as string, user?.id || '');
     if (!session) {
       res.status(404).json({ error: 'Session not found' });
       return;
@@ -581,9 +581,9 @@ router.get('/sessions/:id', async (req: Request, res: Response): Promise<void> =
  */
 router.post('/sessions', async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user || {};
+    const user = req.user;
     const session = await chatSession.createSession({
-      userId: user.id,
+      userId: user?.id || '',
       title: req.body.title,
     });
     res.status(201).json({ data: session });
@@ -598,8 +598,8 @@ router.post('/sessions', async (req: Request, res: Response): Promise<void> => {
  */
 router.delete('/sessions/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user || {};
-    await chatSession.deleteSession(req.params.id as string, user.id);
+    const user = req.user;
+    await chatSession.deleteSession(req.params.id as string, user?.id || '');
     res.json({ message: 'Session deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete session' });
@@ -614,7 +614,7 @@ router.delete('/sessions/:id', async (req: Request, res: Response): Promise<void
  */
 router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user || {};
+    const user = req.user;
     const { actionId, approved } = req.body;
 
     if (!actionId || typeof approved !== 'boolean') {
@@ -622,7 +622,7 @@ router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const result = await confirmation.resolveAction(actionId, user.id, approved);
+    const result = await confirmation.resolveAction(actionId, user?.id || '', approved);
 
     let toolResult: ToolResult | { success: boolean; error: string } | null = null;
     if (approved) {
@@ -635,8 +635,8 @@ router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
             : null;
 
           const executionResult = mockResult || await tool.execute(result.parameters, {
-            userId: user.id,
-            userRole: user.role || 'viewer',
+            userId: user?.id || '',
+            userRole: user?.role || 'viewer',
             sessionId: result.sessionId,
           });
 

@@ -82,7 +82,7 @@ router.get(
       return;
     }
 
-    const failed = (testRun as any).results?.filter((r: any) => r.status === 'FAILED').length || 0;
+    const failed = testRun.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
     const statusMap: Record<string, string> = {
       'PASSED': 'success',
       'FAILED': 'failed',
@@ -92,7 +92,7 @@ router.get(
       'FLAKY': 'flaky'
     };
 
-    const error = (testRun as any).error || null;
+    const error = testRun.error || null;
 
     res.status(200).json({
       id: testRun.id,

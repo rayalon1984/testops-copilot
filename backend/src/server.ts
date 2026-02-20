@@ -19,7 +19,7 @@ async function startServer() {
       connect: async () => ({ release: () => { } }),
       on: () => { },
       end: async () => { },
-    } as any;
+    } as unknown as import('pg').Pool;
 
     try {
       await initializeAI({ db: mockDbPool });

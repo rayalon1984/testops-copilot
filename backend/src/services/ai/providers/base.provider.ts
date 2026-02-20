@@ -6,6 +6,7 @@
  */
 
 import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { ToolSchema } from '../tools/types';
 
 export interface ProviderConfig {
   apiKey: string;
@@ -21,7 +22,7 @@ export interface CompletionOptions {
   stopSequences?: string[];
   topP?: number;
   systemPrompt?: string;
-  tools?: any[]; // Tool definitions (ToolSchema from tools/types.ts)
+  tools?: ToolSchema[];
 }
 
 export interface EmbeddingOptions {
@@ -140,11 +141,17 @@ export abstract class BaseProvider {
   /**
    * Handle provider-specific errors
    */
-  protected handleError(error: any): never {
-    if (error.response) {
+  protected handleError(error: unknown): never {
+    const err = error as Record<string, unknown>;
+    const response = err.response as Record<string, unknown> | undefined;
+    const errorMessage = err.message as string | undefined;
+
+    if (response) {
       // HTTP error from provider
-      const status = error.response.status;
-      const message = error.response.data?.error?.message || error.message;
+      const status = response.status as number;
+      const data = response.data as Record<string, unknown> | undefined;
+      const nestedError = data?.error as Record<string, unknown> | undefined;
+      const message = (nestedError?.message as string) || errorMessage || 'Unknown error';
 
       if (status === 401) {
         throw new Error(`${this.getName()} authentication failed: Invalid API key`);
@@ -158,7 +165,7 @@ export abstract class BaseProvider {
     }
 
     // Network or other error
-    throw new Error(`${this.getName()} request failed: ${error.message}`);
+    throw new Error(`${this.getName()} request failed: ${errorMessage || 'Unknown error'}`);
   }
 
   /**

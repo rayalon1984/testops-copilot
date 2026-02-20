@@ -17,7 +17,7 @@ export interface VectorDBConfig {
 export interface VectorSearchResult {
   id: string;
   distance: number;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 export class WeaviateVectorClient {
@@ -34,7 +34,7 @@ export class WeaviateVectorClient {
    * Create Weaviate client
    */
   private createClient(): WeaviateClient {
-    const clientConfig: any = {
+    const clientConfig: Record<string, unknown> = {
       scheme: this.config.url.startsWith('https') ? 'https' : 'http',
       host: this.config.url.replace(/^https?:\/\//, ''),
     };
@@ -43,7 +43,8 @@ export class WeaviateVectorClient {
       clientConfig.apiKey = new ApiKey(this.config.apiKey);
     }
 
-    return weaviate.client(clientConfig);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return weaviate.client(clientConfig as any);
   }
 
   /**
@@ -70,13 +71,14 @@ export class WeaviateVectorClient {
   /**
    * Create a class (collection) in Weaviate
    */
-  async createClass(className: string, schema: any): Promise<void> {
+  async createClass(className: string, schema: Record<string, unknown>): Promise<void> {
     try {
-      await this.client.schema.classCreator().withClass(schema).do();
-      console.log(`✅ Created Weaviate class: ${className}`);
-    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await this.client.schema.classCreator().withClass(schema as any).do();
+      console.log(`Created Weaviate class: ${className}`);
+    } catch (error: unknown) {
       // Ignore if class already exists
-      if (error.message?.includes('already exists')) {
+      if (error instanceof Error && error.message?.includes('already exists')) {
         console.log(`ℹ️  Weaviate class already exists: ${className}`);
       } else {
         throw error;
@@ -102,7 +104,7 @@ export class WeaviateVectorClient {
   async classExists(className: string): Promise<boolean> {
     try {
       const schema = await this.client.schema.getter().do();
-      return schema.classes?.some((c: any) => c.class === className) || false;
+      return schema.classes?.some((c: Record<string, unknown>) => c.class === className) || false;
     } catch (error) {
       return false;
     }
@@ -113,7 +115,7 @@ export class WeaviateVectorClient {
    */
   async insert(
     className: string,
-    properties: Record<string, any>,
+    properties: Record<string, unknown>,
     vector: Embedding,
     id?: string
   ): Promise<string> {
@@ -121,7 +123,9 @@ export class WeaviateVectorClient {
       const creator = this.client.data
         .creator()
         .withClassName(className)
-        .withProperties(properties)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .withProperties(properties as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .withVector(vector as any);
 
       if (id) {
@@ -141,7 +145,7 @@ export class WeaviateVectorClient {
   async batchInsert(
     className: string,
     objects: Array<{
-      properties: Record<string, any>;
+      properties: Record<string, unknown>;
       vector: Embedding;
       id?: string;
     }>
@@ -150,21 +154,22 @@ export class WeaviateVectorClient {
       let batcher = this.client.batch.objectsBatcher();
 
       for (const obj of objects) {
-        const weaviateObj: any = {
+        const weaviateObj: Record<string, unknown> = {
           class: className,
           properties: obj.properties,
-          vector: obj.vector as any,
+          vector: obj.vector,
         };
 
         if (obj.id) {
           weaviateObj.id = obj.id;
         }
 
-        batcher = batcher.withObject(weaviateObj);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        batcher = batcher.withObject(weaviateObj as any);
       }
 
       const result = await batcher.do();
-      return result.map((r: any) => r.id);
+      return result.map((r: Record<string, unknown>) => r.id as string);
     } catch (error) {
       throw new Error(`Failed to batch insert into ${className}: ${error}`);
     }
@@ -177,29 +182,34 @@ export class WeaviateVectorClient {
     className: string,
     vector: Embedding,
     limit: number = 10,
-    filters?: any
+    filters?: Record<string, unknown>
   ): Promise<VectorSearchResult[]> {
     try {
       let query = this.client.graphql
         .get()
         .withClassName(className)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .withNearVector({ vector: vector as any })
         .withLimit(limit)
         .withFields('_additional { id distance }');
 
       // Add filters if provided
       if (filters) {
-        query = query.withWhere(filters);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        query = query.withWhere(filters as any);
       }
 
       const result = await query.do();
 
       const objects = result.data?.Get?.[className] || [];
-      return objects.map((obj: any) => ({
-        id: obj._additional.id,
-        distance: obj._additional.distance,
-        properties: { ...obj },
-      }));
+      return objects.map((obj: Record<string, unknown>) => {
+        const additional = obj._additional as Record<string, unknown>;
+        return {
+          id: additional.id as string,
+          distance: additional.distance as number,
+          properties: { ...obj },
+        };
+      });
     } catch (error) {
       throw new Error(`Failed to search ${className}: ${error}`);
     }
@@ -208,7 +218,7 @@ export class WeaviateVectorClient {
   /**
    * Get object by ID
    */
-  async getById(className: string, id: string): Promise<Record<string, any> | null> {
+  async getById(className: string, id: string): Promise<Record<string, unknown> | null> {
     try {
       const result = await this.client.data
         .getterById()
@@ -228,7 +238,7 @@ export class WeaviateVectorClient {
   async update(
     className: string,
     id: string,
-    properties: Record<string, any>
+    properties: Record<string, unknown>
   ): Promise<void> {
     try {
       await this.client.data
@@ -260,7 +270,7 @@ export class WeaviateVectorClient {
   /**
    * Delete objects matching a filter
    */
-  async deleteWhere(className: string, filters: any): Promise<number> {
+  async deleteWhere(className: string, filters: Record<string, unknown>): Promise<number> {
     try {
       const result = await this.client.batch
         .objectsBatchDeleter()

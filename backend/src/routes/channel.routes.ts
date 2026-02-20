@@ -33,7 +33,7 @@ function slackSignatureMiddleware(req: Request, res: Response, next: NextFunctio
 
     // req.body is already parsed as JSON by Express, but Slack verification
     // needs the raw body string. We use the rawBody set by the raw body middleware.
-    const rawBody = (req as any).rawBody as string | undefined;
+    const rawBody = (req as Request & { rawBody?: string }).rawBody;
     if (!rawBody) {
         // Fallback: re-serialize (less ideal but functional)
         const body = JSON.stringify(req.body);

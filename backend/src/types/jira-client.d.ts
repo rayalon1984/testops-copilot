@@ -15,7 +15,7 @@ declare module 'jira-client' {
     description?: string;
     issuetype?: { name: string };
     labels?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   interface JiraTransition {

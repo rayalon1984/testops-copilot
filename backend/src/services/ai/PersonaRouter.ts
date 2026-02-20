@@ -213,7 +213,7 @@ async function classifyWithLLM(message: string): Promise<PersonaSelection> {
             return DEFAULT_PERSONA;
         }
 
-        const response = await (aiManager as any).provider.chat(
+        const response = await aiManager.getProvider()!.chat(
             [
                 { role: 'system', content: CLASSIFICATION_PROMPT },
                 { role: 'user', content: message },

@@ -61,8 +61,8 @@ export function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
 export function createPipelineInput(data: CreatePipelineData): Prisma.PipelineCreateInput {
   return {
     name: data.name,
-    // Cast string to Enum as Prisma expects Enum but we manipulate strings often
-    type: data.type as any,
+    // PipelineType enum values are strings, compatible with Prisma's string field
+    type: data.type as string,
     // Production schema does not have status field
     // status: data.status ? mapPipelineStatus(data.status) : 'PENDING',
     config: JSON.stringify(data.config),
@@ -81,7 +81,7 @@ export function updatePipelineInput(data: Partial<BasePipelineData>): Prisma.Pip
   }
 
   if (data.type) {
-    updateData.type = mapPipelineType(data.type) as any;
+    updateData.type = mapPipelineType(data.type);
   }
 
   // Production schema has no status field

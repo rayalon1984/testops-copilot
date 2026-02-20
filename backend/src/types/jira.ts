@@ -51,6 +51,6 @@ export interface JiraIssueResponse {
       name: string;
     };
     labels: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }

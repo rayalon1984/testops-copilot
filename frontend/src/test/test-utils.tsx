@@ -30,7 +30,7 @@ function customRender(
     return (
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
-          <MemoryRouter initialEntries={[route]}>
+          <MemoryRouter initialEntries={[route]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <SnackbarProvider>{children}</SnackbarProvider>
           </MemoryRouter>
         </ThemeProvider>

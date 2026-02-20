@@ -89,8 +89,8 @@ export class AIConfigManager {
     if (fs.existsSync(this.configPath)) {
       try {
         const fileContent = fs.readFileSync(this.configPath, 'utf8');
-        const yamlData = yaml.load(fileContent) as any;
-        fileConfig = this.parseYamlConfig(yamlData.ai || yamlData);
+        const yamlData = yaml.load(fileContent) as Record<string, unknown>;
+        fileConfig = this.parseYamlConfig((yamlData.ai || yamlData) as Record<string, unknown>);
       } catch (error) {
         console.warn(`Failed to load AI config from ${this.configPath}:`, error);
       }
@@ -109,39 +109,46 @@ export class AIConfigManager {
   /**
    * Parse YAML config to AIConfig format
    */
-  private parseYamlConfig(yaml: any): Partial<AIConfig> {
+  private parseYamlConfig(data: Record<string, unknown>): Partial<AIConfig> {
+    const features = data.features as Record<string, unknown> | undefined;
+    const providerSettings = data.provider_settings as Record<string, unknown> | undefined;
+    const vectorDb = data.vector_db as Record<string, unknown> | undefined;
+    const cost = data.cost as Record<string, unknown> | undefined;
+    const cache = data.cache as Record<string, unknown> | undefined;
+    const rateLimit = data.rate_limit as Record<string, unknown> | undefined;
+
     return {
-      enabled: yaml.enabled,
-      provider: yaml.provider,
-      model: yaml.model,
-      features: yaml.features ? {
-        rcaMatching: yaml.features.rca_matching,
-        categorization: yaml.features.categorization,
-        logSummary: yaml.features.log_summary,
-        nlQueries: yaml.features.nl_queries,
-        ticketGeneration: yaml.features.ticket_generation,
+      enabled: data.enabled as boolean | undefined,
+      provider: data.provider as AIProviderName | undefined,
+      model: data.model as string | undefined,
+      features: features ? {
+        rcaMatching: features.rca_matching as boolean,
+        categorization: features.categorization as boolean,
+        logSummary: features.log_summary as boolean,
+        nlQueries: features.nl_queries as boolean,
+        ticketGeneration: features.ticket_generation as boolean,
       } : undefined,
-      providerSettings: yaml.provider_settings ? {
-        maxTokens: yaml.provider_settings.max_tokens,
-        temperature: yaml.provider_settings.temperature,
-        timeoutMs: yaml.provider_settings.timeout_ms,
+      providerSettings: providerSettings ? {
+        maxTokens: providerSettings.max_tokens as number,
+        temperature: providerSettings.temperature as number,
+        timeoutMs: providerSettings.timeout_ms as number,
       } : undefined,
-      vectorDB: yaml.vector_db ? {
-        url: yaml.vector_db.url,
-        apiKey: yaml.vector_db.api_key,
+      vectorDB: vectorDb ? {
+        url: vectorDb.url as string,
+        apiKey: vectorDb.api_key as string | undefined,
       } : undefined,
-      cost: yaml.cost ? {
-        monthlyBudgetUSD: yaml.cost.monthly_budget_usd,
-        alertThresholdPercent: yaml.cost.alert_threshold_percent,
-        alertEmail: yaml.cost.alert_email,
+      cost: cost ? {
+        monthlyBudgetUSD: cost.monthly_budget_usd as number,
+        alertThresholdPercent: cost.alert_threshold_percent as number,
+        alertEmail: cost.alert_email as string | undefined,
       } : undefined,
-      cache: yaml.cache ? {
-        enabled: yaml.cache.enabled,
-        ttlSeconds: yaml.cache.ttl_seconds,
+      cache: cache ? {
+        enabled: cache.enabled as boolean,
+        ttlSeconds: cache.ttl_seconds as number,
       } : undefined,
-      rateLimit: yaml.rate_limit ? {
-        perMinute: yaml.rate_limit.per_minute,
-        perDay: yaml.rate_limit.per_day,
+      rateLimit: rateLimit ? {
+        perMinute: rateLimit.per_minute as number,
+        perDay: rateLimit.per_day as number,
       } : undefined,
     };
   }

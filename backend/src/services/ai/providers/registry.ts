@@ -11,10 +11,10 @@ import { BaseProvider, ProviderConfig } from './base.provider';
 import { AnthropicProvider } from './anthropic.provider';
 import { OpenAIProvider } from './openai.provider';
 import { GoogleProvider } from './google.provider';
-import { AzureProvider } from './azure.provider';
-import { OpenRouterProvider } from './openrouter.provider';
+import { AzureProvider, AzureProviderConfig } from './azure.provider';
+import { OpenRouterProvider, OpenRouterProviderConfig } from './openrouter.provider';
 import { MockProvider } from './mock.provider';
-import { BedrockProvider } from './bedrock.provider';
+import { BedrockProvider, BedrockProviderConfig } from './bedrock.provider';
 
 export type ProviderFactory = (config: ProviderConfig) => BaseProvider;
 
@@ -36,9 +36,9 @@ class ProviderRegistry {
     this.register('anthropic', (config) => new AnthropicProvider(config));
     this.register('openai', (config) => new OpenAIProvider(config));
     this.register('google', (config) => new GoogleProvider(config));
-    this.register('azure', (config) => new AzureProvider(config as any));
-    this.register('openrouter', (config) => new OpenRouterProvider(config as any));
-    this.register('bedrock', (config) => new BedrockProvider(config as any));
+    this.register('azure', (config) => new AzureProvider(config as AzureProviderConfig));
+    this.register('openrouter', (config) => new OpenRouterProvider(config as OpenRouterProviderConfig));
+    this.register('bedrock', (config) => new BedrockProvider(config as BedrockProviderConfig));
     this.register('mock', (config) => new MockProvider(config));
   }
 
@@ -90,22 +90,23 @@ class ProviderRegistry {
     };
 
     // Add provider-specific config
+    const extendedConfig = baseConfig as ProviderConfig & Record<string, unknown>;
     switch (providerName) {
       case 'openai':
-        (baseConfig as any).orgId = secrets.openaiOrgId;
+        extendedConfig.orgId = secrets.openaiOrgId;
         break;
       case 'azure':
-        (baseConfig as any).endpoint = secrets.azureOpenaiEndpoint;
-        (baseConfig as any).deploymentName = secrets.azureDeploymentName;
+        extendedConfig.endpoint = secrets.azureOpenaiEndpoint;
+        extendedConfig.deploymentName = secrets.azureDeploymentName;
         break;
       case 'openrouter':
-        (baseConfig as any).siteUrl = secrets.openrouterSiteUrl;
-        (baseConfig as any).appName = secrets.openrouterAppName;
+        extendedConfig.siteUrl = secrets.openrouterSiteUrl;
+        extendedConfig.appName = secrets.openrouterAppName;
         break;
       case 'bedrock':
-        (baseConfig as any).region = secrets.bedrockRegion || 'us-east-1';
-        (baseConfig as any).accessKeyId = secrets.bedrockAccessKeyId;
-        (baseConfig as any).secretAccessKey = secrets.bedrockSecretAccessKey;
+        extendedConfig.region = secrets.bedrockRegion || 'us-east-1';
+        extendedConfig.accessKeyId = secrets.bedrockAccessKeyId;
+        extendedConfig.secretAccessKey = secrets.bedrockSecretAccessKey;
         break;
     }
 

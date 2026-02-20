@@ -11,7 +11,8 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
-import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
+import { ToolParameter } from '../tools/types';
 
 export interface BedrockProviderConfig extends ProviderConfig {
   region: string;
@@ -146,12 +147,12 @@ export class BedrockProvider extends BaseProvider {
 
       // Add tools if provided
       if (options?.tools && options.tools.length > 0) {
-        body.tools = options.tools.map((t: Record<string, any>) => ({
+        body.tools = options.tools.map(t => ({
           name: t.name,
           description: t.description,
           input_schema: {
             type: 'object',
-            properties: t.parameters.reduce((acc: Record<string, unknown>, p: Record<string, any>) => {
+            properties: t.parameters.reduce((acc: Record<string, unknown>, p: ToolParameter) => {
               acc[p.name] = {
                 type: p.type,
                 description: p.description,
@@ -159,7 +160,7 @@ export class BedrockProvider extends BaseProvider {
               };
               return acc;
             }, {}),
-            required: t.parameters.filter((p: Record<string, any>) => p.required).map((p: Record<string, any>) => p.name),
+            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name),
           },
         }));
       }
@@ -176,17 +177,17 @@ export class BedrockProvider extends BaseProvider {
 
       // Parse response (same structure as Anthropic Messages API)
       let content = '';
-      const toolCalls: Array<{ id: string; name: string; arguments: Record<string, any> }> = [];
+      const toolCalls: ToolCall[] = [];
 
       if (Array.isArray(responseBody.content)) {
-        responseBody.content.forEach((block: Record<string, any>) => {
+        responseBody.content.forEach((block: Record<string, unknown>) => {
           if (block.type === 'text') {
-            content += block.text;
+            content += block.text as string;
           } else if (block.type === 'tool_use') {
             toolCalls.push({
-              id: block.id,
-              name: block.name,
-              arguments: block.input as Record<string, any>,
+              id: block.id as string,
+              name: block.name as string,
+              arguments: block.input as Record<string, unknown>,
             });
           }
         });
