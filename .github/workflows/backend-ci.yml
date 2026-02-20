@@ -51,7 +51,7 @@ jobs:
 
     - name: Schema parity check (model + field level)
       working-directory: .
-      run: node scripts/validate-schema.js
+      run: node scripts/validate-schema.js --strict-fields
 
     - name: Typecheck with dev schema (SQLite / demo mode)
       run: |
