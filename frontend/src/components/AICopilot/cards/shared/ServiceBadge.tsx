@@ -21,6 +21,7 @@ const SERVICE_CONFIG: Record<string, ServiceColorSet> = {
     confluence:  { icon: '\uD83D\uDCC4', light: '#1868DB', dark: '#579DFF', label: 'Confluence' },
     dashboard:   { icon: '\uD83D\uDCCA', light: '#6366F1', dark: '#A5B4FC', label: 'Dashboard' },
     predictions: { icon: '\uD83D\uDD2E', light: '#8B5CF6', dark: '#C4B5FD', label: 'Predictions' },
+    giphy:       { icon: '\uD83C\uDFAC', light: '#00E676', dark: '#69F0AE', label: 'Giphy' },
     generic:     { icon: '\uD83D\uDD27', light: '#64748B', dark: '#94A3B8', label: 'Tool' },
 };
 

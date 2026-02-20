@@ -377,6 +377,42 @@ export class GitHubService {
   }
 
   /**
+   * Merge a pull request.
+   * Sprint 7: Tier 2 — team-visible, requires one-click approval.
+   */
+  async mergePR(
+    owner: string,
+    repo: string,
+    prNumber: number,
+    options: { method?: string; commitMessage?: string } = {}
+  ): Promise<{ sha: string; message: string }> {
+    if (!this.isEnabled()) {
+      throw new Error('GitHub is not configured');
+    }
+
+    try {
+      const mergeMethod = options.method || 'squash';
+      const { data } = await this.octokit!.pulls.merge({
+        owner,
+        repo,
+        pull_number: prNumber,
+        merge_method: mergeMethod as 'merge' | 'squash' | 'rebase',
+        ...(options.commitMessage ? { commit_message: options.commitMessage } : {}),
+      });
+
+      logger.info(`[GitHubService] Merged PR #${prNumber} in ${owner}/${repo} via ${mergeMethod}`);
+
+      return {
+        sha: data.sha,
+        message: data.message || `PR #${prNumber} merged successfully`,
+      };
+    } catch (error) {
+      logger.error(`Failed to merge PR #${prNumber}:`, error);
+      throw new Error(`Failed to merge PR #${prNumber}`);
+    }
+  }
+
+  /**
    * Check if GitHub is configured with a valid token
    */
   isEnabled(): boolean {

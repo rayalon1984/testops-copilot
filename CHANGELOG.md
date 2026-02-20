@@ -1,5 +1,48 @@
 # Changelog
 
+## [2.9.0-rc.5] - 2026-02-20
+
+> **Sprint 7 — Autonomy Tests + New Tools + Proactive UX Cards**
+
+---
+
+### Testing — Graduated Autonomy (95 tests)
+
+**AutonomyClassifier tests** (47 tests) — Static tier map verification for all 22 tools, context-dependent overrides (testrun_retry, github_rerun_workflow, jenkins_trigger_build prod, jira_comment AI notes), user preference modes (Conservative / Balanced / Autonomous), combined context+preference scenarios.
+
+**ProactiveSuggestionEngine tests** (29 tests) — All 5 suggestion rules validated: empty Jira search → create issue, transient failure → retry, Jenkins failure → rebuild, related issues → link, mergeable PR → merge. Pre-filled arg enrichment, unique IDs, rule priority ordering.
+
+**Autonomy flow integration tests** (19 tests) — End-to-end scenarios: investigation chains, SSE event type resolution, production safety overrides, conservative/autonomous user preference scenarios. Verifies classifier + suggestion engine wired together correctly.
+
+---
+
+### New Tools (4 added → 22 total)
+
+| Tool | Tier | Category | Description |
+|------|------|----------|-------------|
+| `giphy_search` | 1 (auto) | Read | Contextual work-appropriate GIF search with G-rating, session dedup ring buffer, curated search terms per event, emoji fallback |
+| `jira_link_issues` | 1 (auto) | Jira | Link related issues discovered during investigation. Reversible metadata. |
+| `jira_add_label` | 1 (auto) | Jira | Tag issues with investigation labels (e.g. "investigated-by-ai"). Reversible. |
+| `github_merge_pr` | 2 (card) | GitHub | Merge an open PR from chat. Supports merge/squash/rebase. |
+
+All 4 tools include mock results for demo mode.
+
+---
+
+### Frontend — New Card Components
+
+**GiphyEmbedCard** — Inline GIF display (max 200px), dismissable, Giphy TOS attribution, emoji fallback when API unavailable.
+
+**RetryCard** — Smart retry with play button, confidence progress bar (color-coded), previous run history indicators, batch "Retry All N" for multiple affected tests, Skip option.
+
+**HousekeepingCard** — Autonomous Jira housekeeping summary for link and label actions. Shows source→target links with relationship type, label chips, "Auto" badge, Undo button.
+
+**ServiceBadge** — Added `giphy` service with green accent color.
+
+**ToolResultCard** — Wired 4 new card routes: `giphy_search`, `testrun_retry`, `jira_link_issues`, `jira_add_label`.
+
+---
+
 ## [2.9.0-rc.4] - 2026-02-20
 
 > **Sprint 6 — Graduated Autonomy + Backend Stability Refactor**

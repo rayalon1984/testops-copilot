@@ -25,7 +25,12 @@ import { jenkinsTriggerBuildTool } from './jenkins-write';
 import { testrunCancelTool, testrunRetryTool } from './testrun';
 import { githubRerunWorkflowTool } from './github-workflow';
 
-// Register all Phase 1 tools
+// Sprint 7: New tools (Autonomous AI & Proactive UX)
+import { giphySearchTool } from './giphy';
+import { jiraLinkIssuesTool, jiraAddLabelTool } from './jira-housekeeping';
+import { githubMergePRTool } from './github-merge';
+
+// Register all Phase 1 tools (read-only, no confirmation)
 const phase1Tools = [
     jiraSearchTool,
     jiraGetTool,
@@ -35,9 +40,12 @@ const phase1Tools = [
     jenkinsGetStatusTool,
     dashboardMetricsTool,
     failurePredictionsTool,
+    giphySearchTool,          // Sprint 7: personality GIFs
+    jiraLinkIssuesTool,       // Sprint 7: auto-link related issues (Tier 1)
+    jiraAddLabelTool,         // Sprint 7: auto-label issues (Tier 1)
 ];
 
-// Register all Phase 2 tools
+// Register all Phase 2 tools (write, require confirmation)
 const phase2Tools = [
     githubCreatePRTool,
     githubCreateBranchTool,
@@ -45,9 +53,10 @@ const phase2Tools = [
     jiraCreateIssueTool,
     jiraTransitionIssueTool,
     jiraCommentTool,
+    githubMergePRTool,        // Sprint 7: merge PR from chat (Tier 2)
 ];
 
-// Register all Phase 3 tools
+// Register all Phase 3 tools (action-gap, context-dependent)
 const phase3Tools = [
     jenkinsTriggerBuildTool,
     testrunCancelTool,

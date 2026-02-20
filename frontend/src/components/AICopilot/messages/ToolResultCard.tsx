@@ -12,6 +12,9 @@ import ConfluenceDocCard from '../cards/ConfluenceDocCard';
 import MetricsCard from '../cards/MetricsCard';
 import PredictionCard from '../cards/PredictionCard';
 import GenericResultCard from '../cards/GenericResultCard';
+import GiphyEmbedCard from '../cards/GiphyEmbedCard';
+import RetryCard from '../cards/RetryCard';
+import HousekeepingCard from '../cards/HousekeepingCard';
 
 interface ToolResultCardProps {
     message: ChatMessage;
@@ -48,6 +51,14 @@ export default function ToolResultCard({ message, userRole, onAction }: ToolResu
             return <MetricsCard data={toolData} />;
         case 'failure_predictions':
             return <PredictionCard data={toolData} />;
+        // Sprint 7: New card types
+        case 'giphy_search':
+            return <GiphyEmbedCard data={toolData} />;
+        case 'testrun_retry':
+            return <RetryCard data={toolData} userRole={userRole} onAction={handleAction} cardState={cardState} />;
+        case 'jira_link_issues':
+        case 'jira_add_label':
+            return <HousekeepingCard data={toolData} toolName={toolName || ''} userRole={userRole} onAction={handleAction} cardState={cardState} />;
         default:
             return <GenericResultCard toolName={toolName} summary={content} data={toolData} />;
     }
