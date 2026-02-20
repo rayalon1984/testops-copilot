@@ -1,5 +1,4 @@
 import { Octokit } from '@octokit/rest';
-import { Prisma } from '@prisma/client';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { PipelineStatus, TestStatus, PipelineType } from '../constants';
@@ -101,7 +100,7 @@ export class GitHubService {
   private async monitorWorkflowProgress(
     config: GitHubWorkflowConfig,
     testRun: TestRun,
-    pipeline: Pipeline
+    _pipeline: Pipeline
   ): Promise<void> {
     try {
       // eslint-disable-next-line no-constant-condition
@@ -161,7 +160,7 @@ export class GitHubService {
       const commit = response.data;
       return {
         message: commit.commit.message,
-        files: (commit.files || []).map((f: any) => ({
+        files: (commit.files || []).map((f) => ({
           filename: f.filename,
           status: f.status,
           patch: f.patch || '',
@@ -194,7 +193,7 @@ export class GitHubService {
       if (prs.length === 0) return null;
 
       // Return the most recent merged or open PR
-      const pr = prs.find((p: any) => p.merged_at) || prs[0];
+      const pr = prs.find((p) => p.merged_at) || prs[0];
       return {
         number: pr.number,
         title: pr.title,
@@ -224,7 +223,7 @@ export class GitHubService {
         per_page: 100,
       });
 
-      return response.data.map((f: any) => ({
+      return response.data.map((f) => ({
         filename: f.filename,
         status: f.status,
         patch: f.patch || '',
@@ -336,6 +335,7 @@ export class GitHubService {
         content: Buffer.from(content).toString('base64'),
         branch,
         ...(sha ? { sha } : {}),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
       return {

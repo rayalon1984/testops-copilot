@@ -16,7 +16,7 @@ import {
     alpha,
     Tooltip
 } from '@mui/material';
-import { Warning as WarningIcon, CheckCircle as StableIcon, Help as UnknownIcon } from '@mui/icons-material';
+import { Warning as WarningIcon, CheckCircle as StableIcon } from '@mui/icons-material';
 
 interface FlakyTestStats {
     testName: string;

@@ -2,7 +2,7 @@
  * ToolResultCard — Router that dispatches to the correct service card by toolName.
  */
 
-import { ChatMessage, CardState } from '../../../hooks/useAICopilot';
+import { ChatMessage } from '../../../hooks/useAICopilot';
 import JiraIssueCard from '../cards/JiraIssueCard';
 import JiraSearchCard from '../cards/JiraSearchCard';
 import GitHubCommitCard from '../cards/GitHubCommitCard';

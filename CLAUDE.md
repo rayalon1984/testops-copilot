@@ -16,8 +16,10 @@ Before ANY implementation, route to the right persona. First "yes" wins:
 5. Goal is reducing latency, improving throughput, or profiling → `specs/team/PERFORMANCE_ENGINEER.md`
 6. Goal is test coverage, CI quality, or contract testing → `specs/team/TEST_ENGINEER.md`
 7. About pipelines, deploys, Docker, or runtime observability → `specs/team/DEVOPS_ENGINEER.md`
-8. Clarifying requirements, defining AC, or prioritizing scope → `specs/team/AI_PRODUCT_MANAGER.md`
-9. Default (implementation or refactor) → `specs/team/SENIOR_ENGINEER.md`
+8. API docs, user guides, or onboarding content → `specs/team/TECHNICAL_WRITER.md`
+9. Release process, versioning, or rollback → `specs/team/RELEASE_QA_ENGINEER.md`
+10. Clarifying requirements, defining AC, or prioritizing scope → `specs/team/AI_PRODUCT_MANAGER.md`
+11. Default (implementation or refactor) → `specs/team/SENIOR_ENGINEER.md`
 
 Full rubric: `specs/team/TEAM_SELECTION.md`
 

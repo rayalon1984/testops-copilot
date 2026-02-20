@@ -1,15 +1,18 @@
-import axios from 'axios';
 import { WebClient } from '@slack/web-api';
 import Pushover from 'pushover-notifications';
 import nodemailer from 'nodemailer';
 import { config } from '@/config';
-import { Pipeline, TestRun, PrismaClient } from '@prisma/client';
+import { Pipeline, TestRun } from '@prisma/client';
 import { logger } from '@/utils/logger';
 
 interface NotificationConfig {
   enabled: boolean;
   channels: Array<'slack' | 'email' | 'pushover'>;
   conditions: Array<'success' | 'failure' | 'started' | 'completed'>;
+}
+
+interface TestRunWithResults extends TestRun {
+  results?: Array<{ status: string }> | string;
 }
 
 export class NotificationService {
@@ -91,11 +94,11 @@ export class NotificationService {
 
     return Boolean(
       config?.enabled &&
-      config.conditions.includes(checkCondition as any)
+      config.conditions.includes(checkCondition as 'success' | 'failure' | 'started' | 'completed')
     );
   }
 
-  private formatStartMessage(pipeline: Pipeline, testRun: any): string {
+  private formatStartMessage(pipeline: Pipeline, testRun: TestRunWithResults): string {
     return `🚀 Pipeline Started\nPipeline: ${pipeline.name}\nBranch: ${testRun.branch || 'default'}\nRun ID: ${testRun.id}\nStarted At: ${testRun.startedAt?.toISOString()}`;
   }
 
@@ -109,7 +112,7 @@ export class NotificationService {
   async sendNotifications(
     config: NotificationConfig | { enabled: boolean; channels: string[]; message?: string; userId?: string },
     message: string,
-    context?: { pipeline?: Pipeline; testRun?: any }
+    context?: { pipeline?: Pipeline; testRun?: TestRunWithResults }
   ): Promise<void> {
     const enabled = 'enabled' in config ? config.enabled : false;
     if (!enabled) return;
@@ -136,11 +139,11 @@ export class NotificationService {
     }
   }
 
-  async verifyChannelConfig(channelConfig: any): Promise<void> {
+  async verifyChannelConfig(channelConfig: unknown): Promise<void> {
     if (!channelConfig) throw new Error('Invalid config');
   }
 
-  private async sendSlackNotification(message: string, context?: { pipeline?: Pipeline; testRun?: any }): Promise<void> {
+  private async sendSlackNotification(message: string, context?: { pipeline?: Pipeline; testRun?: TestRunWithResults }): Promise<void> {
     if (!this.slackClient || !config.notifications?.slack?.channel) {
       return;
     }
@@ -150,16 +153,16 @@ export class NotificationService {
       if (context?.pipeline && context?.testRun) {
         const { pipeline, testRun } = context;
         const isSuccess = testRun.status === 'PASSED';
-        const color = isSuccess ? '#10b981' : '#ef4444'; // Green or Red
+        const _color = isSuccess ? '#10b981' : '#ef4444'; // Green or Red
         const statusText = isSuccess ? 'SUCCESS' : 'FAILURE';
         const duration = testRun.duration ? `${testRun.duration}s` : 'N/A';
 
         let statsField = '*Stats:* N/A';
         // Check for results relation from production schema
         if (testRun.results && Array.isArray(testRun.results)) {
-          const passed = testRun.results.filter((r: any) => r.status === 'PASSED').length;
-          const failed = testRun.results.filter((r: any) => r.status === 'FAILED').length;
-          const skipped = testRun.results.filter((r: any) => r.status === 'SKIPPED').length;
+          const passed = testRun.results.filter((r: { status: string }) => r.status === 'PASSED').length;
+          const failed = testRun.results.filter((r: { status: string }) => r.status === 'FAILED').length;
+          const skipped = testRun.results.filter((r: { status: string }) => r.status === 'SKIPPED').length;
           statsField = `*Stats:* ✅ ${passed} | ❌ ${failed} | ⏭️ ${skipped}`;
         } else if (testRun.results && typeof testRun.results === 'string') {
           // Fallback for string-based results (dev schema or old data)

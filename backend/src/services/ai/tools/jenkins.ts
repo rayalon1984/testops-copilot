@@ -32,7 +32,7 @@ export const jenkinsGetStatusTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             const pipelineName = args.pipelineName as string;
             const limit = (args.limit as number) || 3;

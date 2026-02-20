@@ -83,7 +83,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode: designMode, colorMode, toggleMode, toggleColorMode } = useDesignMode();
+  const { mode: designMode, colorMode, toggleColorMode } = useDesignMode();
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);

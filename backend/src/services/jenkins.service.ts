@@ -16,7 +16,7 @@ interface JenkinsConfig {
 
 interface JenkinsBuildParams {
   branch?: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 interface JenkinsBuildResponse {
@@ -146,7 +146,7 @@ export class JenkinsService {
     validateSameOrigin(baseUrl, redirectUrl);
   }
 
-  private async waitForBuildStart(queueUrl: string, credentials: { username: string; apiToken: string }, baseUrl: string): Promise<JenkinsBuildResponse> {
+  private async waitForBuildStart(queueUrl: string, credentials: { username: string; apiToken: string }, _baseUrl: string): Promise<JenkinsBuildResponse> {
     let attempts = 0;
     const maxAttempts = 10;
     const delay = 2000;
@@ -233,7 +233,7 @@ export class JenkinsService {
     if (!pipeline) return;
 
     const config = typeof pipeline.config === 'string' ? JSON.parse(pipeline.config) : pipeline.config;
-    const results = await this.fetchTestResults(buildData.url, config.credentials);
+    const _results = await this.fetchTestResults(buildData.url, config.credentials);
 
     await prisma.testRun.update({
       where: { id: testRun.id },
@@ -246,7 +246,7 @@ export class JenkinsService {
     });
   }
 
-  private async fetchTestResults(buildUrl: string, credentials: { username: string; apiToken: string }): Promise<any> {
+  private async fetchTestResults(buildUrl: string, credentials: { username: string; apiToken: string }): Promise<unknown> {
     try {
       const response = await this.client.get(`${buildUrl}/testReport/api/json`, {
         headers: {

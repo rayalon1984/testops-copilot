@@ -45,7 +45,7 @@ export const jiraCreateIssueTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!jiraService.isEnabled()) {
                 return { success: false, error: 'Jira integration is not configured.', summary: 'Jira is not enabled.' };
@@ -93,7 +93,7 @@ export const jiraTransitionIssueTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!jiraService.isEnabled()) {
                 return { success: false, error: 'Jira integration is not configured.', summary: 'Jira is not enabled.' };
@@ -138,7 +138,7 @@ export const jiraCommentTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!jiraService.isEnabled()) {
                 return { success: false, error: 'Jira integration is not configured.', summary: 'Jira is not enabled.' };

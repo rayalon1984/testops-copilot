@@ -10,7 +10,7 @@ interface AssistantMessageProps {
     id: string;
 }
 
-export default function AssistantMessage({ content, id }: AssistantMessageProps) {
+export default function AssistantMessage({ content, id: _id }: AssistantMessageProps) {
     return (
         <Box sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%' }}>
             <Paper sx={{

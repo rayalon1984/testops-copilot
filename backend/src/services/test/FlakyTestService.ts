@@ -15,7 +15,7 @@
  *    - Score > 0: LOW
  */
 
-import { PrismaClient, TestRun } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { logger } from '@/utils/logger';
 
 const prisma = new PrismaClient();

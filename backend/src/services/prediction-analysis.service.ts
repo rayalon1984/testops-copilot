@@ -6,7 +6,6 @@
  */
 
 import { prisma } from '../lib/prisma';
-import { logger } from '../utils/logger';
 import {
   TimeSeriesPoint,
   TrendAnalysis,

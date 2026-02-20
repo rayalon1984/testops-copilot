@@ -22,7 +22,7 @@ interface JiraSearchCardProps {
     onAction?: (prompt: string) => void;
 }
 
-export default function JiraSearchCard({ results, userRole, onAction }: JiraSearchCardProps) {
+export default function JiraSearchCard({ results, userRole: _userRole, onAction: _onAction }: JiraSearchCardProps) {
     const issues = (Array.isArray(results) ? results : []) as unknown as JiraSearchResult[];
 
     if (issues.length === 0) {

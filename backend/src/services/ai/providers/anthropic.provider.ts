@@ -162,7 +162,7 @@ export class AnthropicProvider extends BaseProvider {
     }
   }
 
-  async embed(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
     // Anthropic doesn't provide embeddings directly
     // Users should use Voyage AI which is recommended by Anthropic
     throw new Error(

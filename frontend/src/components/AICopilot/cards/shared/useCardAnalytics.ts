@@ -49,6 +49,7 @@ function flushEvents() {
     }).catch(() => {
         // Silently fail — analytics should never break UX
         if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
             console.debug('[CardAnalytics] Flush failed, events:', batch.length);
         }
     });
@@ -58,6 +59,7 @@ function enqueue(event: CardAnalyticsEvent) {
     eventBuffer.push(event);
 
     if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
         console.debug('[CardAnalytics]', event.type, event.card, event.action || '');
     }
 

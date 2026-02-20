@@ -31,8 +31,7 @@ router.get(
       // Let's use metadata counters if available or default to 0
 
       // Count from included results (Dev schema doesn't have failed/passed columns)
-      const failed = run.results?.filter((r: any) => r.status === 'FAILED').length || 0;
-      const passed = run.results?.filter((r: any) => r.status === 'PASSED').length || 0;
+      const failed = run.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
 
       // Map status
       const statusMap: Record<string, string> = {

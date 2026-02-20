@@ -1,7 +1,6 @@
 import { passportService } from '../passport.service';
 import { prisma } from '../../lib/prisma';
 import passport from 'passport';
-import { config } from '../../config';
 
 // Mock dependencies
 jest.mock('../../lib/prisma', () => ({

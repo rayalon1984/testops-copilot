@@ -24,7 +24,7 @@ interface ServiceStatus {
   status: 'up' | 'down' | 'degraded';
   responseTime?: number;
   error?: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -111,11 +111,11 @@ async function checkDatabase(): Promise<ServiceStatus> {
         provider: 'postgresql'
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -144,11 +144,11 @@ async function checkRedis(): Promise<ServiceStatus | undefined> {
       status: 'up',
       responseTime
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -180,11 +180,11 @@ async function checkWeaviate(): Promise<ServiceStatus | undefined> {
         error: `HTTP ${response.status}`
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -236,11 +236,11 @@ async function checkAI(): Promise<ServiceStatus | undefined> {
         configured: true
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       details: { provider }
     };
   }

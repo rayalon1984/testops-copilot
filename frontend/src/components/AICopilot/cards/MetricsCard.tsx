@@ -20,14 +20,6 @@ interface MetricsCardProps {
     data: Record<string, unknown>;
 }
 
-function getPassRateColor(rate: string): string {
-    const num = parseFloat(rate);
-    if (isNaN(num)) return '#475569';
-    if (num >= 90) return '#065F46';
-    if (num >= 70) return '#92400E';
-    return '#991B1B';
-}
-
 function MetricTile({ value, label }: { value: string | number; label: string }) {
     return (
         <Box sx={{
