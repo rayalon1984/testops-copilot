@@ -635,8 +635,8 @@ router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
             : null;
 
           const executionResult = mockResult || await tool.execute(result.parameters, {
-            userId: user.id,
-            userRole: user.role || 'viewer',
+            userId: user?.id || '',
+            userRole: user?.role || 'viewer',
             sessionId: result.sessionId,
           });
 

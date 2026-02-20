@@ -177,17 +177,17 @@ export class BedrockProvider extends BaseProvider {
 
       // Parse response (same structure as Anthropic Messages API)
       let content = '';
-      const toolCalls: Array<{ id: string; name: string; arguments: Record<string, any> }> = [];
+      const toolCalls: ToolCall[] = [];
 
       if (Array.isArray(responseBody.content)) {
-        responseBody.content.forEach((block: Record<string, any>) => {
+        responseBody.content.forEach((block: Record<string, unknown>) => {
           if (block.type === 'text') {
-            content += block.text;
+            content += block.text as string;
           } else if (block.type === 'tool_use') {
             toolCalls.push({
-              id: block.id,
-              name: block.name,
-              arguments: block.input as Record<string, any>,
+              id: block.id as string,
+              name: block.name as string,
+              arguments: block.input as Record<string, unknown>,
             });
           }
         });

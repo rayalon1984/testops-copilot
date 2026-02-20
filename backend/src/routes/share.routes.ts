@@ -20,7 +20,7 @@ const router = Router();
  */
 router.post('/', authenticate, async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user;
         const { title, content, persona, toolSummary, sessionId, expiresInDays } = req.body;
 
         if (!title || !content) {
@@ -73,7 +73,7 @@ router.post('/:token/email', authenticate, async (req: Request, res: Response) =
     try {
         const token = req.params.token as string;
         const { recipientEmail } = req.body;
-        const user = (req as any).user;
+        const user = req.user;
 
         if (!recipientEmail) {
             return res.status(400).json({ error: 'recipientEmail is required' });

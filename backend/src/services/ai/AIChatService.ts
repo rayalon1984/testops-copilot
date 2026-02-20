@@ -209,7 +209,7 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         let aiResponse;
         try {
             // Use the provider via the internal chat method, passing tools
-            aiResponse = await (aiManager as any).provider.chat(messages, {
+            aiResponse = await aiManager.getProvider()!.chat(messages, {
                 maxTokens: 2048,
                 temperature: 0.3,
                 tools: toolDefinitions // Native tool definitions
@@ -443,7 +443,7 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
         let aiResponse;
         try {
-            aiResponse = await (aiManager as any).provider.chat(messages, {
+            aiResponse = await aiManager.getProvider()!.chat(messages, {
                 maxTokens: 2048,
                 temperature: 0.3,
                 tools: toolDefinitions,

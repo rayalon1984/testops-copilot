@@ -126,6 +126,14 @@ export class AIManager {
   }
 
   /**
+   * Get the active AI provider (for direct chat calls).
+   * Returns null if not initialized or AI is disabled.
+   */
+  getProvider(): BaseProvider | null {
+    return this.provider;
+  }
+
+  /**
    * Check if AI services are initialized
    */
   isInitialized(): boolean {
