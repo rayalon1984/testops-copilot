@@ -26,16 +26,8 @@ import {
   Done as DoneIcon,
 } from '@mui/icons-material';
 
-interface Notification {
-  id: string;
-  testRunId: string;
-  pipelineName: string;
-  type: 'success' | 'failure' | 'warning';
-  status: string;
-  message: string;
-  timestamp: string;
-  delivered: boolean;
-}
+import type { ApiSchemas } from '../api';
+type Notification = ApiSchemas['Notification'];
 
 export default function NotificationList() {
   const queryClient = useQueryClient();

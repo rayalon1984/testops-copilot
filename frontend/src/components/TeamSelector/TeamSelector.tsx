@@ -19,13 +19,8 @@ import {
   Groups as GroupsIcon,
 } from '@mui/icons-material';
 
-interface Team {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-  memberCount: number;
-}
+import type { ApiSchemas } from '../../api';
+type Team = ApiSchemas['TeamListItem'];
 
 interface TeamSelectorProps {
   onTeamChange?: (teamId: string | null) => void;

@@ -31,17 +31,8 @@ import {
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 
-interface TestRun {
-  id: string;
-  pipelineId: string;
-  pipelineName: string;
-  status: 'success' | 'failed' | 'running' | 'pending';
-  startTime: string;
-  endTime: string;
-  duration: number;
-  errorCount: number;
-  screenshots: string[];
-}
+import type { ApiSchemas } from '../api';
+type TestRun = ApiSchemas['TestRun'];
 
 import { useDebounce } from '../hooks/useDebounce';
 import { keepPreviousData } from '@tanstack/react-query';
