@@ -1,5 +1,63 @@
 # Changelog
 
+## [2.9.0-rc.4] - 2026-02-20
+
+> **Sprint 6 — Graduated Autonomy + Backend Stability Refactor**
+
+---
+
+### Autonomous AI & Proactive UX (Phase 3)
+
+**AutonomyClassifier** — Three-tier classification engine maps every tool to an autonomy tier. Static tier assignments, context-dependent overrides (e.g., high-confidence retries auto-execute), and user preference modulation (Conservative / Balanced / Autonomous).
+
+**ProactiveSuggestionEngine** — Post-tool-result evaluator with 5 rules: empty Jira search → suggest create, transient failure → suggest retry, Jenkins failure → suggest rebuild, related issues → suggest linking, mergeable PR → suggest merge. Emits `proactive_suggestion` SSE events with pre-filled action cards.
+
+**ReAct loop upgraded** — Binary tool confirmation replaced with graduated autonomy: Tier 1 (internal/reversible) auto-executes, Tier 2 (team-visible) shows one-click cards, Tier 3 (destructive) requires full confirmation. New SSE events: `proactive_suggestion`, `autonomous_action`.
+
+**`github_get_pr` enhanced** — Now returns file diffs with patches, per-file addition/deletion counts, and merge context. Enables inline diff rendering in the frontend.
+
+---
+
+### Frontend — New Components
+
+**InlineDiffViewer** — GitHub-style syntax-highlighted unified diff viewer with green/red line coloring, file headers with +/- counts, and collapsible sections for diffs > 20 lines.
+
+**GitHubPRCard enhanced** — Inline diff toggle, file change summary chip (`3 files +42/-7`), dual buttons: `[Review Diff]` / `[Approve & Merge]` / `[GitHub]`.
+
+**ProactiveSuggestionCard** — AI suggestion cards with accept/dismiss, pre-filled Jira arg preview, confidence badge, tool-specific accent colors.
+
+**useAICopilot SSE handlers** — New handlers for `proactive_suggestion` and `autonomous_action` event types.
+
+**Settings → AI Copilot tab** — ToggleButtonGroup for autonomy preference (Conservative / Balanced / Autonomous) with descriptive explanations. Persisted via `PUT /api/v1/ai/autonomy`.
+
+---
+
+### Schema
+
+**`autonomyLevel` field on User model** — Added to all 3 Prisma schemas (dev, production, dev template). Default: `balanced`. Production uses enum (`AutonomyLevel`), dev uses string with comment.
+
+---
+
+### Backend Stability Refactor (emhub Pattern Adoption)
+
+**Fat controller extraction** — 4 controllers refactored from fat (Prisma + business logic) to thin HTTP adapters. All business logic and data access moved to dedicated services:
+
+| Controller | Before → After | New Service |
+|---|---|---|
+| `pipeline.controller.ts` | 264 → 61 lines | `pipeline.service.ts` |
+| `dashboard.controller.ts` | 466 → 31 lines | `dashboard.service.ts` |
+| `auth.controller.ts` | 245 → 47 lines | `user.service.ts` |
+| `notification.controller.ts` | 244 → 54 lines | `notification-preference.service.ts` |
+
+**AI route split** — Monolithic `routes/ai/index.ts` (778 lines) split into 3 focused sub-modules:
+- `config.ts` — Health, personas, autonomy, provider config
+- `analysis.ts` — RCA, categorization, summarization, enrichment, costs/stats
+- `chat.ts` — SSE chat, session CRUD, action confirmation
+
+**Convention update** — `SENIOR_ENGINEER.md` updated with "Thin Controller Rule": no Prisma imports in controllers, services own all domain logic.
+
+---
+
 ## [2.9.0-rc.3] - 2026-02-20
 
 > **Sprint 5 Stabilization** — Type safety, schema integrity, security audit, CI hardening.

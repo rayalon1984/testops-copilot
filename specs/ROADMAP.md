@@ -1,11 +1,26 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
-> **Current Version**: 2.9.0-rc.3 (February 2026)
+> **Current Version**: 2.9.0-rc.4 (February 2026)
 
 ---
 
 ## Shipped
+
+### v2.9.0-rc.4 — Sprint 6 Graduated Autonomy + Backend Refactor (February 2026)
+- [x] AutonomyClassifier: 3-tier tool classification (Full Auto / AI-in-the-Loop / Human-in-the-Loop)
+- [x] ProactiveSuggestionEngine: post-tool-result suggestion rules (5 patterns)
+- [x] ReAct loop graduated autonomy (replaces binary confirmation)
+- [x] `proactive_suggestion` + `autonomous_action` SSE events
+- [x] `github_get_pr` enhanced with file diffs + merge context
+- [x] InlineDiffViewer component (syntax-highlighted unified diff)
+- [x] GitHubPRCard: inline diff toggle + [Approve & Merge] / [Review Diff]
+- [x] ProactiveSuggestionCard: AI suggestion cards with accept/dismiss
+- [x] User autonomy preferences API + Settings UI (Conservative / Balanced / Autonomous)
+- [x] `autonomyLevel` field on User model (all 3 schemas)
+- [x] Fat controller extraction: 4 controllers → thin adapters + dedicated services
+- [x] AI route split: 778-line monolith → 3 focused sub-modules
+- [x] SENIOR_ENGINEER.md: Thin Controller Rule convention
 
 ### v2.9.0-rc.3 — Sprint 5 Stabilization (February 2026)
 - [x] Bedrock provider import fix (unblock typecheck)
@@ -119,13 +134,13 @@
 - [ ] Persona analytics (track which personas are used most)
 
 **Autonomous AI & Proactive UX** (Phase 3 — spec: `specs/AUTONOMOUS_AI_SPEC.md`):
-- [ ] Three-tier autonomy model (Full Auto / AI-in-the-Loop / Human-in-the-Loop)
-- [ ] ProactiveSuggestionEngine — AI anticipates next action, presents pre-built cards
-- [ ] Inline code diff viewer in PR cards (syntax-highlighted, Approve & Merge / Review Diff buttons)
+- [x] Three-tier autonomy model (Full Auto / AI-in-the-Loop / Human-in-the-Loop) — Sprint 6
+- [x] ProactiveSuggestionEngine — AI anticipates next action, presents pre-built cards — Sprint 6
+- [x] Inline code diff viewer in PR cards (syntax-highlighted, Approve & Merge / Review Diff buttons) — Sprint 6
+- [x] User autonomy preferences (Conservative / Balanced / Autonomous) — Sprint 6
 - [ ] Smart retry with play button (auto-retry transient failures, batch retry)
 - [ ] Jira autonomous housekeeping (auto-link related issues, auto-label, undo card)
 - [ ] Giphy integration — contextual, work-appropriate GIFs for status events
-- [ ] User autonomy preferences (Conservative / Balanced / Autonomous)
 - [ ] 4 new tools: `jira_link_issues`, `jira_add_label`, `github_merge_pr`, `giphy_search`
 
 **Multi-Channel AI** (Phase 2-3 planned):
