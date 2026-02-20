@@ -38,52 +38,13 @@ import {
   Psychology as AIIcon,
   DataUsage as DataUsageIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
 import FlakyTestsWidget from '../components/FlakyTestsWidget/FlakyTestsWidget';
 
-interface DashboardMetrics {
-  totalTestsAnalyzed: number;
-  failuresAutoCategorized: number;
-  timeSavedHours: number;
-  aiCostUSD: number;
-  cacheHitRate: number;
-  cacheHits: number;
-  cacheSavingsPercent: number;
-  lastUpdated: string;
-  timeRange: string;
-  failureCategories: {
-    category: string;
-    count: number;
-    percentage: number;
-    color: string;
-  }[];
-  recentFailures: {
-    id: string;
-    testName: string;
-    errorMessage: string;
-    rootCause: string | null;
-    category: string;
-    confidence: number;
-    similarCount: number;
-    filePath: string | null;
-    timestamp: string;
-  }[];
-  aiPerformance: {
-    avgAnalysisTimeSeconds: number;
-    categorizationAccuracy: number;
-    similarFailuresFound: number;
-    cacheHitRate: number;
-    monthlyBudgetUsed: number;
-    monthlyBudgetTotal: number;
-  };
-  providers: {
-    name: string;
-    costPer1M: number;
-    contextWindow: string;
-    speed: string;
-    isActive: boolean;
-  }[];
-}
+type DashboardMetrics = ApiSchemas['DashboardMetrics'];
+type RecentFailure = ApiSchemas['RecentFailure'];
+type ProviderInfo = ApiSchemas['ProviderInfo'];
 
 const categoryIcons: Record<string, string> = {
   bug_critical: '🔴',
@@ -197,23 +158,14 @@ function MetricGauge({
 export default function Dashboard() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [selectedFailure, setSelectedFailure] = useState<
-    DashboardMetrics['recentFailures'][number] | null
-  >(null);
-  const [selectedProvider, setSelectedProvider] = useState<
-    DashboardMetrics['providers'][number] | null
-  >(null);
+  const [selectedFailure, setSelectedFailure] = useState<RecentFailure | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderInfo | null>(null);
 
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ['dashboard', 'ai-metrics'],
     queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/v1/dashboard', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data.data;
+      const response = await api.get<{ data: DashboardMetrics }>('/dashboard');
+      return response.data;
     },
     refetchInterval: 30000,
   });

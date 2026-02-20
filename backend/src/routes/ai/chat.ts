@@ -13,6 +13,7 @@ import { ToolResult } from '../../services/ai/tools/types';
 import { getConfigManager } from '../../services/ai/config';
 import { getMockToolResult } from '../../services/ai/mock-tool-results';
 import { prisma } from '../../lib/prisma';
+import { validateChatMessage, validateConfirmAction } from '../../middleware/validation';
 import { logger } from '../../utils/logger';
 
 const router = Router();
@@ -21,7 +22,7 @@ const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as cons
 
 // ─── SSE Chat ───
 
-router.post('/chat', async (req: Request, res: Response): Promise<void> => {
+router.post('/chat', validateChatMessage, async (req: Request, res: Response): Promise<void> => {
   try {
     const { message, sessionId, history } = req.body;
 
@@ -121,7 +122,7 @@ router.delete('/sessions/:id', async (req: Request, res: Response): Promise<void
 
 // ─── Action Confirmation ───
 
-router.post('/confirm', async (req: Request, res: Response): Promise<void> => {
+router.post('/confirm', validateConfirmAction, async (req: Request, res: Response): Promise<void> => {
   try {
     const user = req.user;
     const { actionId, approved } = req.body;

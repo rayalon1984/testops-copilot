@@ -1,5 +1,6 @@
 import { authenticate, authorize } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
+import { validateCreatePipeline, validateUpdatePipeline, validatePipelineSchedule } from '../middleware/validation';
 import { pipelineController } from '../controllers/pipeline.controller';
 import { UserRole, PipelineType } from '../constants';
 import { pipelineRouter as router } from './index';
@@ -36,10 +37,10 @@ router.get(
 );
 
 // Create pipeline
-// Create pipeline
 router.post(
   '/',
   authorize(UserRole.EDITOR),
+  validateCreatePipeline,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -62,10 +63,10 @@ router.post(
 );
 
 // Update pipeline
-// Update pipeline
 router.put(
   '/:id',
   authorize(UserRole.EDITOR),
+  validateUpdatePipeline,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -129,10 +130,10 @@ router.get(
 );
 
 // Schedule pipeline
-// Schedule pipeline
 router.post(
   '/:id/schedule',
   authorize(UserRole.EDITOR),
+  validatePipelineSchedule,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });

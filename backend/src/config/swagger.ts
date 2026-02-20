@@ -1,35 +1,28 @@
-import swaggerJSDoc from 'swagger-jsdoc';
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
 
-const options: swaggerJSDoc.Options = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'TestOps Companion API',
-            version: '1.0.0',
-            description: 'API documentation for TestOps Companion Backend',
-        },
-        servers: [
-            {
-                url: '/api/v1',
-                description: 'V1 API',
-            },
-        ],
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT',
-                },
-            },
-        },
-        security: [
-            {
-                bearerAuth: [],
-            },
-        ],
-    },
-    apis: ['./src/routes/*.ts'], // Path to the API docs
-};
+/**
+ * Load the OpenAPI spec from the canonical YAML source of truth.
+ * Falls back to a minimal spec if the file is missing (e.g., in CI).
+ *
+ * The YAML spec is consumed by:
+ *   1. Swagger UI at /api/docs
+ *   2. openapi-typescript to generate frontend types
+ */
+function loadSpec(): Record<string, unknown> {
+    const specPath = path.resolve(__dirname, '../../openapi.yaml');
+    try {
+        const raw = fs.readFileSync(specPath, 'utf-8');
+        return yaml.load(raw) as Record<string, unknown>;
+    } catch {
+        console.warn('[Swagger] openapi.yaml not found — serving minimal spec');
+        return {
+            openapi: '3.0.3',
+            info: { title: 'TestOps Companion API', version: '1.0.0' },
+            paths: {},
+        };
+    }
+}
 
-export const swaggerSpec = swaggerJSDoc(options);
+export const swaggerSpec = loadSpec();
