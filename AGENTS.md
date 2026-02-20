@@ -32,7 +32,7 @@
 | AI Services | `backend/src/services/ai/` | Providers, tools, features, ReAct loop |
 | Database | `backend/prisma/` | Prisma schema and migrations |
 | Specs | `specs/` | Living specification documents (source of truth) |
-| Personas | `specs/team/` | 10 expert persona files for task routing |
+| Personas | `specs/team/` | 11 expert persona files for task routing |
 | Skills | `.cursor/skills/` | Reusable workflow templates |
 | Plans | `plans/` | Dated planning and decision documents |
 | Docs | `docs/` | Detailed reference documentation |
@@ -102,8 +102,10 @@ Before ANY implementation, route to the right expert.
 | 5 | Goal is reducing latency, throughput, or profiling? | `specs/team/PERFORMANCE_ENGINEER.md` |
 | 6 | Goal is test coverage, CI quality, or contract testing? | `specs/team/TEST_ENGINEER.md` |
 | 7 | About pipelines, deploys, Docker, or observability? | `specs/team/DEVOPS_ENGINEER.md` |
-| 8 | Clarifying requirements, defining AC, or scoping? | `specs/team/AI_PRODUCT_MANAGER.md` |
-| 9 | Default (implementation or refactor) | `specs/team/SENIOR_ENGINEER.md` |
+| 8 | API docs, user guides, or onboarding content? | `specs/team/TECHNICAL_WRITER.md` |
+| 9 | Release process, versioning, or rollback? | `specs/team/RELEASE_QA_ENGINEER.md` |
+| 10 | Clarifying requirements, defining AC, or scoping? | `specs/team/AI_PRODUCT_MANAGER.md` |
+| 11 | Default (implementation or refactor) | `specs/team/SENIOR_ENGINEER.md` |
 
 **Cross-domain tasks**: Primary owner = persona for the highest-risk/least-reversible aspect. Read supporting persona files too. Document trade-offs.
 

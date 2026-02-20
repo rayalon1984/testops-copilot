@@ -78,6 +78,23 @@ THEN [observable outcome]
 AND [measurable result if applicable]
 ```
 
+### Scope Delegation
+
+The following responsibilities have been delegated to specialized personas:
+
+| Area | Delegated To | Persona File |
+|------|-------------|-------------|
+| API reference documentation | TECHNICAL_WRITER | `specs/team/TECHNICAL_WRITER.md` |
+| User guides and onboarding docs | TECHNICAL_WRITER | `specs/team/TECHNICAL_WRITER.md` |
+| README.md maintenance | TECHNICAL_WRITER | `specs/team/TECHNICAL_WRITER.md` |
+| Integration setup guides | TECHNICAL_WRITER | `specs/team/TECHNICAL_WRITER.md` |
+| Release notes content drafting | TECHNICAL_WRITER | `specs/team/TECHNICAL_WRITER.md` |
+| CHANGELOG and release process | RELEASE_QA_ENGINEER | `specs/team/RELEASE_QA_ENGINEER.md` |
+| Go/no-go release decisions | RELEASE_QA_ENGINEER | `specs/team/RELEASE_QA_ENGINEER.md` |
+| RC validation and sign-off | RELEASE_QA_ENGINEER | `specs/team/RELEASE_QA_ENGINEER.md` |
+
+**Retained scope**: Product requirements, acceptance criteria, `specs/SPEC.md` ownership, feature scoping and prioritization, sprint triage and issue categorization, cross-persona coordination on requirements, stakeholder communication.
+
 ### Before Approving — Checklist
 - [ ] Ties to a success metric from `specs/SPEC.md` §6
 - [ ] Acceptance criteria written in Given/When/Then format
