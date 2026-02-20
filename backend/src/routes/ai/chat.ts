@@ -24,7 +24,7 @@ const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as cons
 
 router.post('/chat', validateChatMessage, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { message, sessionId, history } = req.body;
+    const { message, sessionId, history, uiContext } = req.body;
 
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'message is required and must be a string' });
@@ -63,6 +63,7 @@ router.post('/chat', validateChatMessage, async (req: Request, res: Response): P
         userRole: user?.role || 'viewer',
         history: history || [],
         autonomyLevel,
+        uiContext: typeof uiContext === 'string' ? uiContext : undefined,
       },
       res,
     );

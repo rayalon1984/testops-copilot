@@ -37,6 +37,8 @@ export interface ChatRequest {
     history?: ChatMessage[];
     /** User's autonomy preference (defaults to 'balanced') */
     autonomyLevel?: AutonomyLevel;
+    /** UI context string describing the page/entity the user is currently viewing */
+    uiContext?: string;
 }
 
 /** Safety limits */
@@ -191,11 +193,15 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         sessionId: req.sessionId || 'anonymous',
     };
 
-    // Build conversation history
+    // Build conversation history, injecting UI context when available
+    const userContent = req.uiContext
+        ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
+        : req.message;
+
     const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
-        { role: 'user', content: req.message },
+        { role: 'user', content: userContent },
     ];
 
     let toolCallCount = 0;
@@ -510,10 +516,14 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
         sessionId: req.sessionId || 'anonymous',
     };
 
+    const bufferedUserContent = req.uiContext
+        ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
+        : req.message;
+
     const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
-        { role: 'user', content: req.message },
+        { role: 'user', content: bufferedUserContent },
     ];
 
     const collectedToolCalls: BufferedChatResponse['toolCalls'] = [];

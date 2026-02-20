@@ -10,7 +10,7 @@
  * Pattern ported from emhub's thick seed.ts approach.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -94,8 +94,6 @@ const AI_PROVIDERS = [
 
 const AI_FEATURES = ['rca', 'categorization', 'log-summary', 'chat', 'prediction'];
 
-const PERSONAS = ['investigator', 'devops-engineer', 'test-strategist', 'release-manager', 'incident-commander', 'metrics-analyst', 'knowledge-curator', 'onboarding-buddy', 'executive-briefer'];
-
 const JIRA_STATUSES = ['Open', 'In Progress', 'In Review', 'Done', 'Closed'];
 const JIRA_PRIORITIES = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 
@@ -104,31 +102,33 @@ const JIRA_PRIORITIES = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
 async function seed() {
   console.log('Seeding development database with high-fidelity demo data...\n');
 
-  // ── Clean slate ──
+  // ── Clean slate (transactional to avoid partial cleanup) ──
   console.log('Clearing existing data...');
-  await prisma.channelUserMapping.deleteMany();
-  await prisma.sharedAnalysis.deleteMany();
-  await prisma.dashboardConfig.deleteMany();
-  await prisma.teamMember.deleteMany();
-  await prisma.pendingAction.deleteMany();
-  await prisma.chatMessage.deleteMany();
-  await prisma.chatSession.deleteMany();
-  await prisma.aIUsage.deleteMany();
-  await prisma.aIProviderConfig.deleteMany();
-  await prisma.rCARevision.deleteMany();
-  await prisma.failureComment.deleteMany();
-  await prisma.failureArchive.deleteMany();
-  await prisma.failurePattern.deleteMany();
-  await prisma.testResult.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.testRun.deleteMany();
-  await prisma.jiraIssue.deleteMany();
-  await prisma.jiraConfig.deleteMany();
-  await prisma.confluencePage.deleteMany();
-  await prisma.testRailRun.deleteMany();
-  await prisma.pipeline.deleteMany();
-  await prisma.team.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.$transaction([
+    prisma.channelUserMapping.deleteMany(),
+    prisma.sharedAnalysis.deleteMany(),
+    prisma.dashboardConfig.deleteMany(),
+    prisma.teamMember.deleteMany(),
+    prisma.pendingAction.deleteMany(),
+    prisma.chatMessage.deleteMany(),
+    prisma.chatSession.deleteMany(),
+    prisma.aIUsage.deleteMany(),
+    prisma.aIProviderConfig.deleteMany(),
+    prisma.rCARevision.deleteMany(),
+    prisma.failureComment.deleteMany(),
+    prisma.failureArchive.deleteMany(),
+    prisma.failurePattern.deleteMany(),
+    prisma.testResult.deleteMany(),
+    prisma.notification.deleteMany(),
+    prisma.testRun.deleteMany(),
+    prisma.jiraIssue.deleteMany(),
+    prisma.jiraConfig.deleteMany(),
+    prisma.confluencePage.deleteMany(),
+    prisma.testRailRun.deleteMany(),
+    prisma.pipeline.deleteMany(),
+    prisma.team.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
   // ── 1. Users ──
   console.log('Creating users...');
@@ -231,8 +231,8 @@ async function seed() {
   console.log('Creating test runs and results...');
   const commits = Array.from({ length: 25 }, () => faker.git.commitSha().slice(0, 7));
   const branches = ['main', 'develop', 'feature/auth-v2', 'feature/metrics', 'fix/flaky-tests', 'release/2.9.0'];
-  const testRunPayloads: Array<Record<string, unknown>> = [];
-  const testResultPayloads: Array<Record<string, unknown>> = [];
+  const testRunPayloads: Prisma.TestRunCreateManyInput[] = [];
+  const testResultPayloads: Prisma.TestResultCreateManyInput[] = [];
 
   for (let i = 0; i < 200; i++) {
     const pipeline = pipelines[i % pipelines.length];
@@ -288,15 +288,15 @@ async function seed() {
     }
   }
 
-  await prisma.testRun.createMany({ data: testRunPayloads as any });
-  await prisma.testResult.createMany({ data: testResultPayloads as any });
+  await prisma.testRun.createMany({ data: testRunPayloads });
+  await prisma.testResult.createMany({ data: testResultPayloads });
   const testRuns = await prisma.testRun.findMany({ select: { id: true, pipelineId: true, status: true } });
 
   console.log(`  Created ${testRuns.length} test runs, ${testResultPayloads.length} test results`);
 
   // ── 5. Failure Archive (1600+ failures) ──
   console.log('Creating failure archives...');
-  const failurePayloads: Array<Record<string, unknown>> = [];
+  const failurePayloads: Prisma.FailureArchiveCreateManyInput[] = [];
   const categoryCounts: Record<string, number> = {
     bug_critical: 280,
     bug_minor: 420,
@@ -317,7 +317,7 @@ async function seed() {
       failurePayloads.push({
         testName: `${tpl.testName}_${category}_${i}`,
         errorMessage: tpl.errorMessage,
-        category: tpl.errorType,
+        category,
         stackTrace: tpl.stackTrace,
         rootCause: tpl.rootCause,
         solution: tpl.solution,
@@ -334,14 +334,14 @@ async function seed() {
     }
   }
 
-  await prisma.failureArchive.createMany({ data: failurePayloads as any });
+  await prisma.failureArchive.createMany({ data: failurePayloads });
   const failures = await prisma.failureArchive.findMany({ select: { id: true, testName: true }, take: 50 });
 
   console.log(`  Created ${failurePayloads.length} failure archives`);
 
   // ── 6. RCA Revisions (on first 30 failures) ──
   console.log('Creating RCA revisions...');
-  const rcaPayloads: Array<Record<string, unknown>> = [];
+  const rcaPayloads: Prisma.RCARevisionCreateManyInput[] = [];
   for (const failure of failures.slice(0, 30)) {
     const revisionCount = randomBetween(1, 4);
     for (let v = 1; v <= revisionCount; v++) {
@@ -358,12 +358,12 @@ async function seed() {
     }
   }
 
-  await prisma.rCARevision.createMany({ data: rcaPayloads as any });
+  await prisma.rCARevision.createMany({ data: rcaPayloads });
   console.log(`  Created ${rcaPayloads.length} RCA revisions`);
 
   // ── 7. Failure Comments ──
   console.log('Creating failure comments...');
-  const commentPayloads: Array<Record<string, unknown>> = [];
+  const commentPayloads: Prisma.FailureCommentCreateManyInput[] = [];
   for (const failure of failures.slice(0, 40)) {
     const commentCount = randomBetween(1, 5);
     for (let c = 0; c < commentCount; c++) {
@@ -376,7 +376,7 @@ async function seed() {
     }
   }
 
-  await prisma.failureComment.createMany({ data: commentPayloads as any });
+  await prisma.failureComment.createMany({ data: commentPayloads });
   console.log(`  Created ${commentPayloads.length} failure comments`);
 
   // ── 8. Failure Patterns ──
@@ -405,7 +405,7 @@ async function seed() {
   const BATCH_SIZE = 500;
 
   for (let day = 0; day < 60; day++) {
-    let batch: Array<Record<string, unknown>> = [];
+    let batch: Prisma.AIUsageCreateManyInput[] = [];
 
     for (const provider of AI_PROVIDERS) {
       const callsPerDay = randomBetween(40, 160);
@@ -428,7 +428,7 @@ async function seed() {
         });
 
         if (batch.length >= BATCH_SIZE) {
-          await prisma.aIUsage.createMany({ data: batch as any });
+          await prisma.aIUsage.createMany({ data: batch });
           aiUsageCount += batch.length;
           batch = [];
           process.stdout.write('.');
@@ -437,7 +437,7 @@ async function seed() {
     }
 
     if (batch.length > 0) {
-      await prisma.aIUsage.createMany({ data: batch as any });
+      await prisma.aIUsage.createMany({ data: batch });
       aiUsageCount += batch.length;
     }
   }
@@ -485,7 +485,7 @@ async function seed() {
 
     // Generate a realistic conversation (4-8 exchanges)
     const exchanges = randomBetween(4, 8);
-    const messagePayloads: Array<Record<string, unknown>> = [];
+    const messagePayloads: Prisma.ChatMessageCreateManyInput[] = [];
 
     for (let e = 0; e < exchanges; e++) {
       const time = new Date(session.createdAt.getTime() + e * 60_000);
@@ -528,7 +528,7 @@ async function seed() {
       }
     }
 
-    await prisma.chatMessage.createMany({ data: messagePayloads as any });
+    await prisma.chatMessage.createMany({ data: messagePayloads });
     messageCount += messagePayloads.length;
   }
 
@@ -551,7 +551,7 @@ async function seed() {
 
   // ── 13. Notifications ──
   console.log('Creating notifications...');
-  const notifPayloads: Array<Record<string, unknown>> = [];
+  const notifPayloads: Prisma.NotificationCreateManyInput[] = [];
   const notifTypes = ['TEST_FAILED', 'TEST_PASSED', 'PIPELINE_FAILED', 'PIPELINE_PASSED', 'SYSTEM'];
   const notifMessages = [
     'Critical test failure detected in production pipeline',
@@ -582,7 +582,7 @@ async function seed() {
     });
   }
 
-  await prisma.notification.createMany({ data: notifPayloads as any });
+  await prisma.notification.createMany({ data: notifPayloads });
   console.log(`  Created ${notifPayloads.length} notifications`);
 
   // ── 14. Jira Config + Issues ──
@@ -596,7 +596,7 @@ async function seed() {
     },
   });
 
-  const jiraPayloads: Array<Record<string, unknown>> = [];
+  const jiraPayloads: Prisma.JiraIssueCreateManyInput[] = [];
   for (let i = 1; i <= 25; i++) {
     const status = pick(JIRA_STATUSES);
     jiraPayloads.push({
@@ -617,7 +617,7 @@ async function seed() {
     });
   }
 
-  await prisma.jiraIssue.createMany({ data: jiraPayloads as any });
+  await prisma.jiraIssue.createMany({ data: jiraPayloads });
   console.log(`  Created 1 Jira config, ${jiraPayloads.length} Jira issues`);
 
   // ── 15. Confluence Pages ──

@@ -45,8 +45,6 @@ export interface AIContextState {
   page: AIPageContext;
   /** Entity the user is focused on (if any) */
   entity: AIEntityContext;
-  /** Free-form breadcrumb trail for deeper context */
-  breadcrumb: string[];
 }
 
 interface AIContextValue {
@@ -71,7 +69,6 @@ const DEFAULT_ENTITY: AIEntityContext = { type: null, id: null, label: null };
 const DEFAULT_STATE: AIContextState = {
   page: 'unknown',
   entity: DEFAULT_ENTITY,
-  breadcrumb: [],
 };
 
 const AIContextInstance = createContext<AIContextValue | undefined>(undefined);
@@ -126,15 +123,10 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
       if (state.entity.metadata) {
         const meta = Object.entries(state.entity.metadata)
-          .map(([k, v]) => `${k}: ${v}`)
+          .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
           .join(', ');
         parts.push(`Context: ${meta}`);
       }
-    }
-
-    // Breadcrumb
-    if (state.breadcrumb.length > 0) {
-      parts.push(`Navigation: ${state.breadcrumb.join(' > ')}`);
     }
 
     return parts.join('. ');
