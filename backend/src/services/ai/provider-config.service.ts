@@ -234,7 +234,7 @@ export async function testProviderConnection(
             config.secretAccessKey = extraConfig?.secretAccessKey;
         }
 
-        const instance = providerRegistry.getProvider(provider, config as import('./providers/base.provider').ProviderConfig);
+        const instance = providerRegistry.getProvider(provider, config as unknown as import('./providers/base.provider').ProviderConfig);
         const healthy = await instance.healthCheck();
 
         // Clear this test instance from cache so it doesn't interfere

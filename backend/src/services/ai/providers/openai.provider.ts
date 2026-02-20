@@ -124,18 +124,21 @@ export class OpenAIProvider extends BaseProvider {
         throw new Error('No response from OpenAI');
       }
 
-      // Parse tool calls if present
+      // Parse tool calls if present (only function tool calls are supported)
       const rawToolCalls = choice.message.tool_calls;
-      const toolCalls: ToolCall[] | undefined = rawToolCalls?.map(tc => {
-        let args: Record<string, unknown>;
-        try {
-          args = JSON.parse(tc.function.arguments);
-        } catch {
-          console.warn(`Failed to parse tool call arguments for ${tc.function.name}:`, tc.function.arguments);
-          args = {};
-        }
-        return { id: tc.id, name: tc.function.name, arguments: args };
-      });
+      const toolCalls: ToolCall[] | undefined = rawToolCalls
+        ?.filter(tc => tc.type === 'function')
+        .map(tc => {
+          const fnCall = tc as { id: string; type: 'function'; function: { name: string; arguments: string } };
+          let args: Record<string, unknown>;
+          try {
+            args = JSON.parse(fnCall.function.arguments);
+          } catch {
+            console.warn(`Failed to parse tool call arguments for ${fnCall.function.name}:`, fnCall.function.arguments);
+            args = {};
+          }
+          return { id: fnCall.id, name: fnCall.function.name, arguments: args };
+        });
 
       // Calculate costs
       const inputTokens = response.usage?.prompt_tokens || 0;

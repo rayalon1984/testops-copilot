@@ -152,8 +152,9 @@ export class AnthropicProvider extends BaseProvider {
         }));
       }
 
-      // Make API call
-      const response = await this.client.messages.create(params);
+      // Make API call — cast params for Anthropic SDK compatibility
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await this.client.messages.create(params as any);
 
       // Process content and tools
       let content = '';
@@ -166,7 +167,7 @@ export class AnthropicProvider extends BaseProvider {
           toolCalls.push({
             id: block.id,
             name: block.name,
-            arguments: block.input
+            arguments: block.input as Record<string, unknown>
           });
         }
       });
