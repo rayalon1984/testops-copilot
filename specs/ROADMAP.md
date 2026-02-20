@@ -1,11 +1,24 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
-> **Current Version**: 2.9.0-rc.4 (February 2026)
+> **Current Version**: 2.9.0-rc.5 (February 2026)
 
 ---
 
 ## Shipped
+
+### v2.9.0-rc.5 — Sprint 7 Autonomy Tests + New Tools + Proactive UX (February 2026)
+- [x] AutonomyClassifier unit tests (47 tests)
+- [x] ProactiveSuggestionEngine unit tests (29 tests)
+- [x] Autonomy flow integration tests (19 tests) — end-to-end classifier + suggestion + SSE
+- [x] `giphy_search` tool: contextual GIF search with session dedup, curated terms, emoji fallback
+- [x] `jira_link_issues` tool: Tier 1 auto-execute, link related issues (reversible)
+- [x] `jira_add_label` tool: Tier 1 auto-execute, tag issues with investigation labels
+- [x] `github_merge_pr` tool: Tier 2 card, merge PR from chat (merge/squash/rebase)
+- [x] GiphyEmbedCard, RetryCard (smart retry with play button), HousekeepingCard (link/label + undo)
+- [x] Mock results for all 22 tools (up from 18)
+- [x] JiraService: `linkIssues()`, `addLabels()` methods
+- [x] GitHubService: `mergePR()` method
 
 ### v2.9.0-rc.4 — Sprint 6 Graduated Autonomy + Backend Refactor (February 2026)
 - [x] AutonomyClassifier: 3-tier tool classification (Full Auto / AI-in-the-Loop / Human-in-the-Loop)
@@ -85,7 +98,7 @@
 
 **Agentic System** (shipped):
 - [x] ReAct loop with streaming SSE (Reason → Act → Observe → Answer)
-- [x] 18 tools: 8 read-only (auto-approved) + 10 write (confirmation required)
+- [x] 22 tools: 11 read-only (auto-approved) + 11 write (confirmation required)
 - [x] Phase 3 action tools: jenkins_trigger_build, testrun_cancel/retry, github_rerun_workflow
 - [x] Human-in-the-loop confirmation gates for write operations (5-min TTL)
 - [x] Role-aware system prompts (Admin/Engineer/Viewer)
@@ -138,10 +151,10 @@
 - [x] ProactiveSuggestionEngine — AI anticipates next action, presents pre-built cards — Sprint 6
 - [x] Inline code diff viewer in PR cards (syntax-highlighted, Approve & Merge / Review Diff buttons) — Sprint 6
 - [x] User autonomy preferences (Conservative / Balanced / Autonomous) — Sprint 6
-- [ ] Smart retry with play button (auto-retry transient failures, batch retry)
-- [ ] Jira autonomous housekeeping (auto-link related issues, auto-label, undo card)
-- [ ] Giphy integration — contextual, work-appropriate GIFs for status events
-- [ ] 4 new tools: `jira_link_issues`, `jira_add_label`, `github_merge_pr`, `giphy_search`
+- [x] Smart retry with play button (auto-retry transient failures, batch retry) — Sprint 7
+- [x] Jira autonomous housekeeping (auto-link related issues, auto-label, undo card) — Sprint 7
+- [x] Giphy integration — contextual, work-appropriate GIFs for status events — Sprint 7
+- [x] 4 new tools: `jira_link_issues`, `jira_add_label`, `github_merge_pr`, `giphy_search` — Sprint 7
 
 **Multi-Channel AI** (Phase 2-3 planned):
 - [ ] Slack Bot (Events API + Block Kit responses)
