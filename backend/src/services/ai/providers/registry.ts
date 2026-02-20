@@ -14,6 +14,7 @@ import { GoogleProvider } from './google.provider';
 import { AzureProvider } from './azure.provider';
 import { OpenRouterProvider } from './openrouter.provider';
 import { MockProvider } from './mock.provider';
+import { BedrockProvider } from './bedrock.provider';
 
 export type ProviderFactory = (config: ProviderConfig) => BaseProvider;
 
@@ -37,6 +38,7 @@ class ProviderRegistry {
     this.register('google', (config) => new GoogleProvider(config));
     this.register('azure', (config) => new AzureProvider(config as any));
     this.register('openrouter', (config) => new OpenRouterProvider(config as any));
+    this.register('bedrock', (config) => new BedrockProvider(config as any));
     this.register('mock', (config) => new MockProvider(config));
   }
 
@@ -100,6 +102,11 @@ class ProviderRegistry {
         (baseConfig as any).siteUrl = secrets.openrouterSiteUrl;
         (baseConfig as any).appName = secrets.openrouterAppName;
         break;
+      case 'bedrock':
+        (baseConfig as any).region = secrets.bedrockRegion || 'us-east-1';
+        (baseConfig as any).accessKeyId = secrets.bedrockAccessKeyId;
+        (baseConfig as any).secretAccessKey = secrets.bedrockSecretAccessKey;
+        break;
     }
 
     return this.getProvider(providerName, baseConfig);
@@ -123,6 +130,7 @@ class ProviderRegistry {
       google: 'gemini-3.0-flash',
       azure: 'gpt-4.1',
       openrouter: 'anthropic/claude-sonnet-4-5',
+      bedrock: 'anthropic.claude-sonnet-4-5-20250514-v1:0',
       mock: 'mock-model',
     };
 
@@ -142,7 +150,7 @@ class ProviderRegistry {
    * List all available providers (those with API keys configured)
    */
   listAvailableProviders(): AIProviderName[] {
-    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
+    const allProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock'];
     return allProviders.filter(p => this.isProviderAvailable(p));
   }
 

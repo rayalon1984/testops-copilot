@@ -104,13 +104,13 @@ router.put('/config', authorize(UserRole.ADMIN), async (req: Request, res: Respo
       return res.status(400).json({ error: 'provider and model are required' });
     }
 
-    const validProviders = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
+    const validProviders = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock'];
     if (!validProviders.includes(provider)) {
       return res.status(400).json({ error: `Invalid provider. Must be one of: ${validProviders.join(', ')}` });
     }
 
-    if (provider !== 'mock' && !apiKey) {
-      // Check if there's already a stored key
+    if (provider !== 'mock' && provider !== 'bedrock' && !apiKey) {
+      // Check if there's already a stored key (Bedrock can use IAM auth without explicit key)
       const existing = await providerConfig.getProviderConfig();
       if (!existing.hasApiKey) {
         return res.status(400).json({ error: 'API key is required for non-mock providers' });

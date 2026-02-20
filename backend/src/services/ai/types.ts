@@ -8,7 +8,7 @@
 /**
  * Supported AI providers
  */
-export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter' | 'mock';
+export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter' | 'bedrock' | 'mock';
 
 /**
  * AI feature categories
@@ -75,6 +75,9 @@ export interface AIConfig {
     openrouterApiKey?: string;
     openrouterSiteUrl?: string;
     openrouterAppName?: string;
+    bedrockRegion?: string;
+    bedrockAccessKeyId?: string;
+    bedrockSecretAccessKey?: string;
   };
 
   vectorDB: {

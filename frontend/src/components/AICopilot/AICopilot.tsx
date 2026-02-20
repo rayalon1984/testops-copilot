@@ -122,7 +122,7 @@ export default function AICopilot() {
                             />
                         )}
                         <AssistantMessage content={msg.content} id={msg.id} />
-                        <MessageActions content={msg.content} timestamp={msg.timestamp} />
+                        <MessageActions content={msg.content} timestamp={msg.timestamp} persona={activePersona?.displayName} />
                     </Box>
                 );
 

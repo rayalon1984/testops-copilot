@@ -114,6 +114,15 @@ const envSchema = z.object({
   AI_PROVIDER: z.enum(['openai', 'anthropic', 'mock']).default('mock'),
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().optional(),
+
+  // AWS Bedrock
+  AWS_BEDROCK_REGION: z.string().optional(),
+  AWS_BEDROCK_ACCESS_KEY_ID: z.string().optional(),
+  AWS_BEDROCK_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Microsoft Teams
+  TEAMS_APP_ID: z.string().optional(),
+  TEAMS_APP_PASSWORD: z.string().optional(),
 });
 
 // Parse and validate environment variables

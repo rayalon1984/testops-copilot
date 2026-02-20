@@ -160,8 +160,16 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         return;
     }
 
-    // Route query to the right virtual team persona
-    const persona = await routeToPersona(req.message, req.userRole);
+    // Route query to persona + ensure session in parallel (speed optimization)
+    const sessionNeeded = req.sessionId && req.sessionId !== 'anonymous';
+    const [persona] = await Promise.all([
+        routeToPersona(req.message, req.userRole),
+        sessionNeeded
+            ? chatSessionService.ensureSession(req.sessionId!, req.userId).catch(error => {
+                logger.error(`[AIChatService] Failed to ensure session ${req.sessionId}:`, error);
+            })
+            : Promise.resolve(),
+    ]);
     logger.info(`[AIChatService] Persona: ${persona.displayName} (${persona.tier}, confidence: ${persona.confidence})`);
 
     // Emit persona_selected SSE event before the ReAct loop
@@ -178,18 +186,6 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         userRole: req.userRole,
         sessionId: req.sessionId || 'anonymous',
     };
-
-    // Ensure session exists in DB to satisfy foreign key constraints for PendingAction/Messages
-    if (req.sessionId && req.sessionId !== 'anonymous') {
-        try {
-            await chatSessionService.ensureSession(req.sessionId, req.userId);
-            logger.info(`[AIChatService] Ensured session ${req.sessionId} exists for user ${req.userId}`);
-        } catch (error) {
-            logger.error(`[AIChatService] Failed to ensure session ${req.sessionId}:`, error);
-            // Continue anyway? If session creation failed, pending actions will fail too.
-            // But maybe valid for pure chat?
-        }
-    }
 
     // Build conversation history
     const messages: ChatMessage[] = [
@@ -414,8 +410,16 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
         throw new Error('AI services are not initialized or enabled.');
     }
 
-    // Route to persona
-    const persona = await routeToPersona(req.message, req.userRole);
+    // Route to persona + ensure session in parallel (speed optimization)
+    const sessionNeeded = req.sessionId && req.sessionId !== 'anonymous';
+    const [persona] = await Promise.all([
+        routeToPersona(req.message, req.userRole),
+        sessionNeeded
+            ? chatSessionService.ensureSession(req.sessionId!, req.userId).catch(error => {
+                logger.error(`[AIChatService:Buffered] Failed to ensure session:`, error);
+            })
+            : Promise.resolve(),
+    ]);
     logger.info(`[AIChatService:Buffered] Persona: ${persona.displayName} (${persona.tier})`);
 
     const systemPrompt = buildSystemPrompt(req.userRole, persona);
@@ -424,15 +428,6 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
         userRole: req.userRole,
         sessionId: req.sessionId || 'anonymous',
     };
-
-    // Ensure session
-    if (req.sessionId && req.sessionId !== 'anonymous') {
-        try {
-            await chatSessionService.ensureSession(req.sessionId, req.userId);
-        } catch (error) {
-            logger.error(`[AIChatService:Buffered] Failed to ensure session:`, error);
-        }
-    }
 
     const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },

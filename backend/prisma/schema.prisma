@@ -389,3 +389,23 @@ model ChannelUserMapping {
   @@unique([channel, externalId])
   @@index([userId])
 }
+
+// ─── Shared Analysis Links ───
+
+model SharedAnalysis {
+  id          String   @id @default(uuid())
+  token       String   @unique  // URL-safe token for share links
+  userId      String             // Who shared it
+  sessionId   String?            // Optional link to chat session
+  title       String
+  content     String             // Markdown of the AI analysis
+  persona     String?            // Which persona generated it
+  toolSummary String?            // JSON: tool calls summary
+  expiresAt   DateTime           // Default 7 days from creation
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+}
