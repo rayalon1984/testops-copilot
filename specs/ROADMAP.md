@@ -175,7 +175,7 @@
 - [ ] Rate limit UI feedback (quota indicators in chat)
 - [ ] Usage dashboard per-session (cost breakdown by tool/provider)
 - [ ] Error recovery UX (retry failed tool calls, connection lost handling)
-- [ ] E2E smoke tests for full agentic flow (Playwright)
+- [x] E2E smoke tests for full agentic flow (Playwright) — 10 tests, mock API fixtures
 - [ ] Release notes and changelog
 
 **Enterprise**:

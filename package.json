@@ -44,7 +44,10 @@
     "validate:schema": "node scripts/validate-schema.js",
     "mcp:dev": "cd mcp-server && npm run dev",
     "mcp:inspector": "cd mcp-server && npm run inspector",
-    "mcp:build": "cd mcp-server && npm run build"
+    "mcp:build": "cd mcp-server && npm run build",
+    "test:e2e": "npx playwright test --config tests/e2e/playwright.config.ts",
+    "test:e2e:headed": "npx playwright test --config tests/e2e/playwright.config.ts --headed",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "keywords": [
     "test",

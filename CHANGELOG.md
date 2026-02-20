@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.0.1] - 2026-02-20
+
+> **E2E Agentic Copilot Tests — Playwright Smoke Suite**
+
+### E2E Tests (Playwright)
+
+- **10 smoke tests** covering the full agentic copilot user journey
+- Mock API fixtures: auth, dashboard, pipelines, SSE chat streaming
+- Pre-built SSE scenarios: Jira search, Jira create (confirmation), proactive suggestions, autonomous actions, persona routing
+- Tests: login flow, ReAct loop, confirmation approve/deny, proactive suggestion cards, Tier 1 autonomous action notifications, persona badge display, chat clear, page navigation with copilot, chat input behavior, multi-query sessions
+- Playwright config: auto-starts frontend dev server, chromium-only for speed
+- New scripts: `npm run test:e2e`, `npm run test:e2e:headed`, `npm run test:all`
+
+---
+
 ## [3.0.0] - 2026-02-20
 
 > **v3.0.0 GA — Virtual Team Routing + Autonomous AI + Resilience**
