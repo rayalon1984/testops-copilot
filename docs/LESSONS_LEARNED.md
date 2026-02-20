@@ -3,7 +3,7 @@
 > **Owner**: Release QA Engineer + all personas
 > **Status**: Living document — updated every sprint
 > **Purpose**: Track recurring error patterns, root causes, and preventive measures so we never repeat the same class of failure twice.
-> **Current Version**: 2.9.0-rc.3
+> **Current Version**: 2.9.0-rc.4
 
 ---
 
@@ -93,6 +93,21 @@ Each entry tracks a class of error (not a single instance) so we catch variation
 
 ---
 
+### EPR-006: Fat Controller (Mixed Concerns in HTTP Layer)
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Controller files import Prisma directly and contain business logic, data transformation, and error handling that belongs in a service layer |
+| **First seen** | Sprint 6 (2026-02-20) |
+| **Impact** | P3 — No runtime failure, but slows onboarding, makes testing harder, and couples HTTP layer to ORM |
+| **Root cause** | Organic growth — features added directly to controllers without extracting a service. 5 of 14 controllers had direct `prisma` imports |
+| **Prevention** | "Thin Controller Rule" in `SENIOR_ENGINEER.md`: controllers MUST NOT import Prisma or contain business logic. Route → Controller → Service → Prisma |
+| **CI guard** | Code review convention (no automated lint rule yet). Future: ESLint custom rule to ban `prisma` imports in `controllers/` directory |
+| **Status** | **Mitigated** (Sprint 6) — 4 fat controllers extracted to services (pipeline, dashboard, auth, notification). 778-line AI route monolith split into 3 sub-modules |
+| **Metrics** | pipeline: 264→61 lines, dashboard: 466→31 lines, auth: 245→47 lines, notification: 244→54 lines |
+
+---
+
 ## Automated Guards Summary
 
 | Guard | CI Workflow | What It Catches | Added |
@@ -137,5 +152,5 @@ Per semver and the `RELEASE_QA_ENGINEER.md` version strategy:
 
 ---
 
-*Last updated: 2026-02-20 (Sprint 5)*
-*Next review: Start of Sprint 6*
+*Last updated: 2026-02-20 (Sprint 6)*
+*Next review: Start of Sprint 7*
