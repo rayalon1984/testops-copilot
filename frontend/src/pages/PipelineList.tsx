@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Paper,
@@ -40,6 +41,7 @@ type Pipeline = ApiSchemas['Pipeline'];
 type CreatePipelineRequest = ApiSchemas['CreatePipelineRequest'];
 
 export default function PipelineList() {
+  usePageContext('pipeline-list');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [openDialog, setOpenDialog] = useState(false);

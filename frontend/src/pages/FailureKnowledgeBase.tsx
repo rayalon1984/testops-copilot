@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Box,
   Container,
@@ -42,6 +43,7 @@ type FailureInsights = ApiSchemas['FailureInsights'];
 type Failure = ApiSchemas['FailureSearchResult'];
 
 export const FailureKnowledgeBase: React.FC = () => {
+  usePageContext('failure-knowledge-base');
   const [insights, setInsights] = useState<FailureInsights | null>(null);
   const [failures, setFailures] = useState<Failure[]>([]);
   const [loading, setLoading] = useState(true);

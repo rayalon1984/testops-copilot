@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import { api } from '../api';
 import type { ApiSchemas } from '../api';
+import { usePageContext } from '../hooks/usePageContext';
 
 type TestRun = ApiSchemas['TestRunDetail'];
 
@@ -69,6 +70,11 @@ export default function TestRunDetail() {
     queryKey: ['test-run', id],
     queryFn: () => api.get<TestRun>(`/test-runs/${id}`),
   });
+
+  usePageContext('testrun-detail', testRun ? {
+    type: 'testrun', id: testRun.id, label: testRun.pipelineName || testRun.id,
+    metadata: { status: testRun.status, errorCount: testRun.errorCount },
+  } : null);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

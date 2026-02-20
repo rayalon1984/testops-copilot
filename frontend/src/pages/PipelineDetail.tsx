@@ -36,6 +36,7 @@ import {
 
 import { api } from '../api';
 import type { ApiSchemas } from '../api';
+import { usePageContext } from '../hooks/usePageContext';
 type Pipeline = ApiSchemas['Pipeline'];
 type TestRun = ApiSchemas['TestRun'];
 
@@ -52,6 +53,11 @@ export default function PipelineDetail() {
     queryKey: ['pipeline', id],
     queryFn: () => api.get<Pipeline>(`/pipelines/${id}`),
   });
+
+  usePageContext('pipeline-detail', pipeline ? {
+    type: 'pipeline', id: pipeline.id, label: pipeline.name,
+    metadata: { type: pipeline.type, status: pipeline.status },
+  } : null);
 
   // Fetch recent test runs
   const { data: testRuns, isLoading: isTestRunsLoading} = useQuery<TestRun[]>({
