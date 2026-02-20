@@ -41,7 +41,8 @@ declare module 'jira-client' {
     constructor(options: JiraClientOptions);
 
     addNewIssue(issue: { fields: JiraIssueFields }): Promise<JiraIssue>;
-    updateIssue(issueKey: string, issue: { fields: JiraIssueFields }): Promise<void>;
+    updateIssue(issueKey: string, issue: { fields: JiraIssueFields; update?: Record<string, unknown[]> }): Promise<void>;
+    issueLink(link: { type: { name: string }; inwardIssue: { key: string }; outwardIssue: { key: string } }): Promise<void>;
     findIssue(issueKey: string): Promise<JiraIssue>;
     listTransitions(issueKey: string): Promise<JiraTransitions>;
     transitionIssue(issueKey: string, transition: { transition: { id: string } }): Promise<void>;

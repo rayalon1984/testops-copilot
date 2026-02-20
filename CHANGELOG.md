@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.0.0] - 2026-02-20
+
+> **v3.0.0 GA — Virtual Team Routing + Autonomous AI + Resilience**
+
+This is the first major release of TestOps Companion v3. It promotes rc.1 through rc.7
+to general availability with all lint, type, and test issues resolved.
+
+### What's New in v3.0.0
+
+- **Virtual Team Routing**: AI queries routed to 9 specialist personas via PersonaRouter (keyword rules + LLM micro-classification fallback)
+- **Graduated Autonomy**: Three-tier system (Full Auto / AI-in-the-Loop / Human-in-the-Loop) with 22 registered tools
+- **Proactive AI Suggestions**: Post-tool-result recommendations (empty search → suggest create, transient failure → suggest retry, etc.)
+- **Global AI Context**: Page-aware AI assistance via AIProvider + usePageContext hook
+- **Resilience Layer**: Circuit breaker + retry + timeout for all external service calls (GitHub, Jira, Jenkins, Confluence)
+- **High-Fidelity Seeder**: TypeScript-based seed data with realistic pipelines, test runs, and failure patterns
+- **Security Hardened**: passport-saml v5, bcrypt 6, ReDoS mitigations (40 → 8 moderate vulns, all devDeps)
+
+### Quality Gates
+
+- **Tests**: 323/323 passing (188 backend + 135 frontend)
+- **Lint**: 0 errors, 0 warnings (ESLint clean)
+- **TypeScript**: 0 compilation errors
+- **Build**: All 3 packages (backend, frontend, mcp-server) build successfully
+
+### Breaking Changes
+
+None. Virtual Team Routing and Autonomous AI are additive features. Existing API contracts are fully backward compatible.
+
+---
+
 ## [2.9.0-rc.7] - 2026-02-20
 
 > **Sprint 9 — Resilience + Documentation Overhaul**

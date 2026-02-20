@@ -1,7 +1,7 @@
 # _SPEC_INDEX.md — Specification Directory
 
 > **Purpose**: Single index of all living specs. If a document isn't listed here, it's not canonical.
-> **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
+> **Version**: 3.0.0 · **Last verified**: 2026-02-20
 
 ---
 

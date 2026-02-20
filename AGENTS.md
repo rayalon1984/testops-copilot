@@ -3,7 +3,7 @@
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 2.9.0-rc.7 | **Updated**: 2026-02-20
+> **Version**: 3.0.0 | **Updated**: 2026-02-20
 
 ---
 

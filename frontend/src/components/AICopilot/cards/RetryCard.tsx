@@ -10,7 +10,7 @@
 
 import { Box, Paper, Typography, Button, Chip, LinearProgress } from '@mui/material';
 import { PlayArrow as PlayIcon, SkipNext as SkipIcon } from '@mui/icons-material';
-import ServiceBadge, { getServiceAccent } from './shared/ServiceBadge';
+import ServiceBadge from './shared/ServiceBadge';
 import CardActions from './shared/CardActions';
 import type { CardState } from '../../../hooks/useAICopilot';
 

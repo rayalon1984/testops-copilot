@@ -394,7 +394,7 @@ export class JiraService {
     try {
       // jira-client types don't expose issueLink, but the REST API supports it
       await withResilience(
-        () => (this.client as any).issueLink({
+        () => this.client!.issueLink({
           type: { name: linkType },
           inwardIssue: { key: sourceKey },
           outwardIssue: { key: targetKey },
@@ -423,7 +423,7 @@ export class JiraService {
           update: {
             labels: labels.map(label => ({ add: label })),
           },
-        } as any),
+        }),
         JIRA_RESILIENCE,
       );
       logger.info(`Added labels [${labels.join(', ')}] to ${issueKey}`);

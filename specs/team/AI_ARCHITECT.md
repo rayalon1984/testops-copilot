@@ -1,7 +1,7 @@
 # Persona: AI_ARCHITECT
 
 > **Role**: AI systems authority · **Routing**: Step 2 in `TEAM_SELECTION.md`
-> **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
+> **Version**: 3.0.0 · **Last verified**: 2026-02-20
 
 ---
 

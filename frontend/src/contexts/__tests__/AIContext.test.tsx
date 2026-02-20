@@ -21,7 +21,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return <AIProvider>{children}</AIProvider>;
 }
 
-function useTestContext() {
+function renderTestContext() {
   return renderHook(() => useAIContext(), { wrapper });
 }
 
@@ -30,26 +30,26 @@ function useTestContext() {
 describe('AIContext', () => {
   describe('initialization', () => {
     it('starts with page=unknown and null entity', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       expect(result.current.aiContext.page).toBe('unknown');
       expect(result.current.aiContext.entity).toEqual({ type: null, id: null, label: null });
     });
 
     it('does not include breadcrumb in state', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       expect('breadcrumb' in result.current.aiContext).toBe(false);
     });
   });
 
   describe('setPage', () => {
     it('updates the current page', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => result.current.setPage('dashboard'));
       expect(result.current.aiContext.page).toBe('dashboard');
     });
 
     it('preserves entity when page changes', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       const entity: AIEntityContext = { type: 'pipeline', id: 'p1', label: 'Main' };
 
       act(() => {
@@ -64,7 +64,7 @@ describe('AIContext', () => {
 
   describe('setEntity / clearEntity', () => {
     it('sets the focused entity', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       const entity: AIEntityContext = { type: 'testrun', id: 'tr-1', label: 'Run #42' };
 
       act(() => result.current.setEntity(entity));
@@ -72,7 +72,7 @@ describe('AIContext', () => {
     });
 
     it('clears entity back to defaults', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => result.current.setEntity({ type: 'pipeline', id: 'p1', label: 'X' }));
       act(() => result.current.clearEntity());
       expect(result.current.aiContext.entity).toEqual({ type: null, id: null, label: null });
@@ -81,7 +81,7 @@ describe('AIContext', () => {
 
   describe('setAIContext (partial update)', () => {
     it('merges partial state', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => result.current.setAIContext({ page: 'settings' }));
       expect(result.current.aiContext.page).toBe('settings');
       // Entity should still be default
@@ -91,13 +91,13 @@ describe('AIContext', () => {
 
   describe('getContextString', () => {
     it('returns page-only context for unknown entity', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => result.current.setPage('dashboard'));
       expect(result.current.getContextString()).toBe('User is viewing: Dashboard overview');
     });
 
     it('includes entity when focused', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => {
         result.current.setPage('pipeline-detail');
         result.current.setEntity({ type: 'pipeline', id: 'p1', label: 'E2E Suite' });
@@ -109,7 +109,7 @@ describe('AIContext', () => {
     });
 
     it('includes entity without label', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => {
         result.current.setPage('testrun-detail');
         result.current.setEntity({ type: 'testrun', id: 'tr-99', label: null });
@@ -120,7 +120,7 @@ describe('AIContext', () => {
     });
 
     it('serializes metadata without losing object values', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       act(() => {
         result.current.setPage('pipeline-detail');
         result.current.setEntity({
@@ -142,7 +142,7 @@ describe('AIContext', () => {
     });
 
     it('renders all page labels correctly', () => {
-      const { result } = useTestContext();
+      const { result } = renderTestContext();
       const pageMap: Record<string, string> = {
         'dashboard': 'Dashboard overview',
         'pipeline-list': 'Pipeline list',

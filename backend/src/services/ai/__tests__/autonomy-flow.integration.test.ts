@@ -13,7 +13,7 @@
  */
 
 import { classifyTool, type AutonomyLevel, type TierClassification } from '../AutonomyClassifier';
-import { evaluateSuggestion, type ProactiveSuggestion } from '../ProactiveSuggestionEngine';
+import { evaluateSuggestion } from '../ProactiveSuggestionEngine';
 import type { Tool, ToolResult, SSEEventType } from '../tools/types';
 
 // Mock the logger

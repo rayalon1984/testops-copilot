@@ -1,7 +1,7 @@
 # TestOps Companion - Demo & Screenshots
 
 > Visual guide to TestOps Companion's features and user interface.
-> Updated for v2.9.0-rc.7 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
+> Updated for v3.0.0 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
 
 ---
 
