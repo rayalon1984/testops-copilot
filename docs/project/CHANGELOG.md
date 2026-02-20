@@ -4,4 +4,4 @@
 >
 > See: [`../../CHANGELOG.md`](../../CHANGELOG.md)
 >
-> *Last redirect: 2026-02-20 · v2.9.0-rc.6*
+> *Last redirect: 2026-02-20 · v2.9.0-rc.7*

@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
 
 ---
 
@@ -56,6 +56,38 @@ Production responses include `message` only. Development adds `stack` and `detai
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Returns `{ status: "ok", timestamp }` |
+| GET | `/health/full` | Comprehensive health with service + circuit breaker states |
+| GET | `/health/ready` | Readiness probe (database connectivity) |
+| GET | `/health/live` | Liveness probe (process alive + uptime) |
+
+**`/health/full` response**:
+
+```json
+{
+  "status": "healthy | degraded | unhealthy",
+  "timestamp": "ISO-8601",
+  "version": "2.9.0-rc.7",
+  "uptime": 12345,
+  "services": {
+    "database": { "status": "up | down", "responseTime": 5 },
+    "redis": { "status": "up | down", "responseTime": 2 },
+    "weaviate": { "status": "up | down" },
+    "ai": { "status": "up | down", "details": { "provider": "anthropic" } }
+  },
+  "circuitBreakers": [
+    {
+      "name": "github | jira | jenkins | confluence",
+      "state": "CLOSED | OPEN | HALF_OPEN",
+      "failures": 0,
+      "lastFailureTime": "ISO-8601 | null",
+      "nextRetryTime": "ISO-8601 | null"
+    }
+  ],
+  "environment": { "nodeEnv": "production", "nodeVersion": "v18.x", "port": 3000 }
+}
+```
+
+**Status logic**: `unhealthy` if any service is down. `degraded` if any service degraded OR any circuit breaker is OPEN. Returns 503 for `unhealthy`, 200 otherwise.
 
 ### 4.2 Authentication
 

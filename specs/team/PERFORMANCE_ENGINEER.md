@@ -1,7 +1,7 @@
 # Persona: PERFORMANCE_ENGINEER
 
 > **Role**: Performance & scalability · **Routing**: Step 5 in `TEAM_SELECTION.md`
-> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
+> **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
 
 ---
 
@@ -40,7 +40,7 @@ You own latency, throughput, resource efficiency, and scalability. You profile b
 |------|---------|-------------------|
 | AI provider calls | 1–10s latency | 3-tier Redis cache (7d TTL), >50% hit rate target |
 | Database queries | N+1 risk with Prisma | `include`/`select` patterns, key indexes |
-| Context enrichment | 3 parallel API calls (Jira + Confluence + GitHub) | `Promise.allSettled()`, 2000-char diff truncation |
+| Context enrichment | 3 parallel API calls (Jira + Confluence + GitHub) | `Promise.allSettled()`, 2000-char diff truncation, circuit breakers per service |
 | Failure matching | Fuzzy matching (Levenshtein) | Signature-based exact match first, fuzzy as fallback |
 | SSE streaming | Long-lived connections | No connection pooling concern (single-instance) |
 
@@ -66,7 +66,7 @@ Key indexes that must exist for query performance:
 | Constraint | Limit | Path Forward |
 |-----------|-------|-------------|
 | Token blacklist in-memory | Single instance | Migrate to Redis |
-| No connection pooling for external APIs | Serial per-request | Add connection reuse |
+| No connection pooling for external APIs | Serial per-request | Circuit breakers + retry with backoff added (rc.7). Connection reuse TBD. |
 | Single CORS origin | One frontend | Multi-origin config |
 | Notification mock data | No DB persistence | Implement persistence |
 

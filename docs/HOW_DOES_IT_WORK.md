@@ -1,7 +1,7 @@
 # How Does TestOps Companion Actually Work?
 
 > A plain-English guide for anyone who wants to understand what happens under the hood.
-> Updated for v2.9.0-rc.6 — Graduated Autonomy, Proactive Suggestions, Global AI Context.
+> Updated for v2.9.0-rc.7 — Graduated Autonomy, Proactive Suggestions, Global AI Context.
 
 ---
 

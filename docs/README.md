@@ -1,6 +1,6 @@
 # TestOps Companion Documentation
 
-> **Version**: 2.9.0-rc.6 · **Last updated**: 2026-02-20
+> **Version**: 2.9.0-rc.7 · **Last updated**: 2026-02-20
 
 Welcome to the TestOps Companion documentation. This guide will help you understand, install, and use TestOps Companion effectively.
 
