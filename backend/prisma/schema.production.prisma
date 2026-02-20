@@ -426,6 +426,27 @@ model DashboardConfig {
   @@map("dashboard_configs")
 }
 
+// ─── Shareable Analysis Links ───
+
+model SharedAnalysis {
+  id          String   @id @default(uuid()) @db.Uuid
+  token       String   @unique
+  userId      String
+  sessionId   String?
+  title       String
+  content     String
+  persona     String?
+  toolSummary String?  // JSON
+  expiresAt   DateTime
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("shared_analyses")
+}
+
 // ─── Multi-Channel User Mapping ───
 
 model ChannelUserMapping {

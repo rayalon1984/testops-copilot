@@ -92,7 +92,10 @@ router.get(
       'FLAKY': 'flaky'
     };
 
-    const error = testRun.error || null;
+    // Collect error messages from failed test results
+    const errorLogs = testRun.results
+      ?.filter((r: { status: string; error?: string | null }) => r.status === 'FAILED' && r.error)
+      .map((r: { error?: string | null }) => r.error!) || [];
 
     res.status(200).json({
       id: testRun.id,
@@ -103,7 +106,7 @@ router.get(
       endTime: testRun.completedAt?.toISOString() || testRun.createdAt.toISOString(),
       duration: testRun.duration || 0,
       errorCount: failed,
-      errorLogs: error ? [error] : [],
+      errorLogs,
       screenshots: []
     });
   })

@@ -12,14 +12,13 @@ const notificationController = new NotificationController();
  * Map Prisma Notification to frontend contract.
  * DB uses `read`; frontend expects `delivered` + `timestamp`.
  */
-function toNotificationDTO(n: { id: string; type: string; title: string; message: string; read: boolean; data: string | null; createdAt: Date }) {
-  const data = n.data ? JSON.parse(n.data) : {};
+function toNotificationDTO(n: { id: string; type: string; title: string; message: string; read: boolean; testRunId: string | null; createdAt: Date }) {
   return {
     id: n.id,
-    testRunId: data.testRunId || '',
-    pipelineName: data.pipelineName || n.title,
+    testRunId: n.testRunId || '',
+    pipelineName: n.title,
     type: n.type,
-    status: data.status || n.type.toUpperCase(),
+    status: n.type.toUpperCase(),
     message: n.message,
     timestamp: n.createdAt.toISOString(),
     delivered: n.read,
