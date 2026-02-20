@@ -174,7 +174,42 @@ function extractModelNames(filePath) {
 }
 
 /**
- * Check that production and dev schema files declare the same set of models.
+ * Extract field names from each model in a Prisma schema file.
+ * Returns Map<modelName, string[]> where string[] is sorted field names.
+ * Strips type annotations and modifiers — only compares field names,
+ * because types differ between SQLite (String) and PostgreSQL (enum, @db.Uuid).
+ */
+function extractModelFields(filePath) {
+  if (!fs.existsSync(filePath)) return new Map();
+  const content = fs.readFileSync(filePath, 'utf8');
+
+  const models = new Map();
+  // Match each model block: model Name { ... }
+  const modelRegex = /^model\s+(\w+)\s*\{([^}]+)\}/gm;
+  let match;
+  while ((match = modelRegex.exec(content)) !== null) {
+    const modelName = match[1];
+    const body = match[2];
+    // Field lines: start with a word that isn't a directive (@@) or comment (//)
+    const fields = [];
+    for (const line of body.split('\n')) {
+      const trimmed = line.trim();
+      // Skip blank lines, comments, and block-level directives (@@index, @@unique, @@map)
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('@@')) continue;
+      // A field line starts with a lowercase or uppercase identifier followed by whitespace and a type
+      const fieldMatch = trimmed.match(/^(\w+)\s+/);
+      if (fieldMatch) {
+        fields.push(fieldMatch[1]);
+      }
+    }
+    models.set(modelName, fields.sort());
+  }
+  return models;
+}
+
+/**
+ * Check that production and dev schema files declare the same set of models
+ * AND the same fields within each shared model.
  * Intentional differences (e.g. JiraConfig only in dev) can be allowlisted.
  */
 function checkModelParity() {
@@ -214,9 +249,45 @@ function checkModelParity() {
     valid = false;
   }
 
-  if (valid) {
-    const shared = devModels.filter(m => prodModels.includes(m));
-    log(`✅ Model parity OK — ${shared.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+  // Field-level parity for shared models (warning-only for pre-existing drift,
+  // fails CI only for model-level differences — see Sprint 4 postmortem)
+  const prodFields = extractModelFields(productionSchema);
+  const devFields = extractModelFields(devSchema);
+  const sharedModels = prodModels.filter(m => devModels.includes(m));
+  let fieldDriftCount = 0;
+
+  for (const model of sharedModels) {
+    const pf = prodFields.get(model) || [];
+    const df = devFields.get(model) || [];
+
+    const missingInDev = pf.filter(f => !df.includes(f));
+    const missingInProd = df.filter(f => !pf.includes(f));
+
+    if (missingInDev.length > 0) {
+      log(`⚠️  Model "${model}" — fields in production but MISSING from dev schema:`, colors.yellow);
+      missingInDev.forEach(f => log(`     - ${model}.${f}`, colors.yellow));
+      fieldDriftCount += missingInDev.length;
+    }
+    if (missingInProd.length > 0) {
+      log(`⚠️  Model "${model}" — fields in dev but MISSING from production schema:`, colors.yellow);
+      missingInProd.forEach(f => log(`     - ${model}.${f}`, colors.yellow));
+      fieldDriftCount += missingInProd.length;
+    }
+  }
+
+  if (valid && fieldDriftCount === 0) {
+    log(`✅ Model parity OK — ${sharedModels.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+    log(`✅ Field parity OK — all shared models have identical field sets`, colors.green);
+  } else if (valid) {
+    log(`✅ Model parity OK — ${sharedModels.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+    log(`⚠️  Field drift detected: ${fieldDriftCount} field(s) differ across schemas (warning, not blocking)`, colors.yellow);
+    log(`   Run with --strict-fields to fail on field-level drift`, colors.yellow);
+  }
+
+  // If --strict-fields flag is passed, field drift also fails validation
+  if (fieldDriftCount > 0 && process.argv.includes('--strict-fields')) {
+    log(`❌ --strict-fields: field drift is treated as a failure`, colors.red);
+    valid = false;
   }
 
   return valid;

@@ -147,7 +147,7 @@ export class JiraService {
           summary: issue.fields.summary ?? '',
           description: issue.fields.description ?? '',
           status: {
-            name: issue.fields.status.name
+            name: (issue.fields.status as { name?: string })?.name ?? 'Unknown'
           },
           issuetype: {
             name: issue.fields.issuetype?.name ?? 'Unknown'

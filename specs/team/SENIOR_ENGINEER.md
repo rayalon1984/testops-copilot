@@ -45,6 +45,19 @@ You are the default implementation persona. You own feature delivery, refactors,
 - Frontend pages: `frontend/src/pages/{PageName}.tsx`
 - Frontend components: `frontend/src/components/{ComponentName}.tsx`
 
+### External Library Type Safety
+
+Third-party libraries (e.g. `jira-client`, `nodemailer`) often have incomplete or
+loosely-typed definitions. When accessing deeply nested fields from external payloads:
+
+1. **Never trust `unknown` or untyped fields** — use narrowing or explicit casts with optional chaining
+2. **Prefer `(field as { name?: string })?.name ?? 'Default'`** over `(field as any).name`
+3. For network payloads, consider Zod validation at the boundary
+
+> **Lesson Learned (Sprint 4 Postmortem)**: `jira-client` types regressed `issue.fields.status`
+> to `unknown`. Accessing `.name` on it directly caused `TS18046` and blocked backend compilation.
+> Fix: defensive cast with optional chaining and fallback.
+
 ### Before Merging — Checklist
 - [ ] Tests pass (`npm test` in both frontend and backend)
 - [ ] TypeScript compiles (`npm run typecheck`)
@@ -52,6 +65,7 @@ You are the default implementation persona. You own feature delivery, refactors,
 - [ ] No credentials or secrets in code
 - [ ] New API endpoints documented in `specs/API_CONTRACT.md`
 - [ ] New services follow Controller → Service → Model pattern
+- [ ] Schema changes propagated to all three `.prisma` files (see `DATA_ENGINEER.md`)
 
 ---
 

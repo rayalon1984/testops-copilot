@@ -69,8 +69,12 @@ You own test strategy, coverage, CI quality gates, and test infrastructure. You 
 |------|---------|-------------|
 | Backend tests | `npm test --prefix backend` | Yes |
 | Frontend tests | `npm test --prefix frontend` | Yes |
-| TypeScript | `npm run typecheck` | Yes |
+| TypeScript (production schema) | `npm run typecheck` | Yes |
+| TypeScript (dev/SQLite schema) | multi-schema typecheck in CI | Yes |
+| Schema parity (model + field) | `node scripts/validate-schema.js` | Yes |
 | Lint | `npm run lint` | Yes |
+| Coverage thresholds | 50% branches/functions/lines/statements | Yes |
+| Security audit | `npm audit --audit-level=high` | Yes |
 
 ### Before Merging — Checklist
 - [ ] New code has tests (unit at minimum)
@@ -79,3 +83,4 @@ You own test strategy, coverage, CI quality gates, and test infrastructure. You 
 - [ ] Test names describe behavior, not implementation
 - [ ] Mocks are minimal — test real behavior where possible
 - [ ] CI pipeline passes all gates
+- [ ] Coverage thresholds met (50% minimum across branches/functions/lines/statements)

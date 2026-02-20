@@ -46,10 +46,15 @@ You own CI/CD pipelines, Docker configuration, deployment safety, environment ma
 
 | Stage | Tool | Blocks Merge |
 |-------|------|-------------|
-| Tests | Jest (backend + frontend) | Yes |
+| Tests | Jest (backend), Vitest (frontend) | Yes |
 | Lint | ESLint | Yes |
-| Type check | TypeScript compiler | Yes |
+| Type check (prod schema) | TypeScript compiler | Yes |
+| Type check (dev schema) | TypeScript compiler (multi-schema) | Yes |
+| Schema parity | `node scripts/validate-schema.js` | Yes |
+| Coverage thresholds | 50% branches/functions/lines/statements | Yes |
+| Security audit | `npm audit --audit-level=high` | Yes |
 | Build | Vite (frontend), tsc (backend) | Yes |
+| Docker build | `docker build` (backend + frontend) | Yes |
 
 ### Observability
 
@@ -85,3 +90,5 @@ See `backend/src/config.ts` for full list with defaults.
 - [ ] New services added to `docker-compose.yml` if needed
 - [ ] Health check endpoint updated if service dependencies changed
 - [ ] `specs/ARCHITECTURE.md` §8 updated if deployment changed
+- [ ] Schema parity check passes (`node scripts/validate-schema.js`)
+- [ ] Multi-schema typecheck passes (both PostgreSQL and SQLite schemas compile)

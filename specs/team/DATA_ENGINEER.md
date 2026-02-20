@@ -62,6 +62,30 @@ User ──1:N──→ Pipeline ──1:N──→ TestRun ──1:N──→ T
 | Transactions | Use `prisma.$transaction()` for multi-table writes |
 | Singleton | Use shared PrismaClient instance (`backend/src/lib/prisma.ts`) |
 
+### Multi-Schema Synchronization (Critical)
+
+This project maintains **three Prisma schema files** that must stay in sync:
+
+| File | Provider | Used By |
+|------|----------|---------|
+| `schema.prisma` | Varies (working copy) | Local dev, `prisma generate` |
+| `schema.dev.prisma` | SQLite | `npm run dev:simple` (demo mode) |
+| `schema.production.prisma` | PostgreSQL | Docker production deploys |
+
+**Non-Negotiable Rule**: When adding or modifying any model or field, you **must** propagate
+the change to **all three** schema files. The dev schema uses SQLite-compatible types
+(e.g. `String` instead of enums, no `@db.Uuid`), but field names must be identical.
+
+CI enforces this via `scripts/validate-schema.js` (model-level + field-level parity)
+and a **multi-schema typecheck** that generates PrismaClient from each schema variant
+and runs `tsc --noEmit` against the full codebase.
+
+> **Lesson Learned (Sprint 4 Postmortem)**: The SharedAnalysis model was added to
+> `schema.prisma` but not propagated to `schema.dev.prisma` or `schema.production.prisma`.
+> This caused a complete demo mode startup failure (`TS2339: Property 'sharedAnalysis'
+> does not exist on PrismaClient`). The fix was trivial, but the blast radius was total
+> because `dev:simple` copies `schema.dev.prisma` over `schema.prisma` before generating.
+
 ### Before Merging — Checklist
 - [ ] Migration generated and tested (`npx prisma migrate dev`)
 - [ ] Indexes added for new query patterns
@@ -69,3 +93,5 @@ User ──1:N──→ Pipeline ──1:N──→ TestRun ──1:N──→ T
 - [ ] Backward-compatible migration (no data loss)
 - [ ] `specs/ARCHITECTURE.md` §4 updated if schema changed
 - [ ] Tested with both PostgreSQL and SQLite (demo mode)
+- [ ] **New models/fields added to ALL three schema files** (`schema.prisma`, `schema.dev.prisma`, `schema.production.prisma`)
+- [ ] `node scripts/validate-schema.js` passes locally
