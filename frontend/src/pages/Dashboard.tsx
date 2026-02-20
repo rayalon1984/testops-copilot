@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Grid,
@@ -156,6 +157,7 @@ function MetricGauge({
 }
 
 export default function Dashboard() {
+  usePageContext('dashboard');
   const navigate = useNavigate();
   const theme = useTheme();
   const [selectedFailure, setSelectedFailure] = useState<RecentFailure | null>(null);

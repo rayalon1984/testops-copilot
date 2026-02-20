@@ -1,5 +1,50 @@
 # Changelog
 
+## [2.9.0-rc.6] - 2026-02-20
+
+> **Sprint 8 — Emhub Patterns: AI Provider Context + High-Fidelity Seeding**
+
+---
+
+### Pervasive AI Provider (Pattern 2 — emhub port)
+
+**AIContext** — Global React Context wrapping the entire application. Every page reports its current context (page type, focused entity with ID/label/metadata) so the AI Copilot always knows what the user is viewing.
+
+**usePageContext hook** — Convenience hook for pages to report context on mount. Added to 7 pages: Dashboard, PipelineList, PipelineDetail, TestRunList, TestRunDetail, FailureKnowledgeBase, CostTracker.
+
+**Context injection** — `useAICopilot.sendMessage()` now accepts an optional `uiContext` string. `AICopilot.tsx` calls `getContextString()` on every message, automatically injecting page/entity context into AI requests.
+
+---
+
+### High-Fidelity Database Seeding (Pattern 3 — emhub port)
+
+**seed.dev.ts** — Complete TypeScript rewrite of seed.dev.js using `@faker-js/faker`. Covers **all 20 models** in the Prisma schema:
+
+| Model | Count | Notes |
+|-------|-------|-------|
+| Users | 3 | Admin (autonomous) + Engineer (balanced) + Viewer (conservative) |
+| Teams | 2 | Platform Engineering + QA Automation with 5 memberships |
+| Pipelines | 15 | Realistic templates across GitHub Actions, Jenkins, Custom |
+| Test Runs | 200 | 30 days of history with realistic pass/fail/flaky distribution |
+| Test Results | 600+ | 2-4 per run with error details for failures |
+| Failure Archives | 1,600 | 6 categories, 13 failure templates, tags, RCA data |
+| RCA Revisions | 90+ | Multi-version revision history on 30 failures |
+| Failure Comments | 120+ | Collaborative discussion threads |
+| Failure Patterns | 5 | Detected recurring patterns with confidence scores |
+| AI Usage Records | 20,000+ | 60 days, 4 providers, 5 features, cost tracking |
+| Chat Sessions | 8 | Persona-routed conversations with tool calls |
+| Chat Messages | 100+ | User/assistant/tool exchanges |
+| Pending Actions | 3 | Approved/Denied/Pending confirmation queue |
+| Notifications | 50 | Mixed types linked to test runs |
+| Jira Issues | 25 | Linked to test runs and failures |
+| Confluence Pages | 5 | Runbooks and RCA documentation |
+| TestRail Runs | 10 | External test management sync |
+| Dashboard Configs | 2 | Team overview + QA metrics layouts |
+| Shared Analyses | 2 | Shareable AI analysis links |
+| Channel Mappings | 3 | Slack + Teams user mappings |
+
+---
+
 ## [2.9.0-rc.5] - 2026-02-20
 
 > **Sprint 7 — Autonomy Tests + New Tools + Proactive UX Cards**

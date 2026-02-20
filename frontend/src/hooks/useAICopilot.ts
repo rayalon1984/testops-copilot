@@ -47,7 +47,7 @@ export interface UseAICopilotReturn {
     error: string | null;
     /** Currently active persona for the latest query */
     activePersona: PersonaInfo | null;
-    sendMessage: (message: string) => void;
+    sendMessage: (message: string, uiContext?: string) => void;
     confirmAction: (actionId: string, approved: boolean) => Promise<void>;
     clearMessages: () => void;
     // v3: mutate a card in-place (e.g., after action completes)
@@ -82,7 +82,7 @@ export function useAICopilot(): UseAICopilotReturn {
         ));
     }, []);
 
-    const sendMessage = useCallback(async (message: string) => {
+    const sendMessage = useCallback(async (message: string, uiContext?: string) => {
         if (!message.trim() || isStreaming) return;
 
         // Add user message immediately
@@ -117,7 +117,8 @@ export function useAICopilot(): UseAICopilotReturn {
                 body: JSON.stringify({
                     message,
                     history,
-                    sessionId: sessionIdRef.current
+                    sessionId: sessionIdRef.current,
+                    ...(uiContext ? { uiContext } : {}),
                 }),
                 signal: controller.signal,
             });

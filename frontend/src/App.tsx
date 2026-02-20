@@ -10,6 +10,7 @@ import { getAppTheme } from './theme';
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 import { DesignModeProvider, useDesignMode } from './contexts/DesignModeContext';
+import { AIProvider } from './contexts/AIContext';
 
 // Components
 import Layout from './components/Layout/Layout';
@@ -61,6 +62,7 @@ function AppContent() {
         <ErrorBoundary>
           <Router>
             <AuthProvider>
+              <AIProvider>
               <Suspense fallback={<LoadingSpinner message="Loading application..." />}>
                 <Routes>
                   {/* Public Routes */}
@@ -98,6 +100,7 @@ function AppContent() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </AIProvider>
             </AuthProvider>
           </Router>
         </ErrorBoundary>

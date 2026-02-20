@@ -1,11 +1,19 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
-> **Current Version**: 2.9.0-rc.5 (February 2026)
+> **Current Version**: 2.9.0-rc.6 (February 2026)
 
 ---
 
 ## Shipped
+
+### v2.9.0-rc.6 — Sprint 8 Emhub Patterns: AI Provider + Seeding (February 2026)
+- [x] Global AIProvider React Context (page + entity awareness for AI Copilot)
+- [x] usePageContext hook — 7 pages report context (Dashboard, Pipelines, Test Runs, Failures, Cost)
+- [x] Context injection into AI chat requests (uiContext field)
+- [x] High-fidelity TypeScript seeder (seed.dev.ts) with @faker-js/faker
+- [x] All 20 Prisma models seeded with realistic, interconnected demo data
+- [x] 200 test runs, 1600 failures, 20K+ AI usage records, 8 chat sessions
 
 ### v2.9.0-rc.5 — Sprint 7 Autonomy Tests + New Tools + Proactive UX (February 2026)
 - [x] AutonomyClassifier unit tests (47 tests)

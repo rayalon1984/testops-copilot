@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Paper,
@@ -39,6 +40,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { keepPreviousData } from '@tanstack/react-query';
 
 export default function TestRunList() {
+  usePageContext('testrun-list');
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);

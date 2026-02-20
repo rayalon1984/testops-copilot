@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useAICopilot, ChatMessage } from '../../hooks/useAICopilot';
 import { useAuth } from '../../hooks/useAuth';
+import { useAIContext } from '../../contexts/AIContext';
 
 // Message components
 import UserMessage from './messages/UserMessage';
@@ -96,6 +97,12 @@ export default function AICopilot() {
     } = useAICopilot();
     const bottomRef = useRef<HTMLDivElement>(null);
     const userRole = useUserRole();
+    const { getContextString } = useAIContext();
+
+    // Context-aware send: injects current UI context into every message
+    const sendWithContext = (message: string) => {
+        sendMessage(message, getContextString());
+    };
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -258,7 +265,7 @@ export default function AICopilot() {
                 flexDirection: 'column',
             }}>
                 {messages.length === 0 && (
-                    <EmptyState onSend={sendMessage} />
+                    <EmptyState onSend={sendWithContext} />
                 )}
 
                 {messages.map(renderMessage)}
@@ -287,7 +294,7 @@ export default function AICopilot() {
             </Box>
 
             {/* Input Area */}
-            <ChatInput onSend={sendMessage} disabled={isStreaming} />
+            <ChatInput onSend={sendWithContext} disabled={isStreaming} />
         </Box>
     );
 }
