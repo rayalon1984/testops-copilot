@@ -114,8 +114,10 @@ export type SSEEventType =
     | 'persona_selected' // Virtual team persona routed for this query
     | 'tool_start'     // About to call a tool
     | 'tool_result'    // Tool returned a result
-    | 'confirmation_request'  // Write-tool needs user approval
+    | 'confirmation_request'  // Write-tool needs user approval (Tier 3)
     | 'confirmation_resolved' // User approved/denied
+    | 'proactive_suggestion'  // AI suggests a next action (Tier 2 card)
+    | 'autonomous_action'     // AI auto-executed a Tier 1 action (notify after)
     | 'answer_chunk'   // Partial answer chunk for typewriter streaming
     | 'answer'         // Final complete response text
     | 'error'          // Something went wrong

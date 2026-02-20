@@ -23,6 +23,7 @@ import { ToolResult } from '../../services/ai/tools/types';
 import { getConfigManager } from '../../services/ai/config';
 import { getMockToolResult } from '../../services/ai/mock-tool-results';
 import { getAvailablePersonas } from '../../services/ai/PersonaRouter';
+import { prisma } from '../../lib/prisma';
 import { logger } from '../../utils/logger';
 
 const router: IRouter = Router();
@@ -69,6 +70,73 @@ router.get('/health', async (req: Request, res: Response) => {
 router.get('/personas', (_req: Request, res: Response) => {
   const personas = getAvailablePersonas();
   return res.json({ data: personas });
+});
+
+// ─── Autonomy Preferences ───
+
+const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as const;
+
+/**
+ * GET /api/ai/autonomy
+ * Get the current user's autonomy preference.
+ */
+router.get('/autonomy', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user?.id) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { autonomyLevel: true },
+    });
+
+    res.json({
+      data: {
+        autonomyLevel: dbUser?.autonomyLevel || 'balanced',
+      },
+    });
+  } catch (error) {
+    logger.error('[AI Autonomy] Failed to get preference:', error);
+    res.status(500).json({ error: 'Failed to get autonomy preference' });
+  }
+});
+
+/**
+ * PUT /api/ai/autonomy
+ * Update the current user's autonomy preference.
+ */
+router.put('/autonomy', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user?.id) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const { autonomyLevel } = req.body;
+    if (!autonomyLevel || !VALID_AUTONOMY_LEVELS.includes(autonomyLevel)) {
+      res.status(400).json({
+        error: `autonomyLevel must be one of: ${VALID_AUTONOMY_LEVELS.join(', ')}`,
+      });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { autonomyLevel },
+    });
+
+    logger.info(`[AI Autonomy] User ${user.id} set autonomy to ${autonomyLevel}`);
+    res.json({
+      data: { autonomyLevel },
+    });
+  } catch (error) {
+    logger.error('[AI Autonomy] Failed to update preference:', error);
+    res.status(500).json({ error: 'Failed to update autonomy preference' });
+  }
 });
 
 // ─── Provider Configuration (In-Chat AI Picker) ───
@@ -511,6 +579,22 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
     // Extract user info from auth middleware
     const user = req.user;
 
+    // Fetch user's autonomy preference for graduated autonomy
+    let autonomyLevel: 'conservative' | 'balanced' | 'autonomous' = 'balanced';
+    if (user?.id) {
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { autonomyLevel: true },
+        });
+        if (dbUser?.autonomyLevel && VALID_AUTONOMY_LEVELS.includes(dbUser.autonomyLevel as typeof VALID_AUTONOMY_LEVELS[number])) {
+          autonomyLevel = dbUser.autonomyLevel as typeof autonomyLevel;
+        }
+      } catch {
+        // Fall through to default 'balanced'
+      }
+    }
+
     await handleChatStream(
       {
         message,
@@ -518,6 +602,7 @@ router.post('/chat', async (req: Request, res: Response): Promise<void> => {
         userId: user?.id || 'anonymous',
         userRole: user?.role || 'viewer',
         history: history || [],
+        autonomyLevel,
       },
       res
     );

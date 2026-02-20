@@ -11,14 +11,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  email     String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String        @id @default(uuid()) @db.Uuid
+  email          String        @unique
+  password       String
+  firstName      String?
+  lastName       String?
+  role           UserRole      @default(USER)
+  autonomyLevel  AutonomyLevel @default(balanced)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   notifications    Notification[]
   testRuns         TestRun[]
@@ -31,6 +32,12 @@ model User {
 enum UserRole {
   ADMIN
   USER
+}
+
+enum AutonomyLevel {
+  conservative
+  balanced
+  autonomous
 }
 
 model TestRun {

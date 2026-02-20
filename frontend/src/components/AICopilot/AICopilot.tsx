@@ -27,6 +27,10 @@ import ThinkingIndicator from './messages/ThinkingIndicator';
 import ErrorMessage from './messages/ErrorMessage';
 import ToolResultCard from './messages/ToolResultCard';
 
+// Proactive suggestions (Sprint 6)
+import ProactiveSuggestionCard from './cards/ProactiveSuggestionCard';
+import type { ProactiveSuggestionData } from './cards/ProactiveSuggestionCard';
+
 // Confirmation previews
 import ConfirmationShell from './cards/shared/ConfirmationShell';
 import JiraCreatePreview from './cards/JiraCreatePreview';
@@ -88,7 +92,7 @@ export default function AICopilot() {
     const {
         messages, isStreaming, activePersona,
         sendMessage, confirmAction, clearMessages,
-        sendActionPrompt,
+        sendActionPrompt, updateMessage,
     } = useAICopilot();
     const bottomRef = useRef<HTMLDivElement>(null);
     const userRole = useUserRole();
@@ -97,6 +101,23 @@ export default function AICopilot() {
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isStreaming]);
+
+    const handleSuggestionAccept = (suggestion: ProactiveSuggestionData, messageId: string) => {
+        updateMessage(messageId, { suggestionStatus: 'accepted' });
+        // Trigger the suggested tool via a natural language prompt
+        const argsPreview = Object.entries(suggestion.preparedArgs)
+            .filter(([, v]) => v !== undefined)
+            .map(([k, v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`)
+            .join(', ');
+        sendActionPrompt(
+            `Please execute ${suggestion.tool} with these parameters: ${argsPreview}`,
+            messageId
+        );
+    };
+
+    const handleSuggestionDismiss = (messageId: string) => {
+        updateMessage(messageId, { suggestionStatus: 'dismissed' });
+    };
 
     const renderMessage = (msg: ChatMessage) => {
         switch (msg.role) {
@@ -157,6 +178,30 @@ export default function AICopilot() {
                             userRole={userRole}
                             onConfirm={() => msg.actionId && confirmAction(msg.actionId, true)}
                             onDeny={() => msg.actionId && confirmAction(msg.actionId, false)}
+                        />
+                    </Box>
+                );
+
+            case 'proactive_suggestion':
+                return (
+                    <Box key={msg.id}>
+                        <ProactiveSuggestionCard
+                            suggestion={msg.suggestionData as unknown as ProactiveSuggestionData}
+                            onAccept={(s) => handleSuggestionAccept(s, msg.id)}
+                            onDismiss={() => handleSuggestionDismiss(msg.id)}
+                            accepted={msg.suggestionStatus === 'accepted'}
+                            dismissed={msg.suggestionStatus === 'dismissed'}
+                        />
+                    </Box>
+                );
+
+            case 'autonomous_action':
+                return (
+                    <Box key={msg.id}>
+                        <ToolResultCard
+                            message={{ ...msg, role: 'tool_result' }}
+                            userRole={userRole}
+                            onAction={sendActionPrompt}
                         />
                     </Box>
                 );
