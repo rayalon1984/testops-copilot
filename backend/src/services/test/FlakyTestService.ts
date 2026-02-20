@@ -38,20 +38,16 @@ export class FlakyTestService {
      * This is a heavy operation, meant for background jobs.
      */
     async analyzeAllTests(): Promise<FlakyStats[]> {
-        // Group runs by test name
-        // Since TestResult has testName, we should query TestResults joined with TestRun
-        // However, Prisma groupBy on relations is tricky.
-        // Let's get distinct test names first.
-
+        // Get distinct test names from TestResult
         const testNames = await prisma.testResult.findMany({
-            distinct: ['testName'],
-            select: { testName: true }
+            distinct: ['name'],
+            select: { name: true }
         });
 
         logger.info(`[FlakyTestService] Analyzing ${testNames.length} tests...`);
 
         const results: FlakyStats[] = [];
-        for (const { testName } of testNames) {
+        for (const { name: testName } of testNames) {
             const stats = await this.analyzeTest(testName);
             if (stats.severity !== 'STABLE') {
                 results.push(stats);
@@ -67,7 +63,7 @@ export class FlakyTestService {
     async analyzeTest(testName: string): Promise<FlakyStats> {
         // Fetch last N results for this test, ordered by time
         const history = await prisma.testResult.findMany({
-            where: { testName },
+            where: { name: testName },
             orderBy: { createdAt: 'desc' },
             take: this.WINDOW_SIZE,
             include: { testRun: true }

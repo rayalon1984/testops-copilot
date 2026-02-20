@@ -156,10 +156,10 @@ const PIPELINE_TEMPLATES = [
 ];
 
 const AI_PROVIDERS = [
-  { name: 'anthropic', model: 'claude-opus-4-6', avgTokens: 1200, avgCost: 0.108, avgTime: 1800 },
-  { name: 'openai', model: 'gpt-4.1', avgTokens: 1500, avgCost: 0.06, avgTime: 2100 },
-  { name: 'google', model: 'gemini-3.0-flash', avgTokens: 1100, avgCost: 0.000825, avgTime: 1200 },
-  { name: 'openrouter', model: 'meta-llama/llama-4-maverick', avgTokens: 1300, avgCost: 0.003, avgTime: 1500 },
+  { name: 'anthropic', model: 'claude-opus-4-6', avgPromptTokens: 800, avgCompletionTokens: 400, avgCost: 0.108 },
+  { name: 'openai', model: 'gpt-4.1', avgPromptTokens: 1000, avgCompletionTokens: 500, avgCost: 0.06 },
+  { name: 'google', model: 'gemini-3.0-flash', avgPromptTokens: 700, avgCompletionTokens: 400, avgCost: 0.000825 },
+  { name: 'openrouter', model: 'meta-llama/llama-4-maverick', avgPromptTokens: 900, avgCompletionTokens: 400, avgCost: 0.003 },
 ];
 
 const NOTIFICATION_TEMPLATES = [
@@ -205,15 +205,13 @@ async function seedDevelopmentData() {
       data: {
         name: template.name,
         type: template.type,
-        status: Math.random() > 0.7 ? 'PENDING' : Math.random() > 0.5 ? 'RUNNING' : 'COMPLETED',
+        repository: `testops-${template.name.toLowerCase().replace(/\s+/g, '-')}`,
+        branch: 'main',
         config: JSON.stringify({
-          repo: `testops-${template.name.toLowerCase().replace(/\s+/g, '-')}`,
-          branch: 'main',
           triggers: ['push', 'pull_request'],
           notifications: { email: true, slack: true }
         }),
-        // userId: admin.id, // Removed for Prod schema alignment
-        description: template.description,
+        enabled: true,
       },
     });
     pipelines.push(pipeline);
@@ -262,7 +260,8 @@ async function seedDevelopmentData() {
     const isFlakyRun = i % 3 === 0; // Every 3rd run fails
     testResultPayloads.push({
       testRunId: runId,
-      testName: 'PaymentProcessor.processCheckout',
+      name: 'PaymentProcessor.processCheckout',
+      className: 'PaymentProcessor',
       status: isFlakyRun ? 'FAILED' : 'PASSED',
       duration: 100 + Math.random() * 50,
       createdAt: endTime
@@ -271,7 +270,8 @@ async function seedDevelopmentData() {
     // 2. A guaranteed Stable Test
     testResultPayloads.push({
       testRunId: runId,
-      testName: 'AuthService.login',
+      name: 'AuthService.login',
+      className: 'AuthService',
       status: 'PASSED',
       duration: 50 + Math.random() * 20,
       createdAt: endTime
@@ -326,16 +326,20 @@ async function seedDevelopmentData() {
   for (let day = 0; day < 60; day++) {
     for (const provider of AI_PROVIDERS) {
       const callsPerDay = Math.floor(Math.random() * 120) + 40;
+      const features = ['rca', 'categorization', 'log-summary', 'chat', 'prediction'];
       for (let call = 0; call < callsPerDay; call++) {
-        const cacheHit = Math.random() > 0.35; // 65% cache hit rate
+        const isCached = Math.random() > 0.35; // 65% cache hit rate
+        const promptTokens = isCached ? 0 : provider.avgPromptTokens + Math.floor(Math.random() * 200) - 100;
+        const completionTokens = isCached ? 0 : provider.avgCompletionTokens + Math.floor(Math.random() * 200) - 100;
 
         currentBatch.push({
           provider: provider.name,
           model: provider.model,
-          tokens: cacheHit ? 0 : provider.avgTokens + Math.floor(Math.random() * 400) - 200,
-          cost: cacheHit ? 0 : provider.avgCost * (0.7 + Math.random() * 0.6),
-          cacheHit,
-          responseTimeMs: cacheHit ? 50 + Math.floor(Math.random() * 150) : provider.avgTime + Math.floor(Math.random() * 800) - 400,
+          feature: features[Math.floor(Math.random() * features.length)],
+          promptTokens,
+          completionTokens,
+          totalTokens: promptTokens + completionTokens,
+          cost: isCached ? 0 : provider.avgCost * (0.7 + Math.random() * 0.6),
           createdAt: new Date(now - day * 86400000 - Math.random() * 86400000),
         });
 

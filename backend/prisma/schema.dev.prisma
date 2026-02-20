@@ -33,24 +33,30 @@ model TestRun {
   userId     String?
   name       String
   status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
-  branch     String?
-  commit     String?
   startedAt  DateTime? @default(now())
   completedAt DateTime?
   duration   Int?
-  // results string removed in favor of relation to match prod
-  error      String?
+  totalTests Int       @default(0)
+  passed     Int       @default(0)
+  failed     Int       @default(0)
+  skipped    Int       @default(0)
+  flaky      Int       @default(0)
+  branch     String?
+  commit     String?
+  buildNumber String?
+  metadata   String?   // JSON string (SQLite)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  // Relations
-  pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
-  user       User?     @relation(fields: [userId], references: [id])
-  results    TestResult[]
+  pipeline      Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results       TestResult[]
+  notifications Notification[]
 
   @@index([pipelineId])
   @@index([userId])
   @@index([status])
+  @@index([startedAt])
 }
 
 model FailureArchive {
@@ -115,18 +121,21 @@ model FailureComment {
   @@index([userId])
 }
 
-// Simplified AI usage tracking for demo
 model AIUsage {
-  id              String   @id @default(uuid())
-  provider        String   // "anthropic", "openai", "google"
-  model           String
-  tokens          Int
-  cost            Float
-  cacheHit        Boolean  @default(false)
-  responseTimeMs  Int
-  createdAt       DateTime @default(now())
+  id               String   @id @default(uuid())
+  provider         String
+  model            String
+  feature          String
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  cost             Float
+  userId           String?
+  metadata         String?   // JSON string (SQLite)
+  createdAt        DateTime  @default(now())
 
   @@index([provider])
+  @@index([feature])
   @@index([createdAt])
 }
 
@@ -163,24 +172,22 @@ model JiraIssue {
   @@index([projectKey])
 }
 
-// Pipeline model
 model Pipeline {
   id          String     @id @default(uuid())
   name        String
-  type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
-  status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
-  config      String     // JSON stored as string
-  description String?
+  type        String     @default("CUSTOM") // GITHUB_ACTIONS | JENKINS | CUSTOM
+  repository  String?
+  branch      String?
+  config      String?    // JSON string (SQLite)
+  enabled     Boolean    @default(true)
+  lastRunAt   DateTime?
   teamId      String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  // Relations
   testRuns    TestRun[]
   team        Team?      @relation(fields: [teamId], references: [id])
 
-  @@index([type])
-  @@index([status])
   @@index([teamId])
 }
 
@@ -204,64 +211,70 @@ model FailurePattern {
   @@index([isActive])
 }
 
-// Added during Refactor for missing models
-
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String
+  testRunId String?
+  type      String   // TEST_FAILED | TEST_PASSED | PIPELINE_FAILED | PIPELINE_PASSED | SYSTEM
   title     String
   message   String
   read      Boolean  @default(false)
-  data      String?  // JSON
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  user      User     @relation(fields: [userId], references: [id])
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testRun   TestRun? @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
   @@index([userId])
+  @@index([read])
 }
 
 model TestRailRun {
-  id            String   @id @default(uuid())
-  testRailRunId Int      @unique
+  id            String    @id @default(uuid())
+  testRailRunId Int       @unique
   projectId     Int
   suiteId       Int?
   name          String
-  testRunId     String?  // nullable and not unique in prod?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  description   String?
+  testRunId     String?
+  metadata      String?   // JSON string (SQLite)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([projectId])
 }
 
 model ConfluencePage {
-  id          String   @id @default(uuid())
-  pageId      String
-  title       String
-  spaceKey    String
-  version     Int?
-  url         String
-  testRunId   String?
-  type        String?
-  sourceId    String?
-  metadata    String?  // JSON string
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String    @id @default(uuid())
+  pageId           String    @unique
+  spaceKey         String
+  title            String
+  url              String
+  failureArchiveId String?
+  publishedBy      String?
+  metadata         String?   // JSON string (SQLite)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([spaceKey])
 }
 
 model TestResult {
   id          String   @id @default(uuid())
   testRunId   String
-  testName    String
-  testCaseId  String?
-  message     String?
-  status      String
+  name        String
+  className   String?
+  status      String   // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
   duration    Int?
   error       String?
   stackTrace  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
   @@index([testRunId])
+  @@index([status])
 }
 
 // ─── AI Copilot Chat Persistence ───
@@ -374,6 +387,26 @@ model DashboardConfig {
 
   @@index([teamId])
   @@index([userId])
+}
+
+// ─── Shareable Analysis Links ───
+
+model SharedAnalysis {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  sessionId   String?
+  title       String
+  content     String
+  persona     String?
+  toolSummary String?   // JSON string (SQLite)
+  expiresAt   DateTime
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // ─── Multi-Channel User Mapping ───
