@@ -11,7 +11,6 @@
  */
 
 import path from 'path';
-import { logger } from '@/utils/logger';
 
 export interface TestSelectionResult {
     selectedTests: string[];

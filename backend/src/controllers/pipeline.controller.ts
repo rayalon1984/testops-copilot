@@ -74,7 +74,7 @@ export class PipelineController {
     });
   }
 
-  async getPipeline(id: string, userId: string) {
+  async getPipeline(id: string, _userId: string) {
     const prismaPipeline = await prisma.pipeline.findUnique({
       where: { id },
       include: {

@@ -199,7 +199,7 @@ export class OpenRouterProvider extends BaseProvider {
     }
   }
 
-  async embed(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
     // OpenRouter doesn't support embeddings directly for most models
     throw new Error(
       'OpenRouter does not support embeddings. Use a dedicated embedding provider (OpenAI, Voyage AI, or Google) instead.'

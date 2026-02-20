@@ -5,7 +5,6 @@
 
 import { Box, Paper, Typography, Chip } from '@mui/material';
 import ServiceBadge, { getServiceAccent } from './shared/ServiceBadge';
-import ExpandableSection from './shared/ExpandableSection';
 
 interface FileChange {
     filename: string;

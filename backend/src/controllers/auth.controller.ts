@@ -199,7 +199,7 @@ export class AuthController {
     });
   }
 
-  async ssoCallback(user: any, context?: AuditContext) {
+  async ssoCallback(user: { id: string; email: string; role: string; firstName?: string | null; lastName?: string | null } | undefined, context?: AuditContext) {
     if (!user) {
       void auditService.log(
         'AUTH_SSO_FAILURE',
@@ -232,13 +232,13 @@ export class AuthController {
     };
   }
 
-  private mapUserToResponse(user: any): UserResponse {
+  private mapUserToResponse(user: { id: string; email: string; firstName?: string | null; lastName?: string | null; role: string }): UserResponse {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role
+      firstName: user.firstName ?? null,
+      lastName: user.lastName ?? null,
+      role: user.role as UserRole
     };
   }
 }

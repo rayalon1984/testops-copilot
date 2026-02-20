@@ -88,7 +88,7 @@ export class NotificationController {
       channels: ['email'], // Default channel for test
       message: testMessage,
       userId,
-    } as any, testMessage);
+    } as { enabled: boolean; channels: string[]; message?: string; userId?: string }, testMessage);
 
     // Record history
     await prisma.notification.create({
@@ -104,7 +104,7 @@ export class NotificationController {
     logger.info(`Test notification sent to user: ${userId}`);
   }
 
-  async getAvailableChannels(): Promise<any[]> {
+  async getAvailableChannels(): Promise<Array<{ id: string; name: string; description: string; configSchema: Record<string, unknown>; enabled: boolean }>> {
     return [
       {
         id: 'email',
@@ -140,7 +140,7 @@ export class NotificationController {
     ];
   }
 
-  async verifyChannel(userId: string, channelConfig: any): Promise<{
+  async verifyChannel(_userId: string, channelConfig: unknown): Promise<{
     valid: boolean;
     message?: string;
   }> {
@@ -155,8 +155,8 @@ export class NotificationController {
     }
   }
 
-  async getNotificationHistory(userId: string, filters: NotificationFilters): Promise<any[]> {
-    const where: any = { userId };
+  async getNotificationHistory(userId: string, filters: NotificationFilters): Promise<unknown[]> {
+    const where: Record<string, unknown> = { userId };
 
     // Basic mapping of filters to Prisma
     if (filters.status) {
@@ -173,13 +173,14 @@ export class NotificationController {
     }
 
     if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
+      const createdAt: { gte?: Date; lte?: Date } = {};
       if (filters.startDate) {
-        where.createdAt.gte = new Date(filters.startDate);
+        createdAt.gte = new Date(filters.startDate);
       }
       if (filters.endDate) {
-        where.createdAt.lte = new Date(filters.endDate);
+        createdAt.lte = new Date(filters.endDate);
       }
+      where.createdAt = createdAt;
     }
 
     return prisma.notification.findMany({
@@ -188,7 +189,7 @@ export class NotificationController {
     });
   }
 
-  async getDeliveryMetrics(): Promise<any> {
+  async getDeliveryMetrics(): Promise<Record<string, unknown>> {
     const [
       totalNotifications,
       // Status field missing in my new model, removing status based counts
@@ -210,7 +211,7 @@ export class NotificationController {
     channels: string[];
     userGroups?: string[];
   }): Promise<void> {
-    const where = data.userGroups ? { role: { in: data.userGroups } } as any : {}; // Cast for schema compatibility
+    const where = data.userGroups ? { role: { in: data.userGroups } } as Record<string, unknown> : {};
     const users = await prisma.user.findMany({ where });
 
     for (const user of users) {
@@ -219,7 +220,7 @@ export class NotificationController {
         channels: data.channels as Array<'slack' | 'email' | 'pushover'>,
         message: data.message,
         userId: user.id,
-      } as any, data.message);
+      } as { enabled: boolean; channels: string[]; message?: string; userId?: string }, data.message);
 
       await prisma.notification.create({
         data: {
@@ -234,11 +235,11 @@ export class NotificationController {
     logger.info(`Broadcast notification sent to ${users.length} users`);
   }
 
-  async getGlobalSettings(): Promise<any> {
+  async getGlobalSettings(): Promise<Record<string, unknown>> {
     return {};
   }
 
-  async updateGlobalSettings(settings: any): Promise<any> {
+  async updateGlobalSettings(settings: Record<string, unknown>): Promise<Record<string, unknown>> {
     return settings;
   }
 }

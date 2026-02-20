@@ -144,7 +144,7 @@ export class ConfluenceService {
   /**
    * Get space by key
    */
-  async getSpace(spaceKey?: string): Promise<any> {
+  async getSpace(spaceKey?: string): Promise<unknown> {
     this.checkEnabled();
 
     const key = spaceKey || this.spaceKey;
@@ -383,11 +383,11 @@ export class ConfluenceService {
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           // sourceId: failureArchiveId, // Removed
-          metadata: {
+          metadata: JSON.stringify({
             version: page.version.number,
             type: 'rca_document',
             sourceId: failureArchiveId // Moved to metadata
-          } as any
+          })
         },
       });
 
@@ -459,11 +459,11 @@ export class ConfluenceService {
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           // sourceId: testRunId, // Removed as not in Prod schema
-          metadata: {
+          metadata: JSON.stringify({
             version: page.version.number,
             type: 'test_report',
             sourceId: testRunId // Stored in metadata
-          } as any
+          })
         },
       });
 
@@ -508,11 +508,11 @@ export class ConfluenceService {
         },
       });
 
-      const results = (response.data.results || []).map((page: any) => {
+      const results = (response.data.results || []).map((page: { id: string; title: string; body?: { view?: { value?: string } }; metadata?: { labels?: { results?: Array<{ name: string }> } }; _links?: { webui?: string } }) => {
         // Extract a text excerpt from the page body (strip HTML)
         const bodyHtml = page.body?.view?.value || '';
         const excerpt = this.stripHtml(bodyHtml).substring(0, 500);
-        const labels = (page.metadata?.labels?.results || []).map((l: any) => l.name);
+        const labels = (page.metadata?.labels?.results || []).map((l: { name: string }) => l.name);
 
         return {
           id: page.id,
@@ -579,6 +579,7 @@ export class ConfluenceService {
   /**
    * Build RCA document content in Confluence storage format
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildRCAContent(failure: any, linkToJira: boolean): string {
     let html = `
 <h2>Root Cause Analysis</h2>
@@ -677,14 +678,15 @@ export class ConfluenceService {
   /**
    * Build test report content
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildTestReportContent(testRun: any, includeFailureDetails: boolean): string {
     // Adapter for testResults vs testCases naming (Prisma model uses testResults)
     const cases = testRun.testResults || testRun.testCases || [];
 
     const totalTests = cases.length;
-    const passedTests = cases.filter((tc: any) => tc.status === 'PASSED').length;
-    const failedTests = cases.filter((tc: any) => tc.status === 'FAILED').length;
-    const skippedTests = cases.filter((tc: any) => tc.status === 'SKIPPED').length;
+    const passedTests = cases.filter((tc) => tc.status === 'PASSED').length;
+    const failedTests = cases.filter((tc) => tc.status === 'FAILED').length;
+    const skippedTests = cases.filter((tc) => tc.status === 'SKIPPED').length;
     const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(2) : '0';
 
     let html = `
@@ -717,8 +719,8 @@ ${testRun.duration ? `<p><strong>Duration:</strong> ${this.formatDuration(testRu
   <tr><th>Test Name</th><th>Error</th><th>Duration</th></tr>
 `;
       cases
-        .filter((tc: any) => tc.status === 'FAILED')
-        .forEach((tc: any) => {
+        .filter((tc) => tc.status === 'FAILED')
+        .forEach((tc) => {
           html += `
   <tr>
     <td>${this.escapeHtml(tc.testName || tc.name)}</td>

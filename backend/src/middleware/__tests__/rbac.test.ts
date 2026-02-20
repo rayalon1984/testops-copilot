@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 // Mock config to avoid Zod env validation at module load time
 jest.mock('@/config', () => ({
@@ -17,7 +17,7 @@ jest.mock('../../services/tokenBlacklist.service', () => ({
 }));
 
 import { hasRole, authorize } from '../auth';
-import { UserRole, ERROR_MESSAGES } from '../../constants';
+import { UserRole } from '../../constants';
 import { AuthenticationError, AuthorizationError } from '../errorHandler';
 
 describe('RBAC Middleware', () => {

@@ -55,7 +55,7 @@ export class JiraService {
     this.checkEnabled();
 
     try {
-      let issue: any;
+      let issue: { key: string; id: string };
 
       if (this.mockMode) {
         logger.info('[MOCK] Creating Jira Issue:', data);
@@ -237,7 +237,7 @@ export class JiraService {
         fields: ['summary', 'description', 'status', 'issuetype', 'labels', 'updated', 'created', 'assignee', 'priority'],
       });
 
-      const issues: JiraIssueResponse[] = (result.issues || []).map((issue: any) => ({
+      const issues: JiraIssueResponse[] = (result.issues || []).map((issue: { id: string; key: string; fields: Record<string, unknown> & { summary?: string; description?: string; status?: { name?: string }; issuetype?: { name?: string }; labels?: string[]; priority?: { name?: string }; assignee?: { displayName?: string } } }) => ({
         id: issue.id,
         key: issue.key,
         fields: {

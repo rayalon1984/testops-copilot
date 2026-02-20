@@ -27,7 +27,7 @@ export const dashboardMetricsTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             const timeRange = (args.timeRange as string) || '30d';
             const days = timeRange === '7d' ? 7 : timeRange === '90d' ? 90 : 30;

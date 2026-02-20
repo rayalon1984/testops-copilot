@@ -35,7 +35,7 @@ export const confluenceSearchTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!confluenceService.isEnabled()) {
                 return { success: false, error: 'Confluence integration is not configured.', summary: 'Confluence is not enabled.' };

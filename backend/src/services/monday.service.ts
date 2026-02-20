@@ -16,7 +16,6 @@ import {
   UpdateMondayItemInput,
   CreateMondayUpdateInput,
   MondayTestFailureInput,
-  MondayQueryResponse,
   MondayBoardsResponse,
   MondayItemResponse,
   MondayUpdateResponse,
@@ -47,7 +46,7 @@ export class MondayService {
   /**
    * Execute a GraphQL query against Monday.com API
    */
-  private async query<T>(query: string, variables?: Record<string, any>): Promise<T> {
+  private async query<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
     try {
       const response = await this.client.post('', {
         query,
@@ -199,7 +198,7 @@ export class MondayService {
       }
     `;
 
-    const response = await this.query<any>(query, {
+    const response = await this.query<{ change_multiple_column_values: MondayItem }>(query, {
       boardId: input.boardId,
       itemId: input.itemId,
       columnValues: columnValuesJson,
@@ -239,7 +238,7 @@ export class MondayService {
       }
     `;
 
-    const response = await this.query<any>(query, {
+    const response = await this.query<{ boards: Array<{ items_page?: { items?: MondayItem[] } }> }>(query, {
       boardId: [boardId],
       limit,
     });
@@ -285,7 +284,7 @@ export class MondayService {
     const itemName = `Test Failure: ${input.testName}`;
 
     // Format column values for test failure
-    const columnValues: Record<string, any> = {
+    const columnValues: Record<string, unknown> = {
       // Assuming the board has these columns (customize based on your board structure)
       text: input.errorMessage.substring(0, 500), // Truncate to 500 chars
     };
@@ -359,7 +358,7 @@ export class MondayService {
       }
     `;
 
-    const response = await this.query<any>(query, { boardId: [boardId] });
+    const response = await this.query<{ boards: Array<{ items_page?: { items?: MondayItem[] } }> }>(query, { boardId: [boardId] });
     const items = response.boards[0]?.items_page?.items || [];
 
     // Filter items by search term (Monday API doesn't have built-in search)

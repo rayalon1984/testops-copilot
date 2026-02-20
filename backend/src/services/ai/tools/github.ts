@@ -35,7 +35,7 @@ export const githubGetCommitTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!githubService.isEnabled()) {
                 return { success: false, error: 'GitHub integration is not configured.', summary: 'GitHub is not enabled.' };
@@ -44,7 +44,7 @@ export const githubGetCommitTool: Tool = {
             const { owner, repo, commitSha } = args as { owner: string; repo: string; commitSha: string };
             const result = await githubService.getCommitChanges(owner, repo, commitSha);
 
-            const fileSummary = result.files.map(f => `${f.status} ${f.filename} (+${f.additions}/-${f.deletions})`);
+            const _fileSummary = result.files.map(f => `${f.status} ${f.filename} (+${f.additions}/-${f.deletions})`);
 
             return {
                 success: true,
@@ -96,7 +96,7 @@ export const githubGetPRTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!githubService.isEnabled()) {
                 return { success: false, error: 'GitHub integration is not configured.', summary: 'GitHub is not enabled.' };

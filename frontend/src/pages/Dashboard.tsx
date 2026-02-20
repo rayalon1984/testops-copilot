@@ -17,11 +17,9 @@ import {
   DialogActions,
   Button,
   Divider,
-  Tooltip,
   Fade,
   Grow,
   Skeleton,
-  IconButton,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -33,17 +31,14 @@ import {
   Assessment as AssessmentIcon,
   Speed as SpeedIcon,
   AttachMoney as MoneyIcon,
-  CheckCircle as CheckCircleIcon,
   AccessTime as TimeIcon,
   FiberManualRecord as DotIcon,
   ArrowForward as ArrowForwardIcon,
   Cached as CacheIcon,
   Psychology as AIIcon,
   DataUsage as DataUsageIcon,
-  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import axios from 'axios';
-import { useAuth } from '../hooks/useAuth';
 import FlakyTestsWidget from '../components/FlakyTestsWidget/FlakyTestsWidget';
 
 interface DashboardMetrics {
@@ -150,8 +145,6 @@ function MetricGauge({
   color: string;
   suffix?: string;
 }) {
-  const theme = useTheme();
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -204,7 +197,6 @@ function MetricGauge({
 export default function Dashboard() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const { user } = useAuth();
   const [selectedFailure, setSelectedFailure] = useState<
     DashboardMetrics['recentFailures'][number] | null
   >(null);

@@ -55,7 +55,7 @@ function getActionLabel(tool: string): string {
 }
 
 export default function ConfirmationShell({
-    tool, actionId, status, createdAt, userRole, onConfirm, onDeny, children
+    tool, actionId: _actionId, status, createdAt, userRole, onConfirm, onDeny, children
 }: ConfirmationShellProps) {
     const [remainingMs, setRemainingMs] = useState(ACTION_TTL_MS);
     const containerRef = useRef<HTMLDivElement>(null);

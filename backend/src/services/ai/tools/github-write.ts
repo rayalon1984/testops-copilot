@@ -53,7 +53,7 @@ export const githubCreatePRTool: Tool = {
         },
     ],
 
-    async execute(args: Record<string, unknown>, context: ToolContext): Promise<ToolResult> {
+    async execute(args: Record<string, unknown>, _context: ToolContext): Promise<ToolResult> {
         try {
             if (!githubService.isEnabled()) {
                 return { success: false, error: 'GitHub integration is not configured.', summary: 'GitHub is not enabled.' };

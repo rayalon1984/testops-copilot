@@ -6,7 +6,7 @@ import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import passport from 'passport';
 import { config } from './config';
-import { passportService } from './services/passport.service'; // Initialize passport
+import './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
 import { registerRoutes } from './routes';
 import { ApiError } from './types/error';
@@ -67,7 +67,7 @@ app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 // Preserve raw body for Slack signature verification on channel webhook routes
 app.use(asMiddleware(express.json({
   limit: '1mb',
-  verify: (req: any, _res, buf) => {
+  verify: (req: Request & { rawBody?: string }, _res, buf) => {
     if (req.originalUrl?.startsWith('/api/v1/channels/')) {
       req.rawBody = buf.toString('utf-8');
     }
@@ -81,7 +81,7 @@ app.use(asMiddleware(compression()));
 
 // Workaround for TS resolution issue with connect-redis v9 in CommonJS env
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const RedisStore = require('connect-redis').RedisStore as any;
+const _RedisStore = require('connect-redis').RedisStore as unknown;
 
 // Session configuration
 app.use(session({

@@ -1,6 +1,5 @@
 import passport from 'passport';
 import { Strategy as SamlStrategy } from 'passport-saml';
-import { PrismaClient } from '@prisma/client';
 import { UserRole } from '../constants';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
@@ -19,6 +18,7 @@ export class PassportService {
         }
 
         // Serialize user for the session
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         passport.serializeUser((user: any, done) => {
             done(null, user.id);
         });
@@ -27,6 +27,7 @@ export class PassportService {
         passport.deserializeUser(async (id: string, done) => {
             try {
                 const user = await prisma.user.findUnique({ where: { id } });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 done(null, user as any);
             } catch (error) {
                 done(error);
@@ -45,7 +46,8 @@ export class PassportService {
                         cert: config.sso.saml.cert,
                         // Optional: map attributes if needed
                     },
-                    async (profile: any, done: (error: any, user?: any, info?: any) => void) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    async (profile: any, done: (error: any, user?: any) => void) => {
                         try {
                             if (!profile.email) {
                                 return done(new Error('SAML profile missing email'));
@@ -79,12 +81,14 @@ export class PassportService {
                                 });
                             }
 
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             return done(null, user as any);
                         } catch (error) {
                             logger.error('SAML verify callback failed', error);
                             return done(error);
                         }
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ) as any
             );
         }

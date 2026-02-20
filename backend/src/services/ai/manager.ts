@@ -9,7 +9,6 @@ import { Pool } from 'pg';
 import { AIConfigManager, getConfigManager } from './config';
 import { BaseProvider } from './providers/base.provider';
 import { createProviderFromConfig } from './providers/registry';
-import { MockProvider } from './providers/mock.provider';
 import { WeaviateVectorClient, getVectorClient } from './vector/client';
 import { initializeSchemas } from './vector/schema';
 import { RCAMatchingService } from './features/rca-matching';
@@ -161,8 +160,6 @@ export class AIManager {
       throw new Error('RCA matching service not initialized');
     }
 
-    const startTime = Date.now();
-
     try {
       const results = await this.rcaMatching.findSimilarFailures(failure, options);
 
@@ -186,8 +183,6 @@ export class AIManager {
     if (!this.rcaMatching) {
       throw new Error('RCA matching service not initialized');
     }
-
-    const startTime = Date.now();
 
     try {
       const id = await this.rcaMatching.storeFailure(failure);

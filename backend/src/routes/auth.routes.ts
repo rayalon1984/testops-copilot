@@ -202,7 +202,7 @@ router.post(
   asyncHandler(async (req, res) => {
     // req.user contains the authenticated user from passport.service
     const context = { ip: req.ip || '', userAgent: req.get('user-agent') || '' };
-    const { user, accessToken, refreshToken } = await authController.ssoCallback(req.user, context);
+    const { accessToken, refreshToken } = await authController.ssoCallback(req.user as { id: string; email: string; role: string; firstName?: string | null; lastName?: string | null } | undefined, context);
 
     // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {

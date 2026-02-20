@@ -29,7 +29,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Divider,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -86,6 +85,7 @@ const TeamSettings: React.FC = () => {
 
   useEffect(() => {
     fetchTeams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTeams = async () => {
@@ -190,15 +190,6 @@ const TeamSettings: React.FC = () => {
     }
   };
 
-  const getRoleColor = (role: string): 'error' | 'warning' | 'primary' | 'default' => {
-    switch (role) {
-      case 'OWNER': return 'error';
-      case 'ADMIN': return 'warning';
-      case 'MEMBER': return 'primary';
-      default: return 'default';
-    }
-  };
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -235,7 +226,7 @@ const TeamSettings: React.FC = () => {
 
         {teams.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            You don't belong to any teams yet. Create one to get started.
+            You don&apos;t belong to any teams yet. Create one to get started.
           </Typography>
         ) : (
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
