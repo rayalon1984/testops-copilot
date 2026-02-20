@@ -1,6 +1,47 @@
 # Changelog
 
-## [2.9.0-rc.6] - 2026-02-20
+## [2.9.0-rc.7] - 2026-02-20
+
+> **Sprint 9 — Resilience + Documentation Overhaul**
+
+---
+
+### Circuit Breaker / Resilience Layer
+
+**resilience.ts** — New fault tolerance library for external service calls. Prevents cascading failures when Jira, GitHub, Jenkins, or Confluence go down.
+
+| Component | What |
+|-----------|------|
+| `CircuitBreaker` | State machine (CLOSED → OPEN → HALF_OPEN) per service |
+| `withRetry()` | Exponential backoff with jitter, configurable max retries |
+| `withTimeout()` | Per-request deadline enforcement |
+| `withResilience()` | Composed wrapper (circuit breaker + retry + timeout) |
+
+**Pre-configured breakers** for GitHub (5/30s), Jira (5/30s), Jenkins (3/60s), Confluence (5/30s).
+
+**Health endpoint** — `/health/full` now returns `circuitBreakers[]` with per-service state, failure count, and next retry time. OPEN breakers trigger `degraded` status.
+
+**30 unit tests** covering state transitions, retry behavior, timeout, composition.
+
+---
+
+### Documentation Overhaul
+
+- `specs/ARCHITECTURE.md` — Added §7.1 Resilience Layer (circuit breaker diagram, per-service config table, state descriptions)
+- `specs/API_CONTRACT.md` — Documented `/health/full`, `/health/ready`, `/health/live` endpoints with full response schema
+- `AGENTS.md` — Added resilience to Non-Negotiable Backend Patterns
+- `specs/team/PERFORMANCE_ENGINEER.md` — Added resilience to bottleneck areas
+- `specs/team/DEVOPS_ENGINEER.md` — Added circuit breaker observability guidance
+- `CHANGELOG.md` — Comprehensive release notes for rc.6 + rc.7
+
+### CLAUDE.md Simplification (from rc.6)
+
+- CLAUDE.md reduced from 76 → 6 lines — single pointer to `AGENTS.md`
+- Version aligned to 2.9.0-rc.7 across all 4 package.json files, specs, personas
+
+---
+
+## [2.9.0-rc.7] - 2026-02-20
 
 > **Sprint 8 — Global AI Context + High-Fidelity Seeding**
 

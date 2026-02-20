@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — System Design
 
-> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
+> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
 
 ---
 
@@ -217,7 +217,34 @@ Higher roles inherit all permissions of lower roles. See `specs/SECURITY.md`.
 
 ## 7. External Integration Architecture
 
-### 7.1 Context Enrichment Flow
+### 7.1 Resilience Layer
+
+All external service calls pass through a resilience wrapper (`backend/src/lib/resilience.ts`):
+
+```
+Service Call → withResilience()
+                 ├── CircuitBreaker (CLOSED → OPEN → HALF_OPEN)
+                 ├── Retry (exponential backoff + jitter)
+                 └── Timeout (per-request deadline)
+```
+
+**Pre-configured breakers**:
+
+| Service | Failure Threshold | Reset Timeout | Max Retries | Timeout |
+|---------|------------------|---------------|-------------|---------|
+| GitHub | 5 consecutive | 30s | 2 | 10s |
+| Jira | 5 consecutive | 30s | 2 | 10s |
+| Jenkins | 3 consecutive | 60s | 1 | 15s |
+| Confluence | 5 consecutive | 30s | 2 | 10s |
+
+**Circuit breaker states**:
+- **CLOSED** — Healthy, all calls pass through
+- **OPEN** — Failing, calls fast-fail with `CircuitOpenError` (no network call)
+- **HALF_OPEN** — Recovery probe, one call allowed; success → CLOSED, failure → OPEN
+
+State visible in `/health/full` endpoint under `circuitBreakers[]`.
+
+### 7.2 Context Enrichment Flow
 
 ```
 Test Failure
@@ -270,6 +297,7 @@ services:
 - **Error tracking**: Sentry integration
 - **Metrics**: Prometheus endpoint at `GET /metrics`
 - **Dashboards**: Pre-built Grafana dashboards (20+ metrics)
+- **Circuit breakers**: `/health/full` returns per-service state (CLOSED/OPEN/HALF_OPEN), failure count, next retry time
 - **Audit**: All auth events + AI actions logged with full context
 
 ---

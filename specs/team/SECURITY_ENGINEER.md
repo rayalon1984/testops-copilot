@@ -1,7 +1,7 @@
 # Persona: SECURITY_ENGINEER
 
 > **Role**: Security authority · **Routing**: Step 1 in `TEAM_SELECTION.md` (highest priority)
-> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
+> **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
 
 ---
 

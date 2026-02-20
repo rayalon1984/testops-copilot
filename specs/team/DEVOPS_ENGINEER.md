@@ -1,7 +1,7 @@
 # Persona: DEVOPS_ENGINEER
 
 > **Role**: Deployment & operations · **Routing**: Step 7 in `TEAM_SELECTION.md`
-> **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
+> **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
 
 ---
 
@@ -65,6 +65,7 @@ You own CI/CD pipelines, Docker configuration, deployment safety, environment ma
 | Sentry | Error tracking | Backend |
 | Prometheus | Metrics endpoint (`GET /metrics`) | Backend |
 | Grafana | Pre-built dashboards (20+ metrics) | External |
+| Circuit Breakers | Per-service fault tolerance (CLOSED/OPEN/HALF_OPEN) | `/health/full` → `circuitBreakers[]` |
 
 ### Environment Variables
 
@@ -90,6 +91,7 @@ See `backend/src/config.ts` for full list with defaults.
 - [ ] No new secrets hardcoded (all via env vars)
 - [ ] New services added to `docker-compose.yml` if needed
 - [ ] Health check endpoint updated if service dependencies changed
+- [ ] New external service calls wrapped with `withResilience()` from `@/lib/resilience`
 - [ ] `specs/ARCHITECTURE.md` §8 updated if deployment changed
 - [ ] Schema parity check passes (`node scripts/validate-schema.js`)
 - [ ] Multi-schema typecheck passes (both PostgreSQL and SQLite schemas compile)

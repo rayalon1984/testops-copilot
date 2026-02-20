@@ -3,7 +3,7 @@
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 2.9.0-rc.6 | **Updated**: 2026-02-20
+> **Version**: 2.9.0-rc.7 | **Updated**: 2026-02-20
 
 ---
 
@@ -139,6 +139,7 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Logging | Use winston logger (`logger.info/warn/error`). Never `console.log` in production code. |
 | Auth | JWT Bearer tokens. All protected routes use `authenticate` middleware. Check RBAC with `authorize(role)`. |
 | Integrations | Dedicated service classes for external APIs. Never hardcode API calls in controllers. |
+| Resilience | Wrap external service calls with `withResilience()` from `@/lib/resilience`. Pre-configured breakers: github, jira, jenkins, confluence. Never call external APIs without circuit breaker protection. |
 | Secrets | Environment variables only. Never in code. `backend/.env` and `frontend/.env` are separate. |
 
 ### Frontend Patterns
