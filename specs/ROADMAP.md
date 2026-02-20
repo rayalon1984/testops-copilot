@@ -1,11 +1,20 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-19
-> **Current Version**: 2.9.0-rc.2 (February 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
+> **Current Version**: 2.9.0-rc.3 (February 2026)
 
 ---
 
 ## Shipped
+
+### v2.9.0-rc.3 — Sprint 5 Stabilization (February 2026)
+- [x] Bedrock provider import fix (unblock typecheck)
+- [x] Schema field-level drift reconciliation (40 fields, 7 models)
+- [x] Security audit: passport-saml v3 → @node-saml/passport-saml v5 (critical vuln fix)
+- [x] Security audit: bcrypt 5 → 6 (removes tar dependency, 4 high vulns fixed)
+- [x] Security audit: minimatch/glob overrides (37 high ReDoS vulns fixed)
+- [x] CI: `--strict-fields` gate enabled (field drift blocks merge)
+- [x] Audit result: 40 vulns → 8 moderate (dev-only, no production exposure)
 
 ### v2.8.0–2.8.5 — Context Enrichment & Enterprise (February 2026)
 - [x] Jira similar issue search (JQL text search)
@@ -115,7 +124,7 @@
 - [ ] Channel user mapping (external ID to internal user)
 - [ ] Buffered chat handler for non-streaming channels
 
-**Release Polish** (rc.2 → GA):
+**Release Polish** (rc.3 → GA):
 - [ ] Onboarding wizard (first-run provider setup, sample queries)
 - [ ] Rate limit UI feedback (quota indicators in chat)
 - [ ] Usage dashboard per-session (cost breakdown by tool/provider)
@@ -181,6 +190,10 @@
 | No WebSocket support | Low | Backend | Add Socket.IO for real-time |
 | Single CORS origin | Low | `app.ts` | Multi-origin config |
 | ~~No SSRF URL validation~~ | ~~Medium~~ | ~~External service URLs~~ | **Resolved** — Shared ssrf-validator |
+| ~~passport-saml critical vuln~~ | ~~Critical~~ | ~~`passport.service.ts`~~ | **Resolved** (Sprint 5) — Migrated to @node-saml/passport-saml v5 |
+| ~~tar path traversal vulns~~ | ~~High~~ | ~~bcrypt transitive dep~~ | **Resolved** (Sprint 5) — bcrypt 6 removes tar entirely |
+| ~~Schema field drift undetected~~ | ~~High~~ | ~~CI pipeline~~ | **Resolved** (Sprint 5) — `--strict-fields` gate enabled |
+| ESLint 8 ajv moderate vulns | Low | devDependencies | 8 moderate vulns; requires ESLint 10 migration (breaking) |
 
 ---
 
