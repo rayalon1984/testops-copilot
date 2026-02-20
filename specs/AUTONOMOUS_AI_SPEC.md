@@ -21,6 +21,79 @@ The current system treats all write operations equally. But a test retry and a p
 
 ## Core Concept: Three Autonomy Tiers
 
+### The Bright-Line Rule
+
+> **Visible to the team = user decides. Internal/reversible = AI acts.**
+>
+> If an action creates an artifact that other team members will see in their
+> dashboards, backlogs, inboxes, or Slack channels — the user must approve it.
+> If an action is internal metadata, reversible, or only visible to the
+> requesting user — the AI can act autonomously and notify after.
+
+### Decision Framework (Tier Assignment)
+
+To classify any action into a tier, ask these questions in order:
+
+```
+1. Is it visible to the entire team the moment it happens?
+   YES → Tier 2 minimum (user sees card, one-click approve)
+   NO  → continue
+
+2. Is it destructive or irreversible?
+   YES → Tier 3 (full confirmation with TTL)
+   NO  → continue
+
+3. Can it trigger downstream automations (webhooks, CI, notifications)?
+   YES → Tier 2 (user approves the card)
+   NO  → continue
+
+4. Is it internal metadata (links, labels, watchers, comments)?
+   YES → Tier 1 (auto-execute, notify after, undo available)
+   NO  → Tier 2 (default safe choice)
+```
+
+**Example: Why Jira _create_ is Tier 2 but Jira _link_ is Tier 1:**
+- `jira_create_issue` → appears in team backlog, sprint boards, Slack notifications → **Tier 2** (AI pre-fills the card, user clicks `[Create]` / `[Edit First]` / `[Dismiss]`)
+- `jira_link_issues` → internal metadata, no notifications triggered, easily reversible → **Tier 1** (AI links automatically, shows housekeeping card with `[Undo]`)
+
+### Reference UX (Target Design)
+
+The target interaction is a **stacked card flow** where three tiers work together:
+
+```
+┌─ CARD 1: Root Cause Identified ──────────────────────┐
+│ (read-only output — no approval needed)               │
+│                                                       │
+│ 🔍 Root Cause: EU API latency spike causing           │
+│    tax_calculation timeout. Config uses 2s timeout,   │
+│    EU p99 is 3.2s.                                    │
+└───────────────────────────────────────────────────────┘
+
+┌─ CARD 2: Fix Proposed — PR #402 ─────────────────────┐
+│ (Tier 2 — AI prepared the fix, user approves)         │
+│                                                       │
+│  config/tax.js                                        │
+│  ┌──────────────────────────────────────────────┐     │
+│  │ - timeout: 2000,                             │     │
+│  │ + timeout: 5000, // Fix for EU latency       │     │
+│  └──────────────────────────────────────────────┘     │
+│                                                       │
+│           [Review Diff]    [Merge PR ✓]               │
+└───────────────────────────────────────────────────────┘
+
+┌─ CARD 3: Jira Housekeeping ──────────────────────────┐
+│ (Tier 1 — AI acted autonomously, user can undo)       │
+│                                                       │
+│ 🔗 Linked PROJ-1248 ↔ PROJ-1189                      │
+│    (same root cause: EU timeout)                      │
+│ 🏷️ Added label "investigated-by-ai"                  │
+│                                                       │
+│                                      [Undo All]       │
+└───────────────────────────────────────────────────────┘
+```
+
+**Key UX principle**: Information flows top-down (RCA → Fix → Housekeeping). Each card is self-contained. The user can act on Card 2 without waiting for Card 3, and Card 3 already happened by the time they see it.
+
 ### Tier 1: Full Autonomy (AI acts, notifies after)
 Actions where the blast radius is zero and the outcome is reversible.
 
