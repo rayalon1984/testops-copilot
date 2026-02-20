@@ -59,7 +59,7 @@ function AppContent() {
         }}
       >
         <ErrorBoundary>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Router>
             <AuthProvider>
               <Suspense fallback={<LoadingSpinner message="Loading application..." />}>
                 <Routes>

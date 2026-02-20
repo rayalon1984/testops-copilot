@@ -1,26 +1,21 @@
-name: Backend CI
+name: Frontend CI
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'backend/**'
+      - 'frontend/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'backend/**'
+      - 'frontend/**'
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
-    env:
-      DATABASE_URL: "postgresql://postgres:password@localhost:5432/testops"
-      JWT_SECRET: "test-jwt-secret-must-be-at-least-32-chars-long"
-      JWT_REFRESH_SECRET: "test-jwt-refresh-secret-must-be-at-least-32-chars-long"
-      PORT: 3000
+        working-directory: ./frontend
 
     steps:
     - uses: actions/checkout@v4
@@ -30,13 +25,10 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
+        cache-dependency-path: frontend/package-lock.json
 
     - name: Install dependencies
       run: npm ci
-
-    - name: Generate Prisma Client
-      run: npx prisma generate
 
     - name: Lint
       run: npm run lint
@@ -56,5 +48,5 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: docker build -f backend/Dockerfile ./backend
+    - name: Build frontend Docker image
+      run: docker build -f frontend/Dockerfile ./frontend
