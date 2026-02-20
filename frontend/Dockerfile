@@ -1,11 +1,9 @@
-# syntax=docker/dockerfile:1.4
-
 # Base stage for both development and production
 FROM node:20-alpine AS base
 WORKDIR /app
 ENV NODE_ENV=production
-ENV VITE_API_URL=http://localhost:3000
-ENV VITE_WEBSOCKET_URL=ws://localhost:3000
+ENV VITE_API_URL=http://localhost:4000
+ENV VITE_WEBSOCKET_URL=ws://localhost:4000
 
 # Development stage
 FROM base AS development
