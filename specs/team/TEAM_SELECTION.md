@@ -17,6 +17,8 @@
 | `TEST_ENGINEER` | `specs/team/TEST_ENGINEER.md` | Test strategy, coverage, CI quality gates |
 | `DEVOPS_ENGINEER` | `specs/team/DEVOPS_ENGINEER.md` | Pipelines, Docker, deployment, observability |
 | `AI_PRODUCT_MANAGER` | `specs/team/AI_PRODUCT_MANAGER.md` | Requirements, acceptance criteria, scope |
+| `TECHNICAL_WRITER` | `specs/team/TECHNICAL_WRITER.md` | API docs, user guides, onboarding, integration guides |
+| `RELEASE_QA_ENGINEER` | `specs/team/RELEASE_QA_ENGINEER.md` | Release mgmt, versioning, staging→prod, rollback, changelog |
 | `SECURITY_ENGINEER` | `specs/team/SECURITY_ENGINEER.md` | Auth, secrets, threat modeling |
 
 ---
@@ -51,11 +53,19 @@ Goal is test strategy, coverage improvement, or CI gate quality?
 About pipelines, Docker, environments, releases, or runtime observability?
 → **DEVOPS_ENGINEER**
 
-### 8. Product definition?
+### 8. API docs, user guides, or onboarding content?
+API reference documentation, user guides, README, integration setup guides, onboarding docs, or help text?
+→ **TECHNICAL_WRITER** (read `specs/API_CONTRACT.md` first)
+
+### 9. Release process, versioning, or rollback?
+Release management, versioning, changelog, staging→prod promotion, RC validation, or rollback planning?
+→ **RELEASE_QA_ENGINEER** (read `specs/ARCHITECTURE.md` §8 first)
+
+### 10. Product definition?
 Clarifying requirements, defining acceptance criteria, or prioritizing scope?
 → **AI_PRODUCT_MANAGER** (read `specs/SPEC.md` first)
 
-### 9. Default
+### 11. Default
 Implementation or refactor?
 → **SENIOR_ENGINEER**
 
