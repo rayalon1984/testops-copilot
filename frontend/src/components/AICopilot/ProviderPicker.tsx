@@ -18,6 +18,7 @@ import {
     ErrorOutline as ErrorIcon,
     SwapHoriz as SwapIcon,
 } from '@mui/icons-material';
+import { api } from '../../api';
 
 // ─── Provider catalog (mirrors backend PROVIDER_MODELS) ───
 
@@ -118,15 +119,10 @@ export default function ProviderPicker() {
 
     const fetchConfig = useCallback(async () => {
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch('/api/v1/ai/config', {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-            });
-            if (!res.ok) return;
-            const { data } = await res.json();
-            setActiveConfig(data);
-            setProvider(data.provider);
-            setModel(data.model);
+            const json = await api.get<{ data: ProviderConfig }>('/ai/config');
+            setActiveConfig(json.data);
+            setProvider(json.data.provider);
+            setModel(json.data.model);
         } catch {
             // Silently fail — will show default
         }
@@ -146,21 +142,12 @@ export default function ProviderPicker() {
         setTestStatus('testing');
         setTestError('');
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch('/api/v1/ai/config/test', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ provider, model, apiKey }),
-            });
-            const { data } = await res.json();
-            if (data?.success) {
+            const json = await api.post<{ data: { success: boolean; error?: string } }>('/ai/config/test', { provider, model, apiKey });
+            if (json.data?.success) {
                 setTestStatus('success');
             } else {
                 setTestStatus('error');
-                setTestError(data?.error || 'Connection failed');
+                setTestError(json.data?.error || 'Connection failed');
             }
         } catch (err) {
             setTestStatus('error');
@@ -172,21 +159,8 @@ export default function ProviderPicker() {
         setSaving(true);
         setSaveError('');
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch('/api/v1/ai/config', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ provider, model, apiKey: apiKey || undefined }),
-            });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.error || `HTTP ${res.status}`);
-            }
-            const { data } = await res.json();
-            setActiveConfig(data);
+            const json = await api.put<{ data: ProviderConfig }>('/ai/config', { provider, model, apiKey: apiKey || undefined });
+            setActiveConfig(json.data);
             setApiKey('');
             setTestStatus('idle');
             setAnchorEl(null);

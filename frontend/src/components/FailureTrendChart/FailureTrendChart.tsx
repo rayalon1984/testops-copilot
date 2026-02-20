@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Box, Paper, Typography, CircularProgress, Chip, Stack } from '@mui/material';
 import { TrendingUp, TrendingDown, TrendingFlat } from '@mui/icons-material';
 import Chart from 'chart.js/auto';
+import { api } from '../../api';
 
 interface TimeSeriesPoint {
   date: string;
@@ -31,11 +32,7 @@ const FailureTrendChart: React.FC = () => {
   useEffect(() => {
     const fetchTrends = async (): Promise<void> => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/v1/failure-archive/trends?days=30&groupBy=day', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
+        const json = await api.get<{ success: boolean; data: TrendData }>('/failure-archive/trends?days=30&groupBy=day');
         if (json.success) setTrend(json.data);
       } catch {
         // Silently fail — chart just won't render

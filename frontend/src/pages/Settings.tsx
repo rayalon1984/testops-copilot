@@ -26,6 +26,7 @@ import {
   Balance as BalanceIcon,
   AutoFixHigh as AutoIcon,
 } from '@mui/icons-material';
+import { api } from '../api';
 
 interface Settings {
   notifications: {
@@ -89,33 +90,12 @@ export default function Settings() {
   // Fetch settings
   const { data: settings, isLoading } = useQuery<Settings>({
     queryKey: ['settings'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/settings', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch settings');
-      return response.json();
-    },
+    queryFn: () => api.get<Settings>('/settings'),
   });
 
   // Update settings mutation
   const updateSettings = useMutation({
-    mutationFn: async (newSettings: Partial<Settings>) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(newSettings),
-      });
-      if (!response.ok) throw new Error('Failed to update settings');
-      return response.json();
-    },
+    mutationFn: (newSettings: Partial<Settings>) => api.put<Settings>('/settings', newSettings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       setSuccess('Settings updated successfully');
@@ -437,30 +417,12 @@ function AutonomyPreferencePanel() {
 
   const { data: autonomyData, isLoading } = useQuery<{ data: { autonomyLevel: AutonomyLevel } }>({
     queryKey: ['autonomy-preference'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/ai/autonomy', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch autonomy preference');
-      return response.json();
-    },
+    queryFn: () => api.get<{ data: { autonomyLevel: AutonomyLevel } }>('/ai/autonomy'),
   });
 
   const updateAutonomy = useMutation({
-    mutationFn: async (level: AutonomyLevel) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/ai/autonomy', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ autonomyLevel: level }),
-      });
-      if (!response.ok) throw new Error('Failed to update autonomy preference');
-      return response.json();
-    },
+    mutationFn: (level: AutonomyLevel) =>
+      api.put<{ data: { autonomyLevel: AutonomyLevel } }>('/ai/autonomy', { autonomyLevel: level }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['autonomy-preference'] });
       setSaveSuccess('Autonomy preference updated');

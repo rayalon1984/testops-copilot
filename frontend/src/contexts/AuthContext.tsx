@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api, ApiError } from '../api';
 
 export interface User {
   id: string;
@@ -23,15 +24,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('accessToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
-
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,17 +40,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        const response = await fetch('/api/v1/auth/me', {
-          headers: getAuthHeaders(),
-          credentials: 'include',
-        });
-        if (!response.ok) {
-          localStorage.removeItem('accessToken');
-          throw new Error('Not authenticated');
-        }
-        return response.json();
+        return await api.get<{ data: { user: User } }>('/auth/me');
       } catch (error) {
-        localStorage.removeItem('accessToken');
+        if (error instanceof ApiError) {
+          localStorage.removeItem('accessToken');
+        }
         setUser(null);
         return null;
       }
@@ -75,18 +61,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) => {
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
-      });
-      if (!response.ok) throw new Error('Login failed');
-      return response.json();
-    },
+    mutationFn: (credentials: { email: string; password: string }) =>
+      api.post<{ data: { user: User; accessToken: string } }>('/auth/login', credentials),
     onSuccess: (data) => {
       // Store access token
       localStorage.setItem('accessToken', data.data.accessToken);
@@ -98,18 +74,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (data: { email: string; password: string; role?: string }) => {
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Registration failed');
-      return response.json();
-    },
+    mutationFn: (data: { email: string; password: string; role?: string }) =>
+      api.post<{ data: { user: User; accessToken: string } }>('/auth/register', data),
     onSuccess: (data) => {
       // Store access token if present
       if (data.data.accessToken) {
@@ -124,13 +90,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/v1/auth/logout', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Logout failed');
-      return response.json();
+      return api.post<{ message: string }>('/auth/logout');
     },
     onSuccess: () => {
       // Clear access token
@@ -145,10 +105,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isAuthenticated: !!user,
     isLoading,
-    login: (email: string, password: string) => loginMutation.mutateAsync({ email, password }),
-    logout: () => logoutMutation.mutateAsync(),
-    register: (email: string, password: string, role?: string) =>
-      registerMutation.mutateAsync({ email, password, role }),
+    login: async (email: string, password: string) => { await loginMutation.mutateAsync({ email, password }); },
+    logout: async () => { await logoutMutation.mutateAsync(); },
+    register: async (email: string, password: string, role?: string) => {
+      await registerMutation.mutateAsync({ email, password, role });
+    },
   };
 
   return (

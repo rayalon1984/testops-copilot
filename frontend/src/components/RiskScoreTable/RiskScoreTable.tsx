@@ -19,6 +19,7 @@ import {
   Tooltip,
   LinearProgress,
 } from '@mui/material';
+import { api } from '../../api';
 
 interface RiskFactor {
   name: string;
@@ -52,11 +53,7 @@ const RiskScoreTable: React.FC = () => {
   useEffect(() => {
     const fetchPredictions = async (): Promise<void> => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/v1/failure-archive/predictions?limit=10&minOccurrences=2', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
+        const json = await api.get<{ success: boolean; data: RiskScore[] }>('/failure-archive/predictions?limit=10&minOccurrences=2');
         if (json.success) setScores(json.data);
       } catch {
         // Silently fail

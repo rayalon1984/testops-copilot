@@ -16,6 +16,7 @@ import {
     Link as LinkIcon,
     EmailOutlined as EmailIcon,
 } from '@mui/icons-material';
+import { api } from '../../api';
 
 interface MessageActionsProps {
     content: string;
@@ -55,16 +56,9 @@ export default function MessageActions({ content, timestamp, persona, sessionId 
         setShareLoading(true);
         try {
             const title = content.slice(0, 80).replace(/\n/g, ' ').trim() + (content.length > 80 ? '...' : '');
-            const res = await fetch('/api/v1/shares', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, content, persona, sessionId }),
-            });
-            if (res.ok) {
-                const { data } = await res.json();
-                setShareUrl(data.url);
-                shareTokenRef.current = data.token;
-            }
+            const json = await api.post<{ data: { url: string; token: string } }>('/shares', { title, content, persona, sessionId });
+            setShareUrl(json.data.url);
+            shareTokenRef.current = json.data.token;
         } catch {
             // Share creation failed — popover will show without link
         } finally {
@@ -84,16 +78,10 @@ export default function MessageActions({ content, timestamp, persona, sessionId 
         if (!shareTokenRef.current || !emailTo) return;
         setEmailSending(true);
         try {
-            const res = await fetch(`/api/v1/shares/${shareTokenRef.current}/email`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipientEmail: emailTo }),
-            });
-            if (res.ok) {
-                setEmailSent(true);
-                setTimeout(() => setEmailSent(false), 3000);
-                setEmailTo('');
-            }
+            await api.post(`/shares/${shareTokenRef.current}/email`, { recipientEmail: emailTo });
+            setEmailSent(true);
+            setTimeout(() => setEmailSent(false), 3000);
+            setEmailTo('');
         } catch {
             // Email send failed
         } finally {

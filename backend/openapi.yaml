@@ -284,8 +284,12 @@ components:
           items:
             type: object
             properties:
-              category: { type: string }
+              testName: { type: string }
               count: { type: integer }
+              lastOccurrence: { type: string, format: date-time }
+        recentPatterns:
+          type: array
+          items: { type: object, additionalProperties: true }
 
     FailureSearchResult:
       type: object
@@ -293,32 +297,42 @@ components:
         id: { type: string }
         testName: { type: string }
         errorMessage: { type: string }
-        occurredAt: { type: string, format: date-time }
-        status: { type: string }
-        severity: { type: string }
+        stackTrace: { type: string, nullable: true }
+        category: { type: string, nullable: true }
+        severity: { type: string, nullable: true }
+        rcaDocumented: { type: boolean }
         rootCause: { type: string, nullable: true }
         solution: { type: string, nullable: true }
-        tags: { type: array, items: { type: string } }
-        jiraIssueKey: { type: string, nullable: true }
+        prevention: { type: string, nullable: true }
+        relatedJiraIssue: { type: string, nullable: true }
+        tags: { type: string, nullable: true }
+        firstOccurrence: { type: string, format: date-time }
+        lastOccurrence: { type: string, format: date-time }
+        occurrenceCount: { type: integer }
+        resolved: { type: boolean }
+        resolvedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
 
     FailureComment:
       type: object
+      required: [id, failureArchiveId, userId, content, createdAt, updatedAt]
       properties:
         id: { type: string }
+        failureArchiveId: { type: string }
+        userId: { type: string }
         content: { type: string }
-        authorId: { type: string }
-        authorEmail: { type: string }
         createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
 
     ActivityFeedItem:
       type: object
+      required: [type, timestamp, userId, content]
       properties:
-        id: { type: string }
         type: { type: string }
-        message: { type: string }
-        userId: { type: string }
         timestamp: { type: string, format: date-time }
-        metadata: { type: object, additionalProperties: true }
+        userId: { type: string }
+        content: { type: string }
 
     FailurePrediction:
       type: object
@@ -563,7 +577,11 @@ paths:
           description: Dashboard metrics
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/DashboardMetrics' }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/DashboardMetrics' }
 
   # ════════════════════════════════════════
   # PIPELINES
@@ -1119,8 +1137,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: '#/components/schemas/FailureSearchResult' }
+                type: object
+                properties:
+                  failures:
+                    type: array
+                    items: { $ref: '#/components/schemas/FailureSearchResult' }
+                  total: { type: integer }
 
   /failure-archive/insights:
     get:
@@ -1188,8 +1210,16 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: '#/components/schemas/FailureComment' }
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      comments:
+                        type: array
+                        items: { $ref: '#/components/schemas/FailureComment' }
+                      total: { type: integer }
     post:
       tags: [FailureArchive]
       summary: Add comment
@@ -1207,7 +1237,11 @@ paths:
           description: Comment added
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/FailureComment' }
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/FailureComment' }
 
   /failure-archive/{id}/activity:
     parameters:
@@ -1228,8 +1262,12 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: '#/components/schemas/ActivityFeedItem' }
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ActivityFeedItem' }
 
   /failure-archive/{id}/document-rca:
     parameters:

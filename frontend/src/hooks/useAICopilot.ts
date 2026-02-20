@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { api } from '../api';
 
 export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request' | 'proactive_suggestion' | 'autonomous_action';
 
@@ -358,32 +359,18 @@ export function useAICopilot(): UseAICopilotReturn {
         ));
 
         try {
-            const token = localStorage.getItem('accessToken');
-            const response = await fetch('/api/v1/ai/confirm', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                },
-                body: JSON.stringify({ actionId, approved }),
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Failed to confirm action');
-            }
-
-            const result = await response.json();
+            const result = await api.post<{ data?: { toolName?: string }; toolResult?: { summary?: string; data?: unknown } }>('/ai/confirm', { actionId, approved });
 
             // If approved and tool executed successfully, append the result card
-            if (approved && result.toolResult) {
+            const toolResult = result.toolResult;
+            if (approved && toolResult) {
                 const toolName = result.data?.toolName;
                 setMessages(prev => [...prev, {
                     id: generateId(),
                     role: 'tool_result',
-                    content: result.toolResult.summary || JSON.stringify(result.toolResult),
+                    content: toolResult.summary || JSON.stringify(toolResult),
                     toolName,
-                    toolData: result.toolResult.data as Record<string, unknown> | undefined,
+                    toolData: toolResult.data as Record<string, unknown> | undefined,
                     cardState: 'idle',
                     timestamp: new Date(),
                 }]);

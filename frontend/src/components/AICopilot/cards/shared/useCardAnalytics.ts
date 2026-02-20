@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useRef, useEffect } from 'react';
+import { api } from '../../../../api';
 
 export interface CardAnalyticsEvent {
     type: 'card_render' | 'card_expand' | 'card_action' | 'confirmation_decision';
@@ -38,15 +39,7 @@ function flushEvents() {
     eventBuffer = [];
 
     // Fire-and-forget POST to analytics endpoint
-    const token = localStorage.getItem('accessToken');
-    fetch('/api/v1/analytics/card-events', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ events: batch }),
-    }).catch(() => {
+    api.post('/analytics/card-events', { events: batch }).catch(() => {
         // Silently fail — analytics should never break UX
         if (import.meta.env.DEV) {
             // eslint-disable-next-line no-console

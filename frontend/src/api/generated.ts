@@ -293,7 +293,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DashboardMetrics"];
+                        "application/json": {
+                            success?: boolean;
+                            data?: components["schemas"]["DashboardMetrics"];
+                        };
                     };
                 };
             };
@@ -1399,7 +1402,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["FailureSearchResult"][];
+                        "application/json": {
+                            failures?: components["schemas"]["FailureSearchResult"][];
+                            total?: number;
+                        };
                     };
                 };
             };
@@ -1556,7 +1562,13 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["FailureComment"][];
+                        "application/json": {
+                            success?: boolean;
+                            data?: {
+                                comments?: components["schemas"]["FailureComment"][];
+                                total?: number;
+                            };
+                        };
                     };
                 };
             };
@@ -1586,7 +1598,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["FailureComment"];
+                        "application/json": {
+                            success?: boolean;
+                            data?: components["schemas"]["FailureComment"];
+                        };
                     };
                 };
             };
@@ -1626,7 +1641,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ActivityFeedItem"][];
+                        "application/json": {
+                            success?: boolean;
+                            data?: components["schemas"]["ActivityFeedItem"][];
+                        };
                     };
                 };
             };
@@ -2799,41 +2817,57 @@ export interface components {
             recurringCount?: number;
             averageTimeToResolve?: number;
             mostCommonFailures?: {
-                category?: string;
+                testName?: string;
                 count?: number;
+                /** Format: date-time */
+                lastOccurrence?: string;
+            }[];
+            recentPatterns?: {
+                [key: string]: unknown;
             }[];
         };
         FailureSearchResult: {
             id?: string;
             testName?: string;
             errorMessage?: string;
-            /** Format: date-time */
-            occurredAt?: string;
-            status?: string;
-            severity?: string;
+            stackTrace?: string | null;
+            category?: string | null;
+            severity?: string | null;
+            rcaDocumented?: boolean;
             rootCause?: string | null;
             solution?: string | null;
-            tags?: string[];
-            jiraIssueKey?: string | null;
-        };
-        FailureComment: {
-            id?: string;
-            content?: string;
-            authorId?: string;
-            authorEmail?: string;
+            prevention?: string | null;
+            relatedJiraIssue?: string | null;
+            tags?: string | null;
+            /** Format: date-time */
+            firstOccurrence?: string;
+            /** Format: date-time */
+            lastOccurrence?: string;
+            occurrenceCount?: number;
+            resolved?: boolean;
+            /** Format: date-time */
+            resolvedAt?: string | null;
             /** Format: date-time */
             createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        FailureComment: {
+            id: string;
+            failureArchiveId: string;
+            userId: string;
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         ActivityFeedItem: {
-            id?: string;
-            type?: string;
-            message?: string;
-            userId?: string;
+            type: string;
             /** Format: date-time */
-            timestamp?: string;
-            metadata?: {
-                [key: string]: unknown;
-            };
+            timestamp: string;
+            userId: string;
+            content: string;
         };
         FailurePrediction: {
             testName?: string;

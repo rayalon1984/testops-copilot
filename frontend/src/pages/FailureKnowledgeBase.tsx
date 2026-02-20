@@ -35,33 +35,11 @@ import {
 import PageHeader from '../components/PageHeader/PageHeader';
 import FailureTrendChart from '../components/FailureTrendChart/FailureTrendChart';
 import RiskScoreTable from '../components/RiskScoreTable/RiskScoreTable';
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
 
-interface FailureInsights {
-  totalFailures: number;
-  documentedCount: number;
-  recurringCount: number;
-  averageTimeToResolve: number;
-  mostCommonFailures: Array<{
-    testName: string;
-    count: number;
-    lastOccurrence: string;
-  }>;
-}
-
-interface Failure {
-  id: string;
-  testName: string;
-  errorMessage: string;
-  occurredAt: string;
-  status: string;
-  severity: string;
-  rootCause?: string;
-  solution?: string;
-  isRecurring: boolean;
-  occurrenceCount: number;
-  tags: string[];
-  jiraIssueKey?: string;
-}
+type FailureInsights = ApiSchemas['FailureInsights'];
+type Failure = ApiSchemas['FailureSearchResult'];
 
 export const FailureKnowledgeBase: React.FC = () => {
   const [insights, setInsights] = useState<FailureInsights | null>(null);
@@ -79,17 +57,10 @@ export const FailureKnowledgeBase: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-      };
-      const [insightsRes, failuresRes] = await Promise.all([
-        fetch('/api/v1/failure-archive/insights?days=30', { headers }),
-        fetch('/api/v1/failure-archive/search?limit=50', { headers })
+      const [insightsData, failuresData] = await Promise.all([
+        api.get<FailureInsights>('/failure-archive/insights?days=30'),
+        api.get<{ failures: Failure[]; total: number }>('/failure-archive/search?limit=50'),
       ]);
-
-      const insightsData = await insightsRes.json();
-      const failuresData = await failuresRes.json();
 
       setInsights(insightsData);
       setFailures(failuresData.failures);
@@ -109,8 +80,7 @@ export const FailureKnowledgeBase: React.FC = () => {
       if (severityFilter) params.append('severity', severityFilter);
       if (showRecurringOnly) params.append('isRecurring', 'true');
 
-      const response = await fetch(`/api/v1/failure-archive/search?${params.toString()}`);
-      const data = await response.json();
+      const data = await api.get<{ failures: Failure[]; total: number }>(`/failure-archive/search?${params.toString()}`);
       setFailures(data.failures);
     } catch (error) {
       console.error('Search failed:', error);
@@ -152,7 +122,7 @@ export const FailureKnowledgeBase: React.FC = () => {
               <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
               <Typography variant="h4">{insights.documentedCount}</Typography>
               <Typography variant="body2" color="text.secondary">
-                With RCA ({Math.round((insights.documentedCount / insights.totalFailures) * 100)}%)
+                With RCA ({Math.round(((insights.documentedCount ?? 0) / (insights.totalFailures || 1)) * 100)}%)
               </Typography>
             </Paper>
           </Grid>
@@ -184,14 +154,14 @@ export const FailureKnowledgeBase: React.FC = () => {
       <RiskScoreTable />
 
       {/* Most Common Failures */}
-      {insights && insights.mostCommonFailures.length > 0 && (
+      {insights && insights.mostCommonFailures && insights.mostCommonFailures.length > 0 && (
         <Paper sx={{ p: 3, mb: 4 }}>
           <Typography variant="h6" gutterBottom>
             🔥 Most Common Failures (Last 30 Days)
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Stack spacing={1}>
-            {insights.mostCommonFailures.map((failure, index) => (
+            {insights.mostCommonFailures!.map((failure, index) => (
               <Box
                 key={index}
                 sx={{
@@ -210,7 +180,7 @@ export const FailureKnowledgeBase: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Chip label={`${failure.count} occurrences`} size="small" />
                   <Typography variant="caption" color="text.secondary">
-                    Last: {new Date(failure.lastOccurrence).toLocaleDateString()}
+                    Last: {new Date(failure.lastOccurrence ?? '').toLocaleDateString()}
                   </Typography>
                 </Box>
               </Box>
@@ -303,15 +273,15 @@ export const FailureKnowledgeBase: React.FC = () => {
                         {failure.testName}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {failure.errorMessage.substring(0, 200)}
-                        {failure.errorMessage.length > 200 && '...'}
+                        {(failure.errorMessage ?? '').substring(0, 200)}
+                        {(failure.errorMessage ?? '').length > 200 && '...'}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Chip
-                        label={failure.status}
+                        label={failure.resolved ? 'RESOLVED' : 'OPEN'}
                         size="small"
-                        color={failure.status === 'RESOLVED' ? 'success' : 'default'}
+                        color={failure.resolved ? 'success' : 'default'}
                       />
                       <Chip
                         label={failure.severity}
@@ -324,7 +294,7 @@ export const FailureKnowledgeBase: React.FC = () => {
                             : 'default'
                         }
                       />
-                      {failure.isRecurring && (
+                      {(failure.occurrenceCount ?? 0) > 1 && (
                         <Chip
                           label={`${failure.occurrenceCount}x`}
                           size="small"
@@ -360,14 +330,14 @@ export const FailureKnowledgeBase: React.FC = () => {
                   )}
 
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-                    {failure.tags.map((tag) => (
-                      <Chip key={tag} label={tag} size="small" />
+                    {(failure.tags ? failure.tags.split(',').filter(Boolean) : []).map((tag) => (
+                      <Chip key={tag} label={tag.trim()} size="small" />
                     ))}
                   </Box>
 
                   <Typography variant="caption" color="text.secondary">
-                    Occurred: {new Date(failure.occurredAt).toLocaleString()}
-                    {failure.jiraIssueKey && ` • Jira: ${failure.jiraIssueKey}`}
+                    Occurred: {new Date(failure.lastOccurrence ?? '').toLocaleString()}
+                    {failure.relatedJiraIssue && ` • Jira: ${failure.relatedJiraIssue}`}
                   </Typography>
                 </CardContent>
 

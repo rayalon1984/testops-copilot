@@ -18,14 +18,10 @@ import {
   Delete as DeleteIcon,
   Send as SendIcon,
 } from '@mui/icons-material';
+import { api } from '../../api';
+import type { ApiSchemas } from '../../api';
 
-interface Comment {
-  id: string;
-  userId: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+type Comment = ApiSchemas['FailureComment'];
 
 interface FailureCommentsProps {
   failureId: string;
@@ -39,11 +35,7 @@ const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
 
   const fetchComments = useCallback(async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`/api/v1/failure-archive/${failureId}/comments`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
+      const json = await api.get<{ success: boolean; data: { comments: Comment[]; total: number } }>(`/failure-archive/${failureId}/comments`);
       if (json.success) {
         setComments(json.data.comments);
       }
@@ -62,19 +54,9 @@ const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
     if (!newComment.trim()) return;
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`/api/v1/failure-archive/${failureId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: newComment.trim() }),
-      });
-      if (res.ok) {
-        setNewComment('');
-        await fetchComments();
-      }
+      await api.post(`/failure-archive/${failureId}/comments`, { content: newComment.trim() });
+      setNewComment('');
+      await fetchComments();
     } catch {
       // Silently fail
     } finally {
@@ -84,11 +66,7 @@ const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
 
   const handleDelete = async (commentId: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      await fetch(`/api/v1/failure-archive/${failureId}/comments/${commentId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/failure-archive/${failureId}/comments/${commentId}`);
       setComments((prev) => prev.filter((c) => c.id !== commentId));
     } catch {
       // Silently fail

@@ -19,6 +19,7 @@ import {
   Groups as GroupsIcon,
 } from '@mui/icons-material';
 
+import { api } from '../../api';
 import type { ApiSchemas } from '../../api';
 type Team = ApiSchemas['TeamListItem'];
 
@@ -35,11 +36,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({ onTeamChange }) => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const res = await fetch('/api/v1/teams', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const json = await res.json();
+        const json = await api.get<{ success: boolean; data: Team[] }>('/teams');
         if (json.success) {
           setTeams(json.data);
         }
