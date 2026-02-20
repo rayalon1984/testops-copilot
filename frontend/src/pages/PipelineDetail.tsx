@@ -34,24 +34,9 @@ import {
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
 
-interface Pipeline {
-  id: string;
-  name: string;
-  type: 'jenkins' | 'github-actions';
-  status: 'success' | 'failed' | 'running' | 'pending';
-  lastRun: string;
-  successRate: number;
-  config: Record<string, unknown>;
-}
-
-interface TestRun {
-  id: string;
-  status: 'success' | 'failed' | 'running';
-  startTime: string;
-  endTime: string;
-  duration: number;
-  errorCount: number;
-}
+import type { ApiSchemas } from '../api';
+type Pipeline = ApiSchemas['Pipeline'];
+type TestRun = ApiSchemas['TestRun'];
 
 export default function PipelineDetail() {
   const { id } = useParams<{ id: string }>();
