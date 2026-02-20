@@ -36,31 +36,11 @@ import {
   Groups as GroupsIcon,
 } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader/PageHeader';
+import { api, ApiError } from '../api';
+import type { ApiSchemas } from '../api';
 
-interface Team {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  createdBy: string;
-  members: TeamMember[];
-  _count: { members: number; pipelines: number };
-}
-
-interface TeamMember {
-  id: string;
-  userId: string;
-  role: string;
-  joinedAt: string;
-}
-
-interface TeamListItem {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-  memberCount: number;
-}
+type Team = ApiSchemas['Team'];
+type TeamListItem = ApiSchemas['TeamListItem'];
 
 const TeamSettings: React.FC = () => {
   const [teams, setTeams] = useState<TeamListItem[]>([]);
@@ -77,12 +57,6 @@ const TeamSettings: React.FC = () => {
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addMemberForm, setAddMemberForm] = useState({ userId: '', role: 'MEMBER' });
 
-  const token = localStorage.getItem('accessToken');
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
-
   useEffect(() => {
     fetchTeams();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,8 +64,7 @@ const TeamSettings: React.FC = () => {
 
   const fetchTeams = async () => {
     try {
-      const res = await fetch('/api/v1/teams', { headers });
-      const json = await res.json();
+      const json = await api.get<{ success: boolean; data: TeamListItem[] }>('/teams');
       if (json.success) {
         setTeams(json.data);
         if (json.data.length > 0 && !selectedTeam) {
@@ -107,8 +80,7 @@ const TeamSettings: React.FC = () => {
 
   const fetchTeamDetails = async (teamId: string) => {
     try {
-      const res = await fetch(`/api/v1/teams/${teamId}`, { headers });
-      const json = await res.json();
+      const json = await api.get<{ success: boolean; data: Team }>(`/teams/${teamId}`);
       if (json.success) {
         setSelectedTeam(json.data);
       }
@@ -121,22 +93,15 @@ const TeamSettings: React.FC = () => {
     if (!createForm.name.trim() || !createForm.slug.trim()) return;
     setCreating(true);
     try {
-      const res = await fetch('/api/v1/teams', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(createForm),
-      });
-      const json = await res.json();
+      const json = await api.post<{ success: boolean; data: Team }>('/teams', createForm);
       if (json.success) {
         setCreateOpen(false);
         setCreateForm({ name: '', slug: '', description: '' });
         await fetchTeams();
         await fetchTeamDetails(json.data.id);
-      } else {
-        setError(json.error || 'Failed to create team');
       }
-    } catch {
-      setError('Failed to create team');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to create team');
     } finally {
       setCreating(false);
     }
@@ -145,31 +110,21 @@ const TeamSettings: React.FC = () => {
   const handleAddMember = async () => {
     if (!selectedTeam || !addMemberForm.userId.trim()) return;
     try {
-      const res = await fetch(`/api/v1/teams/${selectedTeam.id}/members`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(addMemberForm),
-      });
-      const json = await res.json();
+      const json = await api.post<{ success: boolean }>(`/teams/${selectedTeam.id}/members`, addMemberForm);
       if (json.success) {
         setAddMemberOpen(false);
         setAddMemberForm({ userId: '', role: 'MEMBER' });
         await fetchTeamDetails(selectedTeam.id);
-      } else {
-        setError(json.error || 'Failed to add member');
       }
-    } catch {
-      setError('Failed to add member');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to add member');
     }
   };
 
   const handleRemoveMember = async (userId: string) => {
     if (!selectedTeam) return;
     try {
-      await fetch(`/api/v1/teams/${selectedTeam.id}/members/${userId}`, {
-        method: 'DELETE',
-        headers,
-      });
+      await api.delete(`/teams/${selectedTeam.id}/members/${userId}`);
       await fetchTeamDetails(selectedTeam.id);
     } catch {
       setError('Failed to remove member');
@@ -179,11 +134,7 @@ const TeamSettings: React.FC = () => {
   const handleRoleChange = async (userId: string, role: string) => {
     if (!selectedTeam) return;
     try {
-      await fetch(`/api/v1/teams/${selectedTeam.id}/members/${userId}/role`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ role }),
-      });
+      await api.put(`/teams/${selectedTeam.id}/members/${userId}/role`, { role });
       await fetchTeamDetails(selectedTeam.id);
     } catch {
       setError('Failed to update role');
