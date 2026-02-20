@@ -3,6 +3,14 @@ import { Pipeline, TestRun } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { validateUrlForSSRF, validateSameOrigin } from '@/utils/ssrf-validator';
+import { withResilience, circuitBreakers } from '@/lib/resilience';
+
+const JENKINS_RESILIENCE = {
+  circuitBreaker: circuitBreakers.jenkins,
+  retry: { maxRetries: 1, baseDelayMs: 1000 },
+  timeoutMs: 15_000,
+  label: 'jenkins',
+};
 
 interface JenkinsConfig {
   url: string;
@@ -56,11 +64,12 @@ export class JenkinsService {
     this.validateUrl(config.url);
 
     try {
-      const response = await this.client.get(`${config.url}/api/json`, {
-        headers: {
-          Authorization: this.createAuthHeader(config.credentials),
-        },
-      });
+      const response = await withResilience(
+        () => this.client.get(`${config.url}/api/json`, {
+          headers: { Authorization: this.createAuthHeader(config.credentials) },
+        }),
+        JENKINS_RESILIENCE,
+      );
 
       if (response.status !== 200) {
         throw new Error('Failed to connect to Jenkins');
@@ -95,14 +104,13 @@ export class JenkinsService {
       });
 
       // Trigger Jenkins build
-      const response = await this.client.post(
-        `${config.url}/job/${encodeURIComponent(pipeline.name)}/buildWithParameters`,
-        buildParams,
-        {
-          headers: {
-            Authorization: this.createAuthHeader(config.credentials),
-          },
-        }
+      const response = await withResilience(
+        () => this.client.post(
+          `${config.url}/job/${encodeURIComponent(pipeline.name)}/buildWithParameters`,
+          buildParams,
+          { headers: { Authorization: this.createAuthHeader(config.credentials) } },
+        ),
+        JENKINS_RESILIENCE,
       );
 
       if (response.status !== 201) {

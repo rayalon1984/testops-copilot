@@ -8,6 +8,14 @@ import {
   UpdateIssueDTO,
   JiraIssueResponse
 } from '@/types/jira';
+import { withResilience, circuitBreakers } from '@/lib/resilience';
+
+const JIRA_RESILIENCE = {
+  circuitBreaker: circuitBreakers.jira,
+  retry: { maxRetries: 2, baseDelayMs: 1000 },
+  timeoutMs: 10_000,
+  label: 'jira',
+};
 
 export class JiraService {
   private client: JiraClient | null = null;
@@ -62,15 +70,18 @@ export class JiraService {
         issue = { key: `MOCK-${Date.now()}`, id: `mock-id-${Date.now()}` };
       } else {
         // Create issue in Jira
-        issue = await this.client!.addNewIssue({
-          fields: {
-            project: { key: this.projectKey },
-            summary: data.summary,
-            description: data.description,
-            issuetype: { name: data.type },
-            labels: data.labels || [],
-          },
-        });
+        issue = await withResilience(
+          () => this.client!.addNewIssue({
+            fields: {
+              project: { key: this.projectKey },
+              summary: data.summary,
+              description: data.description,
+              issuetype: { name: data.type },
+              labels: data.labels || [],
+            },
+          }),
+          JIRA_RESILIENCE,
+        );
       }
 
       // Store issue in our database
@@ -104,13 +115,16 @@ export class JiraService {
 
     try {
       // Update issue in Jira
-      await this.client!.updateIssue(jiraKey, {
-        fields: {
-          ...(data.summary && { summary: data.summary }),
-          ...(data.description && { description: data.description }),
-          ...(data.labels && { labels: data.labels }),
-        },
-      });
+      await withResilience(
+        () => this.client!.updateIssue(jiraKey, {
+          fields: {
+            ...(data.summary && { summary: data.summary }),
+            ...(data.description && { description: data.description }),
+            ...(data.labels && { labels: data.labels }),
+          },
+        }),
+        JIRA_RESILIENCE,
+      );
 
       // If status is provided, transition the issue
       if (data.status) {
@@ -139,7 +153,10 @@ export class JiraService {
     this.checkEnabled();
 
     try {
-      const issue = await this.client!.findIssue(jiraKey);
+      const issue = await withResilience(
+        () => this.client!.findIssue(jiraKey),
+        JIRA_RESILIENCE,
+      );
       return {
         id: issue.id,
         key: issue.key,
@@ -180,9 +197,10 @@ export class JiraService {
       });
 
       // Add comment to Jira issue
-      await this.client!.addComment(jiraKey, {
-        body: `Linked to test run: ${testRunId}`,
-      });
+      await withResilience(
+        () => this.client!.addComment(jiraKey, { body: `Linked to test run: ${testRunId}` }),
+        JIRA_RESILIENCE,
+      );
 
       logger.info(`Linked test run ${testRunId} to Jira issue ${jiraKey}`);
     } catch (error) {
@@ -232,10 +250,13 @@ export class JiraService {
 
       jql += ' ORDER BY updated DESC';
 
-      const result = await this.client!.searchJira(jql, {
-        maxResults,
-        fields: ['summary', 'description', 'status', 'issuetype', 'labels', 'updated', 'created', 'assignee', 'priority'],
-      });
+      const result = await withResilience(
+        () => this.client!.searchJira(jql, {
+          maxResults,
+          fields: ['summary', 'description', 'status', 'issuetype', 'labels', 'updated', 'created', 'assignee', 'priority'],
+        }),
+        JIRA_RESILIENCE,
+      );
 
       const issues: JiraIssueResponse[] = (result.issues || []).map((issue: { id: string; key: string; fields: Record<string, unknown> & { summary?: string; description?: string; status?: { name?: string }; issuetype?: { name?: string }; labels?: string[]; priority?: { name?: string }; assignee?: { displayName?: string } } }) => ({
         id: issue.id,
@@ -311,7 +332,10 @@ export class JiraService {
 
     try {
       // Get available transitions
-      const transitions = await this.client!.listTransitions(issueKey);
+      const transitions = await withResilience(
+        () => this.client!.listTransitions(issueKey),
+        JIRA_RESILIENCE,
+      );
 
       // Map our status to Jira transition
       const transitionMap: Record<JiraIssueStatus, string> = {
@@ -330,9 +354,10 @@ export class JiraService {
       }
 
       // Perform the transition
-      await this.client!.transitionIssue(issueKey, {
-        transition: { id: targetTransition.id },
-      });
+      await withResilience(
+        () => this.client!.transitionIssue(issueKey, { transition: { id: targetTransition.id } }),
+        JIRA_RESILIENCE,
+      );
 
       logger.info(`Transitioned Jira issue ${issueKey} to ${status}`);
     } catch (error) {
@@ -348,7 +373,10 @@ export class JiraService {
     this.checkEnabled();
 
     try {
-      await this.client!.addComment(issueKey, { body });
+      await withResilience(
+        () => this.client!.addComment(issueKey, { body }),
+        JIRA_RESILIENCE,
+      );
       logger.info(`Added comment to Jira issue ${issueKey}`);
     } catch (error) {
       logger.error(`Failed to add comment to ${issueKey}:`, error);
@@ -365,11 +393,14 @@ export class JiraService {
 
     try {
       // jira-client types don't expose issueLink, but the REST API supports it
-      await (this.client as any).issueLink({
-        type: { name: linkType },
-        inwardIssue: { key: sourceKey },
-        outwardIssue: { key: targetKey },
-      });
+      await withResilience(
+        () => (this.client as any).issueLink({
+          type: { name: linkType },
+          inwardIssue: { key: sourceKey },
+          outwardIssue: { key: targetKey },
+        }),
+        JIRA_RESILIENCE,
+      );
       logger.info(`Linked Jira issues ${sourceKey} → ${targetKey} (${linkType})`);
     } catch (error) {
       logger.error(`Failed to link ${sourceKey} to ${targetKey}:`, error);
@@ -386,12 +417,15 @@ export class JiraService {
 
     try {
       // Use the Jira REST API 'update' field operator for atomic label additions
-      await this.client!.updateIssue(issueKey, {
-        fields: {},
-        update: {
-          labels: labels.map(label => ({ add: label })),
-        },
-      } as any);
+      await withResilience(
+        () => this.client!.updateIssue(issueKey, {
+          fields: {},
+          update: {
+            labels: labels.map(label => ({ add: label })),
+          },
+        } as any),
+        JIRA_RESILIENCE,
+      );
       logger.info(`Added labels [${labels.join(', ')}] to ${issueKey}`);
     } catch (error) {
       logger.error(`Failed to add labels to ${issueKey}:`, error);
