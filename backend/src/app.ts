@@ -64,7 +64,15 @@ app.use('/api/v1/auth/login', asMiddleware(authRateLimitMiddleware));
 app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 
 // Body parsing middleware
-app.use(asMiddleware(express.json({ limit: '1mb' })));
+// Preserve raw body for Slack signature verification on channel webhook routes
+app.use(asMiddleware(express.json({
+  limit: '1mb',
+  verify: (req: any, _res, buf) => {
+    if (req.originalUrl?.startsWith('/api/v1/channels/')) {
+      req.rawBody = buf.toString('utf-8');
+    }
+  },
+})));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 

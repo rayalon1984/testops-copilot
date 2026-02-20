@@ -375,3 +375,17 @@ model DashboardConfig {
   @@index([teamId])
   @@index([userId])
 }
+
+// ─── Multi-Channel User Mapping ───
+
+model ChannelUserMapping {
+  id         String   @id @default(uuid())
+  channel    String   // 'slack' | 'teams'
+  externalId String   // Slack user ID or Teams user ID
+  userId     String   // Internal TestOps user ID
+  metadata   String?  // JSON: team/channel context
+  createdAt  DateTime @default(now())
+
+  @@unique([channel, externalId])
+  @@index([userId])
+}

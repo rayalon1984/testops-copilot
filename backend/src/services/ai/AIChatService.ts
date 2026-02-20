@@ -386,3 +386,182 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
     sendSSE(res, createEvent('error', 'Reached maximum reasoning iterations.'));
     sendSSE(res, createEvent('done', ''));
 }
+
+// ─── Buffered Chat Handler (for non-streaming channels: Slack, Teams) ───
+
+/** Result from a buffered (non-streaming) chat interaction */
+export interface BufferedChatResponse {
+    persona: PersonaSelection;
+    toolCalls: { name: string; summary: string; data?: unknown }[];
+    answer: string;
+    /** Whether the response requires user confirmation (write tool pending) */
+    pendingConfirmation?: {
+        actionId: string;
+        tool: string;
+        args: Record<string, unknown>;
+    };
+}
+
+/**
+ * Non-streaming version of handleChatStream for channel adapters (Slack, Teams).
+ * Runs the same PersonaRouter → ReAct loop but collects the full result
+ * instead of streaming SSE events.
+ */
+export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChatResponse> {
+    const aiManager = getAIManager();
+
+    if (!aiManager.isInitialized() || !aiManager.isEnabled()) {
+        throw new Error('AI services are not initialized or enabled.');
+    }
+
+    // Route to persona
+    const persona = await routeToPersona(req.message, req.userRole);
+    logger.info(`[AIChatService:Buffered] Persona: ${persona.displayName} (${persona.tier})`);
+
+    const systemPrompt = buildSystemPrompt(req.userRole, persona);
+    const context: ToolContext = {
+        userId: req.userId,
+        userRole: req.userRole,
+        sessionId: req.sessionId || 'anonymous',
+    };
+
+    // Ensure session
+    if (req.sessionId && req.sessionId !== 'anonymous') {
+        try {
+            await chatSessionService.ensureSession(req.sessionId, req.userId);
+        } catch (error) {
+            logger.error(`[AIChatService:Buffered] Failed to ensure session:`, error);
+        }
+    }
+
+    const messages: ChatMessage[] = [
+        { role: 'system', content: systemPrompt },
+        ...(req.history || []),
+        { role: 'user', content: req.message },
+    ];
+
+    const collectedToolCalls: BufferedChatResponse['toolCalls'] = [];
+    let toolCallCount = 0;
+    const toolDefinitions = toolRegistry.getToolDefinitions();
+
+    // ReAct Loop (same logic as streaming, but collects results)
+    for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
+        let aiResponse;
+        try {
+            aiResponse = await (aiManager as any).provider.chat(messages, {
+                maxTokens: 2048,
+                temperature: 0.3,
+                tools: toolDefinitions,
+            });
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'LLM call failed';
+            throw new Error(`AI provider error: ${msg}`);
+        }
+
+        const responseText = aiResponse.content;
+
+        // Determine tool calls
+        let toolCalls = aiResponse.toolCalls;
+        if (!toolCalls || toolCalls.length === 0) {
+            const legacyToolCall = parseToolCall(responseText);
+            if (legacyToolCall) {
+                toolCalls = [{
+                    id: 'legacy_call_' + Date.now(),
+                    name: legacyToolCall.tool,
+                    arguments: legacyToolCall.args,
+                }];
+            }
+        }
+
+        if (!toolCalls || toolCalls.length === 0) {
+            // Final answer
+            const cleanAnswer = responseText.replace(/```tool_call[\s\S]*?```/g, '').trim();
+            return { persona, toolCalls: collectedToolCalls, answer: cleanAnswer };
+        }
+
+        // Tool call limit
+        if (toolCallCount >= MAX_TOOL_CALLS) {
+            messages.push({ role: 'assistant', content: responseText });
+            messages.push({ role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' });
+            continue;
+        }
+
+        messages.push({ role: 'assistant', content: responseText, toolCalls });
+
+        for (const toolCall of toolCalls) {
+            const tool = toolRegistry.get(toolCall.name);
+            if (!tool) {
+                messages.push({ role: 'tool', toolCallId: toolCall.id, name: toolCall.name, content: `Error: Tool "${toolCall.name}" does not exist.` });
+                continue;
+            }
+
+            if (tool.requiredRole && !hasRequiredRole(req.userRole, tool.requiredRole)) {
+                const msg = `Access denied: tool "${tool.name}" requires ${tool.requiredRole} role.`;
+                messages.push({ role: 'tool', toolCallId: toolCall.id, name: tool.name, content: msg });
+                continue;
+            }
+
+            // Write tools: create pending action and return immediately
+            if (tool.requiresConfirmation) {
+                if (!req.sessionId) {
+                    messages.push({ role: 'tool', toolCallId: toolCall.id, name: tool.name, content: `Error: Tool "${tool.name}" requires confirmation but no session ID.` });
+                    continue;
+                }
+                const pendingAction = await confirmationService.createPendingAction({
+                    sessionId: req.sessionId,
+                    userId: req.userId,
+                    toolName: tool.name,
+                    parameters: toolCall.arguments,
+                });
+                return {
+                    persona,
+                    toolCalls: collectedToolCalls,
+                    answer: `I need your approval to execute **${tool.name}**. Please confirm in the web UI.`,
+                    pendingConfirmation: {
+                        actionId: pendingAction.id,
+                        tool: tool.name,
+                        args: toolCall.arguments as Record<string, unknown>,
+                    },
+                };
+            }
+
+            // Execute tool
+            let toolResult;
+            const mockResult = getConfigManager().getProvider() === 'mock'
+                ? getMockToolResult(toolCall.name, toolCall.arguments)
+                : null;
+
+            if (mockResult) {
+                toolResult = mockResult;
+            } else {
+                try {
+                    toolResult = await tool.execute(toolCall.arguments, context);
+                } catch (error) {
+                    const msg = error instanceof Error ? error.message : 'Tool execution failed';
+                    toolResult = { success: false, error: msg, summary: msg };
+                }
+            }
+
+            toolCallCount++;
+            collectedToolCalls.push({
+                name: tool.name,
+                summary: toolResult.summary,
+                data: toolResult.data,
+            });
+
+            messages.push({
+                role: 'tool',
+                toolCallId: toolCall.id,
+                name: tool.name,
+                content: JSON.stringify(toolResult.data ?? toolResult.error),
+            });
+        }
+    }
+
+    // Exhausted iterations
+    return {
+        persona,
+        toolCalls: collectedToolCalls,
+        answer: 'I reached the maximum reasoning limit. Here is what I found so far based on the tools I called.',
+    };
+}

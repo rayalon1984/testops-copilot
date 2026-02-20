@@ -16,7 +16,6 @@ import { Box, Typography, IconButton, Chip } from '@mui/material';
 import {
     AutoAwesome as SparkleIcon,
     DeleteOutline as ClearIcon,
-    Person as PersonIcon,
 } from '@mui/icons-material';
 import { useAICopilot, ChatMessage } from '../../hooks/useAICopilot';
 import { useAuth } from '../../hooks/useAuth';
@@ -99,7 +98,7 @@ export default function AICopilot() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isStreaming]);
 
-    const renderMessage = (msg: ChatMessage, index: number) => {
+    const renderMessage = (msg: ChatMessage) => {
         switch (msg.role) {
             case 'user':
                 return <UserMessage key={msg.id} content={msg.content} />;
@@ -107,37 +106,28 @@ export default function AICopilot() {
             case 'assistant':
                 return (
                     <Box key={msg.id} sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%' }}>
+                        {activePersona && activePersona.persona !== 'SENIOR_ENGINEER' && (
+                            <Chip
+                                label={activePersona.displayName}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                    fontSize: '0.6rem',
+                                    height: 18,
+                                    mb: 0.5,
+                                    color: 'text.secondary',
+                                    borderColor: 'divider',
+                                    fontWeight: 500,
+                                }}
+                            />
+                        )}
                         <AssistantMessage content={msg.content} id={msg.id} />
                         <MessageActions content={msg.content} timestamp={msg.timestamp} />
                     </Box>
                 );
 
-            case 'thinking': {
-                // Show persona badge on first thinking indicator per exchange
-                const prevMsg = index > 0 ? messages[index - 1] : null;
-                const isFirst = !prevMsg || prevMsg.role === 'user';
-                return (
-                    <Box key={msg.id}>
-                        {isFirst && activePersona && (
-                            <Box sx={{ textAlign: 'center', mb: 0.5 }}>
-                                <Chip
-                                    icon={<PersonIcon sx={{ fontSize: 14 }} />}
-                                    label={`${activePersona.displayName} is handling this`}
-                                    size="small"
-                                    color="primary"
-                                    variant="outlined"
-                                    sx={{
-                                        fontSize: '0.7rem',
-                                        height: 24,
-                                        '& .MuiChip-icon': { ml: 0.5 },
-                                    }}
-                                />
-                            </Box>
-                        )}
-                        <ThinkingIndicator text={msg.content || 'Thinking'} />
-                    </Box>
-                );
-            }
+            case 'thinking':
+                return <ThinkingIndicator key={msg.id} text={msg.content || 'Thinking'} />;
 
             case 'tool_start':
                 return (
@@ -206,9 +196,6 @@ export default function AICopilot() {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <ProviderPicker />
-                    {isStreaming && (
-                        <ThinkingIndicator text="typing" />
-                    )}
                     {messages.length > 0 && (
                         <IconButton size="small" onClick={clearMessages} title="Clear chat">
                             <ClearIcon fontSize="small" />
@@ -229,7 +216,28 @@ export default function AICopilot() {
                     <EmptyState onSend={sendMessage} />
                 )}
 
-                {messages.map((msg, idx) => renderMessage(msg, idx))}
+                {messages.map(renderMessage)}
+
+                {/* Streaming indicator — below all messages */}
+                {isStreaming && (
+                    <Box sx={{ mt: 1 }}>
+                        {activePersona && (
+                            <Chip
+                                label={activePersona.displayName}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                    fontSize: '0.65rem',
+                                    height: 20,
+                                    mb: 0.5,
+                                    color: 'text.secondary',
+                                    borderColor: 'divider',
+                                }}
+                            />
+                        )}
+                        <ThinkingIndicator text="typing" />
+                    </Box>
+                )}
                 <div ref={bottomRef} />
             </Box>
 
