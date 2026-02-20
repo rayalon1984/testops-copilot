@@ -1,5 +1,5 @@
 /**
- * Mock Tool Results — Realistic demo data for all 18 AI tools.
+ * Mock Tool Results — Realistic demo data for all 22 AI tools.
  *
  * Used in demo/mock mode so the full card experience renders without
  * needing real Jira, GitHub, Jenkins, or Confluence connections.
@@ -214,6 +214,56 @@ const githubRerunWorkflow: MockResultFn = (args) => ({
     },
 });
 
+// ─── Sprint 7: New Tools ───
+
+const giphySearch: MockResultFn = (args) => ({
+    success: true,
+    summary: `Found GIF: "Celebration Dance" for "${args.query || 'celebration'}"`,
+    data: {
+        gifs: [
+            { id: 'gif-001', title: 'Celebration Dance', url: 'https://media.giphy.com/media/example1/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example1/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example1' },
+            { id: 'gif-002', title: 'High Five', url: 'https://media.giphy.com/media/example2/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example2/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example2' },
+            { id: 'gif-003', title: 'Nailed It', url: 'https://media.giphy.com/media/example3/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example3/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example3' },
+        ],
+        selected: { id: 'gif-001', title: 'Celebration Dance', url: 'https://media.giphy.com/media/example1/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example1/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example1' },
+        query: args.query || 'celebration',
+        attribution: 'Powered by GIPHY',
+    },
+});
+
+const jiraLinkIssues: MockResultFn = (args) => ({
+    success: true,
+    summary: `Linked ${args.sourceKey || 'TESTOPS-142'} to ${(args.targetKeys as string[] || ['TESTOPS-138', 'TESTOPS-125']).join(', ')} (relates to).`,
+    data: {
+        sourceKey: args.sourceKey || 'TESTOPS-142',
+        linked: args.targetKeys || ['TESTOPS-138', 'TESTOPS-125'],
+        linkType: args.linkType || 'relates to',
+    },
+});
+
+const jiraAddLabel: MockResultFn = (args) => ({
+    success: true,
+    summary: `Added label(s) ${((args.labels as string[]) || ['investigated-by-ai']).map((l: string) => `"${l}"`).join(', ')} to ${args.issueKey || 'TESTOPS-142'}.`,
+    data: {
+        issueKey: args.issueKey || 'TESTOPS-142',
+        labels: args.labels || ['investigated-by-ai'],
+    },
+});
+
+const githubMergePR: MockResultFn = (args) => ({
+    success: true,
+    summary: `Merged PR #${args.prNumber || 487} in ${args.owner || 'testops'}/${args.repo || 'app'} (squash).`,
+    data: {
+        prNumber: args.prNumber || 487,
+        owner: args.owner || 'testops',
+        repo: args.repo || 'app',
+        merged: true,
+        sha: 'a1b2c3d4e5f',
+        mergeMethod: args.mergeMethod || 'squash',
+        message: `PR #${args.prNumber || 487} merged successfully`,
+    },
+});
+
 // ─── Registry ───
 
 const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
@@ -238,6 +288,11 @@ const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
     testrun_cancel: testrunCancel,
     testrun_retry: testrunRetry,
     github_rerun_workflow: githubRerunWorkflow,
+    // Sprint 7: New tools
+    giphy_search: giphySearch,
+    jira_link_issues: jiraLinkIssues,
+    jira_add_label: jiraAddLabel,
+    github_merge_pr: githubMergePR,
 };
 
 /**

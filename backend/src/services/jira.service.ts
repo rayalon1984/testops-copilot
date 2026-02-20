@@ -355,6 +355,49 @@ export class JiraService {
       throw new Error('Failed to add comment to Jira issue');
     }
   }
+
+  /**
+   * Link two Jira issues with a relationship type.
+   * Sprint 7: Autonomous housekeeping — Tier 1 auto-execute.
+   */
+  async linkIssues(sourceKey: string, targetKey: string, linkType: string = 'relates to'): Promise<void> {
+    this.checkEnabled();
+
+    try {
+      // jira-client types don't expose issueLink, but the REST API supports it
+      await (this.client as any).issueLink({
+        type: { name: linkType },
+        inwardIssue: { key: sourceKey },
+        outwardIssue: { key: targetKey },
+      });
+      logger.info(`Linked Jira issues ${sourceKey} → ${targetKey} (${linkType})`);
+    } catch (error) {
+      logger.error(`Failed to link ${sourceKey} to ${targetKey}:`, error);
+      throw new Error(`Failed to link Jira issues: ${sourceKey} → ${targetKey}`);
+    }
+  }
+
+  /**
+   * Add labels to a Jira issue.
+   * Sprint 7: Autonomous housekeeping — Tier 1 auto-execute.
+   */
+  async addLabels(issueKey: string, labels: string[]): Promise<void> {
+    this.checkEnabled();
+
+    try {
+      // Use the Jira REST API 'update' field operator for atomic label additions
+      await this.client!.updateIssue(issueKey, {
+        fields: {},
+        update: {
+          labels: labels.map(label => ({ add: label })),
+        },
+      } as any);
+      logger.info(`Added labels [${labels.join(', ')}] to ${issueKey}`);
+    } catch (error) {
+      logger.error(`Failed to add labels to ${issueKey}:`, error);
+      throw new Error(`Failed to add labels to ${issueKey}`);
+    }
+  }
 }
 
 export const jiraService = new JiraService();
