@@ -1,6 +1,6 @@
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticate, authorize } from '../middleware/auth';
-import { validateNotificationPreferences } from '../middleware/validation';
+import { validateNotificationPreferences, validateChannelVerification, validateBroadcastNotification, validateGlobalNotificationSettings } from '../middleware/validation';
 import { NotificationController } from '../controllers/notification.controller';
 import { UserRole } from '../constants';
 import { notificationRouter as router } from './index';
@@ -172,6 +172,7 @@ router.get(
 router.post(
   '/channels/verify',
   authenticate,
+  validateChannelVerification,
   asyncHandler(async (req, res) => {
     const result = await notificationController.verifyChannel(
       req.user!.id,
@@ -224,6 +225,7 @@ router.get(
 // @access  Admin
 router.post(
   '/broadcast',
+  validateBroadcastNotification,
   asyncHandler(async (req, res) => {
     await notificationController.sendBroadcastNotification(req.body);
     res.status(200).json({
@@ -252,6 +254,7 @@ router.get(
 // @access  Admin
 router.put(
   '/settings',
+  validateGlobalNotificationSettings,
   asyncHandler(async (req, res) => {
     const settings = await notificationController.updateGlobalSettings(req.body);
     res.status(200).json({

@@ -10,6 +10,7 @@
 import { Router, Request, Response } from 'express';
 import { createShare, getShareByToken, shareViaEmail } from '../services/share.service';
 import { authenticate } from '../middleware/auth';
+import { validateCreateShare, validateEmailShare } from '../middleware/validation';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -18,7 +19,7 @@ const router = Router();
  * POST /api/v1/shares
  * Create a new shared analysis link. Requires authentication.
  */
-router.post('/', authenticate, async (req: Request, res: Response) => {
+router.post('/', authenticate, validateCreateShare, async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const { title, content, persona, toolSummary, sessionId, expiresInDays } = req.body;
@@ -69,7 +70,7 @@ router.get('/:token', async (req: Request, res: Response) => {
  * POST /api/v1/shares/:token/email
  * Email a shared analysis to a recipient. Requires authentication.
  */
-router.post('/:token/email', authenticate, async (req: Request, res: Response) => {
+router.post('/:token/email', authenticate, validateEmailShare, async (req: Request, res: Response) => {
     try {
         const token = req.params.token as string;
         const { recipientEmail } = req.body;

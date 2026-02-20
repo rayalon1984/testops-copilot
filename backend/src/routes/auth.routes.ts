@@ -4,7 +4,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import passport from 'passport';
 import { asyncHandler } from '../middleware/errorHandler';
-import { validateRegisterInput, validateLoginInput } from '../middleware/validation';
+import { validateRegisterInput, validateLoginInput, validateUpdatePasswordInput } from '../middleware/validation';
 import { JwtService } from '../services/jwt.service';
 import { tokenBlacklist } from '../services/tokenBlacklist.service';
 import { LoginDTO, CreateUserDTO, UpdatePasswordDTO } from '../types/user';
@@ -174,6 +174,7 @@ router.get(
 router.put(
   '/password',
   authenticate,
+  validateUpdatePasswordInput,
   asyncHandler(async (req: TypedRequest<UpdatePasswordDTO>, res: Response) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });

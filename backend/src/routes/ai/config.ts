@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { getAIManager } from '../../services/ai';
 import { authorize } from '../../middleware/auth';
+import { validateAIConfigUpdate, validateAIAutonomy } from '../../middleware/validation';
 import { UserRole } from '../../constants';
 import * as providerConfig from '../../services/ai/provider-config.service';
 import { getAvailablePersonas } from '../../services/ai/PersonaRouter';
@@ -56,7 +57,7 @@ router.get('/autonomy', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.put('/autonomy', async (req: Request, res: Response): Promise<void> => {
+router.put('/autonomy', validateAIAutonomy, async (req: Request, res: Response): Promise<void> => {
   try {
     const user = req.user;
     if (!user?.id) { res.status(401).json({ error: 'Authentication required' }); return; }
@@ -87,7 +88,7 @@ router.get('/config', async (_req: Request, res: Response) => {
   }
 });
 
-router.put('/config', authorize(UserRole.ADMIN), async (req: Request, res: Response) => {
+router.put('/config', authorize(UserRole.ADMIN), validateAIConfigUpdate, async (req: Request, res: Response) => {
   try {
     const { provider, model, apiKey, extraConfig } = req.body;
     if (!provider || !model) {
