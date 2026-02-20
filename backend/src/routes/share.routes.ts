@@ -92,7 +92,7 @@ router.post('/:token/email', authenticate, async (req: Request, res: Response) =
             share.title,
             share.content,
             recipientEmail,
-            user?.name || user?.email,
+            user?.firstName || user?.email,
         );
 
         if (!sent) {

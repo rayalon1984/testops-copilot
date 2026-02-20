@@ -176,12 +176,12 @@ export class VectorSearch {
   /**
    * Build Weaviate filters from search options
    */
-  private buildFilters(filters?: SearchOptions['filters']): any {
+  private buildFilters(filters?: SearchOptions['filters']): Record<string, unknown> | undefined {
     if (!filters) {
       return undefined;
     }
 
-    const conditions: any[] = [];
+    const conditions: Record<string, unknown>[] = [];
 
     if (filters.pipeline) {
       conditions.push({

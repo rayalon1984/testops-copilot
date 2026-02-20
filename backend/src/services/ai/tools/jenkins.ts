@@ -53,8 +53,9 @@ export const jenkinsGetStatusTool: Tool = {
             }
 
             // Fetch test runs separately for schema compatibility
-            let runs: any[] = [];
+            let runs: Record<string, unknown>[] = [];
             try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 runs = await (prisma.testRun as any).findMany({
                     where: { pipelineId: pipeline.id },
                     orderBy: { createdAt: 'desc' },
@@ -65,7 +66,7 @@ export const jenkinsGetStatusTool: Tool = {
                 logger.warn('[jenkins_get_status] Could not query test runs');
             }
 
-            const mappedRuns = runs.map((run: any) => ({
+            const mappedRuns = runs.map((run: Record<string, unknown>) => ({
                 id: run.id,
                 name: run.name,
                 status: run.status,
@@ -80,15 +81,16 @@ export const jenkinsGetStatusTool: Tool = {
             }));
 
             // Use whatever fields are available on the pipeline model
+            const pipelineRecord = pipeline as Record<string, unknown>;
             const pipelineData: Record<string, unknown> = {
                 id: pipeline.id,
                 name: pipeline.name,
-                type: (pipeline as any).type,
+                type: pipelineRecord.type,
             };
             // Add optional fields if they exist
-            if ('enabled' in pipeline) pipelineData.enabled = (pipeline as any).enabled;
-            if ('status' in pipeline) pipelineData.status = (pipeline as any).status;
-            if ('lastRunAt' in pipeline) pipelineData.lastRunAt = (pipeline as any).lastRunAt;
+            if ('enabled' in pipeline) pipelineData.enabled = pipelineRecord.enabled;
+            if ('status' in pipeline) pipelineData.status = pipelineRecord.status;
+            if ('lastRunAt' in pipeline) pipelineData.lastRunAt = pipelineRecord.lastRunAt;
 
             return {
                 success: true,

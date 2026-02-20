@@ -212,7 +212,7 @@ export async function testProviderConnection(
 ): Promise<{ success: boolean; latencyMs: number; error?: string }> {
     const start = Date.now();
     try {
-        const config: any = {
+        const config: Record<string, unknown> = {
             apiKey: provider === 'mock' ? 'mock-key' : apiKey,
             model,
             maxTokens: 32,
@@ -234,7 +234,7 @@ export async function testProviderConnection(
             config.secretAccessKey = extraConfig?.secretAccessKey;
         }
 
-        const instance = providerRegistry.getProvider(provider, config);
+        const instance = providerRegistry.getProvider(provider, config as import('./providers/base.provider').ProviderConfig);
         const healthy = await instance.healthCheck();
 
         // Clear this test instance from cache so it doesn't interfere
@@ -311,7 +311,7 @@ async function applyProviderConfig(
         enabled: true,
         provider,
         model,
-        providerSecrets: secretsOverride as any,
+        providerSecrets: secretsOverride as Partial<import('./types').AIConfig['providerSecrets']>,
     });
 
     // Clear cached provider instances so next request creates a fresh one
@@ -320,8 +320,10 @@ async function applyProviderConfig(
     // Force AIManager to rebuild its provider reference
     try {
         const manager = getAIManager();
-        (manager as any).provider = providerRegistry.createFromConfig(cm);
-        (manager as any).configManager = cm;
+        // Use internal accessors to hot-swap provider — AIManager exposes these for runtime reconfiguration
+        const managerInternal = manager as unknown as { provider: import('./providers/base.provider').BaseProvider; configManager: import('./config').AIConfigManager };
+        managerInternal.provider = providerRegistry.createFromConfig(cm);
+        managerInternal.configManager = cm;
     } catch {
         // AIManager may not be initialized yet (startup path)
     }
