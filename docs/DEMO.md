@@ -1,7 +1,7 @@
 # TestOps Companion - Demo & Screenshots
 
 > Visual guide to TestOps Companion's features and user interface.
-> Updated for v2.9.0-rc.2 + Virtual Team Persona Routing (v3.0.0 Phase 1).
+> Updated for v2.9.0-rc.6 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
 
 ---
 

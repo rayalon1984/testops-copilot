@@ -7,7 +7,7 @@
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-2.9.0--rc.4-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.9.0--rc.6-blue)](CHANGELOG.md)
 
 > **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/README_MCP.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 

@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — System Design
 
-> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Last verified**: 2026-02-19
+> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 

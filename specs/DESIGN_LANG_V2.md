@@ -1,6 +1,6 @@
 # DESIGN_LANG_V2.md — UI Design Language
 
-> **Owner**: UX Designer · **Status**: Living document · **Last verified**: 2026-02-19
+> **Owner**: UX Designer · **Status**: Living document · **Version**: 2.9.0-rc.6 · **Last verified**: 2026-02-20
 
 ---
 
