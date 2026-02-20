@@ -1,13 +1,13 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
-> **Current Version**: 2.9.0-rc.7 (February 2026)
+> **Current Version**: 3.0.0 (February 2026)
 
 ---
 
 ## Shipped
 
-### v2.9.0-rc.7 — Sprint 8: Global AI Context + High-Fidelity Seeding (February 2026)
+### v3.0.0 — Sprint 8: Global AI Context + High-Fidelity Seeding (February 2026)
 - [x] Global AIProvider React Context (page + entity awareness for AI Copilot)
 - [x] usePageContext hook — 7 pages report context (Dashboard, Pipelines, Test Runs, Failures, Cost)
 - [x] Context injection into AI chat requests (uiContext field)
@@ -171,12 +171,12 @@
 - [ ] Buffered chat handler for non-streaming channels
 
 **Release Polish** (rc.3 → GA):
-- [ ] Onboarding wizard (first-run provider setup, sample queries)
-- [ ] Rate limit UI feedback (quota indicators in chat)
+- [x] Onboarding wizard (first-run provider setup, sample queries) — 3-step wizard with stepper
+- [x] Rate limit UI feedback (quota indicators in chat) — QuotaIndicator with budget warnings
 - [ ] Usage dashboard per-session (cost breakdown by tool/provider)
-- [ ] Error recovery UX (retry failed tool calls, connection lost handling)
-- [ ] E2E smoke tests for full agentic flow (Playwright)
-- [ ] Release notes and changelog
+- [x] Error recovery UX (retry failed tool calls, connection lost handling) — auto-retry + classification
+- [x] E2E smoke tests for full agentic flow (Playwright) — 10 tests, mock API fixtures
+- [x] Release notes and changelog
 
 **Enterprise**:
 - [ ] LDAP integration

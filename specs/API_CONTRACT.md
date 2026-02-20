@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 2.9.0-rc.7 · **Last verified**: 2026-02-20
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.0.0 · **Last verified**: 2026-02-20
 
 ---
 
@@ -66,7 +66,7 @@ Production responses include `message` only. Development adds `stack` and `detai
 {
   "status": "healthy | degraded | unhealthy",
   "timestamp": "ISO-8601",
-  "version": "2.9.0-rc.7",
+  "version": "3.0.0",
   "uptime": 12345,
   "services": {
     "database": { "status": "up | down", "responseTime": 5 },

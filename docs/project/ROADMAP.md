@@ -4,4 +4,4 @@
 >
 > See: [`../../specs/ROADMAP.md`](../../specs/ROADMAP.md)
 >
-> *Last redirect: 2026-02-20 · v2.9.0-rc.7*
+> *Last redirect: 2026-02-20 · v3.0.0*

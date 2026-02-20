@@ -47,6 +47,7 @@ import ChatInput from './ChatInput';
 import EmptyState from './EmptyState';
 import MessageActions from './MessageActions';
 import ProviderPicker from './ProviderPicker';
+import QuotaIndicator from './QuotaIndicator';
 
 function useUserRole(): string {
     const { user } = useAuth();
@@ -213,8 +214,17 @@ export default function AICopilot() {
                     </Box>
                 );
 
-            case 'error':
-                return <ErrorMessage key={msg.id} content={msg.content} />;
+            case 'error': {
+                // Find the last user message for retry context
+                const lastUserMsg = messages.filter(m => m.role === 'user').pop();
+                return (
+                    <ErrorMessage
+                        key={msg.id}
+                        content={msg.content}
+                        onRetry={lastUserMsg ? () => sendWithContext(lastUserMsg.content) : undefined}
+                    />
+                );
+            }
 
             default:
                 return null;
@@ -247,6 +257,7 @@ export default function AICopilot() {
                     <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <QuotaIndicator />
                     <ProviderPicker />
                     {messages.length > 0 && (
                         <IconButton size="small" onClick={clearMessages} title="Clear chat">
