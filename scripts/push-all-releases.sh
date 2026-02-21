@@ -30,22 +30,25 @@ sleep 15
 
 # --------------------------------------------------------------------------
 # Helper: create or edit a release
+# Uses a temp file for notes to avoid bash 3.2 heredoc-in-$() parsing bugs.
 # --------------------------------------------------------------------------
+_notes_file=$(mktemp)
+trap 'rm -f "$_notes_file"' EXIT
+
 upsert_release() {
   local tag="$1"
   local title="$2"
-  local body="$3"
-  local prerelease="$4"
+  local prerelease="$3"
+  # Notes are pre-written to $_notes_file before each call
 
   echo ""
   echo "--- ${tag}: ${title}"
 
-  # Check if release already exists
   if gh release view "$tag" --repo "$REPO" &>/dev/null; then
     gh release edit "$tag" \
       --repo "$REPO" \
       --title "$title" \
-      --notes "$body"
+      --notes-file "$_notes_file"
     echo "    ✓ Updated existing release"
   else
     local flags=""
@@ -55,7 +58,7 @@ upsert_release() {
     gh release create "$tag" \
       --repo "$REPO" \
       --title "$title" \
-      --notes "$body" \
+      --notes-file "$_notes_file" \
       $flags
     echo "    ✓ Created new release"
   fi
@@ -64,9 +67,7 @@ upsert_release() {
 # ==========================================================================
 # v2.8.5 — Enterprise Readiness
 # ==========================================================================
-upsert_release "v2.8.5" \
-  "TestOps Companion v2.8.5 — Enterprise Readiness" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Enterprise Readiness
 
 Production-grade security, compliance, and scalability foundations.
@@ -82,15 +83,14 @@ Production-grade security, compliance, and scalability foundations.
 - **Alpine Docker images** (~80% smaller)
 - **CI/CD pipeline** with automated quality gates
 NOTES
-)" \
+upsert_release "v2.8.5" \
+  "TestOps Companion v2.8.5 — Enterprise Readiness" \
   "false"
 
 # ==========================================================================
 # v2.9.0-rc.1 — Agentic AI Copilot
 # ==========================================================================
-upsert_release "v2.9.0-rc.1" \
-  "TestOps Companion v2.9.0-rc.1 — Agentic AI Copilot" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Agentic AI Copilot
 
 Full agentic backend + 3-column Mission Control UI + production hardening.
@@ -108,15 +108,14 @@ Full agentic backend + 3-column Mission Control UI + production hardening.
 - **SSRF validation** on all external service constructors
 - **AIConfigManager** — consolidated AI config
 NOTES
-)" \
+upsert_release "v2.9.0-rc.1" \
+  "TestOps Companion v2.9.0-rc.1 — Agentic AI Copilot" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.2 — Virtual Team Persona Routing
 # ==========================================================================
-upsert_release "v2.9.0-rc.2" \
-  "TestOps Companion v2.9.0-rc.2 — Virtual Team Persona Routing" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Virtual Team Persona Routing
 
 AI queries routed to specialist personas for domain-expert responses.
@@ -130,15 +129,14 @@ AI queries routed to specialist personas for domain-expert responses.
 - **Schema parity CI guardrail** preventing model drift
 - **Comprehensive documentation overhaul** — README, DEMO, HOW_IT_WORKS
 NOTES
-)" \
+upsert_release "v2.9.0-rc.2" \
+  "TestOps Companion v2.9.0-rc.2 — Virtual Team Persona Routing" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.3 — Sprint 5 Stabilization
 # ==========================================================================
-upsert_release "v2.9.0-rc.3" \
-  "TestOps Companion v2.9.0-rc.3 — Sprint 5 Stabilization" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Sprint 5 Stabilization
 
 Type safety, schema integrity, security audit, CI hardening.
@@ -152,15 +150,14 @@ Type safety, schema integrity, security audit, CI hardening.
 - **`--strict-fields` CI gate** for field-level drift prevention
 - **Bedrock provider import fix** unblocking `tsc --noEmit`
 NOTES
-)" \
+upsert_release "v2.9.0-rc.3" \
+  "TestOps Companion v2.9.0-rc.3 — Sprint 5 Stabilization" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.4 — Graduated Autonomy + Backend Stability
 # ==========================================================================
-upsert_release "v2.9.0-rc.4" \
-  "TestOps Companion v2.9.0-rc.4 — Graduated Autonomy + Backend Stability" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Graduated Autonomy + Backend Stability
 
 Three-tier autonomy model and backend stability refactor.
@@ -176,15 +173,14 @@ Three-tier autonomy model and backend stability refactor.
 - **4 fat controllers** extracted to thin adapters + services
 - **AI route split** from 778-line monolith to 3 focused modules
 NOTES
-)" \
+upsert_release "v2.9.0-rc.4" \
+  "TestOps Companion v2.9.0-rc.4 — Graduated Autonomy + Backend Stability" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.5 — Autonomy Tests + New Tools + Proactive UX
 # ==========================================================================
-upsert_release "v2.9.0-rc.5" \
-  "TestOps Companion v2.9.0-rc.5 — Autonomy Tests + New Tools + Proactive UX" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Autonomy Tests + New Tools + Proactive UX
 
 95 new tests for graduated autonomy. 4 new AI tools (22 total).
@@ -199,15 +195,14 @@ upsert_release "v2.9.0-rc.5" \
 - **github_merge_pr** — merge PRs from chat (Tier 2)
 - **GiphyEmbedCard, RetryCard, HousekeepingCard** frontend components
 NOTES
-)" \
+upsert_release "v2.9.0-rc.5" \
+  "TestOps Companion v2.9.0-rc.5 — Autonomy Tests + New Tools + Proactive UX" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.6 — Global AI Context + High-Fidelity Seeding
 # ==========================================================================
-upsert_release "v2.9.0-rc.6" \
-  "TestOps Companion v2.9.0-rc.6 — Global AI Context + High-Fidelity Seeding" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Global AI Context + High-Fidelity Seeding
 
 Page-aware AI assistance and production-realistic seed data.
@@ -221,15 +216,14 @@ Page-aware AI assistance and production-realistic seed data.
 - **200 test runs, 1,600 failure archives, 20K+ AI usage records**
 - **CLAUDE.md** simplified to 6-line pointer to AGENTS.md
 NOTES
-)" \
+upsert_release "v2.9.0-rc.6" \
+  "TestOps Companion v2.9.0-rc.6 — Global AI Context + High-Fidelity Seeding" \
   "true"
 
 # ==========================================================================
 # v2.9.0-rc.7 — Resilience Layer + Documentation
 # ==========================================================================
-upsert_release "v2.9.0-rc.7" \
-  "TestOps Companion v2.9.0-rc.7 — Resilience Layer + Documentation" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Resilience Layer + Documentation
 
 Circuit breakers, retries, and timeouts for all external services.
@@ -244,15 +238,14 @@ Circuit breakers, retries, and timeouts for all external services.
 - **Architecture docs** updated with resilience diagrams
 - **All spec docs** verified at v3.0.0
 NOTES
-)" \
+upsert_release "v2.9.0-rc.7" \
+  "TestOps Companion v2.9.0-rc.7 — Resilience Layer + Documentation" \
   "true"
 
 # ==========================================================================
 # v3.0.0-beta.1 — THE MAIN RELEASE (marketing copy)
 # ==========================================================================
-upsert_release "v3.0.0-beta.1" \
-  "TestOps Companion v3.0.0-beta.1 — AI That Thinks, Acts, and Learns" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 # TestOps Companion v3.0.0-beta.1
 
 ### Your QA team just got an AI copilot that actually understands testing.
@@ -265,10 +258,10 @@ TestOps Companion v3.0.0 is the culmination of 8 release candidates and thousand
 
 Most "AI-powered" dev tools bolt a chatbot onto a sidebar. **TestOps Companion embeds AI directly into your testing workflow** — it reads your Jira tickets, analyzes your test failures, checks your GitHub PRs, and takes action with your permission.
 
-### 🧠 A Virtual Team of 9 Specialists
+### A Virtual Team of 9 Specialists
 Every query is automatically routed to the right expert persona — Security Analyst, Performance Engineer, DevOps Specialist, Test Architect, and more. Ask about flaky tests and get advice from a testing expert. Ask about deployment risks and hear from DevOps.
 
-### 🤖 Graduated Autonomy — You Set the Boundaries
+### Graduated Autonomy — You Set the Boundaries
 Not all actions are created equal. TestOps Companion classifies every AI tool into three tiers:
 | Tier | Behavior | Example |
 |------|----------|---------|
@@ -276,13 +269,13 @@ Not all actions are created equal. TestOps Companion classifies every AI tool in
 | **AI Proposes** | AI suggests, you approve with one click | Merging a PR, linking issues |
 | **You Decide** | Full manual control | Deployment triggers, config changes |
 
-### 💡 Proactive Suggestions
+### Proactive Suggestions
 The AI doesn't wait for you to ask. After every action, it anticipates your next step — offering to link related Jira issues, retry a failed build, or investigate a flaky test pattern.
 
-### 📍 Page-Aware Context
+### Page-Aware Context
 The AI knows what you're looking at. On the Test Runs page, it prioritizes failure analysis. On the Dashboard, it highlights trends. On Settings, it helps with configuration. Zero prompt engineering required.
 
-### 🛡️ Resilience Built In
+### Resilience Built In
 Circuit breakers, automatic retries, and timeout management on every external service (GitHub, Jira, Jenkins, Confluence). Your copilot stays responsive even when third-party APIs don't.
 
 ---
@@ -331,15 +324,14 @@ npm run setup
 > **This is a beta release.** We're actively collecting feedback before GA.
 > Found an issue? [Open a bug report →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
-)" \
+upsert_release "v3.0.0-beta.1" \
+  "TestOps Companion v3.0.0-beta.1 — AI That Thinks, Acts, and Learns" \
   "true"
 
 # ==========================================================================
 # v3.0.1-beta.1 — End-to-End Test Coverage
 # ==========================================================================
-upsert_release "v3.0.1-beta.1" \
-  "TestOps Companion v3.0.1-beta.1 — End-to-End Test Coverage" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## End-to-End Test Coverage
 
 The full agentic copilot flow is now covered by Playwright smoke tests.
@@ -353,15 +345,14 @@ The full agentic copilot flow is now covered by Playwright smoke tests.
 
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
-)" \
+upsert_release "v3.0.1-beta.1" \
+  "TestOps Companion v3.0.1-beta.1 — End-to-End Test Coverage" \
   "true"
 
 # ==========================================================================
 # v3.0.2-beta.1 — First-Run Experience & Error Recovery
 # ==========================================================================
-upsert_release "v3.0.2-beta.1" \
-  "TestOps Companion v3.0.2-beta.1 — First-Run Experience & Error Recovery" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## First-Run Experience & Error Recovery
 
 New users get a guided onboarding flow. Existing users get smarter error handling that recovers automatically.
@@ -374,15 +365,14 @@ New users get a guided onboarding flow. Existing users get smarter error handlin
 
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
-)" \
+upsert_release "v3.0.2-beta.1" \
+  "TestOps Companion v3.0.2-beta.1 — First-Run Experience & Error Recovery" \
   "true"
 
 # ==========================================================================
 # v3.0.3-beta.1 — Living Feature Specs
 # ==========================================================================
-upsert_release "v3.0.3-beta.1" \
-  "TestOps Companion v3.0.3-beta.1 — Living Feature Specs" \
-  "$(cat <<'NOTES'
+cat > "$_notes_file" <<'NOTES'
 ## Living Feature Specs
 
 Specs are no longer passive documentation. This release connects product specifications directly to test assertions with automated drift detection.
@@ -402,7 +392,8 @@ Specs are no longer passive documentation. This release connects product specifi
 
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
-)" \
+upsert_release "v3.0.3-beta.1" \
+  "TestOps Companion v3.0.3-beta.1 — Living Feature Specs" \
   "true"
 
 # ==========================================================================
