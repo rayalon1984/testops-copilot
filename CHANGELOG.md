@@ -6,9 +6,73 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
-## [3.0.3-beta.1] - 2026-02-21
+## [3.0.0-rc.2] - 2026-02-21
+
+> **Phase 4: Full Beta Coverage — 16 Features, 229 Assertions**
+
+### Highlights
+
+Every product feature now has a living feature spec. Expanded from 6 pilot features (103 assertions) to **16 features (229 assertions)** — complete coverage of the entire product surface for beta readiness.
+
+### What's New
+
+- **10 New Feature Manifests + Spec-Aware Tests** covering the full product surface:
+  - Failure Analysis (17) — categorization, log summary, RCA matching
+  - Authentication (21) — JWT, RBAC, SSO, token blacklist, audit logging
+  - MCP Server (15) — analyze, batch, knowledge base, stats
+  - Failure Knowledge Base (13) — fingerprinting, matching, RCA docs, insights
+  - Resilience (13) — circuit breaker, retry with backoff, timeout, pre-configured breakers
+  - ReAct Loop (12) — loop bounds, tool execution, SSE streaming, registry
+  - Context Enrichment (10) — gathering, confidence, synthesis
+  - AI Cost Management (9) — budget tracking, cache key format, hit/miss
+  - Pipeline Management (8) — CRUD, test run tracking, scheduling
+  - Notifications & Alerting (8) — multi-channel dispatch, Slack, URL building
+- **Scanner fix** — Added `lastRun` to version tracker type definition
+
+### Quality Gates
+
+| Gate | Status |
+|------|--------|
+| Tests | **417 passing** (27 backend suites + 13 frontend suites) |
+| Spec Scanner | 229/229 (100%) — invariants 144, behavioral 41, contracts 44 |
+| TypeScript | Zero errors |
+| Build | All packages compile |
+
+---
+
+## [3.0.0-rc.1] - 2026-02-21
+
+> **Release Candidate 1 — Specs Complete, Docs Polished, CI Hardened**
+
+### Highlights
+
+First release candidate for v3.0.0. All 6 pilot features fully spec'd (103 assertions), documentation cross-referenced and cleaned up, CI release workflow stabilized.
+
+### What's New
+
+- **Living Feature Specs Phase 1-3 Complete** — 6 features (Giphy, Smart Retry, Jira Housekeeping, Proactive Suggestions, Inline Diff, Autonomy Preferences) with 103 assertions, 100% coverage
+- **Coverage Thresholds Enforced** — Scanner blocks CI on invariant <100%, behavioral <80%, contract <80%
+- **PR Coverage Reports** — `npm run report:specs` and `npm run report:specs:dashboard` auto-posted to PRs via GitHub Actions
+- **Health Scoring** — A+ through D grading per-feature based on assertion coverage
+- **Documentation Cleanup** — v3.0.0 cross-referencing across README, SPEC, ARCHITECTURE, AGENTS
+- **CI Release Fix** — Release workflow no longer overwrites custom notes; bash 3.2 compatible script for macOS
+
+### Quality Gates
+
+| Gate | Status |
+|------|--------|
+| Tests | 323 passing (188 backend + 135 frontend) |
+| Spec Scanner | 103/103 (100%) |
+| TypeScript | Zero errors |
+| Build | All packages compile |
+
+---
+
+## [3.0.0-beta.4] - 2026-02-21
 
 > **Living Feature Specs — Machine-Readable Acceptance Criteria**
+
+*(Previously tagged as v3.0.3-beta.1)*
 
 ### Highlights
 
@@ -40,9 +104,11 @@ Specs are no longer passive documentation. This release introduces **Living Feat
 
 ---
 
-## [3.0.2-beta.1] - 2026-02-20
+## [3.0.0-beta.3] - 2026-02-20
 
 > **First-Run Experience & Error Recovery**
+
+*(Previously tagged as v3.0.2-beta.1)*
 
 ### Highlights
 
@@ -56,9 +122,11 @@ New users get a guided onboarding flow. Existing users get smarter error handlin
 
 ---
 
-## [3.0.1-beta.1] - 2026-02-20
+## [3.0.0-beta.2] - 2026-02-20
 
 > **End-to-End Test Coverage for the Agentic Copilot**
+
+*(Previously tagged as v3.0.1-beta.1)*
 
 ### Highlights
 
