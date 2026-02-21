@@ -7,7 +7,7 @@
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-2.9.0--rc.6-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
 
 > **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/README_MCP.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 
@@ -24,9 +24,7 @@
 
 TestOps Companion is a platform that connects to your CI/CD pipelines (Jenkins, GitHub Actions), collects test results, and uses AI to figure out **why** things failed. It builds a knowledge base so the **same failure never wastes your time twice**.
 
-**What makes v2.9+ different:** An agentic AI copilot that doesn't just analyze failures — it autonomously searches Jira, queries Confluence, checks pipelines, creates branches, opens PRs, and files issues. All through natural language conversation.
-
-**What's new in v3.0 (Phase 1):** [Virtual Team Routing](#-virtual-team-persona-routing) — queries are classified and routed to the right AI specialist (Test Engineer, DevOps Engineer, Security Engineer, etc.) before fulfillment.
+**What makes v3.0 different:** An agentic AI copilot that doesn't just analyze failures — it autonomously searches Jira, queries Confluence, checks pipelines, creates branches, opens PRs, and files issues. All through natural language conversation with a [virtual team of 9 AI specialists](#-virtual-team-persona-routing) and [graduated autonomy](#graduated-autonomy) that lets you control how much the AI does on its own.
 
 ![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
 *3-column Mission Control: navigation | main content | AI Copilot panel with persona routing*

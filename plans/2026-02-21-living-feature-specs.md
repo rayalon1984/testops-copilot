@@ -1,7 +1,7 @@
 # Living Feature Specs — Architecture Plan
 
 > **Date**: 2026-02-21 · **Owner**: AI_ARCHITECT + TEST_ENGINEER
-> **Status**: Draft · **Personas consulted**: AI_ARCHITECT, TEST_ENGINEER, AI_PRODUCT_MANAGER
+> **Status**: APPROVED · Phases 1-3 complete (6 features, 105 assertions, scanner in CI as advisory) · **Personas consulted**: AI_ARCHITECT, TEST_ENGINEER, AI_PRODUCT_MANAGER
 > **PR Branch**: `claude/codebase-review-beta-planning-LhVuu`
 
 ---

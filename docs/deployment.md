@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **Quick start**: [`docs/PRODUCTION_QUICKSTART.md`](PRODUCTION_QUICKSTART.md) | **Dev modes**: [`docs/DEV_MODE.md`](DEV_MODE.md) | **DevOps spec**: [`specs/team/DEVOPS_ENGINEER.md`](../specs/team/DEVOPS_ENGINEER.md)
+
 This guide covers different deployment options for TestOps Companion, from development to production environments.
 
 ## Table of Contents
@@ -346,3 +348,4 @@ sudo certbot --nginx -d your-domain.com
 ```bash
 # Add to crontab
 0 0 1 * * /usr/bin/certbot renew --quiet
+```

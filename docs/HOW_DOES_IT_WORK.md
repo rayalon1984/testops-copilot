@@ -10,7 +10,7 @@
 You connect TestOps Companion to your CI/CD pipeline (Jenkins, GitHub Actions).
 Every time your tests run, it automatically collects the results, uses AI to figure out **why** things failed, and builds a knowledge base so the **same failure never wastes your time twice**.
 
-**New in v2.9+:** An AI copilot you can talk to in natural language. It searches Jira, checks pipelines, queries your wiki, and even creates PRs --- all through a chat interface. Queries are routed to a virtual team of specialists (Test Engineer, DevOps Engineer, Security Engineer, etc.) who bring domain expertise to every answer.
+**v3.0 AI Copilot:** An agentic AI copilot you talk to in natural language. It searches Jira, checks pipelines, queries your wiki, and even creates PRs — all through a chat interface. Queries are routed to a virtual team of 9 specialists (Test Engineer, DevOps Engineer, Security Engineer, etc.) with graduated autonomy that lets you control how much the AI does on its own.
 
 ---
 
