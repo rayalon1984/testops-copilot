@@ -48,7 +48,10 @@
     "test:e2e": "npx playwright test --config tests/e2e/playwright.config.ts",
     "test:e2e:headed": "npx playwright test --config tests/e2e/playwright.config.ts --headed",
     "test:all": "npm run test && npm run test:e2e",
-    "validate:specs": "npx tsx scripts/scan-feature-specs.ts"
+    "validate:specs": "npx tsx scripts/scan-feature-specs.ts",
+    "validate:specs:json": "npx tsx scripts/scan-feature-specs.ts --json",
+    "report:specs": "npx tsx scripts/feature-health-report.ts --pr",
+    "report:specs:dashboard": "npx tsx scripts/feature-health-report.ts --dashboard"
   },
   "keywords": [
     "test",

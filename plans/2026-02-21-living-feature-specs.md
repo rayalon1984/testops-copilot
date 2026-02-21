@@ -427,7 +427,7 @@ These were chosen because:
 
 ## Migration Strategy
 
-### Phase 1: Foundation (this PR)
+### Phase 1: Foundation — COMPLETE
 - Create `specs/features/` directory structure
 - Implement `_schema.ts` types
 - Implement `registry.ts` loader/validator
@@ -437,15 +437,20 @@ These were chosen because:
 - Update `_SPEC_INDEX.md` with feature spec documentation
 - Scanner runs in CI as advisory (non-blocking)
 
-### Phase 2: Adoption (next sprint)
+### Phase 2: Adoption — COMPLETE
 - Convert existing tests to use `describeFeature()` / `itAssertion()` where applicable
 - Create manifests for remaining features (Proactive Suggestions, Inline Diff, Autonomy Preferences)
 - Scanner becomes blocking for invariant coverage (all invariants must have tests)
+- 103 assertions across 6 features, all tested
 
-### Phase 3: Maturity (sprint after)
-- Behavioral coverage thresholds enforced
-- Auto-generated coverage report in PR comments
-- Feature health dashboard (which features have drift, coverage gaps)
+### Phase 3: Maturity — COMPLETE
+- Behavioral coverage thresholds enforced (default 80%, configurable via `SPEC_BEHAVIORAL_THRESHOLD`)
+- Contract coverage thresholds enforced (default 80%, configurable via `SPEC_CONTRACT_THRESHOLD`)
+- `--json` output mode for scanner (`npm run validate:specs:json`)
+- Auto-generated coverage report for PR comments (`npm run report:specs`)
+- Feature health dashboard with per-capability breakdown (`npm run report:specs:dashboard`)
+- GitHub Actions workflow (`.github/workflows/feature-specs.yml`) auto-posts coverage to PRs
+- Health scoring: A+ (100%) through D (<70%) grading system
 
 ---
 
