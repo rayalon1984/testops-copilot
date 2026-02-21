@@ -1,0 +1,148 @@
+feature: autonomy-preferences
+name: "User Autonomy Preferences"
+version: "1.0.0"
+status: shipped
+since: "v3.0.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+capabilities:
+  - id: autonomy.classifier
+    name: "AutonomyClassifier"
+    version: "1.0.0"
+    description: "Graduated autonomy tier assignment engine"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: autonomy.classifier.three-tiers
+        description: "Classifies tools into Tier 1 (auto-execute), Tier 2 (card), or Tier 3 (full confirm)"
+        type: invariant
+      - id: autonomy.classifier.read-only-tier1
+        description: "All read-only tools (jira_search, jira_get, github_get_commit, etc.) are Tier 1"
+        type: invariant
+      - id: autonomy.classifier.static-map
+        description: "Each tool has a static default tier in TOOL_TIER_MAP"
+        type: invariant
+      - id: autonomy.classifier.context-never-demotes
+        description: "Context overrides can promote to a higher/safer tier but never demote"
+        type: invariant
+      - id: autonomy.classifier.auto-execute-flag
+        description: "autoExecute is true only when finalTier === 1"
+        type: contract
+
+  - id: autonomy.context-overrides
+    name: "Context-Dependent Overrides"
+    version: "1.0.0"
+    description: "Dynamic tier adjustments based on runtime context"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: autonomy.override.retry-tier1-high-confidence
+        description: "testrun_retry downgrades to Tier 1 when confidence > 0.9 AND retryCount < 2"
+        type: invariant
+      - id: autonomy.override.rerun-workflow-tier1
+        description: "github_rerun_workflow downgrades to Tier 1 when confidence > 0.9"
+        type: invariant
+      - id: autonomy.override.jenkins-prod-tier3
+        description: "jenkins_trigger_build promotes to Tier 3 when isProduction is true"
+        type: invariant
+      - id: autonomy.override.jira-comment-ai-notes
+        description: "jira_comment downgrades to Tier 1 when body starts with '[AI Investigation]' or '[Auto]'"
+        type: invariant
+
+  - id: autonomy.user-preference
+    name: "User Preference Application"
+    version: "1.0.0"
+    description: "Three-level user autonomy preference that modifies tier classification"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: autonomy.pref.conservative-forces-tier2
+        description: "Conservative preference forces all tools to at least Tier 2"
+        type: invariant
+      - id: autonomy.pref.balanced-no-change
+        description: "Balanced preference passes through the classification unchanged"
+        type: invariant
+      - id: autonomy.pref.autonomous-promotes-tier2
+        description: "Autonomous preference downgrades Tier 2 to Tier 1 (only Tier 3 requires confirm)"
+        type: invariant
+      - id: autonomy.pref.default-balanced
+        description: "Default autonomy level is 'balanced' when not set"
+        type: behavioral
+
+  - id: autonomy.gated-check
+    name: "Quick Gate Check"
+    version: "1.0.0"
+    description: "isGatedTool helper for ReAct loop optimization"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: autonomy.gated.read-only-false
+        description: "isGatedTool returns false for read-only tools (tier 1)"
+        type: invariant
+      - id: autonomy.gated.write-true
+        description: "isGatedTool returns true for write tools (tier > 1)"
+        type: invariant
+
+  - id: autonomy.frontend
+    name: "AutonomyPreferencePanel"
+    version: "1.0.0"
+    description: "Settings UI for selecting autonomy level"
+    files:
+      - frontend/src/pages/Settings.tsx
+    assertions:
+      - id: autonomy.frontend.three-options
+        description: "Shows three toggle buttons: Conservative, Balanced, Autonomous"
+        type: invariant
+      - id: autonomy.frontend.icons
+        description: "Each option has a descriptive icon (Shield, Balance, AutoFix)"
+        type: behavioral
+      - id: autonomy.frontend.description-panel
+        description: "Shows description text explaining the selected level's behavior"
+        type: invariant
+      - id: autonomy.frontend.persists-across-sessions
+        description: "Preference is saved via API (PUT /ai/autonomy) and persists across sessions"
+        type: invariant
+      - id: autonomy.frontend.react-query
+        description: "Uses React Query for fetching and invalidation on mutation"
+        type: behavioral
+      - id: autonomy.frontend.success-feedback
+        description: "Shows success alert after saving preference"
+        type: behavioral
+
+  - id: autonomy.api
+    name: "Autonomy API Endpoints"
+    version: "1.0.0"
+    description: "REST endpoints for getting and setting autonomy preference"
+    files:
+      - backend/src/routes/ai/config.ts
+    assertions:
+      - id: autonomy.api.get-endpoint
+        description: "GET /api/ai/autonomy returns current autonomy level"
+        type: contract
+      - id: autonomy.api.put-endpoint
+        description: "PUT /api/ai/autonomy accepts { autonomyLevel } and persists it"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-6
+    title: "User Autonomy Preferences"
+    gherkin: |
+      GIVEN the user navigates to Settings > AI Preferences
+      WHEN they select an autonomy level (Conservative / Balanced / Autonomous)
+      THEN all future AI actions respect that tier classification
+      AND the setting persists across sessions
+    maps_to:
+      - autonomy.pref.conservative-forces-tier2
+      - autonomy.pref.balanced-no-change
+      - autonomy.pref.autonomous-promotes-tier2
+      - autonomy.frontend.three-options
+      - autonomy.frontend.persists-across-sessions
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Initial implementation: AutonomyClassifier, context overrides, user preferences, Settings UI, API endpoints"

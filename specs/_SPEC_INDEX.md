@@ -72,7 +72,10 @@ Structured YAML manifests that link specs → assertions → tests. See `plans/2
 |------|---------|------------|--------|
 | `specs/features/giphy-integration.feature.yaml` | Giphy Integration | 14 | Shipped |
 | `specs/features/smart-retry.feature.yaml` | Smart Retry with Play Button | 13 | Shipped |
-| `specs/features/jira-housekeeping.feature.yaml` | Autonomous Jira Housekeeping | 14 | Shipped |
+| `specs/features/jira-housekeeping.feature.yaml` | Autonomous Jira Housekeeping | 15 | Shipped |
+| `specs/features/proactive-suggestions.feature.yaml` | Proactive Action Cards (AI-in-the-Loop) | 19 | Shipped |
+| `specs/features/inline-diff.feature.yaml` | Inline Code Diff in PR Cards | 18 | Shipped |
+| `specs/features/autonomy-preferences.feature.yaml` | User Autonomy Preferences | 23 | Shipped |
 
 **Infrastructure**:
 | File | Purpose |
