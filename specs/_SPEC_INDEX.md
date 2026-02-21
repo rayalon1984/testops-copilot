@@ -64,6 +64,30 @@
 
 ---
 
+## Feature Specs (Living Manifests)
+
+Structured YAML manifests that link specs → assertions → tests. See `plans/2026-02-21-living-feature-specs.md` for architecture.
+
+| File | Feature | Assertions | Status |
+|------|---------|------------|--------|
+| `specs/features/giphy-integration.feature.yaml` | Giphy Integration | 14 | Shipped |
+| `specs/features/smart-retry.feature.yaml` | Smart Retry with Play Button | 13 | Shipped |
+| `specs/features/jira-housekeeping.feature.yaml` | Autonomous Jira Housekeeping | 14 | Shipped |
+
+**Infrastructure**:
+| File | Purpose |
+|------|---------|
+| `specs/features/_schema.ts` | TypeScript types and validation for YAML manifests |
+| `specs/features/registry.ts` | Manifest loader, validator, and indexer |
+| `backend/src/__tests__/helpers/feature-spec.ts` | Test helpers: `describeFeature()`, `itAssertion()` |
+| `scripts/scan-feature-specs.ts` | CI scanner: validate, coverage, drift detection |
+
+**Commands**:
+- `npm run validate:specs` — Run the feature spec scanner
+- Assertion types: `invariant` (must always hold) · `behavioral` (may evolve) · `contract` (interface boundary)
+
+---
+
 ## Update Rules
 
 - **When shipping a feature**: Update `SPEC.md` + `ROADMAP.md`

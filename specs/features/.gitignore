@@ -1,0 +1,4 @@
+# Compiled output from tsx/tsc (source files are .ts)
+*.js
+*.js.map
+*.d.ts

@@ -31,5 +31,5 @@ module.exports = {
       statements: 50,
     },
   },
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/__tests__/helpers/'],
 };

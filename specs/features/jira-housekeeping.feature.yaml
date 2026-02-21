@@ -1,0 +1,118 @@
+feature: jira-housekeeping
+name: "Autonomous Jira Housekeeping"
+version: "1.0.0"
+status: shipped
+since: "v3.0.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+capabilities:
+  - id: housekeeping.link-issues
+    name: "Auto-Link Related Issues"
+    version: "1.0.0"
+    description: "Automatically link Jira issues that share a root cause"
+    tool: jira_link_issues
+    files:
+      - backend/src/services/ai/tools/jira-housekeeping.ts
+    assertions:
+      - id: housekeeping.link.jira-enabled
+        description: "Returns error when Jira integration is not configured"
+        type: contract
+      - id: housekeeping.link.partial-success
+        description: "Returns success: true with errors list when some links fail"
+        type: contract
+      - id: housekeeping.link.all-failed
+        description: "Returns success: false when no links succeed"
+        type: contract
+      - id: housekeeping.link.continues-on-error
+        description: "Continues linking remaining targets when one target fails"
+        type: invariant
+
+  - id: housekeeping.add-label
+    name: "Auto-Label Issues"
+    version: "1.0.0"
+    description: "Add labels to Jira issues for categorization"
+    tool: jira_add_label
+    files:
+      - backend/src/services/ai/tools/jira-housekeeping.ts
+    assertions:
+      - id: housekeeping.label.jira-enabled
+        description: "Returns error when Jira integration is not configured"
+        type: contract
+      - id: housekeeping.label.success-shape
+        description: "Returns { success, data: { issueKey, labels }, summary }"
+        type: contract
+      - id: housekeeping.label.error-handling
+        description: "Catches and logs errors, returns error summary"
+        type: invariant
+
+  - id: housekeeping.autonomy
+    name: "Tier Classification"
+    version: "1.0.0"
+    description: "Housekeeping tools are Tier 1 (auto-execute, reversible)"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: housekeeping.autonomy.link-tier1
+        description: "jira_link_issues is classified as Tier 1 (auto-execute)"
+        type: invariant
+      - id: housekeeping.autonomy.label-tier1
+        description: "jira_add_label is classified as Tier 1 (auto-execute)"
+        type: invariant
+
+  - id: housekeeping.suggestion
+    name: "Proactive Link Suggestion"
+    version: "1.0.0"
+    description: "AI suggests linking when related issues discovered"
+    files:
+      - backend/src/services/ai/ProactiveSuggestionEngine.ts
+    assertions:
+      - id: housekeeping.suggestion.trigger
+        description: "Suggests jira_link_issues when jira_search returns 2+ issues AND previous jira_get call exists"
+        type: invariant
+      - id: housekeeping.suggestion.tier1
+        description: "Link suggestion is Tier 1 (auto-execute)"
+        type: invariant
+      - id: housekeeping.suggestion.confidence
+        description: "Suggestion confidence is 0.75"
+        type: behavioral
+      - id: housekeeping.suggestion.target-cap
+        description: "Caps targetKeys at 3, excludes sourceKey"
+        type: invariant
+
+  - id: housekeeping.undo
+    name: "Undo Support"
+    version: "1.0.0"
+    description: "One-click undo for all housekeeping actions"
+    files:
+      - frontend/src/components/AICopilot/cards/HousekeepingCard.tsx
+    assertions:
+      - id: housekeeping.undo.one-click
+        description: "User can undo all linked/labeled actions with one click"
+        type: behavioral
+      - id: housekeeping.undo.summary-card
+        description: "Housekeeping summary card lists all actions taken"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-5
+    title: "Jira Housekeeping"
+    gherkin: |
+      GIVEN the AI discovers related Jira issues during investigation
+      WHEN the issues share a root cause (same error signature or linked failure)
+      THEN the AI links them automatically and shows a housekeeping summary card
+      AND the user can undo all actions with one click
+    maps_to:
+      - housekeeping.link.partial-success
+      - housekeeping.link.continues-on-error
+      - housekeeping.suggestion.trigger
+      - housekeeping.autonomy.link-tier1
+      - housekeeping.undo.one-click
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-20"
+    product_version: "v3.0.0"
+    changes:
+      - "Initial implementation: link issues, add labels, proactive suggestions, undo support"
