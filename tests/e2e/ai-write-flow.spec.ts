@@ -1,39 +1,35 @@
-
 import { test, expect } from '@playwright/test';
+import {
+    setupAuthenticatedSession,
+    mockChatSSE,
+    mockConfirmAction,
+    SCENARIO_JIRA_CREATE,
+} from './fixtures/mock-api';
 
 test('AI Write Tool Confirmation Flow', async ({ page }) => {
-    // 1. Login
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'engineer@testops.ai');
-    await page.fill('input[name="password"]', 'demo123');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL('/dashboard');
+    await setupAuthenticatedSession(page);
+    await mockChatSSE(page, SCENARIO_JIRA_CREATE);
+    await mockConfirmAction(page, false);
 
-    // 2. Open Copilot (Click the Sparkle FAB)
-    // The FAB is an IconButton with the SparkleIcon (AutoAwesome)
-    const fab = page.locator('button').filter({ has: page.locator('svg[data-testid="AutoAwesomeIcon"]') });
-    await expect(fab).toBeVisible();
-    await fab.click();
+    await page.goto('/dashboard');
 
-    // 3. Trigger write action
-    const input = page.getByPlaceholder('Ask Copilot...');
+    // Trigger write action via copilot chat
+    const input = page.locator('textarea[placeholder="Ask Copilot..."]');
     await expect(input).toBeVisible();
     await input.fill('Create a Jira bug: "E2E Test Failure"');
     await input.press('Enter');
 
-    // 4. Wait for confirmation card
-    // New MUI implementation says "APPROVAL REQUIRED" in a Typography
+    // Wait for confirmation card
     const confirmationCard = page.locator('.MuiPaper-root').filter({ hasText: 'APPROVAL REQUIRED' }).first();
     await expect(confirmationCard).toBeVisible({ timeout: 10000 });
 
-    // Verify tool args are visible (Payload Preview)
-    await expect(confirmationCard).toContainText('E2E Test Failure');
+    // Verify tool args are visible
+    await expect(confirmationCard).toContainText('Login Timeout Fix');
 
-    // 5. Deny Action first
-    await confirmationCard.getByRole('button', { name: 'Deny' }).click();
+    // Deny Action
+    await confirmationCard.getByRole('button', { name: /deny/i }).click();
 
-    // 6. Verify status update
-    // The previous locator relied on 'APPROVAL REQUIRED', which is replaced by 'ACTION DENIED'
+    // Verify status update
     const deniedCard = page.locator('.MuiPaper-root').filter({ hasText: 'ACTION DENIED' }).first();
-    await expect(deniedCard).toBeVisible();
+    await expect(deniedCard).toBeVisible({ timeout: 5000 });
 });
