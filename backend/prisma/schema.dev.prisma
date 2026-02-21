@@ -26,6 +26,7 @@ model User {
   testRuns         TestRun[]
   chatSessions     ChatSession[]
   pendingActions   PendingAction[]
+  auditLogs        AuditLog[]
 }
 
 model TestRun {
@@ -422,4 +423,23 @@ model ChannelUserMapping {
 
   @@unique([channel, externalId])
   @@index([userId])
+}
+
+// ─── Audit Logging ───
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String
+  userId     String
+  metadata   String?  // JSON string (SQLite)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
 }

@@ -54,7 +54,7 @@ describe('AuditService', () => {
                     entityType: mockData.entityType,
                     entityId: mockData.entityId,
                     userId: mockData.userId,
-                    metadata: mockData.metadata,
+                    metadata: JSON.stringify(mockData.metadata),
                 },
             });
             expect(logger.error).not.toHaveBeenCalled();

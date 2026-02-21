@@ -1,14 +1,4 @@
 {
-  "proactive-suggestions": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "proactive.engine": "1.0.0",
-      "proactive.jira-prefill": "1.0.0",
-      "proactive.frontend": "1.0.0",
-      "proactive.sse": "1.0.0"
-    },
-    "lastRun": "2026-02-21T21:17:42.602Z"
-  },
   "jira-housekeeping": {
     "lastTestedVersion": "1.0.0",
     "capabilities": {
@@ -18,65 +8,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-02-21T21:37:31.865Z"
-  },
-  "giphy-integration": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "giphy.search": "1.0.0",
-      "giphy.fallback": "1.0.0",
-      "giphy.frontend": "1.0.0",
-      "giphy.autonomy": "1.0.0"
-    },
-    "lastRun": "2026-02-21T21:37:31.827Z"
-  },
-  "autonomy-preferences": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "autonomy.classifier": "1.0.0",
-      "autonomy.context-overrides": "1.0.0",
-      "autonomy.user-preference": "1.0.0",
-      "autonomy.gated-check": "1.0.0",
-      "autonomy.frontend": "1.0.0",
-      "autonomy.api": "1.0.0"
-    },
-    "lastRun": "2026-02-21T12:07:41.489Z"
-  },
-  "inline-diff": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "diff.viewer": "1.0.0",
-      "diff.pr-card": "1.0.0",
-      "diff.merge-tool": "1.0.0"
-    },
-    "lastRun": "2026-02-21T21:17:42.663Z"
-  },
-  "pipeline-management": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "pipeline.crud": "1.0.0",
-      "pipeline.runs": "1.0.0",
-      "pipeline.scheduling": "1.0.0"
-    },
-    "lastRun": "2026-02-21T16:24:25.659Z"
-  },
-  "notifications-alerting": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "notify.dispatch": "1.0.0",
-      "notify.slack": "1.0.0",
-      "notify.urls": "1.0.0"
-    },
-    "lastRun": "2026-02-21T21:37:32.021Z"
-  },
-  "context-enrichment": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "enrichment.gathering": "1.0.0",
-      "enrichment.confidence": "1.0.0",
-      "enrichment.synthesis": "1.0.0"
-    },
-    "lastRun": "2026-02-21T21:37:31.995Z"
+    "lastRun": "2026-02-21T22:22:13.939Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -86,35 +18,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-02-21T21:37:32.308Z"
-  },
-  "failure-knowledge-base": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "kb.fingerprinting": "1.0.0",
-      "kb.matching": "1.0.0",
-      "kb.rca-docs": "1.0.0",
-      "kb.insights": "1.0.0"
-    },
-    "lastRun": "2026-02-21T16:32:18.181Z"
-  },
-  "react-loop": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "react.loop": "1.0.0",
-      "react.tools": "1.0.0",
-      "react.streaming": "1.0.0",
-      "react.tools-registry": "1.0.0"
-    },
-    "lastRun": "2026-02-21T20:48:16.950Z"
-  },
-  "ai-cost-management": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "cost.tracking": "1.0.0",
-      "cost.cache": "1.0.0"
-    },
-    "lastRun": "2026-02-21T16:32:17.921Z"
+    "lastRun": "2026-02-21T22:22:14.318Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -125,7 +29,7 @@
       "auth.blacklist": "1.0.0",
       "auth.audit": "1.0.0"
     },
-    "lastRun": "2026-02-21T16:34:07.243Z"
+    "lastRun": "2026-02-21T22:20:46.973Z"
   },
   "failure-analysis": {
     "lastTestedVersion": "1.0.0",
@@ -134,6 +38,35 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-02-21T21:37:31.793Z"
+    "lastRun": "2026-02-21T22:21:26.444Z"
+  },
+  "inline-diff": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "diff.viewer": "1.0.0",
+      "diff.pr-card": "1.0.0",
+      "diff.merge-tool": "1.0.0"
+    },
+    "lastRun": "2026-02-21T22:21:26.500Z"
+  },
+  "mcp-server": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "mcp.analyze": "1.0.0",
+      "mcp.batch": "1.0.0",
+      "mcp.knowledge": "1.0.0",
+      "mcp.stats": "1.0.0"
+    },
+    "lastRun": "2026-02-21T22:22:13.845Z"
+  },
+  "giphy-integration": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "giphy.search": "1.0.0",
+      "giphy.fallback": "1.0.0",
+      "giphy.frontend": "1.0.0",
+      "giphy.autonomy": "1.0.0"
+    },
+    "lastRun": "2026-02-21T22:22:13.898Z"
   }
 }

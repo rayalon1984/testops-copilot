@@ -1,6 +1,6 @@
 # Database Schema Documentation
 
-> **Canonical schema**: [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) (23 models) | **Architecture**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md) §4
+> Updated for v3.0.0 | **Canonical schema**: [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) (24 models) | **Architecture**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md) §4
 
 ## Overview
 

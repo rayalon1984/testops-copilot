@@ -128,14 +128,11 @@ import { swaggerSpec } from './config/swagger';
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling middleware
-app.use((err: Error | ApiError, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof ApiError) {
-    errorHandler(err, req, res, next);
-  } else {
-    // Convert regular Error to ApiError with 500 status code
-    const apiError = new ApiError(500, err.message || 'Internal Server Error');
-    errorHandler(apiError, req, res, next);
-  }
+app.use((err: Error | ApiError, req: Request, res: Response, _next: NextFunction) => {
+  const apiError = err instanceof ApiError
+    ? err
+    : new ApiError(500, err.message || 'Internal Server Error');
+  errorHandler(apiError, req, res);
 });
 
 // 404 handler

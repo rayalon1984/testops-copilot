@@ -25,6 +25,7 @@ model User {
   testRuns         TestRun[]
   chatSessions     ChatSession[]
   pendingActions   PendingAction[]
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -467,4 +468,24 @@ model ChannelUserMapping {
   @@unique([channel, externalId])
   @@index([userId])
   @@map("channel_user_mappings")
+}
+
+// ─── Audit Logging ───
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  action     String
+  entityType String
+  entityId   String
+  userId     String   @db.Uuid
+  metadata   String?  // JSON
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

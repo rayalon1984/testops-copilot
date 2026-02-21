@@ -1,5 +1,7 @@
 # Testing Guide
 
+> Updated for v3.0.0
+
 This guide covers testing strategies and practices for the TestOps Companion project.
 
 ## Testing Stack

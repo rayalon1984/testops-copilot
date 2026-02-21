@@ -59,7 +59,7 @@ TestOps Companion is a platform that connects to your CI/CD pipelines (Jenkins, 
 
 ### AI Copilot (Agentic)
 - **ReAct Reasoning Loop**: Reason - Act - Observe - Answer cycle with real-time SSE streaming
-- **18 AI Tools**: 8 read-only (auto-approved) + 10 write tools (human-in-the-loop confirmation)
+- **22 AI Tools**: 8 read-only (auto-execute) + 11 write (tiered approval) + 3 housekeeping
 - **Virtual Team Routing**: Queries classified to specialist personas (Test Engineer, DevOps, Security, etc.)
 - **In-Chat Provider Picker**: Hot-swap between Anthropic, OpenAI, Google, Azure, OpenRouter, or mock
 - **Human-in-the-Loop Confirmation**: Write operations (create PR, file Jira issue) require explicit approval with 5-min TTL
@@ -188,7 +188,7 @@ npm install && npm run dev:simple
 1. Backend starts with SQLite on port 3000, seeds 1,600+ failures, 150 test runs, 15 pipelines
 2. Frontend opens automatically at http://localhost:5173
 3. Login with any demo account (e.g. `engineer@testops.ai` / `demo123`)
-4. AI copilot works in mock mode — all 18 tools return realistic demo data
+4. AI copilot works in mock mode — all 22 tools return realistic demo data
 5. Persona routing works — queries are classified to specialists
 
 | | Demo Mode | Production Mode (Docker) |
@@ -379,7 +379,7 @@ testops-companion/
 │       │   ├── PersonaInstructions.ts # Persona system prompt addons
 │       │   ├── ChatSessionService.ts  # Chat persistence CRUD
 │       │   ├── ConfirmationService.ts # Human-in-the-loop gates
-│       │   ├── tools/                 # 18 agentic tool wrappers
+│       │   ├── tools/                 # 22 agentic tool wrappers
 │       │   ├── providers/             # AI provider adapters
 │       │   └── features/              # RCA, categorization, enrichment
 │       ├── middleware/                # Auth, validation, error handling
