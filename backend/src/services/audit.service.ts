@@ -1,7 +1,12 @@
 import { prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
 
-const prismaClient = prisma as any;
+const prismaClient = prisma as unknown as {
+    auditLog: {
+        create: (args: { data: Record<string, unknown> }) => Promise<unknown>;
+        findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
+    };
+};
 
 export class AuditService {
     /**
@@ -16,7 +21,7 @@ export class AuditService {
         entityType: string,
         entityId: string,
         userId: string,
-        metadata?: Record<string, any>,
+        metadata?: Record<string, unknown>,
         reqInfo?: { ip?: string; userAgent?: string }
     ): Promise<void> {
         try {
@@ -51,16 +56,16 @@ export class AuditService {
     /**
      * Redact sensitive information from metadata
      */
-    private redactMetadata(metadata: Record<string, any>): Record<string, any> {
+    private redactMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
         const sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'cookie', 'key', 'accessToken', 'refreshToken'];
-        const redacted: Record<string, any> = { ...metadata };
+        const redacted: Record<string, unknown> = { ...metadata };
 
         for (const key in redacted) {
             if (Object.prototype.hasOwnProperty.call(redacted, key)) {
                 if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
                     redacted[key] = '***REDACTED***';
                 } else if (typeof redacted[key] === 'object' && redacted[key] !== null) {
-                    redacted[key] = this.redactMetadata(redacted[key]);
+                    redacted[key] = this.redactMetadata(redacted[key] as Record<string, unknown>);
                 }
             }
         }

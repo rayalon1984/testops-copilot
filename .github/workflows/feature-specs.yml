@@ -1,0 +1,97 @@
+name: Feature Spec Validation
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'specs/features/**'
+      - 'backend/src/**/__tests__/**'
+      - 'scripts/scan-feature-specs.ts'
+      - 'scripts/feature-health-report.ts'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'specs/features/**'
+      - 'backend/src/**'
+      - 'frontend/src/**'
+      - 'scripts/scan-feature-specs.ts'
+      - 'scripts/feature-health-report.ts'
+
+env:
+  SPEC_BEHAVIORAL_THRESHOLD: "80"
+  SPEC_CONTRACT_THRESHOLD: "80"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci --ignore-scripts
+
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Generate Prisma Client
+      working-directory: ./backend
+      run: npx prisma generate
+
+    - name: Validate feature specs (thresholds enforced)
+      run: npx tsx scripts/scan-feature-specs.ts
+
+    - name: Generate coverage report (JSON)
+      if: always()
+      run: npx tsx scripts/scan-feature-specs.ts --json > /tmp/spec-report.json 2>/dev/null || true
+
+    - name: Generate PR comment
+      if: github.event_name == 'pull_request'
+      id: report
+      run: |
+        REPORT=$(npx tsx scripts/feature-health-report.ts --pr)
+        # Write to file for gh pr comment
+        echo "$REPORT" > /tmp/pr-comment.md
+
+    - name: Post coverage report to PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const body = fs.readFileSync('/tmp/pr-comment.md', 'utf-8');
+
+          // Find existing comment to update (avoid duplicates)
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const marker = '## Feature Spec Coverage Report';
+          const existing = comments.find(c => c.body.startsWith(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }

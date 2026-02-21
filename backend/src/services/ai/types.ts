@@ -5,10 +5,12 @@
  * Based on the AI Integration API specification.
  */
 
+import { ToolSchema } from './tools/types';
+
 /**
  * Supported AI providers
  */
-export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter';
+export type AIProviderName = 'anthropic' | 'openai' | 'google' | 'azure' | 'openrouter' | 'bedrock' | 'mock';
 
 /**
  * AI feature categories
@@ -58,6 +60,33 @@ export interface AIConfig {
     ticketGeneration: boolean;
   };
 
+  providerSettings: {
+    maxTokens: number;
+    temperature: number;
+    timeoutMs: number;
+  };
+
+  providerSecrets: {
+    anthropicApiKey?: string;
+    openaiApiKey?: string;
+    openaiOrgId?: string;
+    googleApiKey?: string;
+    azureOpenaiKey?: string;
+    azureOpenaiEndpoint?: string;
+    azureDeploymentName?: string;
+    openrouterApiKey?: string;
+    openrouterSiteUrl?: string;
+    openrouterAppName?: string;
+    bedrockRegion?: string;
+    bedrockAccessKeyId?: string;
+    bedrockSecretAccessKey?: string;
+  };
+
+  vectorDB: {
+    url: string;
+    apiKey?: string;
+  };
+
   cost: {
     monthlyBudgetUSD: number;
     alertThresholdPercent: number;
@@ -90,11 +119,24 @@ export interface AIModel {
 }
 
 /**
+ * Tool call definition
+ */
+export interface ToolCall {
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+/**
  * Chat message
  */
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  toolOnly?: boolean; // If true, content is ignored (for pure tool calls)
+  toolCalls?: ToolCall[]; // For assistant messages
+  toolCallId?: string; // For tool results
+  name?: string; // For tool results (tool name)
 }
 
 /**
@@ -105,6 +147,7 @@ export interface ChatOptions {
   maxTokens?: number;
   temperature?: number;
   stream?: boolean;
+  tools?: ToolSchema[]; // Tool definitions
 }
 
 /**
@@ -112,6 +155,7 @@ export interface ChatOptions {
  */
 export interface AIResponse {
   content: string;
+  toolCalls?: ToolCall[];
   provider: AIProviderName;
   model: string;
   usage: {
@@ -210,10 +254,10 @@ export interface LogSummary {
 export interface NLQueryResult {
   query: string;
   answer: string;
-  data?: any;
+  data?: unknown;
   visualization?: {
     type: 'bar' | 'line' | 'pie' | 'table';
-    data: any;
+    data: unknown;
   };
   sources: string[];
   confidence: number;

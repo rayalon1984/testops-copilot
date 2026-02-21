@@ -20,6 +20,7 @@ export { AzureProvider, AzureProviderConfig } from './providers/azure.provider';
 export {
   providerRegistry,
   getProvider,
+  createProviderFromConfig,
   createProviderFromEnv,
   listAvailableProviders,
 } from './providers/registry';
@@ -38,6 +39,10 @@ export { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './f
 // Export cache and cost tracking
 export { AICache, getCache, closeCache } from './cache';
 export { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
+
+// Export persona routing
+export { routeToPersona, getAvailablePersonas, PersonaSelection } from './PersonaRouter';
+export { getPersonaInstruction, PERSONA_INSTRUCTIONS, PersonaInstruction } from './PersonaInstructions';
 
 // Export main manager
 export {

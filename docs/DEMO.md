@@ -1,21 +1,207 @@
 # TestOps Companion - Demo & Screenshots
 
-> Visual guide to TestOps Companion's features and user interface
+> Visual guide to TestOps Companion's features and user interface.
+> Updated for v3.0.0 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
 
 ---
 
-## 📸 Quick Preview
+## Quick Start Demo
 
-### Dashboard Overview
+```bash
+npm install && npm run dev:simple
+# Login: demo@testops.ai / demo123
+```
+
+Everything below works in demo mode with zero external dependencies.
+
+---
+
+## 3-Column Mission Control Layout
+
+```
++------------------+-----------------------------+---------------------+
+|                  |                             |                     |
+|  Navigation      |  Main Content               |  AI Copilot Panel   |
+|  Sidebar         |  (Dashboard, KB,            |  (Chat + Persona    |
+|                  |   Pipeline, Teams)           |   Badge + Cards)   |
+|  - Dashboard     |                             |                     |
+|  - Pipelines     |  +--- Stats Cards ---+      |  [Test Engineer is  |
+|  - Test Runs     |  | Runs | Pass% | Flaky |  |   handling this]    |
+|  - Knowledge Base|  +-------------------+      |                     |
+|  - Teams         |                             |  > Analyzing your   |
+|  - Settings      |  +--- Trend Chart ---+      |    question...      |
+|  - Cost Tracker  |  |                   |      |                     |
+|                  |  +-------------------+      |  [tool: dashboard]  |
+|                  |                             |  Found 3 flaky tests|
+|                  |  +--- Recent Runs ---+      |                     |
+|                  |  | Run #423 FAILED   |      |  Based on the data, |
+|                  |  | Run #422 PASSED   |      |  here are the top   |
+|                  |  +-------------------+      |  flaky tests...     |
++------------------+-----------------------------+---------------------+
+```
+
+---
+
+## AI Copilot Workflows
+
+### Workflow 1: Investigating a Flaky Test
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Copilot as AI Copilot
+    participant Router as PersonaRouter
+    participant Tool as dashboard_metrics
+
+    User->>Copilot: "Why are my login tests flaky?"
+    Copilot->>Router: Classify query
+    Router-->>Copilot: Test Engineer (keyword: "flaky")
+    Note over Copilot: persona_selected SSE event
+    Copilot->>Tool: dashboard_metrics({type: "overview"})
+    Tool-->>Copilot: 3 flaky tests found
+    Copilot-->>User: "As the Test Engineer, I found 3 flaky tests..."
+```
+
+**What the user sees:**
+1. Persona badge: "Test Engineer is handling this"
+2. Thinking indicator: "Analyzing your question..."
+3. Tool call: "Calling dashboard_metrics..."
+4. Rich result card with test data
+5. Markdown answer with analysis and recommendations
+
+### Workflow 2: Creating a Jira Issue (Human-in-the-Loop)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Copilot as AI Copilot
+    participant Confirm as Confirmation System
+    participant Jira as jira_create_issue
+
+    User->>Copilot: "Create a bug ticket for the login timeout"
+    Copilot->>Copilot: PersonaRouter -> Senior Engineer
+    Copilot-->>User: confirmation_request SSE event
+    Note over User: Preview card with issue details
+    Note over User: [Approve] [Deny] buttons (5-min TTL)
+    User->>Confirm: Approve
+    Confirm->>Jira: Execute tool
+    Jira-->>User: Jira issue PROJ-789 created
+    Copilot-->>User: "Issue created. Here's a summary..."
+```
+
+**What the user sees:**
+1. Preview card showing the Jira issue that will be created
+2. Approve/Deny buttons with a 5-minute countdown
+3. After approval: result card with the created issue details
+4. AI summarizes what was done and suggests next steps
+
+### Workflow 3: Cross-Platform Context Enrichment
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Copilot as AI Copilot
+    participant Jira
+    participant Confluence
+    participant GitHub
+
+    User->>Copilot: "What caused the connection timeout in test run 423?"
+    Copilot->>Copilot: PersonaRouter -> Test Engineer
+    par Parallel tool calls
+        Copilot->>Jira: jira_search("connection timeout")
+        Copilot->>GitHub: github_get_commit(sha)
+        Copilot->>Confluence: confluence_search("timeout runbook")
+    end
+    Jira-->>Copilot: PROJ-456 (In Progress)
+    GitHub-->>Copilot: PR #123 modified timeout config
+    Confluence-->>Copilot: "Connection Troubleshooting" runbook
+    Copilot-->>User: Synthesis with all context linked
+```
+
+---
+
+## Virtual Team Persona Routing
+
+Every query is classified before the AI responds. The persona badge appears in the chat:
+
+```
++-----------------------------------------------+
+|  AI Copilot                      [Provider] [x] |
++-----------------------------------------------+
+|                                                 |
+|  You: "Why are my tests flaky?"                 |
+|                                                 |
+|  +----- [Test Engineer is handling this] -----+ |
+|  |  Analyzing your question...                | |
+|  |                                            | |
+|  |  [Action: dashboard_metrics]               | |
+|  |  Found 3 flaky tests in last 7 days       | |
+|  |                                            | |
+|  |  Based on the dashboard data, here are     | |
+|  |  the top flaky tests:                      | |
+|  |  1. test_login_timeout (68% pass rate)     | |
+|  |  2. test_payment_flow (72% pass rate)      | |
+|  |  3. test_api_health (85% pass rate)        | |
+|  |                                            | |
+|  |  **Recommendations:**                      | |
+|  |  - Add retry logic for network calls       | |
+|  |  - Increase timeout in test config         | |
+|  +--------------------------------------------+ |
+|                                                 |
+|  [Type a message...]                    [Send]  |
++-------------------------------------------------+
+```
+
+**Routing examples:**
+
+| You Ask | Persona Selected | Badge Shows |
+|---------|-----------------|-------------|
+| "Why are my tests flaky?" | TEST_ENGINEER | "Test Engineer is handling this" |
+| "Pipeline build failed" | DEVOPS_ENGINEER | "DevOps Engineer is handling this" |
+| "What can this tool do?" | AI_PRODUCT_MANAGER | "Product Manager is handling this" |
+| "Check for auth vulnerabilities" | SECURITY_ENGINEER | "Security Engineer is handling this" |
+| "Database migration failed" | DATA_ENGINEER | "Data Engineer is handling this" |
+| "API is slow" | PERFORMANCE_ENGINEER | "Performance Engineer is handling this" |
+| "Search Jira for AUTH-123" | SENIOR_ENGINEER | "Senior Engineer is handling this" |
+
+---
+
+## Confirmation Cards (Human-in-the-Loop)
+
+Write operations show a preview card before executing:
+
+```
++-----------------------------------------------+
+|  Jira Create Issue                             |
+|                                                |
+|  Project: PROJ                                 |
+|  Type: Bug                                     |
+|  Summary: Login timeout in E2E test suite      |
+|  Priority: High                                |
+|  Assignee: Auto                                |
+|                                                |
+|  [Approve]  [Deny]        Expires in 4:32      |
++-----------------------------------------------+
+```
+
+**Write tools that require confirmation:**
+- `jira_create_issue` -- Create Jira ticket
+- `jira_transition_issue` -- Change issue status
+- `jira_comment` -- Add comment to issue
+- `github_create_pr` -- Open pull request
+- `github_create_branch` -- Create branch
+- `github_update_file` -- Modify file contents
+
+---
+
+## Dashboard Overview
 
 ```mermaid
 graph TD
     subgraph Dashboard["Main Dashboard"]
-        Header[Navigation Bar - TestOps Companion]
         Stats[Statistics Cards]
-        Charts[Test Trends & Charts]
+        Charts[Test Trends and Charts]
         Recent[Recent Test Runs]
-        Alerts[Failure Alerts]
     end
 
     Stats --> Card1[Total Tests: 1,245]
@@ -28,622 +214,96 @@ graph TD
 
     Recent --> Run1[Test Run #423 - FAILED]
     Recent --> Run2[Test Run #422 - PASSED]
-    Recent --> Run3[Test Run #421 - PASSED]
-
-    Alerts --> Alert1[⚠️ Similar failure detected!]
 ```
-
-**Placeholder:** `screenshots/dashboard.png`
 
 ---
 
-## 🎯 Key Features in Action
-
-### 1. Test Run Details
-
-```mermaid
-graph LR
-    subgraph TestRunPage["Test Run Detail Page"]
-        Header[Test Run 423 Login Suite]
-        Status[Status: FAILED]
-        FailedTests[Failed Tests List]
-        Logs[Test Logs]
-    end
-
-    FailedTests --> Test1[test_login_with_invalid_credentials]
-    FailedTests --> Test2[test_login_timeout]
-    Test1 --> Error1[Connection timeout error]
-    Test1 --> SimilarAlert[3 similar past failures found]
-    SimilarAlert --> PastFix[See RCA from 2 months ago]
-```
-
-**Placeholder:** `screenshots/test-run-detail.png`
-
----
-
-### 2. Failure Knowledge Base Dashboard
+## Failure Knowledge Base
 
 ```mermaid
 graph TD
-    subgraph KnowledgeBase["Failure Knowledge Base"]
-        Header[Failure Archive]
+    subgraph KB["Failure Knowledge Base"]
         Search[Search and Filters]
         Stats2[Quick Statistics]
         FailureList[Archived Failures]
+        Predictions[Predictive Analysis]
     end
 
-    Stats2 --> Total[Total Failures: 347]
-    Stats2 --> Documented[Documented RCAs: 298]
-    Stats2 --> Recurring[Recurring Issues: 23]
-    Stats2 --> AvgTime[Avg Resolution: 12 min]
-
-    FailureList --> Failure1[Database Connection Timeout]
-    FailureList --> Failure2[Login API 500 Error]
-    FailureList --> Failure3[Memory Leak in Payment Service]
-    Failure1 --> RCA1[RCA Available]
-```
-
-**Placeholder:** `screenshots/knowledge-base.png`
-
----
-
-### 3. RCA Documentation Modal
-
-```mermaid
-graph TD
-    subgraph RCAModal["Document Root Cause Analysis"]
-        Title[Failure: Database Connection Timeout]
-        Form[RCA Documentation Form]
-    end
-
-    Form --> Field1[Root Cause*: Connection pool exhausted]
-    Form --> Field2[Detailed Analysis: Under high load, max_connections=50 is insufficient]
-    Form --> Field3[Solution: Increased max_connections to 200 in postgresql.conf]
-    Form --> Field4[Prevention: Add monitoring alert at 80% pool usage]
-    Form --> Field5[Workaround: Restart database service temporarily]
-    Form --> Field6[Jira Ticket: INFRA-456]
-    Form --> Field7[PR Link: github.com/org/repo/pull/123]
-    Form --> Field8[Time to Resolve: 45 minutes]
-    Form --> Field9[Tags: database, performance, connection-pool]
-
-    Form --> Buttons[Save RCA | Cancel]
-```
-
-**Placeholder:** `screenshots/rca-modal.png`
-
----
-
-### 4. Similar Failures Alert
-
-```mermaid
-graph LR
-    subgraph Alert["🔍 Similar Past Failures Detected"]
-        Message[We found 3 similar failures in the archive]
-        TopMatch[Top Match: 95% similarity]
-    end
-
-    TopMatch --> Details[Failure from 2 months ago]
-
-    Details --> RCAPreview[Root Cause Documented]
-
-    RCAPreview --> Actions[View Full RCA | Mark as Same Issue]
-
-    Alert --> ExpandMore[Show 2 more similar failures ▼]
-```
-
-**Placeholder:** `screenshots/similar-failures-alert.png`
-
----
-
-### 5. Cross-Platform Context Enrichment (v2.8.0)
-
-```mermaid
-graph TD
-    subgraph Enrichment["Context Enrichment Results"]
-        Header[Failure: Connection Timeout in Login Test]
-        Sources[Context Sources]
-        Analysis[AI Analysis]
-    end
-
-    Sources --> JiraResults["Jira: PROJ-456 Connection timeout issues (In Progress)"]
-    Sources --> ConfResults["Confluence: Connection Troubleshooting Runbook"]
-    Sources --> GitResults["GitHub: PR #123 modified timeout config (jane.smith)"]
-
-    Analysis --> Synthesis["AI says: This matches PROJ-456. PR #123 changed the timeout\nconfig which likely caused the regression. The Confluence\nrunbook has the documented fix. Confidence: 85%"]
-
-    Synthesis --> Actions["Link to PROJ-456 | Apply Runbook Fix | Review PR #123"]
-```
-
-**Placeholder:** `screenshots/context-enrichment.png`
-
----
-
-### 6. Pipeline Management
-
-```mermaid
-graph TD
-    subgraph Pipelines["Pipeline Management"]
-        Header[Active Pipelines]
-        List[Pipeline List]
-        Filters[Filters: All | GitHub Actions | Jenkins]
-    end
-
-    List --> P1[Main CI Pipeline - PASSING]
-    List --> P2[E2E Test Suite - FAILING]
-    List --> P3[Performance Tests - FLAKY]
-
-    P2 --> Actions[View Results | Re-run | Configure]
-```
-
-**Placeholder:** `screenshots/pipeline-list.png`
-
----
-
-### 7. Notifications & Integrations
-
-```mermaid
-graph LR
-    subgraph Notifications["Notification Center"]
-        Bell[🔔 5 New Notifications]
-        List2[Notification List]
-    end
-
-    List2 --> N1[Test Run 423 Failed]
-    List2 --> N2[Similar Failure Detected]
-    List2 --> N3[Jira Issue Created]
-
-    subgraph Integrations["Integration Status"]
-        Jira[✅ Jira Connected]
-        Slack[✅ Slack Notifications Active]
-        GitHub2[✅ GitHub Actions Linked]
-        Email[✅ Email Alerts On]
-        Grafana[✅ Grafana Metrics Enabled]
-        Monday[✅ Monday.com Synced]
-    end
-```
-
-**Placeholder:** `screenshots/notifications.png`
-
----
-
-### 8. Grafana Metrics Dashboard
-
-```mermaid
-graph TB
-    subgraph GrafanaDashboard["Grafana TestOps Overview Dashboard"]
-        Row1[Key Metrics Row]
-        Row2[Trends Row]
-        Row3[Performance Row]
-    end
-
-    Row1 --> Stat1[Total Test Runs: 1245]
-    Row1 --> Gauge1[Pass Rate: 94.2%]
-    Row1 --> Stat2[Failures Archived: 347]
-    Row1 --> Gauge2[RCA Coverage: 86%]
-
-    Row2 --> LineChart[Test Runs Over Time]
-    Row2 --> PieChart[Top Failing Tests]
-
-    Row3 --> PerfChart[Execution Time Percentiles]
-```
-
-**Metrics Dashboard Panels:**
-1. **Total Test Runs** - Stat panel showing cumulative count with trend
-2. **Pass Rate Gauge** - Visual health indicator (green >90%, yellow 70-90%, red <70%)
-3. **Failures Archived** - Knowledge base size with RCA documentation count
-4. **RCA Coverage** - Percentage of failures with documented root causes
-5. **Test Runs Over Time** - Time series comparing passed vs failed tests
-6. **Top Failing Tests** - Pie chart of most common failures
-7. **Execution Time Percentiles** - P50, P95, P99 performance tracking
-
-**Prometheus Metrics Exposed:**
-- `testops_test_runs_total` - Total number of test runs
-- `testops_pass_rate_percent` - Current pass rate (0-100%)
-- `testops_execution_time_p95_seconds` - 95th percentile execution time
-- `testops_rca_coverage_percent` - RCA documentation coverage
-- `testops_test_failures_count{test_name="..."}` - Per-test failure counts
-- And 15+ more metrics for comprehensive monitoring
-
-**Placeholder:** `screenshots/grafana-dashboard.png`
-
----
-
-## 🎬 User Workflows
-
-### Workflow 1: Investigating a Test Failure
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Dashboard
-    participant TestRun
-    participant KnowledgeBase
-    participant RCA
-
-    User->>Dashboard: Opens dashboard
-    Dashboard->>User: Shows 1 failed test run
-    User->>TestRun: Clicks failed test run
-    TestRun->>User: Displays test details
-    TestRun->>KnowledgeBase: Auto-checks for similar failures
-    KnowledgeBase->>User: "🔍 3 similar failures found!"
-    User->>RCA: Clicks "View RCA"
-    RCA->>User: Shows previous solution
-    Note over User,RCA: Resolution in 5 minutes instead of 2 hours
-```
-
-**Placeholder:** `screenshots/workflow-investigation.png`
-
----
-
-### Workflow 2: Cross-Platform Context Enrichment (v2.8.0)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant TestRun
-    participant Enrichment
-    participant Jira
-    participant Confluence
-    participant GitHub
-    participant AI
-
-    User->>TestRun: Views failed test
-    TestRun->>Enrichment: Request context enrichment
-    par Parallel Context Gathering
-        Enrichment->>Jira: Search similar issues (JQL)
-        Enrichment->>Confluence: Search runbooks (CQL)
-        Enrichment->>GitHub: Fetch commit diff + PR
-    end
-    Jira-->>Enrichment: 2 matching issues
-    Confluence-->>Enrichment: 1 relevant runbook
-    GitHub-->>Enrichment: PR #123 with 3 changed files
-    Enrichment->>AI: Synthesize all context
-    AI-->>Enrichment: Actionable analysis (85% confidence)
-    Enrichment-->>User: "Matches PROJ-456, runbook has fix, PR #123 is root cause"
-    Note over User: Full picture in 30 seconds, not 30 minutes
-```
-
-**Placeholder:** `screenshots/workflow-enrichment.png`
-
----
-
-### Workflow 3: Documenting a New Failure
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant TestRun
-    participant RCAModal
-    participant KnowledgeBase
-    participant Team
-
-    User->>TestRun: Investigates new failure
-    User->>TestRun: Identifies root cause
-    User->>RCAModal: Clicks "Document RCA"
-    RCAModal->>User: Shows documentation form
-    User->>RCAModal: Fills in root cause, solution, prevention
-    RCAModal->>KnowledgeBase: Saves to archive
-    KnowledgeBase->>Team: Future failures auto-matched
-    Note over Team: Knowledge persists forever!
-```
-
-**Placeholder:** `screenshots/workflow-documentation.png`
-
----
-
-## 📊 Data Visualizations
-
-### Test Trends Chart
-
-```mermaid
-graph TB
-    subgraph TrendsChart["7-Day Test Execution Trends"]
-        Title[Pass/Fail Rate Over Time]
-        Legend[Green: Passed | Red: Failed | Yellow: Flaky]
-    end
-
-    Title --> Day1["Mon: 95% pass"]
-    Title --> Day2["Tue: 94% pass"]
-    Title --> Day3["Wed: 92% pass ⚠️"]
-    Title --> Day4["Thu: 96% pass"]
-    Title --> Day5["Fri: 97% pass"]
-    Title --> Day6["Sat: 98% pass"]
-    Title --> Day7["Sun: 95% pass"]
-
-    Day3 --> Insight[Insight: Wednesday spike in failures]
-```
-
-**Placeholder:** `screenshots/test-trends.png`
-
----
-
-### Failure Categories Breakdown
-
-```mermaid
-pie title Failure Categories (Last 30 Days)
-    "Connection Timeouts" : 35
-    "Authentication Errors" : 25
-    "Memory Issues" : 15
-    "API 500 Errors" : 12
-    "UI Rendering Bugs" : 8
-    "Other" : 5
-```
-
-**Placeholder:** `screenshots/failure-breakdown.png`
-
----
-
-## 🎨 UI Components
-
-### Statistics Cards
-
-```
-┌─────────────────────────┐  ┌─────────────────────────┐
-│   Total Test Runs       │  │    Overall Pass Rate    │
-│       1,245             │  │        94.2%            │
-│   ↑ 12% from last week  │  │    ↑ 2.1% this week     │
-└─────────────────────────┘  └─────────────────────────┘
-
-┌─────────────────────────┐  ┌─────────────────────────┐
-│    Active Failures      │  │   Knowledge Base Docs   │
-│          8              │  │         298             │
-│   3 have similar past   │  │    ✅ 86% coverage       │
-└─────────────────────────┘  └─────────────────────────┘
-```
-
-**Placeholder:** `screenshots/stats-cards.png`
-
----
-
-### Alert Banners
-
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  🔍 SIMILAR FAILURE DETECTED                                     ║
-║                                                                   ║
-║  We found a match from 2 months ago with documented solution:    ║
-║                                                                   ║
-║  Root Cause: Database connection pool exhausted                  ║
-║  Solution: Increase max_connections to 200 in postgresql.conf    ║
-║  Time to Fix: 45 minutes (documented in INFRA-456)               ║
-║                                                                   ║
-║  [View Full RCA]  [Mark as Same]  [Dismiss]                      ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
-**Placeholder:** `screenshots/alert-banner.png`
-
----
-
-## 🎥 Video Demo Suggestions
-
-When creating actual demo videos, cover these scenarios:
-
-### 1. **Quick Start Demo (2 minutes)**
-- Dashboard overview
-- Click into a failed test
-- View similar past failures
-- See the documented RCA
-- Resolution in seconds
-
-### 2. **RCA Documentation Demo (3 minutes)**
-- Investigate a new failure
-- Document the root cause
-- Add solution and prevention steps
-- Link to Jira ticket
-- Save to knowledge base
-
-### 3. **Context Enrichment Demo (3 minutes)** *(v2.8.0)*
-- Trigger a test failure with a known commit hash
-- Watch the enrichment service query Jira, Confluence, and GitHub in parallel
-- See the AI synthesis: matching Jira ticket + relevant runbook + PR that caused the issue
-- One-click to link the failure to the existing Jira ticket
-- Show the confidence score and how it changes with more context sources
-
-### 4. **Integration Demo (2 minutes)**
-- Configure Jira integration
-- Configure Slack notifications
-- Set up Grafana dashboard
-- Test fails → Jira ticket auto-created
-- Team receives Slack alert
-- Similar failure alert shows up
-- Metrics update in real-time on Grafana
-
-### 5. **Knowledge Base Tour (3 minutes)**
-- Browse archived failures
-- Search for specific error patterns
-- View statistics and insights
-- See recurring failure patterns
-- Export data
-
-### 6. **Grafana Metrics Demo (2 minutes)**
-- View real-time test metrics dashboard
-- Explore pass rate trends over time
-- Check execution time percentiles (P50, P95, P99)
-- Review RCA coverage gauge
-- See top failing tests breakdown
-- Configure custom alerts for failure spikes
-
----
-
-## 📸 Screenshot Checklist
-
-When capturing actual screenshots, include:
-
-### Essential Screenshots:
-- [ ] Main dashboard (full view)
-- [ ] Test run list page
-- [ ] Test run detail page with failures
-- [ ] Similar failures alert (expanded)
-- [ ] RCA documentation modal
-- [ ] Knowledge base dashboard
-- [ ] Failure detail view with full RCA
-- [ ] Pipeline management page
-- [ ] Notification center
-- [ ] Settings page with integrations
-- [ ] Grafana metrics dashboard (full view)
-- [ ] Grafana pass rate gauge
-- [ ] Grafana execution time trends
-
-### Feature Highlights:
-- [ ] Smart matching in action (side-by-side comparison)
-- [ ] Context enrichment results panel (Jira + Confluence + GitHub context)
-- [ ] AI synthesis output with confidence score
-- [ ] Jira integration working (ticket creation + similar issue search)
-- [ ] Monday.com integration (item creation)
-- [ ] Slack notification example
-- [ ] Search and filter functionality
-- [ ] Pattern detection results
-- [ ] Grafana real-time metrics update
-- [ ] Prometheus metrics endpoint response
-- [ ] Mobile responsive views
-
-### Before/After Comparisons:
-- [ ] Investigation time: Without KB vs With KB
-- [ ] Manual process vs Automated process
-- [ ] Knowledge loss vs Knowledge retention
-
----
-
-## 🎨 Branding & Style Guide
-
-### Color Scheme:
-- **Primary**: Blue (#1976d2) - Actions, links
-- **Success**: Green (#2e7d32) - Passing tests
-- **Error**: Red (#d32f2f) - Failed tests
-- **Warning**: Orange (#ed6c02) - Flaky tests
-- **Info**: Light Blue (#0288d1) - Information
-
-### Typography:
-- **Headers**: Roboto Bold
-- **Body**: Roboto Regular
-- **Code**: Fira Code / Monaco
-
-### Icons:
-- Material-UI icons throughout
-- Custom icons for RCA knowledge base
-- Integration logos (Jira, Slack, GitHub)
-
----
-
-## 🚀 Creating Your Own Demo
-
-### Quick Demo Setup:
-
-1. **Start the app**:
-   ```bash
-   npm run start
-   ```
-
-2. **Seed demo data**:
-   ```bash
-   cd backend
-   npm run db:seed
-   ```
-
-3. **Take screenshots**:
-   - Use browser at 1920x1080 resolution
-   - Clear, well-lit interface
-   - Show real-world scenarios
-   - Include diverse test cases
-
-4. **Record screen**:
-   - Use OBS Studio or QuickTime
-   - 1080p resolution
-   - Show cursor movements
-   - Include voiceover explanation
-
-5. **Create GIFs**:
-   - Convert key interactions to GIFs
-   - Max 10 seconds per GIF
-   - Use tools like Gifski or ScreenToGif
-
----
-
-## 📁 Screenshot Organization
-
-```
-screenshots/
-├── dashboard/
-│   ├── main-view.png
-│   ├── stats-cards.png
-│   └── test-trends.png
-├── test-runs/
-│   ├── list-view.png
-│   ├── detail-view.png
-│   └── logs-view.png
-├── knowledge-base/
-│   ├── dashboard.png
-│   ├── failure-detail.png
-│   ├── rca-modal.png
-│   └── similar-failures-alert.png
-├── integrations/
-│   ├── jira-config.png
-│   ├── slack-notification.png
-│   ├── monday-config.png
-│   ├── github-actions.png
-│   └── grafana-datasource.png
-├── grafana/
-│   ├── dashboard-overview.png
-│   ├── pass-rate-gauge.png
-│   ├── test-trends-graph.png
-│   ├── execution-time-percentiles.png
-│   ├── top-failures-piechart.png
-│   ├── rca-coverage-gauge.png
-│   └── prometheus-metrics-endpoint.png
-├── workflows/
-│   ├── investigation-flow.gif
-│   ├── documentation-flow.gif
-│   ├── resolution-flow.gif
-│   └── metrics-monitoring-flow.gif
-└── mobile/
-    ├── dashboard-mobile.png
-    ├── notifications-mobile.png
-    └── test-detail-mobile.png
+    Stats2 --> Total[Total: 1,600+]
+    Stats2 --> Documented[RCAs: 298]
+    Stats2 --> Recurring[Recurring: 23]
+
+    Predictions --> Trends[Failure Trends Chart]
+    Predictions --> Risk[Risk Score Table]
+    Predictions --> Anomaly[Anomaly Detection]
+
+    FailureList --> F1[DB Connection Timeout]
+    F1 --> RCA[RCA Available + 3 Comments]
+    F1 --> Revisions[2 Revisions + Activity Feed]
 ```
 
 ---
 
-## 💡 Tips for Great Screenshots
+## Key Feature Screenshots Checklist
 
-1. **Use realistic data**: Not "Test 1", "Test 2" - use real test names
-2. **Show context**: Include navigation, breadcrumbs, timestamps
-3. **Highlight features**: Use arrows or callouts for key elements
-4. **Keep it clean**: Close unnecessary tabs, use consistent data
-5. **Tell a story**: Screenshots should show a user journey
-6. **Include state variations**: Empty states, loading states, error states
+### Essential:
+- [ ] 3-column Mission Control layout (full view)
+- [ ] AI Copilot chat with persona badge
+- [ ] Persona routing in action (different queries, different badges)
+- [ ] Confirmation card with Approve/Deny buttons
+- [ ] Tool result card (e.g., dashboard_metrics)
+- [ ] In-chat provider picker dropdown
+- [ ] Failure Knowledge Base with trends chart
+- [ ] Team Workspaces management page
+- [ ] RCA modal with version history and comments
 
----
-
-## 🎯 Interactive Demo Ideas
-
-### Live Demo Site:
-- Deploy to demo.testops-companion.com
-- Pre-populated with realistic data
-- Read-only access for public
-- Auto-resets every 24 hours
-
-### Guided Tour:
-- Use tools like Intro.js or Shepherd.js
-- Step-by-step walkthrough
-- Highlight key features
-- "Try it yourself" mode
-
-### Video Tutorials:
-- 1-minute feature highlights
-- 5-minute getting started guide
-- 10-minute deep dive
-- Upload to YouTube/Vimeo
+### Copilot Interactions:
+- [ ] Flaky test investigation flow
+- [ ] Jira issue creation with confirmation
+- [ ] Cross-platform context enrichment results
+- [ ] Pipeline status check
+- [ ] "What can this do?" product discovery flow
 
 ---
 
-## 📞 Need Help?
+## Video Demo Suggestions
 
-For questions about creating demos or screenshots:
-- See [Contributing Guide](CONTRIBUTING.md)
-- Open an issue with the `documentation` label
-- Check existing screenshots in the community
+### 1. Quick Start Demo (2 minutes)
+- `npm run dev:simple` then browser opens
+- Login then see dashboard with populated data
+- Open AI copilot then ask about flaky tests
+- See persona badge + tool calls + analysis
+
+### 2. AI Copilot Deep Dive (3 minutes)
+- Ask different queries, show different persona selections
+- Demonstrate a write operation with confirmation flow
+- Show cross-platform enrichment (Jira + Confluence + GitHub)
+- Switch AI provider mid-session with the picker
+
+### 3. Failure Investigation (3 minutes)
+- Click into a failed test run
+- View the RCA document with revision history
+- Add a comment, see the activity feed
+- Use predictive analysis (trends, risk scores)
+
+### 4. Team Workspaces (2 minutes)
+- Create a team, invite members
+- Assign pipelines to the team
+- Configure a shared dashboard
 
 ---
 
-**Note**: This file contains visual mockups using Mermaid diagrams. Actual screenshots will be added as the application evolves. Contributors are welcome to submit screenshots following the guidelines above!
+## Branding
+
+| Element | Value |
+|---------|-------|
+| **Primary** | Blue `#1976d2` |
+| **Success** | Green `#2e7d32` |
+| **Error** | Red `#d32f2f` |
+| **Warning** | Orange `#ed6c02` |
+| **Font** | Roboto (headers bold, body regular) |
+| **Icons** | Material-UI throughout |
+
+---
+
+*This file contains visual mockups. Actual screenshots will be added as the application evolves. Contributors welcome!*

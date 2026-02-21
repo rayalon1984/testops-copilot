@@ -4,7 +4,40 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
-import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
+import { ToolParameter } from '../tools/types';
+
+/** Anthropic Messages API message format */
+interface AnthropicMessage {
+  role: 'user' | 'assistant';
+  content: string | AnthropicContentBlock[];
+}
+
+/** Content block in an Anthropic message */
+type AnthropicContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+  | { type: 'tool_result'; tool_use_id: string | undefined; content: string };
+
+/** Anthropic API request parameters */
+interface AnthropicRequestParams {
+  model: string;
+  max_tokens: number;
+  temperature: number;
+  system: string | undefined;
+  messages: AnthropicMessage[];
+  stop_sequences: string[] | undefined;
+  top_p: number | undefined;
+  tools?: Array<{
+    name: string;
+    description: string;
+    input_schema: {
+      type: string;
+      properties: Record<string, { type: string; description: string; enum?: string[] }>;
+      required: string[];
+    };
+  }>;
+}
 
 export class AnthropicProvider extends BaseProvider {
   private client: Anthropic;
@@ -51,13 +84,45 @@ export class AnthropicProvider extends BaseProvider {
       const chatMessages = messages.filter(m => m.role !== 'system');
 
       // Convert messages to Anthropic format
-      const anthropicMessages = chatMessages.map(msg => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-      }));
+      const anthropicMessages: AnthropicMessage[] = chatMessages.map(msg => {
+        if (msg.role === 'user') {
+          return { role: 'user' as const, content: msg.content };
+        }
 
-      // Make API call
-      const response = await this.client.messages.create({
+        if (msg.role === 'assistant') {
+          const content: AnthropicContentBlock[] = [];
+          if (msg.content) content.push({ type: 'text', text: msg.content });
+          if (msg.toolCalls) {
+            msg.toolCalls.forEach(tc => {
+              content.push({
+                type: 'tool_use',
+                id: tc.id,
+                name: tc.name,
+                input: tc.arguments
+              });
+            });
+          }
+          return { role: 'assistant' as const, content };
+        }
+
+        if (msg.role === 'tool') {
+          return {
+            role: 'user' as const,
+            content: [
+              {
+                type: 'tool_result' as const,
+                tool_use_id: msg.toolCallId,
+                content: msg.content
+              }
+            ]
+          };
+        }
+
+        return { role: 'user' as const, content: msg.content };
+      });
+
+      // Prepare params
+      const params: AnthropicRequestParams = {
         model: this.config.model,
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
@@ -65,13 +130,47 @@ export class AnthropicProvider extends BaseProvider {
         messages: anthropicMessages,
         stop_sequences: options?.stopSequences,
         top_p: options?.topP,
-      });
+      };
 
-      // Extract text content
-      const content = response.content
-        .filter(block => block.type === 'text')
-        .map(block => (block as any).text)
-        .join('\n');
+      // Add tools if provided
+      if (options?.tools && options.tools.length > 0) {
+        params.tools = options.tools.map(t => ({
+          name: t.name,
+          description: t.description,
+          input_schema: {
+            type: 'object',
+            properties: t.parameters.reduce((acc: Record<string, { type: string; description: string; enum?: string[] }>, p: ToolParameter) => {
+              acc[p.name] = {
+                type: p.type,
+                description: p.description,
+                enum: p.enum
+              };
+              return acc;
+            }, {}),
+            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name)
+          }
+        }));
+      }
+
+      // Make API call — cast params for Anthropic SDK compatibility
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await this.client.messages.create(params as any);
+
+      // Process content and tools
+      let content = '';
+      const toolCalls: ToolCall[] = [];
+
+      response.content.forEach(block => {
+        if (block.type === 'text') {
+          content += block.text;
+        } else if (block.type === 'tool_use') {
+          toolCalls.push({
+            id: block.id,
+            name: block.name,
+            arguments: block.input as Record<string, unknown>
+          });
+        }
+      });
 
       // Calculate costs
       const inputTokens = response.usage.input_tokens;
@@ -80,6 +179,7 @@ export class AnthropicProvider extends BaseProvider {
 
       return {
         content,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         provider: this.getName(),
         model: this.config.model,
         usage: {
@@ -96,7 +196,7 @@ export class AnthropicProvider extends BaseProvider {
     }
   }
 
-  async embed(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
     // Anthropic doesn't provide embeddings directly
     // Users should use Voyage AI which is recommended by Anthropic
     throw new Error(

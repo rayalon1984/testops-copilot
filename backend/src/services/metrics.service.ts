@@ -12,6 +12,8 @@ import {
   TopFailingTest,
   PrometheusExportOptions,
 } from '../types/metrics';
+import { getResponseTimeStats } from '../middleware/responseTime';
+import { getCache } from './ai/cache';
 
 export class MetricsService {
   /**
@@ -287,6 +289,58 @@ export class MetricsService {
         { test_name: test.testName }
       );
     });
+
+    // HTTP Response Time Metrics (populated by responseTime middleware)
+    const rtStats = getResponseTimeStats();
+    addMetric(
+      'testops_http_request_duration_p50_seconds',
+      'gauge',
+      'HTTP request duration 50th percentile in seconds',
+      rtStats.p50
+    );
+    addMetric(
+      'testops_http_request_duration_p95_seconds',
+      'gauge',
+      'HTTP request duration 95th percentile in seconds',
+      rtStats.p95
+    );
+    addMetric(
+      'testops_http_request_duration_p99_seconds',
+      'gauge',
+      'HTTP request duration 99th percentile in seconds',
+      rtStats.p99
+    );
+    addMetric(
+      'testops_http_requests_total',
+      'counter',
+      'Total HTTP requests processed',
+      rtStats.count
+    );
+
+    // AI Cache Metrics
+    try {
+      const cacheStats = getCache().getStats();
+      addMetric(
+        'testops_ai_cache_hits_total',
+        'counter',
+        'Total AI cache hits',
+        cacheStats.hits
+      );
+      addMetric(
+        'testops_ai_cache_misses_total',
+        'counter',
+        'Total AI cache misses',
+        cacheStats.misses
+      );
+      addMetric(
+        'testops_ai_cache_hit_rate',
+        'gauge',
+        'AI cache hit rate (0-1)',
+        cacheStats.hitRate
+      );
+    } catch {
+      // AI cache may not be initialized; skip metrics
+    }
 
     return lines.join('\n');
   }

@@ -1,60 +1,22 @@
 # Technical Specifications
 
-This directory contains detailed technical specifications for major features and architectural decisions.
+> **Version**: 3.0.0 · **Last updated**: 2026-02-20
 
-## Active Specifications
+All active technical specifications now live in the repository root `specs/` directory.
 
-### [AI Integration](ai-integration/)
-Complete specification for AI-powered features including semantic RCA matching, failure categorization, and log summarization.
+## Canonical Spec Location
 
-**Documents:**
-- [PRD.md](ai-integration/PRD.md) - Product Requirements Document
-- [ARCHITECTURE.md](ai-integration/ARCHITECTURE.md) - Technical Architecture
-- [API.md](ai-integration/API.md) - API Design & Interfaces
-- [IMPLEMENTATION_PLAN.md](ai-integration/IMPLEMENTATION_PLAN.md) - Implementation Roadmap
-
-**Status:** 📋 Approved - Ready for Implementation
-
----
-
-## Creating New Specifications
-
-When creating specifications for new features:
-
-1. **Create a new directory** under `specs/` with the feature name (kebab-case)
-2. **Include these documents:**
-   - `PRD.md` - Product Requirements Document
-   - `ARCHITECTURE.md` - Technical design
-   - `API.md` - API contracts and interfaces
-   - `IMPLEMENTATION_PLAN.md` - Development roadmap
-3. **Update this README** with a link to the new spec
-4. **Get review** from product and engineering leads
-
-## Specification Template
-
-```markdown
-# Feature Name
-
-## Overview
-Brief description...
-
-## Goals
-- Goal 1
-- Goal 2
-
-## Non-Goals
-What this feature does NOT cover...
-
-## Technical Design
-...
-
-## Implementation Plan
-...
-
-## Success Metrics
-...
-```
+| Document | Location | Purpose |
+|----------|----------|---------|
+| Product Spec | [`specs/SPEC.md`](../../specs/SPEC.md) | Product behavior and capabilities |
+| Architecture | [`specs/ARCHITECTURE.md`](../../specs/ARCHITECTURE.md) | System design and runtime flows |
+| AI Tools | [`specs/AI_TOOLS.md`](../../specs/AI_TOOLS.md) | AI tool registry, ReAct loop, cost management |
+| API Contract | [`specs/API_CONTRACT.md`](../../specs/API_CONTRACT.md) | REST API specifications |
+| Security | [`specs/SECURITY.md`](../../specs/SECURITY.md) | Security architecture |
+| Design Language | [`specs/DESIGN_LANG_V2.md`](../../specs/DESIGN_LANG_V2.md) | UI standards |
+| Autonomous AI | [`specs/AUTONOMOUS_AI_SPEC.md`](../../specs/AUTONOMOUS_AI_SPEC.md) | Graduated autonomy and proactive UX |
+| Roadmap | [`specs/ROADMAP.md`](../../specs/ROADMAP.md) | Feature roadmap |
 
 ## Archived Specifications
 
-Specifications for completed features are moved to `archived/` directory.
+Pre-implementation specs (November 2025) have been moved to [`../archive/`](../archive/).

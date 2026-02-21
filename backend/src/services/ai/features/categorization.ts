@@ -46,7 +46,7 @@ export class CategorizationService {
    */
   async categorizeFailure(
     failure: TestFailure,
-    options: CategorizationOptions = {}
+    _options: CategorizationOptions = {}
   ): Promise<FailureCategorization> {
     const prompt = this.buildCategorizationPrompt(failure);
 
@@ -90,7 +90,7 @@ export class CategorizationService {
       failures.map(failure => this.categorizeFailure(failure, options))
     );
 
-    return results.map((result, index) => {
+    return results.map((result, _index) => {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {

@@ -26,16 +26,9 @@ import {
   Done as DoneIcon,
 } from '@mui/icons-material';
 
-interface Notification {
-  id: string;
-  testRunId: string;
-  pipelineName: string;
-  type: 'success' | 'failure' | 'warning';
-  status: string;
-  message: string;
-  timestamp: string;
-  delivered: boolean;
-}
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
+type Notification = ApiSchemas['Notification'];
 
 export default function NotificationList() {
   const queryClient = useQueryClient();
@@ -44,24 +37,17 @@ export default function NotificationList() {
   // Fetch notifications
   const { data: notifications, isLoading } = useQuery<Notification[]>({
     queryKey: ['notifications', showUndeliveredOnly],
-    queryFn: async () => {
-      const url = showUndeliveredOnly
-        ? '/api/v1/notifications/undelivered'
-        : '/api/v1/notifications';
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch notifications');
-      return response.json();
+    queryFn: () => {
+      const path = showUndeliveredOnly
+        ? '/notifications/undelivered'
+        : '/notifications';
+      return api.get<Notification[]>(path);
     },
   });
 
   // Mark as delivered mutation
   const markAsDelivered = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/v1/notifications/${id}/delivered`, {
-        method: 'PATCH',
-      });
-      if (!response.ok) throw new Error('Failed to mark notification as delivered');
-    },
+    mutationFn: (id: string) => api.patch(`/notifications/${id}/delivered`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -69,12 +55,15 @@ export default function NotificationList() {
 
   // Delete notification mutation
   const deleteNotification = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/v1/notifications/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete notification');
+    mutationFn: (id: string) => api.delete(`/notifications/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
+  });
+
+  // Clear all notifications mutation
+  const clearAllNotifications = useMutation({
+    mutationFn: () => api.delete('/notifications'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -172,12 +161,14 @@ export default function NotificationList() {
           <Button
             variant="outlined"
             color="error"
+            disabled={clearAllNotifications.isPending}
             onClick={() => {
-              // TODO: Implement clear all functionality
-              alert('Clear all notifications functionality to be implemented');
+              if (window.confirm('Are you sure you want to clear all notifications?')) {
+                clearAllNotifications.mutate();
+              }
             }}
           >
-            Clear All
+            {clearAllNotifications.isPending ? 'Clearing...' : 'Clear All'}
           </Button>
         </Box>
       )}

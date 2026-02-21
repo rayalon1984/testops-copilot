@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import Redis from 'ioredis';
+import { getAllCircuitBreakerStatuses, type CircuitBreakerStatus } from '../lib/resilience';
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -13,6 +14,7 @@ interface HealthCheckResult {
     weaviate?: ServiceStatus;
     ai?: ServiceStatus;
   };
+  circuitBreakers: CircuitBreakerStatus[];
   environment: {
     nodeEnv: string;
     nodeVersion: string;
@@ -24,7 +26,7 @@ interface ServiceStatus {
   status: 'up' | 'down' | 'degraded';
   responseTime?: number;
   error?: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 /**
@@ -65,6 +67,7 @@ export async function healthCheckFull(req: Request, res: Response): Promise<void
       weaviate: await checkWeaviate(),
       ai: await checkAI()
     },
+    circuitBreakers: getAllCircuitBreakerStatuses(),
     environment: {
       nodeEnv: process.env.NODE_ENV || 'development',
       nodeVersion: process.version,
@@ -76,10 +79,11 @@ export async function healthCheckFull(req: Request, res: Response): Promise<void
   const services = Object.values(result.services);
   const hasDown = services.some(s => s?.status === 'down');
   const hasDegraded = services.some(s => s?.status === 'degraded');
+  const hasOpenBreaker = result.circuitBreakers.some(cb => cb.state === 'OPEN');
 
   if (hasDown) {
     result.status = 'unhealthy';
-  } else if (hasDegraded) {
+  } else if (hasDegraded || hasOpenBreaker) {
     result.status = 'degraded';
   }
 
@@ -111,11 +115,11 @@ async function checkDatabase(): Promise<ServiceStatus> {
         provider: 'postgresql'
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -144,11 +148,11 @@ async function checkRedis(): Promise<ServiceStatus | undefined> {
       status: 'up',
       responseTime
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -180,11 +184,11 @@ async function checkWeaviate(): Promise<ServiceStatus | undefined> {
         error: `HTTP ${response.status}`
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -236,11 +240,11 @@ async function checkAI(): Promise<ServiceStatus | undefined> {
         configured: true
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       status: 'down',
       responseTime: Date.now() - startTime,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       details: { provider }
     };
   }

@@ -219,10 +219,10 @@ Focus on actionable insights. Be concise but precise.`;
       if (Array.isArray(parsed.keyLogLines)) {
         summary.keyLogLines = parsed.keyLogLines
           .slice(0, 10) // Limit to 10 lines
-          .map((line: any) => ({
-            lineNumber: parseInt(line.lineNumber, 10) || 0,
+          .map((line: { lineNumber?: string | number; content?: string; relevance?: string }) => ({
+            lineNumber: parseInt(String(line.lineNumber ?? '0'), 10) || 0,
             content: line.content || '',
-            relevance: this.validateRelevance(line.relevance),
+            relevance: this.validateRelevance(line.relevance || ''),
           }));
       }
 
@@ -270,7 +270,7 @@ Focus on actionable insights. Be concise but precise.`;
       )
     );
 
-    return results.map((result, index) => {
+    return results.map((result, _index) => {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {

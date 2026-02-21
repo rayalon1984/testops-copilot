@@ -17,6 +17,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import { api, ApiError } from '../../api';
 
 interface RCADocumentModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface RCADocumentModalProps {
   failureId: string;
   testName: string;
   errorMessage: string;
+  rcaVersion?: number;
   onSuccess?: () => void;
 }
 
@@ -33,6 +35,7 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
   failureId,
   testName,
   errorMessage,
+  rcaVersion,
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
@@ -44,7 +47,8 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
     jiraIssueKey: '',
     prUrl: '',
     timeToResolve: '',
-    tagInput: ''
+    tagInput: '',
+    editSummary: ''
   });
 
   const [tags, setTags] = useState<string[]>([]);
@@ -77,31 +81,29 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(`/api/v1/failure-archive/${failureId}/document-rca`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rootCause: formData.rootCause,
-          detailedAnalysis: formData.detailedAnalysis || undefined,
-          solution: formData.solution || undefined,
-          preventionSteps: formData.preventionSteps || undefined,
-          workaround: formData.workaround || undefined,
-          jiraIssueKey: formData.jiraIssueKey || undefined,
-          prUrl: formData.prUrl || undefined,
-          timeToResolve: formData.timeToResolve ? parseInt(formData.timeToResolve) : undefined,
-          tags: tags.length > 0 ? tags : undefined
-        })
+      await api.put(`/failure-archive/${failureId}/document-rca`, {
+        rootCause: formData.rootCause,
+        detailedAnalysis: formData.detailedAnalysis || undefined,
+        solution: formData.solution || undefined,
+        preventionSteps: formData.preventionSteps || undefined,
+        workaround: formData.workaround || undefined,
+        jiraIssueKey: formData.jiraIssueKey || undefined,
+        prUrl: formData.prUrl || undefined,
+        timeToResolve: formData.timeToResolve ? parseInt(formData.timeToResolve) : undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        expectedVersion: rcaVersion,
+        editSummary: formData.editSummary || undefined,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to document RCA');
-      }
 
       if (onSuccess) {
         onSuccess();
       }
       onClose();
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setError('Conflict: This RCA was modified by another user. Please reload and try again.');
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to save RCA');
     } finally {
       setSubmitting(false);
@@ -244,6 +246,18 @@ export const RCADocumentModal: React.FC<RCADocumentModalProps> = ({
             ))}
           </Box>
         </Box>
+
+        {rcaVersion !== undefined && rcaVersion > 0 && (
+          <TextField
+            fullWidth
+            label="Edit Summary"
+            value={formData.editSummary}
+            onChange={handleChange('editSummary')}
+            placeholder="Brief description of changes made"
+            helperText="Optional: Describe what you changed in this revision"
+            sx={{ mb: 2 }}
+          />
+        )}
       </DialogContent>
 
       <DialogActions>

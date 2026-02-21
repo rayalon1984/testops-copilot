@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Paper,
@@ -33,64 +34,34 @@ import {
   Error as ErrorIcon,
   Schedule as PendingIcon,
 } from '@mui/icons-material';
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
 
-interface Pipeline {
-  id: string;
-  name: string;
-  type: 'jenkins' | 'github-actions';
-  status: 'success' | 'failed' | 'running' | 'pending';
-  lastRun: string;
-  successRate: number;
-  config: Record<string, unknown>;
-}
-
-interface PipelineFormData {
-  name: string;
-  type: 'jenkins' | 'github-actions';
-  config: Record<string, unknown>;
-}
+type Pipeline = ApiSchemas['Pipeline'];
+type CreatePipelineRequest = ApiSchemas['CreatePipelineRequest'];
 
 export default function PipelineList() {
+  usePageContext('pipeline-list');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [openDialog, setOpenDialog] = useState(false);
-  const [formData, setFormData] = useState<PipelineFormData>({
+  const [formData, setFormData] = useState<CreatePipelineRequest>({
     name: '',
     type: 'jenkins',
     config: {},
   });
   const [error, setError] = useState('');
 
-  // Fetch pipelines
+  // Fetch pipelines — typed from OpenAPI spec
   const { data: pipelines, isLoading } = useQuery<Pipeline[]>({
     queryKey: ['pipelines'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/pipelines', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch pipelines');
-      return response.json();
-    },
+    queryFn: () => api.get<Pipeline[]>('/pipelines'),
   });
 
   // Create pipeline mutation
   const createPipeline = useMutation({
-    mutationFn: async (data: PipelineFormData) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/v1/pipelines', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create pipeline');
-      return response.json();
-    },
+    mutationFn: (data: CreatePipelineRequest) =>
+      api.post<Pipeline>('/pipelines', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipelines'] });
       setOpenDialog(false);
@@ -103,16 +74,7 @@ export default function PipelineList() {
 
   // Delete pipeline mutation
   const deletePipeline = useMutation({
-    mutationFn: async (id: string) => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/pipelines/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to delete pipeline');
-    },
+    mutationFn: (id: string) => api.delete(`/pipelines/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pipelines'] });
     },

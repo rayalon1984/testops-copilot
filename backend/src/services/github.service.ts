@@ -1,10 +1,17 @@
 import { Octokit } from '@octokit/rest';
-import { Prisma } from '@prisma/client';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { PipelineStatus, TestStatus, PipelineType } from '../constants';
 import { Pipeline, TestRun, TestRunWithPipeline } from '../types/pipeline';
 import { sleep, generateUUID } from '../utils/common';
+import { withResilience, circuitBreakers } from '../lib/resilience';
+
+const GITHUB_RESILIENCE = {
+  circuitBreaker: circuitBreakers.github,
+  retry: { maxRetries: 2, baseDelayMs: 1000 },
+  timeoutMs: 10_000,
+  label: 'github',
+};
 
 interface GitHubWorkflowConfig {
   owner: string;
@@ -34,11 +41,10 @@ export class GitHubService {
       const { owner, repo, workflow } = this.parseConfig(config);
 
       // Try to get workflow info to validate connection
-      await this.octokit.actions.getWorkflow({
-        owner,
-        repo,
-        workflow_id: workflow
-      });
+      await withResilience(
+        () => this.octokit.actions.getWorkflow({ owner, repo, workflow_id: workflow }),
+        GITHUB_RESILIENCE,
+      );
     } catch (error) {
       logger.error('GitHub connection validation failed:', error);
       throw new Error('Failed to validate GitHub connection');
@@ -71,12 +77,15 @@ export class GitHubService {
       };
 
       // Start GitHub workflow
-      const response = await this.octokit.actions.createWorkflowDispatch({
-        owner: workflowConfig.owner,
-        repo: workflowConfig.repo,
-        workflow_id: workflowConfig.workflow,
-        ref: 'main'
-      });
+      const response = await withResilience(
+        () => this.octokit.actions.createWorkflowDispatch({
+          owner: workflowConfig.owner,
+          repo: workflowConfig.repo,
+          workflow_id: workflowConfig.workflow,
+          ref: 'main'
+        }),
+        GITHUB_RESILIENCE,
+      );
 
       if (response.status !== 204) {
         throw new Error('Failed to start GitHub workflow');
@@ -101,7 +110,7 @@ export class GitHubService {
   private async monitorWorkflowProgress(
     config: GitHubWorkflowConfig,
     testRun: TestRun,
-    pipeline: Pipeline
+    _pipeline: Pipeline
   ): Promise<void> {
     try {
       // eslint-disable-next-line no-constant-condition
@@ -152,16 +161,15 @@ export class GitHubService {
     commitSha: string
   ): Promise<{ message: string; files: Array<{ filename: string; status: string; patch: string; additions: number; deletions: number }> }> {
     try {
-      const response = await this.octokit.repos.getCommit({
-        owner,
-        repo,
-        ref: commitSha,
-      });
+      const response = await withResilience(
+        () => this.octokit.repos.getCommit({ owner, repo, ref: commitSha }),
+        GITHUB_RESILIENCE,
+      );
 
       const commit = response.data;
       return {
         message: commit.commit.message,
-        files: (commit.files || []).map((f: any) => ({
+        files: (commit.files || []).map((f) => ({
           filename: f.filename,
           status: f.status,
           patch: f.patch || '',
@@ -184,17 +192,16 @@ export class GitHubService {
     commitSha: string
   ): Promise<{ number: number; title: string; body: string; url: string; author: string } | null> {
     try {
-      const response = await this.octokit.repos.listPullRequestsAssociatedWithCommit({
-        owner,
-        repo,
-        commit_sha: commitSha,
-      });
+      const response = await withResilience(
+        () => this.octokit.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha: commitSha }),
+        GITHUB_RESILIENCE,
+      );
 
       const prs = response.data;
       if (prs.length === 0) return null;
 
       // Return the most recent merged or open PR
-      const pr = prs.find((p: any) => p.merged_at) || prs[0];
+      const pr = prs.find((p) => p.merged_at) || prs[0];
       return {
         number: pr.number,
         title: pr.title,
@@ -217,14 +224,12 @@ export class GitHubService {
     pullNumber: number
   ): Promise<Array<{ filename: string; status: string; patch: string; additions: number; deletions: number }>> {
     try {
-      const response = await this.octokit.pulls.listFiles({
-        owner,
-        repo,
-        pull_number: pullNumber,
-        per_page: 100,
-      });
+      const response = await withResilience(
+        () => this.octokit.pulls.listFiles({ owner, repo, pull_number: pullNumber, per_page: 100 }),
+        GITHUB_RESILIENCE,
+      );
 
-      return response.data.map((f: any) => ({
+      return response.data.map((f) => ({
         filename: f.filename,
         status: f.status,
         patch: f.patch || '',
@@ -234,6 +239,179 @@ export class GitHubService {
     } catch (error) {
       logger.error(`Failed to get PR #${pullNumber} files:`, error);
       return [];
+    }
+  }
+
+  /**
+   * Create a pull request on GitHub.
+   */
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<{ number: number; title: string; url: string; }> {
+    try {
+      const response = await withResilience(
+        () => this.octokit.pulls.create({ owner, repo, title, body, head, base }),
+        GITHUB_RESILIENCE,
+      );
+
+      logger.info(`Created PR #${response.data.number}: "${title}" in ${owner}/${repo}`);
+
+      return {
+        number: response.data.number,
+        title: response.data.title,
+        url: response.data.html_url,
+      };
+    } catch (error) {
+      logger.error(`Failed to create PR in ${owner}/${repo}:`, error);
+      throw new Error('Failed to create pull request on GitHub');
+    }
+  }
+
+  /**
+   * Create a new branch from a base branch (usually main).
+   */
+  async createBranch(owner: string, repo: string, branchName: string, baseBranch: string = 'main'): Promise<void> {
+    try {
+      // Get the SHA of the base branch
+      const baseRef = await withResilience(
+        () => this.octokit.git.getRef({ owner, repo, ref: `heads/${baseBranch}` }),
+        GITHUB_RESILIENCE,
+      );
+
+      const sha = baseRef.data.object.sha;
+
+      // Create the new branch
+      await withResilience(
+        () => this.octokit.git.createRef({ owner, repo, ref: `refs/heads/${branchName}`, sha }),
+        GITHUB_RESILIENCE,
+      );
+
+      logger.info(`Created branch ${branchName} from ${baseBranch} in ${owner}/${repo}`);
+    } catch (error) {
+      logger.error(`Failed to create branch ${branchName}:`, error);
+      throw new Error(`Failed to create branch ${branchName}`);
+    }
+  }
+
+  /**
+   * Update (commit) a file in the repository.
+   */
+  async updateFile(
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string,
+    branch: string
+  ): Promise<{ sha: string; url: string }> {
+    try {
+      // Get current file SHA (if it exists) to allow updating
+      let sha: string | undefined;
+      try {
+        const current = await this.octokit.repos.getContent({
+          owner,
+          repo,
+          path,
+          ref: branch,
+        });
+        if (!Array.isArray(current.data) && current.data.sha) {
+          sha = current.data.sha;
+        }
+      } catch (e) {
+        // File doesn't exist, which is fine (we'll create it)
+      }
+
+      const response = await withResilience(
+        () => this.octokit.repos.createOrUpdateFileContents({
+          owner,
+          repo,
+          path,
+          message,
+          content: Buffer.from(content).toString('base64'),
+          branch,
+          ...(sha ? { sha } : {}),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any),
+        GITHUB_RESILIENCE,
+      );
+
+      return {
+        sha: response.data.commit.sha as string,
+        url: response.data.commit.html_url || '',
+      };
+    } catch (error) {
+      logger.error(`Failed to update file ${path}:`, error);
+      throw new Error(`Failed to update file ${path}`);
+    }
+  }
+
+  /**
+   * Re-run a GitHub Actions workflow by dispatching a new workflow run.
+   */
+  async rerunWorkflow(
+    owner: string,
+    repo: string,
+    workflowId: string,
+    branch: string = 'main'
+  ): Promise<void> {
+    try {
+      const response = await withResilience(
+        () => this.octokit.actions.createWorkflowDispatch({ owner, repo, workflow_id: workflowId, ref: branch }),
+        GITHUB_RESILIENCE,
+      );
+
+      if (response.status !== 204) {
+        throw new Error(`Unexpected status ${response.status} from workflow dispatch`);
+      }
+
+      logger.info(`[GitHubService] Dispatched workflow ${workflowId} on ${owner}/${repo} (${branch})`);
+    } catch (error) {
+      logger.error(`Failed to rerun workflow ${workflowId}:`, error);
+      throw new Error(`Failed to dispatch workflow ${workflowId}`);
+    }
+  }
+
+  /**
+   * Merge a pull request.
+   * Sprint 7: Tier 2 — team-visible, requires one-click approval.
+   */
+  async mergePR(
+    owner: string,
+    repo: string,
+    prNumber: number,
+    options: { method?: string; commitMessage?: string } = {}
+  ): Promise<{ sha: string; message: string }> {
+    if (!this.isEnabled()) {
+      throw new Error('GitHub is not configured');
+    }
+
+    try {
+      const mergeMethod = options.method || 'squash';
+      const { data } = await withResilience(
+        () => this.octokit!.pulls.merge({
+          owner,
+          repo,
+          pull_number: prNumber,
+          merge_method: mergeMethod as 'merge' | 'squash' | 'rebase',
+          ...(options.commitMessage ? { commit_message: options.commitMessage } : {}),
+        }),
+        GITHUB_RESILIENCE,
+      );
+
+      logger.info(`[GitHubService] Merged PR #${prNumber} in ${owner}/${repo} via ${mergeMethod}`);
+
+      return {
+        sha: data.sha,
+        message: data.message || `PR #${prNumber} merged successfully`,
+      };
+    } catch (error) {
+      logger.error(`Failed to merge PR #${prNumber}:`, error);
+      throw new Error(`Failed to merge PR #${prNumber}`);
     }
   }
 

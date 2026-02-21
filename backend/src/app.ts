@@ -6,7 +6,7 @@ import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import passport from 'passport';
 import { config } from './config';
-import { passportService } from './services/passport.service'; // Initialize passport
+import './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
 import { registerRoutes } from './routes';
 import { ApiError } from './types/error';
@@ -64,20 +64,28 @@ app.use('/api/v1/auth/login', asMiddleware(authRateLimitMiddleware));
 app.use('/api/v1/auth/register', asMiddleware(authRateLimitMiddleware));
 
 // Body parsing middleware
-app.use(asMiddleware(express.json({ limit: '1mb' })));
+// Preserve raw body for Slack signature verification on channel webhook routes
+app.use(asMiddleware(express.json({
+  limit: '1mb',
+  verify: (req: Request & { rawBody?: string }, _res, buf) => {
+    if (req.originalUrl?.startsWith('/api/v1/channels/')) {
+      req.rawBody = buf.toString('utf-8');
+    }
+  },
+})));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 
 
-import { redis } from './lib/redis';
+// import { redis } from './lib/redis';
 
 // Workaround for TS resolution issue with connect-redis v9 in CommonJS env
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const RedisStore = require('connect-redis').RedisStore as any;
+const _RedisStore = require('connect-redis').RedisStore as unknown;
 
 // Session configuration
 app.use(session({
-  store: new RedisStore({ client: redis }),
+  // store: new RedisStore({ client: redis }), // Disabled for demo/simple mode without Docker
   secret: config.security.sessionSecret || 'default_secret', // Should be in env
   resave: false,
   saveUninitialized: false,
@@ -97,6 +105,10 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   req.startTime = Date.now();
   next();
 });
+
+// Response time recording for Prometheus p95/p99 metrics
+import { recordResponseTime } from './middleware/responseTime';
+app.use(recordResponseTime);
 
 // Health check endpoint (no sensitive system info)
 app.get('/health', (_req: Request, res: Response) => {

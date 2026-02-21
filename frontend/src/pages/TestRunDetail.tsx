@@ -31,19 +31,11 @@ import {
   AccessTime as TimeIcon,
   BugReport as ErrorsIcon,
 } from '@mui/icons-material';
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
+import { usePageContext } from '../hooks/usePageContext';
 
-interface TestRun {
-  id: string;
-  pipelineId: string;
-  pipelineName: string;
-  status: 'success' | 'failed' | 'running' | 'pending';
-  startTime: string;
-  endTime: string;
-  duration: number;
-  errorCount: number;
-  errorLogs: string[];
-  screenshots: string[];
-}
+type TestRun = ApiSchemas['TestRunDetail'];
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -76,17 +68,13 @@ export default function TestRunDetail() {
   // Fetch test run details
   const { data: testRun, isLoading } = useQuery<TestRun>({
     queryKey: ['test-run', id],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/test-runs/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch test run');
-      return response.json();
-    },
+    queryFn: () => api.get<TestRun>(`/test-runs/${id}`),
   });
+
+  usePageContext('testrun-detail', testRun ? {
+    type: 'testrun', id: testRun.id, label: testRun.pipelineName || testRun.id,
+    metadata: { status: testRun.status, errorCount: testRun.errorCount },
+  } : null);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -202,7 +190,7 @@ export default function TestRunDetail() {
         {/* Error Logs */}
         <TabPanel value={tabValue} index={0}>
           <List>
-            {testRun.errorLogs.map((log, index) => (
+            {(testRun.errorLogs ?? []).map((log, index) => (
               <ListItem key={index}>
                 <ListItemIcon>
                   <ErrorIcon color="error" />
@@ -218,7 +206,7 @@ export default function TestRunDetail() {
                 />
               </ListItem>
             ))}
-            {testRun.errorLogs.length === 0 && (
+            {(testRun.errorLogs ?? []).length === 0 && (
               <ListItem>
                 <ListItemText primary="No errors found" />
               </ListItem>
@@ -229,7 +217,7 @@ export default function TestRunDetail() {
         {/* Screenshots */}
         <TabPanel value={tabValue} index={1}>
           <ImageList cols={3} gap={16}>
-            {testRun.screenshots.map((screenshot, index) => (
+            {(testRun.screenshots ?? []).map((screenshot, index) => (
               <ImageListItem
                 key={index}
                 onClick={() => setSelectedImage(screenshot)}
@@ -243,7 +231,7 @@ export default function TestRunDetail() {
               </ImageListItem>
             ))}
           </ImageList>
-          {testRun.screenshots.length === 0 && (
+          {(testRun.screenshots ?? []).length === 0 && (
             <Typography>No screenshots available</Typography>
           )}
         </TabPanel>

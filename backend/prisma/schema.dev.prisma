@@ -12,17 +12,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  role      String   @default("USER") // ADMIN | USER
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  notifications Notification[]
-  testRuns      TestRun[]
+  id             String   @id @default(uuid())
+  email          String   @unique
+  password       String
+  firstName      String?
+  lastName       String?
+  role           String   @default("USER") // ADMIN | USER
+  autonomyLevel  String   @default("balanced") // conservative | balanced | autonomous
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  notifications    Notification[]
+  testRuns         TestRun[]
+  chatSessions     ChatSession[]
+  pendingActions   PendingAction[]
 }
 
 model TestRun {
@@ -31,24 +34,30 @@ model TestRun {
   userId     String?
   name       String
   status     String    @default("PENDING") // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
-  branch     String?
-  commit     String?
   startedAt  DateTime? @default(now())
   completedAt DateTime?
   duration   Int?
-  // results string removed in favor of relation to match prod
-  error      String?
+  totalTests Int       @default(0)
+  passed     Int       @default(0)
+  failed     Int       @default(0)
+  skipped    Int       @default(0)
+  flaky      Int       @default(0)
+  branch     String?
+  commit     String?
+  buildNumber String?
+  metadata   String?   // JSON string (SQLite)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  // Relations
-  pipeline   Pipeline  @relation(fields: [pipelineId], references: [id])
-  user       User?     @relation(fields: [userId], references: [id])
-  results    TestResult[]
+  pipeline      Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results       TestResult[]
+  notifications Notification[]
 
   @@index([pipelineId])
   @@index([userId])
   @@index([status])
+  @@index([startedAt])
 }
 
 model FailureArchive {
@@ -70,26 +79,64 @@ model FailureArchive {
   occurrenceCount Int       @default(1)
   resolved        Boolean   @default(false)
   resolvedAt      DateTime?
+  rcaVersion      Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  revisions       RCARevision[]
+  comments        FailureComment[]
 
   @@index([testName])
   @@index([category])
   @@index([resolved])
 }
 
-// Simplified AI usage tracking for demo
+model RCARevision {
+  id               String   @id @default(uuid())
+  failureArchiveId String
+  version          Int
+  rootCause        String?
+  solution         String?
+  prevention       String?
+  tags             String?
+  editedBy         String
+  editSummary      String?
+  createdAt        DateTime @default(now())
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+}
+
+model FailureComment {
+  id               String   @id @default(uuid())
+  failureArchiveId String
+  userId           String
+  content          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  failureArchive   FailureArchive @relation(fields: [failureArchiveId], references: [id], onDelete: Cascade)
+
+  @@index([failureArchiveId])
+  @@index([userId])
+}
+
 model AIUsage {
-  id              String   @id @default(uuid())
-  provider        String   // "anthropic", "openai", "google"
-  model           String
-  tokens          Int
-  cost            Float
-  cacheHit        Boolean  @default(false)
-  responseTimeMs  Int
-  createdAt       DateTime @default(now())
+  id               String   @id @default(uuid())
+  provider         String
+  model            String
+  feature          String
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  cost             Float
+  userId           String?
+  metadata         String?   // JSON string (SQLite)
+  createdAt        DateTime  @default(now())
 
   @@index([provider])
+  @@index([feature])
   @@index([createdAt])
 }
 
@@ -126,23 +173,23 @@ model JiraIssue {
   @@index([projectKey])
 }
 
-// Pipeline model
 model Pipeline {
   id          String     @id @default(uuid())
   name        String
-  type        String     @default("CUSTOM") // JENKINS | GITHUB_ACTIONS | CUSTOM
-  status      String     @default("PENDING") // PENDING | RUNNING | SUCCESS | FAILURE | CANCELLED | TIMEOUT
-  config      String     // JSON stored as string
-  description String?
-  // userId removed to match prod schema
+  type        String     @default("CUSTOM") // GITHUB_ACTIONS | JENKINS | CUSTOM
+  repository  String?
+  branch      String?
+  config      String?    // JSON string (SQLite)
+  enabled     Boolean    @default(true)
+  lastRunAt   DateTime?
+  teamId      String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  // Relations
   testRuns    TestRun[]
+  team        Team?      @relation(fields: [teamId], references: [id])
 
-  @@index([type])
-  @@index([status])
+  @@index([teamId])
 }
 
 // Failure pattern detection
@@ -165,62 +212,214 @@ model FailurePattern {
   @@index([isActive])
 }
 
-// Added during Refactor for missing models
-
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String
+  testRunId String?
+  type      String   // TEST_FAILED | TEST_PASSED | PIPELINE_FAILED | PIPELINE_PASSED | SYSTEM
   title     String
   message   String
   read      Boolean  @default(false)
-  data      String?  // JSON
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  user      User     @relation(fields: [userId], references: [id])
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testRun   TestRun? @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
   @@index([userId])
+  @@index([read])
 }
 
 model TestRailRun {
-  id            String   @id @default(uuid())
-  testRailRunId Int      @unique
+  id            String    @id @default(uuid())
+  testRailRunId Int       @unique
   projectId     Int
   suiteId       Int?
   name          String
-  testRunId     String?  // nullable and not unique in prod?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  description   String?
+  testRunId     String?
+  metadata      String?   // JSON string (SQLite)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([projectId])
 }
 
 model ConfluencePage {
-  id          String   @id @default(uuid())
-  pageId      String
-  title       String
-  spaceKey    String
-  version     Int?
-  url         String
-  testRunId   String?
-  type        String?
-  sourceId    String?
-  metadata    String?  // JSON string
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String    @id @default(uuid())
+  pageId           String    @unique
+  spaceKey         String
+  title            String
+  url              String
+  failureArchiveId String?
+  publishedBy      String?
+  metadata         String?   // JSON string (SQLite)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([spaceKey])
 }
 
 model TestResult {
   id          String   @id @default(uuid())
   testRunId   String
-  testName    String
-  testCaseId  String?
-  message     String?
-  status      String
+  name        String
+  className   String?
+  status      String   // PENDING | RUNNING | PASSED | FAILED | SKIPPED | FLAKY
   duration    Int?
   error       String?
   stackTrace  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
   @@index([testRunId])
+  @@index([status])
+}
+
+// ─── AI Copilot Chat Persistence ───
+
+model ChatSession {
+  id             String   @id @default(uuid())
+  userId         String
+  title          String   @default("New Chat")
+  activePersona  String?  // Last persona used in this session
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages       ChatMessage[]
+  pendingActions PendingAction[]
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String   // user | assistant | tool_start | tool_result | thinking | error
+  content   String
+  toolName  String?
+  persona   String?  // Which virtual team persona generated this message
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+// ─── AI Copilot Confirmation System ───
+
+model PendingAction {
+  id         String   @id @default(uuid())
+  sessionId  String
+  userId     String
+  toolName   String
+  parameters String   // JSON-serialized tool parameters
+  status     String   @default("PENDING") // PENDING | APPROVED | DENIED | EXPIRED
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([status])
+}
+
+// ─── In-App AI Provider Configuration ───
+
+model AIProviderConfig {
+  id          String   @id @default("singleton")
+  provider    String   @default("mock") // anthropic | openai | google | azure | openrouter | mock
+  model       String   @default("mock-model")
+  apiKey      String?  // AES-256-GCM encrypted
+  extraConfig String?  // JSON: azure endpoint, openrouter app name, etc.
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+// ─── Team Workspaces ───
+
+model Team {
+  id          String          @id @default(uuid())
+  name        String
+  slug        String          @unique
+  description String?
+  createdBy   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  members     TeamMember[]
+  pipelines   Pipeline[]
+  dashboards  DashboardConfig[]
+
+  @@index([slug])
+}
+
+model TeamMember {
+  id       String   @id @default(uuid())
+  teamId   String
+  userId   String
+  role     String   @default("MEMBER") // OWNER | ADMIN | MEMBER | VIEWER
+  joinedAt DateTime @default(now())
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model DashboardConfig {
+  id        String   @id @default(uuid())
+  teamId    String?
+  userId    String
+  name      String
+  layout    String   // JSON widget config
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@index([userId])
+}
+
+// ─── Shareable Analysis Links ───
+
+model SharedAnalysis {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  sessionId   String?
+  title       String
+  content     String
+  persona     String?
+  toolSummary String?   // JSON string (SQLite)
+  expiresAt   DateTime
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ─── Multi-Channel User Mapping ───
+
+model ChannelUserMapping {
+  id         String   @id @default(uuid())
+  channel    String   // 'slack' | 'teams'
+  externalId String   // Slack user ID or Teams user ID
+  userId     String   // Internal TestOps user ID
+  metadata   String?  // JSON: team/channel context
+  createdAt  DateTime @default(now())
+
+  @@unique([channel, externalId])
+  @@index([userId])
 }

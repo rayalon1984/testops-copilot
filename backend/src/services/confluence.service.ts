@@ -2,6 +2,15 @@ import axios, { AxiosInstance } from 'axios';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
+import { validateUrlForSSRF } from '@/utils/ssrf-validator';
+import { withResilience, circuitBreakers } from '@/lib/resilience';
+
+const CONFLUENCE_RESILIENCE = {
+  circuitBreaker: circuitBreakers.confluence,
+  retry: { maxRetries: 2, baseDelayMs: 1000 },
+  timeoutMs: 10_000,
+  label: 'confluence',
+};
 
 // Confluence API Types
 export interface ConfluenceConfig {
@@ -92,6 +101,8 @@ export class ConfluenceService {
     }
 
     try {
+      validateUrlForSSRF(config.confluence.baseUrl);
+
       const auth = Buffer.from(
         `${config.confluence.username}:${config.confluence.apiToken}`
       ).toString('base64');
@@ -129,7 +140,10 @@ export class ConfluenceService {
     this.checkEnabled();
 
     try {
-      const response = await this.client!.get('/space');
+      const response = await withResilience(
+        () => this.client!.get('/space'),
+        CONFLUENCE_RESILIENCE,
+      );
       logger.info('Confluence connection validated successfully');
       return response.status === 200;
     } catch (error) {
@@ -141,7 +155,7 @@ export class ConfluenceService {
   /**
    * Get space by key
    */
-  async getSpace(spaceKey?: string): Promise<any> {
+  async getSpace(spaceKey?: string): Promise<unknown> {
     this.checkEnabled();
 
     const key = spaceKey || this.spaceKey;
@@ -150,7 +164,10 @@ export class ConfluenceService {
     }
 
     try {
-      const response = await this.client!.get(`/space/${key}`);
+      const response = await withResilience(
+        () => this.client!.get(`/space/${key}`),
+        CONFLUENCE_RESILIENCE,
+      );
       return response.data;
     } catch (error) {
       logger.error(`Failed to get Confluence space ${key}:`, error);
@@ -192,7 +209,10 @@ export class ConfluenceService {
         pageData.ancestors = [{ id: parent }];
       }
 
-      const response = await this.client!.post('/content', pageData);
+      const response = await withResilience(
+        () => this.client!.post('/content', pageData),
+        CONFLUENCE_RESILIENCE,
+      );
       const page: ConfluencePage = response.data;
 
       logger.info(`Created Confluence page: ${page.id} (${page.title})`);
@@ -229,7 +249,10 @@ export class ConfluenceService {
         },
       };
 
-      const response = await this.client!.put(`/content/${pageId}`, updateData);
+      const response = await withResilience(
+        () => this.client!.put(`/content/${pageId}`, updateData),
+        CONFLUENCE_RESILIENCE,
+      );
       logger.info(`Updated Confluence page: ${pageId}`);
       return response.data;
     } catch (error) {
@@ -245,11 +268,12 @@ export class ConfluenceService {
     this.checkEnabled();
 
     try {
-      const response = await this.client!.get(`/content/${pageId}`, {
-        params: {
-          expand: 'body.storage,version,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get(`/content/${pageId}`, {
+          params: { expand: 'body.storage,version,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
       return response.data;
     } catch (error) {
       logger.error(`Failed to get Confluence page ${pageId}:`, error);
@@ -269,13 +293,12 @@ export class ConfluenceService {
     }
 
     try {
-      const response = await this.client!.get('/content', {
-        params: {
-          spaceKey: space,
-          title: title,
-          expand: 'body.storage,version,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get('/content', {
+          params: { spaceKey: space, title: title, expand: 'body.storage,version,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
 
       const pages = response.data.results;
       return pages.length > 0 ? pages[0] : null;
@@ -294,10 +317,10 @@ export class ConfluenceService {
     try {
       await Promise.all(
         labels.map(label =>
-          this.client!.post(`/content/${pageId}/label`, {
-            prefix: 'global',
-            name: label,
-          })
+          withResilience(
+            () => this.client!.post(`/content/${pageId}/label`, { prefix: 'global', name: label }),
+            CONFLUENCE_RESILIENCE,
+          )
         )
       );
       logger.info(`Added ${labels.length} labels to page ${pageId}`);
@@ -380,11 +403,11 @@ export class ConfluenceService {
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           // sourceId: failureArchiveId, // Removed
-          metadata: {
+          metadata: JSON.stringify({
             version: page.version.number,
             type: 'rca_document',
             sourceId: failureArchiveId // Moved to metadata
-          } as any
+          })
         },
       });
 
@@ -456,11 +479,11 @@ export class ConfluenceService {
           spaceKey: page.space.key,
           url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
           // sourceId: testRunId, // Removed as not in Prod schema
-          metadata: {
+          metadata: JSON.stringify({
             version: page.version.number,
             type: 'test_report',
             sourceId: testRunId // Stored in metadata
-          } as any
+          })
         },
       });
 
@@ -497,19 +520,18 @@ export class ConfluenceService {
       }
       cql += ' ORDER BY lastModified DESC';
 
-      const response = await this.client!.get('/content/search', {
-        params: {
-          cql,
-          limit: maxResults,
-          expand: 'body.view,metadata.labels,space',
-        },
-      });
+      const response = await withResilience(
+        () => this.client!.get('/content/search', {
+          params: { cql, limit: maxResults, expand: 'body.view,metadata.labels,space' },
+        }),
+        CONFLUENCE_RESILIENCE,
+      );
 
-      const results = (response.data.results || []).map((page: any) => {
+      const results = (response.data.results || []).map((page: { id: string; title: string; body?: { view?: { value?: string } }; metadata?: { labels?: { results?: Array<{ name: string }> } }; _links?: { webui?: string } }) => {
         // Extract a text excerpt from the page body (strip HTML)
         const bodyHtml = page.body?.view?.value || '';
         const excerpt = this.stripHtml(bodyHtml).substring(0, 500);
-        const labels = (page.metadata?.labels?.results || []).map((l: any) => l.name);
+        const labels = (page.metadata?.labels?.results || []).map((l: { name: string }) => l.name);
 
         return {
           id: page.id,
@@ -576,6 +598,7 @@ export class ConfluenceService {
   /**
    * Build RCA document content in Confluence storage format
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildRCAContent(failure: any, linkToJira: boolean): string {
     let html = `
 <h2>Root Cause Analysis</h2>
@@ -674,14 +697,15 @@ export class ConfluenceService {
   /**
    * Build test report content
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private buildTestReportContent(testRun: any, includeFailureDetails: boolean): string {
     // Adapter for testResults vs testCases naming (Prisma model uses testResults)
     const cases = testRun.testResults || testRun.testCases || [];
 
     const totalTests = cases.length;
-    const passedTests = cases.filter((tc: any) => tc.status === 'PASSED').length;
-    const failedTests = cases.filter((tc: any) => tc.status === 'FAILED').length;
-    const skippedTests = cases.filter((tc: any) => tc.status === 'SKIPPED').length;
+    const passedTests = cases.filter((tc) => tc.status === 'PASSED').length;
+    const failedTests = cases.filter((tc) => tc.status === 'FAILED').length;
+    const skippedTests = cases.filter((tc) => tc.status === 'SKIPPED').length;
     const passRate = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(2) : '0';
 
     let html = `
@@ -714,8 +738,8 @@ ${testRun.duration ? `<p><strong>Duration:</strong> ${this.formatDuration(testRu
   <tr><th>Test Name</th><th>Error</th><th>Duration</th></tr>
 `;
       cases
-        .filter((tc: any) => tc.status === 'FAILED')
-        .forEach((tc: any) => {
+        .filter((tc) => tc.status === 'FAILED')
+        .forEach((tc) => {
           html += `
   <tr>
     <td>${this.escapeHtml(tc.testName || tc.name)}</td>

@@ -1,7 +1,6 @@
 import { passportService } from '../passport.service';
 import { prisma } from '../../lib/prisma';
 import passport from 'passport';
-import { config } from '../../config';
 
 // Mock dependencies
 jest.mock('../../lib/prisma', () => ({
@@ -35,7 +34,7 @@ jest.mock('passport', () => ({
     deserializeUser: jest.fn(),
 }));
 
-jest.mock('passport-saml', () => ({
+jest.mock('@node-saml/passport-saml', () => ({
     Strategy: jest.fn().mockImplementation((options, verify) => {
         return { options, verify };
     }),
@@ -60,7 +59,7 @@ describe('PassportService', () => {
         beforeEach(() => {
             // Extract the verify callback passed to the Strategy constructor
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const StrategyMock = require('passport-saml').Strategy;
+            const StrategyMock = require('@node-saml/passport-saml').Strategy;
             const call = StrategyMock.mock.calls[0];
             if (call) {
                 verifyCallback = call[1];

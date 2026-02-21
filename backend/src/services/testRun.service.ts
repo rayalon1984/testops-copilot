@@ -34,7 +34,7 @@ export class TestRunService {
         }
 
         if (filters.status) {
-            where.status = filters.status as any;
+            where.status = filters.status as Prisma.TestRunWhereInput['status'];
         }
 
         if (filters.branch) {

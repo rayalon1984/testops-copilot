@@ -9,7 +9,8 @@
 
 import * as crypto from 'crypto';
 import { redis } from '../../lib/redis';
-import { AIResponse, Embedding } from './types';
+import { AIResponse, Embedding, LogSummary } from './types';
+import { getConfigManager } from './config';
 
 export interface CacheConfig {
   enabled: boolean;
@@ -139,7 +140,7 @@ export class AICache {
   /**
    * Cache a summary
    */
-  async cacheSummary(logHash: string, summary: any): Promise<void> {
+  async cacheSummary(logHash: string, summary: LogSummary): Promise<void> {
     if (!this.enabled) return;
 
     try {
@@ -157,7 +158,7 @@ export class AICache {
   /**
    * Get cached summary
    */
-  async getSummary(logHash: string): Promise<any | null> {
+  async getSummary(logHash: string): Promise<LogSummary | null> {
     if (!this.enabled) {
       this.stats.misses++;
       return null;
@@ -231,10 +232,7 @@ let cacheInstance: AICache | null = null;
 
 export function getCache(config?: CacheConfig): AICache {
   if (!cacheInstance) {
-    const finalConfig: CacheConfig = config || {
-      enabled: process.env.AI_CACHE_ENABLED === 'true',
-      ttlSeconds: parseInt(process.env.AI_CACHE_TTL_SECONDS || '604800', 10),
-    };
+    const finalConfig = config || getConfigManager().getCacheConfig();
     cacheInstance = new AICache(finalConfig);
   }
   return cacheInstance;

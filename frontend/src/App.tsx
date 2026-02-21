@@ -10,6 +10,7 @@ import { getAppTheme } from './theme';
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 import { DesignModeProvider, useDesignMode } from './contexts/DesignModeContext';
+import { AIProvider } from './contexts/AIContext';
 
 // Components
 import Layout from './components/Layout/Layout';
@@ -29,6 +30,7 @@ const NotificationList = lazy(() => import('./pages/NotificationList'));
 const Settings = lazy(() => import('./pages/Settings'));
 const FailureKnowledgeBase = lazy(() => import('./pages/FailureKnowledgeBase').then(module => ({ default: module.FailureKnowledgeBase })));
 const CostTracker = lazy(() => import('./pages/CostTracker'));
+const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Create Query Client
@@ -60,6 +62,7 @@ function AppContent() {
         <ErrorBoundary>
           <Router>
             <AuthProvider>
+              <AIProvider>
               <Suspense fallback={<LoadingSpinner message="Loading application..." />}>
                 <Routes>
                   {/* Public Routes */}
@@ -86,6 +89,9 @@ function AppContent() {
                     {/* Notifications */}
                     <Route path="/notifications" element={<NotificationList />} />
 
+                    {/* Teams */}
+                    <Route path="/teams" element={<TeamSettings />} />
+
                     {/* Settings */}
                     <Route path="/settings" element={<Settings />} />
                   </Route>
@@ -94,6 +100,7 @@ function AppContent() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </AIProvider>
             </AuthProvider>
           </Router>
         </ErrorBoundary>

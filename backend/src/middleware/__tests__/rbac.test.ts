@@ -1,6 +1,23 @@
+import { Request, Response } from 'express';
+
+// Mock config to avoid Zod env validation at module load time
+jest.mock('@/config', () => ({
+  __esModule: true,
+  config: {
+    env: 'test',
+    jwt: { secret: 'test-secret', refreshSecret: 'test-refresh-secret' },
+    log: { level: 'error', format: 'combined' },
+  },
+}));
+
+// Mock dependencies that auth.ts imports
+jest.mock('../../lib/prisma', () => ({ prisma: {} }));
+jest.mock('../../services/tokenBlacklist.service', () => ({
+  tokenBlacklist: { isBlacklisted: jest.fn().mockResolvedValue(false) },
+}));
+
 import { hasRole, authorize } from '../auth';
-import { UserRole, ERROR_MESSAGES } from '../../constants';
-import { Request, Response, NextFunction } from 'express';
+import { UserRole } from '../../constants';
 import { AuthenticationError, AuthorizationError } from '../errorHandler';
 
 describe('RBAC Middleware', () => {

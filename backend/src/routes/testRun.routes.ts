@@ -31,8 +31,7 @@ router.get(
       // Let's use metadata counters if available or default to 0
 
       // Count from included results (Dev schema doesn't have failed/passed columns)
-      const failed = run.results?.filter((r: any) => r.status === 'FAILED').length || 0;
-      const passed = run.results?.filter((r: any) => r.status === 'PASSED').length || 0;
+      const failed = run.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
 
       // Map status
       const statusMap: Record<string, string> = {
@@ -83,7 +82,7 @@ router.get(
       return;
     }
 
-    const failed = (testRun as any).results?.filter((r: any) => r.status === 'FAILED').length || 0;
+    const failed = testRun.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
     const statusMap: Record<string, string> = {
       'PASSED': 'success',
       'FAILED': 'failed',
@@ -93,7 +92,10 @@ router.get(
       'FLAKY': 'flaky'
     };
 
-    const error = (testRun as any).error || null;
+    // Collect error messages from failed test results
+    const errorLogs = testRun.results
+      ?.filter((r: { status: string; error?: string | null }) => r.status === 'FAILED' && r.error)
+      .map((r: { error?: string | null }) => r.error!) || [];
 
     res.status(200).json({
       id: testRun.id,
@@ -104,7 +106,7 @@ router.get(
       endTime: testRun.completedAt?.toISOString() || testRun.createdAt.toISOString(),
       duration: testRun.duration || 0,
       errorCount: failed,
-      errorLogs: error ? [error] : [],
+      errorLogs,
       screenshots: []
     });
   })

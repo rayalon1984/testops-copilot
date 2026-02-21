@@ -160,6 +160,72 @@ const metricsQuerySchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
+// ── Sprint 7B: New schemas for previously unvalidated endpoints ──
+
+// Pipeline create (matches actual API contract — simpler than full pipelineSchema)
+const createPipelineSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  type: z.enum(['jenkins', 'github-actions', 'custom']),
+  config: z.record(z.string(), z.unknown()).optional(),
+});
+
+// Pipeline update (all optional)
+const updatePipelineSchema = z.object({
+  name: z.string().min(1).optional(),
+  type: z.enum(['jenkins', 'github-actions', 'custom']).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
+  status: z.string().optional(),
+});
+
+// Pipeline schedule (route sends { schedule: "cron" })
+const pipelineScheduleSchema = z.object({
+  schedule: z.string().min(1, 'Schedule is required'),
+});
+
+// AI provider config update
+const aiConfigUpdateSchema = z.object({
+  provider: z.enum(['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock']),
+  model: z.string().min(1, 'Model is required'),
+  apiKey: z.string().optional(),
+  extraConfig: z.record(z.string(), z.unknown()).optional(),
+});
+
+// AI autonomy preference
+const aiAutonomySchema = z.object({
+  autonomyLevel: z.enum(['conservative', 'balanced', 'autonomous']),
+});
+
+// AI chat message
+const chatMessageSchema = z.object({
+  message: z.string().min(1, 'Message is required'),
+  sessionId: z.string().optional(),
+  history: z.array(z.object({
+    role: z.string(),
+    content: z.string(),
+  })).optional(),
+});
+
+// AI action confirmation
+const confirmActionSchema = z.object({
+  actionId: z.string().min(1, 'Action ID is required'),
+  approved: z.boolean(),
+});
+
+// Share creation
+const createShareSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  persona: z.string().optional(),
+  toolSummary: z.string().optional(),
+  sessionId: z.string().optional(),
+  expiresInDays: z.number().positive().optional(),
+});
+
+// Share email
+const emailShareSchema = z.object({
+  recipientEmail: z.string().email('Invalid email address'),
+});
+
 // Validation middleware factory
 const validate = (schema: z.ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -191,6 +257,17 @@ export const validateChannelVerification = validate(channelVerificationSchema);
 export const validateBroadcastNotification = validate(broadcastNotificationSchema);
 export const validateGlobalNotificationSettings = validate(globalNotificationSettingsSchema);
 
+// Sprint 7B exports
+export const validateCreatePipeline = validate(createPipelineSchema);
+export const validateUpdatePipeline = validate(updatePipelineSchema);
+export const validatePipelineSchedule = validate(pipelineScheduleSchema);
+export const validateAIConfigUpdate = validate(aiConfigUpdateSchema);
+export const validateAIAutonomy = validate(aiAutonomySchema);
+export const validateChatMessage = validate(chatMessageSchema);
+export const validateConfirmAction = validate(confirmActionSchema);
+export const validateCreateShare = validate(createShareSchema);
+export const validateEmailShare = validate(emailShareSchema);
+
 // Export schemas for reuse
 export const schemas = {
   register: registerSchema,
@@ -199,6 +276,9 @@ export const schemas = {
   resetPassword: resetPasswordSchema,
   forgotPassword: forgotPasswordSchema,
   pipeline: pipelineSchema,
+  createPipeline: createPipelineSchema,
+  updatePipeline: updatePipelineSchema,
+  pipelineSchedule: pipelineScheduleSchema,
   testRun: testRunSchema,
   schedule: scheduleSchema,
   metricsQuery: metricsQuerySchema,
@@ -206,6 +286,12 @@ export const schemas = {
   channelVerification: channelVerificationSchema,
   broadcastNotification: broadcastNotificationSchema,
   globalNotificationSettings: globalNotificationSettingsSchema,
+  aiConfigUpdate: aiConfigUpdateSchema,
+  aiAutonomy: aiAutonomySchema,
+  chatMessage: chatMessageSchema,
+  confirmAction: confirmActionSchema,
+  createShare: createShareSchema,
+  emailShare: emailShareSchema,
 };
 
 // Type definitions

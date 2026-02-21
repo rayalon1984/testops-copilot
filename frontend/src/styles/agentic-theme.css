@@ -1,0 +1,63 @@
+/* Agentic Command Center Theme */
+:root {
+    /* Dark Mode Palette */
+    --bg-app: #0f1014;
+    --bg-sidebar: #18181b;
+    --bg-card: #27272a;
+    --bg-hover: #3f3f46;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+
+    /* Typography */
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --font-mono: 'Fira Code', monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* Agentic Accent Colors */
+    --accent-ai: #8b5cf6;
+    /* Purple for Brain/Analysis */
+    --accent-action: #10b981;
+    /* Green for Fixes/PRs */
+    --accent-jira: #3b82f6;
+    /* Blue for Integration */
+
+    /* Spacing & Radius */
+    --radius-lg: 12px;
+    --radius-sm: 6px;
+}
+
+body {
+    margin: 0;
+    /* background-color: var(--bg-app);  <-- Removed to let MUI theme control background */
+    /* color: var(--text-primary);       <-- Removed to let MUI theme control text color */
+    font-family: var(--font-sans);
+}
+
+/* Application Wrapper - CSS Grid Layout */
+.app-container {
+    display: grid;
+    /* 250px Navigation | Flexible Dashboard | 400px AI Sidebar */
+    grid-template-columns: 250px 1fr 400px;
+    height: 100vh;
+    overflow: hidden;
+    /* background-color: var(--bg-app); <-- Removed to let MUI theme control background */
+}
+
+/* Scrollbar Styling for Webkit */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-sidebar);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+}

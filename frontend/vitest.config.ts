@@ -25,9 +25,17 @@ export default defineConfig({
         '**/*.config.*',
         '**/types/*',
       ],
+      thresholds: {
+        branches: 50,
+        functions: 50,
+        lines: 50,
+        statements: 50,
+      },
     },
-    deps: {
-      inline: ['@testing-library/user-event'],
+    server: {
+      deps: {
+        inline: ['@testing-library/user-event'],
+      },
     },
   },
 });

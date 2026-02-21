@@ -1,0 +1,121 @@
+feature: proactive-suggestions
+name: "Proactive Action Cards (AI-in-the-Loop)"
+version: "1.0.0"
+status: shipped
+since: "v3.0.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+capabilities:
+  - id: proactive.engine
+    name: "ProactiveSuggestionEngine"
+    version: "1.0.0"
+    description: "Post-tool evaluation engine that anticipates user's next action"
+    files:
+      - backend/src/services/ai/ProactiveSuggestionEngine.ts
+    assertions:
+      - id: proactive.engine.jira-empty-suggest-create
+        description: "When jira_search returns empty results, suggests jira_create_issue with pre-filled card"
+        type: invariant
+      - id: proactive.engine.transient-failure-suggest-retry
+        description: "When failure_predictions contains transient keywords (environment, transient, timeout, network, flaky), suggests testrun_retry"
+        type: invariant
+      - id: proactive.engine.jenkins-failure-suggest-rebuild
+        description: "When jenkins_get_status shows failure, suggests jenkins_trigger_build"
+        type: invariant
+      - id: proactive.engine.related-issues-suggest-link
+        description: "When jira_search returns 2+ issues AND previous jira_get exists, suggests jira_link_issues"
+        type: invariant
+      - id: proactive.engine.mergeable-pr-suggest-merge
+        description: "When github_get_pr returns open + mergeable PR, suggests github_merge_pr"
+        type: invariant
+      - id: proactive.engine.null-when-no-match
+        description: "Returns null when no suggestion rule matches"
+        type: invariant
+      - id: proactive.engine.confidence-values
+        description: "Each rule assigns appropriate confidence values (0.7–0.85)"
+        type: behavioral
+      - id: proactive.engine.unique-suggestion-ids
+        description: "Each suggestion gets a unique auto-generated ID"
+        type: invariant
+
+  - id: proactive.jira-prefill
+    name: "Jira Issue Pre-Fill"
+    version: "1.0.0"
+    description: "Builds Jira issue fields from conversation context for create-issue suggestions"
+    files:
+      - backend/src/services/ai/ProactiveSuggestionEngine.ts
+    assertions:
+      - id: proactive.jira-prefill.summary-from-context
+        description: "Pre-fills summary from failure predictions or user message"
+        type: behavioral
+      - id: proactive.jira-prefill.ai-suggested-label
+        description: "Always includes 'ai-suggested' label"
+        type: invariant
+      - id: proactive.jira-prefill.pipeline-context
+        description: "Includes pipeline info from jenkins_get_status results when available"
+        type: behavioral
+
+  - id: proactive.frontend
+    name: "ProactiveSuggestionCard"
+    version: "1.0.0"
+    description: "Frontend card component for AI-in-the-Loop suggestions"
+    files:
+      - frontend/src/components/AICopilot/cards/ProactiveSuggestionCard.tsx
+    assertions:
+      - id: proactive.frontend.dual-buttons
+        description: "Shows primary action button (actionLabel) and optional secondary button (secondaryLabel)"
+        type: invariant
+      - id: proactive.frontend.service-accent
+        description: "Card left border and icons use service-specific accent colors (Jira blue, GitHub green, etc.)"
+        type: behavioral
+      - id: proactive.frontend.high-confidence-badge
+        description: "Shows 'High confidence' chip when confidence >= 0.8"
+        type: behavioral
+      - id: proactive.frontend.resolved-state
+        description: "Card fades to 60% opacity when accepted or dismissed"
+        type: behavioral
+      - id: proactive.frontend.jira-preview
+        description: "Shows pre-filled summary and labels preview for jira_create_issue suggestions"
+        type: behavioral
+      - id: proactive.frontend.accept-dismiss-callbacks
+        description: "Calls onAccept with full suggestion data and onDismiss with suggestionId"
+        type: contract
+
+  - id: proactive.sse
+    name: "SSE Event Integration"
+    version: "1.0.0"
+    description: "proactive_suggestion SSE event emission"
+    files:
+      - backend/src/services/ai/AIChatService.ts
+    assertions:
+      - id: proactive.sse.event-type
+        description: "Emits SSE event with type 'proactive_suggestion'"
+        type: contract
+      - id: proactive.sse.event-shape
+        description: "Event data contains suggestionId, tool, confidence, reason, preparedAction, tier"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-1
+    title: "Proactive Suggestion Engine"
+    gherkin: |
+      GIVEN the AI searched Jira for a failure pattern and found no matching issues
+      WHEN the search result returns empty
+      THEN the AI emits a proactive_suggestion event with a pre-filled jira_create_issue card
+      AND the card shows title, description from RCA, suggested labels
+      AND the user can approve with one click or edit before creating
+    maps_to:
+      - proactive.engine.jira-empty-suggest-create
+      - proactive.jira-prefill.summary-from-context
+      - proactive.jira-prefill.ai-suggested-label
+      - proactive.frontend.dual-buttons
+      - proactive.frontend.jira-preview
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Initial implementation: 5 suggestion rules, Jira pre-fill, SSE integration, frontend card"

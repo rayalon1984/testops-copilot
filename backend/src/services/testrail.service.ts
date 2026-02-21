@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
+import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 
 // TestRail API Types
 export interface TestRailConfig {
@@ -73,6 +74,8 @@ export class TestRailService {
     }
 
     try {
+      validateUrlForSSRF(config.testrail.baseUrl);
+
       const auth = Buffer.from(`${config.testrail.username}:${config.testrail.apiKey}`).toString('base64');
 
       this.client = axios.create({
@@ -118,7 +121,7 @@ export class TestRailService {
   /**
    * Get project by ID
    */
-  async getProject(projectId?: number): Promise<any> {
+  async getProject(projectId?: number): Promise<unknown> {
     this.checkEnabled();
 
     const id = projectId || this.projectId;
@@ -138,7 +141,7 @@ export class TestRailService {
   /**
    * Get test suites for a project
    */
-  async getSuites(projectId?: number): Promise<any[]> {
+  async getSuites(projectId?: number): Promise<unknown[]> {
     this.checkEnabled();
 
     const id = projectId || this.projectId;
@@ -158,7 +161,7 @@ export class TestRailService {
   /**
    * Get test cases for a suite
    */
-  async getCases(projectId: number, suiteId: number): Promise<any[]> {
+  async getCases(projectId: number, suiteId: number): Promise<unknown[]> {
     this.checkEnabled();
 
     try {
@@ -365,8 +368,8 @@ export class TestRailService {
       const resultsToSync = testRun.results || testRun.testResults || [];
 
       const results: AddTestResultDTO[] = resultsToSync
-        .filter((result: any) => result.testCaseId) // Only include results with testCaseId
-        .map((result: any) => ({
+        .filter((result: { testCaseId?: string | null; status: string; error?: string | null; message?: string | null; duration?: number | null }) => result.testCaseId) // Only include results with testCaseId
+        .map((result: { testCaseId?: string | null; status: string; error?: string | null; message?: string | null; duration?: number | null }) => ({
           testId: parseInt(result.testCaseId!),
           statusId: this.mapStatusToTestRail(result.status),
           comment: result.error || result.message || '',

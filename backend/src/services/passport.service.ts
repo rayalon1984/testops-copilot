@@ -1,6 +1,5 @@
 import passport from 'passport';
-import { Strategy as SamlStrategy } from 'passport-saml';
-import { PrismaClient } from '@prisma/client';
+import { Strategy as SamlStrategy, type VerifyWithoutRequest } from '@node-saml/passport-saml';
 import { UserRole } from '../constants';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
@@ -19,6 +18,7 @@ export class PassportService {
         }
 
         // Serialize user for the session
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         passport.serializeUser((user: any, done) => {
             done(null, user.id);
         });
@@ -27,6 +27,7 @@ export class PassportService {
         passport.deserializeUser(async (id: string, done) => {
             try {
                 const user = await prisma.user.findUnique({ where: { id } });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 done(null, user as any);
             } catch (error) {
                 done(error);
@@ -36,57 +37,57 @@ export class PassportService {
         // Configure SAML Strategy
         if (config.sso.saml) {
             logger.info('Initializing SAML Strategy');
-            passport.use(
-                new SamlStrategy(
-                    {
-                        path: '/api/v1/auth/login/sso/saml/callback',
-                        entryPoint: config.sso.saml.entryPoint,
-                        issuer: config.sso.saml.issuer,
-                        cert: config.sso.saml.cert,
-                        // Optional: map attributes if needed
-                    },
-                    async (profile: any, done: (error: any, user?: any, info?: any) => void) => {
-                        try {
-                            if (!profile.email) {
-                                return done(new Error('SAML profile missing email'));
-                            }
 
-                            logger.info(`SAML Login attempt for: ${profile.email}`);
-
-                            // JIT Provisioning
-                            let user = await prisma.user.findUnique({
-                                where: { email: profile.email },
-                            });
-
-                            if (!user) {
-                                logger.info(`Creating JIT user for: ${profile.email}`);
-                                // Basic JIT - Create user with default role
-                                // Password is required by schema, but won't be used for SSO.
-                                // We generate a random one securely or handle it otherwise.
-                                // ideally SSO users shouldn't have a password or it should be nullable.
-                                // For now, we'll generate a random unguessable string.
-                                const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
-                                const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-                                user = await prisma.user.create({
-                                    data: {
-                                        email: profile.email,
-                                        firstName: profile.firstName || profile.nameID || 'SSO User',
-                                        lastName: profile.lastName || '',
-                                        password: hashedPassword, // Dummy password
-                                        role: UserRole.USER, // Default role
-                                    },
-                                });
-                            }
-
-                            return done(null, user as any);
-                        } catch (error) {
-                            logger.error('SAML verify callback failed', error);
-                            return done(error);
-                        }
+            const verifyCallback: VerifyWithoutRequest = async (profile, done) => {
+                try {
+                    const email = profile?.email as string | undefined;
+                    if (!email) {
+                        return done(new Error('SAML profile missing email'));
                     }
-                ) as any
+
+                    logger.info(`SAML Login attempt for: ${email}`);
+
+                    // JIT Provisioning
+                    let user = await prisma.user.findUnique({
+                        where: { email },
+                    });
+
+                    if (!user) {
+                        logger.info(`Creating JIT user for: ${email}`);
+                        const randomPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+                        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+                        user = await prisma.user.create({
+                            data: {
+                                email,
+                                firstName: (profile?.firstName as string) || (profile?.nameID as string) || 'SSO User',
+                                lastName: (profile?.lastName as string) || '',
+                                password: hashedPassword,
+                                role: UserRole.USER,
+                            },
+                        });
+                    }
+
+                    return done(null, user as Record<string, unknown>);
+                } catch (error) {
+                    logger.error('SAML verify callback failed', error);
+                    return done(error as Error);
+                }
+            };
+
+            const strategy = new SamlStrategy(
+                {
+                    callbackUrl: '/api/v1/auth/login/sso/saml/callback',
+                    entryPoint: config.sso.saml.entryPoint,
+                    issuer: config.sso.saml.issuer,
+                    idpCert: config.sso.saml.cert,
+                },
+                verifyCallback,
+                verifyCallback
             );
+            // passport.use expects passport.Strategy but @node-saml/passport-saml uses
+            // a different @types/express version — the runtime API is compatible
+            passport.use(strategy as unknown as passport.Strategy);
         }
     }
 }

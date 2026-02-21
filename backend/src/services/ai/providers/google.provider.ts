@@ -168,20 +168,18 @@ export class GoogleProvider extends BaseProvider {
   /**
    * Override error handling for Google-specific errors
    */
-  protected handleError(error: any): never {
-    if (error.message) {
-      const message = error.message;
+  protected handleError(error: unknown): never {
+    const errorMessage = error instanceof Error ? error.message : String(error);
 
-      if (message.includes('API key')) {
-        throw new Error(`${this.getName()} authentication failed: Invalid API key`);
-      } else if (message.includes('quota')) {
-        throw new Error(`${this.getName()} quota exceeded: ${message}`);
-      } else if (message.includes('rate limit')) {
-        throw new Error(`${this.getName()} rate limit exceeded: ${message}`);
-      }
+    if (errorMessage.includes('API key')) {
+      throw new Error(`${this.getName()} authentication failed: Invalid API key`);
+    } else if (errorMessage.includes('quota')) {
+      throw new Error(`${this.getName()} quota exceeded: ${errorMessage}`);
+    } else if (errorMessage.includes('rate limit')) {
+      throw new Error(`${this.getName()} rate limit exceeded: ${errorMessage}`);
     }
 
     // Fall back to base error handling
-    throw new Error(`${this.getName()} request failed: ${error.message || error}`);
+    throw new Error(`${this.getName()} request failed: ${errorMessage}`);
   }
 }

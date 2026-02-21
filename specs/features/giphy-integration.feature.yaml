@@ -1,0 +1,122 @@
+feature: giphy-integration
+name: "Giphy Integration"
+version: "1.0.0"
+status: shipped
+since: "v2.9.0-rc.5"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+config:
+  env:
+    GIPHY_API_KEY:
+      required: true
+      description: "Giphy API key for GIF search"
+    GIPHY_ENABLED:
+      required: false
+      default: "true"
+      description: "Feature toggle for GIF display"
+    GIPHY_RATING:
+      required: false
+      default: "g"
+      description: "Content rating filter"
+
+capabilities:
+  - id: giphy.search
+    name: "GIF Search"
+    version: "1.0.0"
+    description: "Search for contextual GIFs via Giphy API"
+    tool: giphy_search
+    files:
+      - backend/src/services/ai/tools/giphy.ts
+    assertions:
+      - id: giphy.search.g-rated
+        description: "Only G-rated GIFs are returned (rating=g parameter enforced)"
+        type: invariant
+      - id: giphy.search.dedup
+        description: "No repeated GIFs within session (ring buffer tracks last 20)"
+        type: invariant
+      - id: giphy.search.limit
+        description: "Maximum 5 results per query (limit capped via Math.min)"
+        type: invariant
+      - id: giphy.search.curated-terms
+        description: "Known events map to curated search terms via SEARCH_TERMS constant"
+        type: behavioral
+      - id: giphy.search.random-selection
+        description: "Selected GIF is randomly chosen from curated term list"
+        type: behavioral
+
+  - id: giphy.fallback
+    name: "Emoji Fallback"
+    version: "1.0.0"
+    description: "Graceful degradation when Giphy is unavailable"
+    files:
+      - backend/src/services/ai/tools/giphy.ts
+    assertions:
+      - id: giphy.fallback.disabled
+        description: "Returns fallback emoji when GIPHY_ENABLED=false"
+        type: invariant
+      - id: giphy.fallback.no-key
+        description: "Returns fallback emoji when API key is not configured"
+        type: invariant
+      - id: giphy.fallback.api-error
+        description: "Returns fallback emoji on Giphy API failure (soft fail, no throw)"
+        type: invariant
+      - id: giphy.fallback.success-true
+        description: "Always returns success: true even on failure (graceful degradation)"
+        type: contract
+
+  - id: giphy.frontend
+    name: "GiphyEmbedCard"
+    version: "1.0.0"
+    description: "Inline GIF display in AI chat"
+    files:
+      - frontend/src/components/AICopilot/cards/GiphyEmbedCard.tsx
+    assertions:
+      - id: giphy.frontend.max-width
+        description: "GIF displays at max 200px wide with preserved aspect ratio"
+        type: behavioral
+      - id: giphy.frontend.attribution
+        description: "Shows 'Powered by GIPHY' attribution (TOS requirement)"
+        type: invariant
+      - id: giphy.frontend.dismissible
+        description: "User can dismiss/hide the GIF"
+        type: invariant
+      - id: giphy.frontend.lazy-load
+        description: "GIF uses lazy loading for performance"
+        type: behavioral
+
+  - id: giphy.autonomy
+    name: "Tier Classification"
+    version: "1.0.0"
+    description: "Giphy is Tier 1 (auto-execute, no confirmation)"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: giphy.autonomy.tier1
+        description: "giphy_search is classified as Tier 1 (auto-execute)"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-3
+    title: "Giphy Integration"
+    gherkin: |
+      GIVEN a significant event occurs (tests pass, pipeline breaks, fix merged)
+      WHEN the AI generates a status message
+      THEN a contextual, work-appropriate GIF is embedded inline
+      AND the GIF is never repeated within the same session (last 20 tracked)
+      AND content rating is enforced (G-rated only)
+      AND users can disable GIFs in settings
+    maps_to:
+      - giphy.search.g-rated
+      - giphy.search.dedup
+      - giphy.search.curated-terms
+      - giphy.fallback.disabled
+      - giphy.frontend.attribution
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-20"
+    product_version: "v2.9.0-rc.5"
+    changes:
+      - "Initial implementation: search, dedup, fallback, frontend card"

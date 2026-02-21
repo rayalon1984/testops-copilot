@@ -6,4 +6,5 @@ export type Middleware = (
   next: NextFunction
 ) => void | Promise<void>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const asMiddleware = (handler: any): Middleware => handler;

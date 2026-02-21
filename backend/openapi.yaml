@@ -1,0 +1,1751 @@
+openapi: 3.0.3
+info:
+  title: TestOps Companion API
+  version: 2.9.0
+  description: API specification for TestOps Companion — source of truth for frontend type generation.
+servers:
+  - url: /api/v1
+    description: V1 API
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ── Enums ──
+    UserRole:
+      type: string
+      enum: [ADMIN, EDITOR, VIEWER, BILLING, USER]
+    PipelineType:
+      type: string
+      enum: [jenkins, github-actions, custom]
+    PipelineStatus:
+      type: string
+      enum: [success, failed, running, pending]
+    TestRunStatus:
+      type: string
+      enum: [success, failed, running, pending, skipped, flaky]
+    AutonomyLevel:
+      type: string
+      enum: [conservative, balanced, autonomous]
+
+    # ── Auth ──
+    UserResponse:
+      type: object
+      required: [id, email, role]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        role: { $ref: '#/components/schemas/UserRole' }
+        firstName: { type: string, nullable: true }
+        lastName: { type: string, nullable: true }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        firstName: { type: string }
+        lastName: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            user: { $ref: '#/components/schemas/UserResponse' }
+            accessToken: { type: string }
+
+    # ── Pipeline ──
+    Pipeline:
+      type: object
+      required: [id, name, type, status, lastRun, successRate, config]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/PipelineType' }
+        status: { $ref: '#/components/schemas/PipelineStatus' }
+        lastRun: { type: string }
+        successRate: { type: number }
+        config: { type: object, additionalProperties: true }
+
+    CreatePipelineRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string }
+        type: { $ref: '#/components/schemas/PipelineType' }
+        config: { type: object, additionalProperties: true }
+
+    UpdatePipelineRequest:
+      type: object
+      properties:
+        name: { type: string }
+        type: { $ref: '#/components/schemas/PipelineType' }
+        config: { type: object, additionalProperties: true }
+        status: { type: string }
+
+    # ── Test Run ──
+    TestRun:
+      type: object
+      required: [id, pipelineId, pipelineName, status, startTime, endTime, duration, errorCount]
+      properties:
+        id: { type: string }
+        pipelineId: { type: string }
+        pipelineName: { type: string }
+        status: { $ref: '#/components/schemas/TestRunStatus' }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        duration: { type: number }
+        errorCount: { type: integer }
+        screenshots: { type: array, items: { type: string } }
+
+    TestRunDetail:
+      allOf:
+        - $ref: '#/components/schemas/TestRun'
+        - type: object
+          properties:
+            errorLogs:
+              type: array
+              items: { type: string }
+
+    # ── Dashboard ──
+    FailureCategoryBreakdown:
+      type: object
+      required: [category, count, percentage, color]
+      properties:
+        category: { type: string }
+        count: { type: integer }
+        percentage: { type: number }
+        color: { type: string }
+
+    RecentFailure:
+      type: object
+      required: [id, testName, errorMessage, category, confidence, similarCount, timestamp]
+      properties:
+        id: { type: string }
+        testName: { type: string }
+        errorMessage: { type: string }
+        rootCause: { type: string, nullable: true }
+        category: { type: string }
+        confidence: { type: number }
+        similarCount: { type: integer }
+        filePath: { type: string, nullable: true }
+        timestamp: { type: string, format: date-time }
+
+    AIPerformance:
+      type: object
+      required: [avgAnalysisTimeSeconds, categorizationAccuracy, similarFailuresFound, cacheHitRate, monthlyBudgetUsed, monthlyBudgetTotal]
+      properties:
+        avgAnalysisTimeSeconds: { type: number }
+        categorizationAccuracy: { type: number }
+        similarFailuresFound: { type: integer }
+        cacheHitRate: { type: number }
+        monthlyBudgetUsed: { type: number }
+        monthlyBudgetTotal: { type: number }
+
+    ProviderInfo:
+      type: object
+      required: [name, costPer1M, contextWindow, speed, isActive]
+      properties:
+        name: { type: string }
+        costPer1M: { type: number }
+        contextWindow: { type: string }
+        speed: { type: string }
+        isActive: { type: boolean }
+
+    DashboardMetrics:
+      type: object
+      required: [totalTestsAnalyzed, failuresAutoCategorized, timeSavedHours, aiCostUSD, cacheHitRate, cacheHits, cacheSavingsPercent, lastUpdated, timeRange, failureCategories, recentFailures, aiPerformance, providers]
+      properties:
+        totalTestsAnalyzed: { type: integer }
+        failuresAutoCategorized: { type: integer }
+        timeSavedHours: { type: number }
+        aiCostUSD: { type: number }
+        cacheHitRate: { type: number }
+        cacheHits: { type: integer }
+        cacheSavingsPercent: { type: number }
+        lastUpdated: { type: string, format: date-time }
+        timeRange: { type: string }
+        failureCategories:
+          type: array
+          items: { $ref: '#/components/schemas/FailureCategoryBreakdown' }
+        recentFailures:
+          type: array
+          items: { $ref: '#/components/schemas/RecentFailure' }
+        aiPerformance: { $ref: '#/components/schemas/AIPerformance' }
+        providers:
+          type: array
+          items: { $ref: '#/components/schemas/ProviderInfo' }
+
+    # ── Notification ──
+    Notification:
+      type: object
+      required: [id, testRunId, pipelineName, type, status, message, timestamp, delivered]
+      properties:
+        id: { type: string }
+        testRunId: { type: string }
+        pipelineName: { type: string }
+        type: { type: string }
+        status: { type: string }
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        delivered: { type: boolean }
+
+    NotificationPreferences:
+      type: object
+      properties:
+        email: { type: boolean }
+        slack: { type: boolean }
+        pushover: { type: boolean }
+        onFailure: { type: boolean }
+        onSuccess: { type: boolean }
+        onFlaky: { type: boolean }
+
+    # ── Team ──
+    TeamListItem:
+      type: object
+      required: [id, name, slug, role, memberCount]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        role: { type: string }
+        memberCount: { type: integer }
+
+    TeamMember:
+      type: object
+      required: [id, userId, role, joinedAt]
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        role: { type: string }
+        joinedAt: { type: string, format: date-time }
+
+    Team:
+      type: object
+      required: [id, name, slug, members, _count]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        createdBy: { type: string }
+        members:
+          type: array
+          items: { $ref: '#/components/schemas/TeamMember' }
+        _count:
+          type: object
+          required: [members, pipelines]
+          properties:
+            members: { type: integer }
+            pipelines: { type: integer }
+
+    CreateTeamRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+
+    AddMemberRequest:
+      type: object
+      required: [userId, role]
+      properties:
+        userId: { type: string }
+        role: { type: string }
+
+    # ── Failure Archive ──
+    FailureInsights:
+      type: object
+      properties:
+        totalFailures: { type: integer }
+        documentedCount: { type: integer }
+        recurringCount: { type: integer }
+        averageTimeToResolve: { type: number }
+        mostCommonFailures:
+          type: array
+          items:
+            type: object
+            properties:
+              testName: { type: string }
+              count: { type: integer }
+              lastOccurrence: { type: string, format: date-time }
+        recentPatterns:
+          type: array
+          items: { type: object, additionalProperties: true }
+
+    FailureSearchResult:
+      type: object
+      properties:
+        id: { type: string }
+        testName: { type: string }
+        errorMessage: { type: string }
+        stackTrace: { type: string, nullable: true }
+        category: { type: string, nullable: true }
+        severity: { type: string, nullable: true }
+        rcaDocumented: { type: boolean }
+        rootCause: { type: string, nullable: true }
+        solution: { type: string, nullable: true }
+        prevention: { type: string, nullable: true }
+        relatedJiraIssue: { type: string, nullable: true }
+        tags: { type: string, nullable: true }
+        firstOccurrence: { type: string, format: date-time }
+        lastOccurrence: { type: string, format: date-time }
+        occurrenceCount: { type: integer }
+        resolved: { type: boolean }
+        resolvedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    FailureComment:
+      type: object
+      required: [id, failureArchiveId, userId, content, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        failureArchiveId: { type: string }
+        userId: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ActivityFeedItem:
+      type: object
+      required: [type, timestamp, userId, content]
+      properties:
+        type: { type: string }
+        timestamp: { type: string, format: date-time }
+        userId: { type: string }
+        content: { type: string }
+
+    FailurePrediction:
+      type: object
+      properties:
+        testName: { type: string }
+        probability: { type: number }
+        riskLevel: { type: string }
+        lastFailedAt: { type: string, format: date-time }
+        occurrences: { type: integer }
+        trend: { type: string }
+
+    # ── Flaky Tests ──
+    FlakyTest:
+      type: object
+      properties:
+        testName: { type: string }
+        totalRuns: { type: integer }
+        failureCount: { type: integer }
+        flipFlopCount: { type: integer }
+        flakinessScore: { type: number }
+        severity: { type: string }
+        lastFlakedAt: { type: string, format: date-time }
+
+    # ── AI ──
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        sessionId: { type: string }
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              role: { type: string }
+              content: { type: string }
+
+    ConfirmActionRequest:
+      type: object
+      required: [actionId, approved]
+      properties:
+        actionId: { type: string }
+        approved: { type: boolean }
+
+    ChatSession:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    AIProviderConfig:
+      type: object
+      properties:
+        provider: { type: string }
+        model: { type: string }
+        hasApiKey: { type: boolean }
+        isEnabled: { type: boolean }
+
+    CostSummary:
+      type: object
+      properties:
+        totalCost: { type: number }
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              provider: { type: string }
+              model: { type: string }
+              cost: { type: number }
+              tokens: { type: integer }
+
+    # ── Shares ──
+    CreateShareRequest:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        persona: { type: string }
+        toolSummary: { type: string }
+        sessionId: { type: string }
+        expiresInDays: { type: integer }
+
+    ShareResponse:
+      type: object
+      properties:
+        id: { type: string }
+        token: { type: string }
+        title: { type: string }
+        content: { type: string }
+        persona: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time, nullable: true }
+
+    # ── Common ──
+    SuccessMessage:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+
+paths:
+  # ════════════════════════════════════════
+  # AUTH
+  # ════════════════════════════════════════
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      security: []
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+        '401':
+          description: Refresh token not found
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: '#/components/schemas/UserResponse' }
+
+  /auth/password:
+    put:
+      tags: [Auth]
+      summary: Update password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword: { type: string }
+                newPassword: { type: string, minLength: 8 }
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  # ════════════════════════════════════════
+  # DASHBOARD
+  # ════════════════════════════════════════
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get AI dashboard metrics
+      parameters:
+        - name: timeRange
+          in: query
+          schema: { type: string, default: '30d' }
+      responses:
+        '200':
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/DashboardMetrics' }
+
+  # ════════════════════════════════════════
+  # PIPELINES
+  # ════════════════════════════════════════
+  /pipelines:
+    get:
+      tags: [Pipelines]
+      summary: List pipelines
+      responses:
+        '200':
+          description: Pipeline list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Pipeline' }
+    post:
+      tags: [Pipelines]
+      summary: Create pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePipelineRequest' }
+      responses:
+        '201':
+          description: Pipeline created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pipeline' }
+
+  /pipelines/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pipelines]
+      summary: Get pipeline by ID
+      responses:
+        '200':
+          description: Pipeline details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pipeline' }
+        '404':
+          description: Pipeline not found
+    put:
+      tags: [Pipelines]
+      summary: Update pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdatePipelineRequest' }
+      responses:
+        '200':
+          description: Pipeline updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Pipeline' }
+    delete:
+      tags: [Pipelines]
+      summary: Delete pipeline
+      responses:
+        '204':
+          description: Pipeline deleted
+
+  /pipelines/{id}/start:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Pipelines]
+      summary: Start pipeline
+      responses:
+        '200':
+          description: Test run started
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TestRun' }
+
+  /pipelines/{id}/test-runs:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pipelines]
+      summary: Get pipeline test runs
+      responses:
+        '200':
+          description: Test runs for pipeline
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TestRun' }
+
+  /pipelines/{id}/schedule:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Pipelines]
+      summary: Schedule pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [schedule]
+              properties:
+                schedule: { type: string }
+      responses:
+        '200':
+          description: Pipeline scheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /pipelines/{id}/failed-tests:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pipelines]
+      summary: Get failed tests for pipeline
+      responses:
+        '200':
+          description: Failed tests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string }
+                    testName: { type: string }
+                    error: { type: string }
+                    status: { type: string }
+
+  /pipelines/{id}/flakey-tests:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Pipelines]
+      summary: Get flaky tests for pipeline
+      responses:
+        '200':
+          description: Flaky tests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FlakyTest' }
+
+  /pipelines/validate-config:
+    post:
+      tags: [Pipelines]
+      summary: Validate pipeline configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid: { type: boolean }
+                  errors:
+                    type: array
+                    items: { type: string }
+
+  # ════════════════════════════════════════
+  # TEST RUNS
+  # ════════════════════════════════════════
+  /test-runs:
+    get:
+      tags: [TestRuns]
+      summary: List test runs
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Test run list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TestRun' }
+
+  /test-runs/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [TestRuns]
+      summary: Get test run by ID
+      responses:
+        '200':
+          description: Test run details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TestRunDetail' }
+        '404':
+          description: Test run not found
+
+  # ════════════════════════════════════════
+  # NOTIFICATIONS
+  # ════════════════════════════════════════
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Notification' }
+    delete:
+      tags: [Notifications]
+      summary: Delete all notifications
+      responses:
+        '200':
+          description: All notifications cleared
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+
+  /notifications/undelivered:
+    get:
+      tags: [Notifications]
+      summary: Get undelivered notifications
+      responses:
+        '200':
+          description: Undelivered notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Notification' }
+
+  /notifications/{id}/delivered:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    patch:
+      tags: [Notifications]
+      summary: Mark notification as delivered
+      responses:
+        '200':
+          description: Marked as delivered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+
+  /notifications/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      tags: [Notifications]
+      summary: Delete notification
+      responses:
+        '200':
+          description: Notification deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+
+  /notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Get notification preferences
+      responses:
+        '200':
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/NotificationPreferences' }
+    put:
+      tags: [Notifications]
+      summary: Update notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationPreferences' }
+      responses:
+        '200':
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/NotificationPreferences' }
+
+  # ════════════════════════════════════════
+  # TEAMS
+  # ════════════════════════════════════════
+  /teams:
+    get:
+      tags: [Teams]
+      summary: List teams
+      responses:
+        '200':
+          description: Team list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/TeamListItem' }
+    post:
+      tags: [Teams]
+      summary: Create team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTeamRequest' }
+      responses:
+        '201':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Team' }
+
+  /teams/{teamId}:
+    parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Teams]
+      summary: Get team details
+      responses:
+        '200':
+          description: Team details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Team' }
+    put:
+      tags: [Teams]
+      summary: Update team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: Team updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Team' }
+    delete:
+      tags: [Teams]
+      summary: Delete team
+      responses:
+        '200':
+          description: Team deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+
+  /teams/{teamId}/members:
+    parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Teams]
+      summary: Get team members
+      responses:
+        '200':
+          description: Member list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/TeamMember' }
+    post:
+      tags: [Teams]
+      summary: Add team member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddMemberRequest' }
+      responses:
+        '201':
+          description: Member added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/TeamMember' }
+
+  /teams/{teamId}/members/{userId}:
+    parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema: { type: string }
+      - name: userId
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      tags: [Teams]
+      summary: Remove team member
+      responses:
+        '200':
+          description: Member removed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessMessage' }
+
+  /teams/{teamId}/members/{userId}/role:
+    parameters:
+      - name: teamId
+        in: path
+        required: true
+        schema: { type: string }
+      - name: userId
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      tags: [Teams]
+      summary: Update member role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { type: string }
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/TeamMember' }
+
+  # ════════════════════════════════════════
+  # FAILURE ARCHIVE
+  # ════════════════════════════════════════
+  /failure-archive/search:
+    get:
+      tags: [FailureArchive]
+      summary: Search failures
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: query
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: severity
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  failures:
+                    type: array
+                    items: { $ref: '#/components/schemas/FailureSearchResult' }
+                  total: { type: integer }
+
+  /failure-archive/insights:
+    get:
+      tags: [FailureArchive]
+      summary: Get failure insights
+      parameters:
+        - name: days
+          in: query
+          schema: { type: integer, default: 30 }
+      responses:
+        '200':
+          description: Failure insights
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FailureInsights' }
+
+  /failure-archive/predictions:
+    get:
+      tags: [FailureArchive]
+      summary: Get failure predictions
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: minOccurrences
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Predictions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FailurePrediction' }
+
+  /failure-archive/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [FailureArchive]
+      summary: Get failure by ID
+      responses:
+        '200':
+          description: Failure details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FailureSearchResult' }
+
+  /failure-archive/{id}/comments:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [FailureArchive]
+      summary: Get failure comments
+      responses:
+        '200':
+          description: Comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      comments:
+                        type: array
+                        items: { $ref: '#/components/schemas/FailureComment' }
+                      total: { type: integer }
+    post:
+      tags: [FailureArchive]
+      summary: Add comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+      responses:
+        '201':
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/FailureComment' }
+
+  /failure-archive/{id}/activity:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [FailureArchive]
+      summary: Get activity feed
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ActivityFeedItem' }
+
+  /failure-archive/{id}/document-rca:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      tags: [FailureArchive]
+      summary: Document root cause analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rootCause, solution]
+              properties:
+                rootCause: { type: string }
+                solution: { type: string }
+                tags: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: RCA documented
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FailureSearchResult' }
+
+  # ════════════════════════════════════════
+  # FLAKY TESTS
+  # ════════════════════════════════════════
+  /tests/flaky:
+    get:
+      tags: [FlakyTests]
+      summary: Get flaky tests
+      responses:
+        '200':
+          description: Flaky test list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FlakyTest' }
+
+  /tests/{testName}/flaky-history:
+    parameters:
+      - name: testName
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [FlakyTests]
+      summary: Get flaky history for test
+      responses:
+        '200':
+          description: Flaky history
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  # ════════════════════════════════════════
+  # AI
+  # ════════════════════════════════════════
+  /ai/health:
+    get:
+      tags: [AI]
+      summary: AI health check
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled: { type: boolean }
+                  healthy: { type: boolean }
+                  services: { type: object, additionalProperties: true }
+
+  /ai/personas:
+    get:
+      tags: [AI]
+      summary: Get available personas
+      responses:
+        '200':
+          description: Persona list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        description: { type: string }
+
+  /ai/autonomy:
+    get:
+      tags: [AI]
+      summary: Get autonomy preference
+      responses:
+        '200':
+          description: Autonomy level
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      autonomyLevel: { $ref: '#/components/schemas/AutonomyLevel' }
+    put:
+      tags: [AI]
+      summary: Update autonomy preference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [autonomyLevel]
+              properties:
+                autonomyLevel: { $ref: '#/components/schemas/AutonomyLevel' }
+      responses:
+        '200':
+          description: Autonomy updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      autonomyLevel: { $ref: '#/components/schemas/AutonomyLevel' }
+
+  /ai/config:
+    get:
+      tags: [AI]
+      summary: Get AI provider config
+      responses:
+        '200':
+          description: Provider configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AIProviderConfig' }
+                  providers:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
+    put:
+      tags: [AI]
+      summary: Update AI provider config
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, model]
+              properties:
+                provider: { type: string }
+                model: { type: string }
+                apiKey: { type: string }
+                extraConfig: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: Config updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AIProviderConfig' }
+
+  /ai/chat:
+    post:
+      tags: [AI]
+      summary: SSE chat stream
+      description: Server-Sent Events stream for AI chat. Response is text/event-stream.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChatRequest' }
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /ai/confirm:
+    post:
+      tags: [AI]
+      summary: Confirm or deny a pending action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConfirmActionRequest' }
+      responses:
+        '200':
+          description: Action resolved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: object, additionalProperties: true }
+                  toolResult: { type: object, additionalProperties: true, nullable: true }
+
+  /ai/sessions:
+    get:
+      tags: [AI]
+      summary: List chat sessions
+      responses:
+        '200':
+          description: Session list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ChatSession' }
+    post:
+      tags: [AI]
+      summary: Create chat session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ChatSession' }
+
+  /ai/sessions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [AI]
+      summary: Get chat session with messages
+      responses:
+        '200':
+          description: Session with messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/ChatSession'
+                      - type: object
+                        properties:
+                          messages:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id: { type: string }
+                                role: { type: string }
+                                content: { type: string }
+                                toolName: { type: string, nullable: true }
+                                createdAt: { type: string, format: date-time }
+    delete:
+      tags: [AI]
+      summary: Delete chat session
+      responses:
+        '200':
+          description: Session deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+
+  /ai/costs:
+    get:
+      tags: [AI]
+      summary: Get AI cost summary
+      parameters:
+        - name: startDate
+          in: query
+          schema: { type: string, format: date-time }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Cost summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CostSummary' }
+
+  /ai/stats:
+    get:
+      tags: [AI]
+      summary: Get AI stats
+      responses:
+        '200':
+          description: AI statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  costs: { $ref: '#/components/schemas/CostSummary' }
+                  cache: { type: object, additionalProperties: true }
+                  rca: { type: object, additionalProperties: true }
+
+  # ════════════════════════════════════════
+  # SHARES
+  # ════════════════════════════════════════
+  /shares:
+    post:
+      tags: [Shares]
+      summary: Create shared analysis link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateShareRequest' }
+      responses:
+        '201':
+          description: Share created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ShareResponse' }
+
+  /shares/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Shares]
+      summary: Get shared analysis
+      security: []
+      responses:
+        '200':
+          description: Shared analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ShareResponse' }
+        '404':
+          description: Share not found or expired
+
+  /shares/{token}/email:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Shares]
+      summary: Email shared analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [recipientEmail]
+              properties:
+                recipientEmail: { type: string, format: email }
+      responses:
+        '200':
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      sent: { type: boolean }
+
+  # ════════════════════════════════════════
+  # METRICS
+  # ════════════════════════════════════════
+  /metrics/summary:
+    get:
+      tags: [Metrics]
+      summary: Get metrics summary
+      responses:
+        '200':
+          description: Metrics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /metrics/top-failures:
+    get:
+      tags: [Metrics]
+      summary: Get top failures
+      responses:
+        '200':
+          description: Top failures
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /metrics/health:
+    get:
+      tags: [Metrics]
+      summary: Get system health metrics
+      responses:
+        '200':
+          description: Health metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  # ════════════════════════════════════════
+  # CI / TEST IMPACT
+  # ════════════════════════════════════════
+  /ci/smart-select:
+    post:
+      tags: [CI]
+      summary: Get impacted tests for smart selection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                changedFiles:
+                  type: array
+                  items: { type: string }
+                branch: { type: string }
+      responses:
+        '200':
+          description: Impacted tests
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true

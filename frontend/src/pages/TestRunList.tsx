@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Paper,
@@ -31,22 +32,15 @@ import {
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 
-interface TestRun {
-  id: string;
-  pipelineId: string;
-  pipelineName: string;
-  status: 'success' | 'failed' | 'running' | 'pending';
-  startTime: string;
-  endTime: string;
-  duration: number;
-  errorCount: number;
-  screenshots: string[];
-}
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
+type TestRun = ApiSchemas['TestRun'];
 
 import { useDebounce } from '../hooks/useDebounce';
 import { keepPreviousData } from '@tanstack/react-query';
 
 export default function TestRunList() {
+  usePageContext('testrun-list');
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -59,22 +53,14 @@ export default function TestRunList() {
   // Fetch test runs
   const { data, isLoading, isFetching } = useQuery<TestRun[]>({
     queryKey: ['test-runs', page, rowsPerPage, statusFilter, debouncedSearch],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams({
         page: String(page + 1),
         limit: String(rowsPerPage),
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(debouncedSearch && { search: debouncedSearch }),
       });
-
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/v1/test-runs?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch test runs');
-      return response.json();
+      return api.get<TestRun[]>(`/test-runs?${params}`);
     },
     placeholderData: keepPreviousData, // Keep table data visible while fetching new results
   });

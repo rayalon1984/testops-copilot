@@ -1,0 +1,111 @@
+feature: inline-diff
+name: "Inline Code Diff in PR Cards"
+version: "1.0.0"
+status: shipped
+since: "v3.0.0"
+owner: UX_DESIGNER
+category: frontend
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+capabilities:
+  - id: diff.viewer
+    name: "InlineDiffViewer"
+    version: "1.0.0"
+    description: "Syntax-highlighted unified diff viewer component"
+    files:
+      - frontend/src/components/AICopilot/cards/shared/InlineDiffViewer.tsx
+    assertions:
+      - id: diff.viewer.syntax-highlighting
+        description: "Additions are green (#3fb950), deletions are red (#f85149), hunk headers are blue (#58a6ff)"
+        type: invariant
+      - id: diff.viewer.collapsed-default
+        description: "Diffs longer than maxVisibleLines (default 20) are collapsed by default"
+        type: behavioral
+      - id: diff.viewer.expandable
+        description: "Long diffs have an expand/collapse button showing remaining line count"
+        type: invariant
+      - id: diff.viewer.file-headers
+        description: "Each file shows a header with filename and +/- line counts"
+        type: invariant
+      - id: diff.viewer.monospace
+        description: "Diff content renders in monospace font at 0.7rem"
+        type: behavioral
+      - id: diff.viewer.null-safety
+        description: "Returns null when files array is empty or undefined"
+        type: invariant
+
+  - id: diff.pr-card
+    name: "GitHubPRCard"
+    version: "1.0.0"
+    description: "Enhanced PR card with embedded diff and merge actions"
+    files:
+      - frontend/src/components/AICopilot/cards/GitHubPRCard.tsx
+    assertions:
+      - id: diff.pr-card.file-summary
+        description: "Shows file count chip, total additions (green), and total deletions (red)"
+        type: invariant
+      - id: diff.pr-card.review-diff-toggle
+        description: "Review Diff button toggles inline diff visibility"
+        type: invariant
+      - id: diff.pr-card.approve-merge-button
+        description: "Shows Approve & Merge button when PR is mergeable and onAction is wired"
+        type: behavioral
+      - id: diff.pr-card.merge-disabled-pending
+        description: "Merge button shows 'Merging...' and is disabled when card state is action_pending"
+        type: invariant
+      - id: diff.pr-card.external-link
+        description: "Shows external GitHub link to full PR page"
+        type: invariant
+      - id: diff.pr-card.service-badge
+        description: "Shows GitHub service badge with accent color"
+        type: behavioral
+
+  - id: diff.merge-tool
+    name: "GitHub Merge PR Tool"
+    version: "1.0.0"
+    description: "Backend tool for merging pull requests from chat"
+    tool: github_merge_pr
+    files:
+      - backend/src/services/ai/tools/github-merge.ts
+    assertions:
+      - id: diff.merge.requires-editor
+        description: "Requires EDITOR role to execute"
+        type: invariant
+      - id: diff.merge.requires-confirmation
+        description: "Tool is flagged as requiresConfirmation (Tier 2)"
+        type: invariant
+      - id: diff.merge.squash-default
+        description: "Default merge method is 'squash'"
+        type: behavioral
+      - id: diff.merge.github-not-configured
+        description: "Returns success: false when GitHub integration is not configured"
+        type: contract
+      - id: diff.merge.return-shape
+        description: "Returns { success, data: { prNumber, owner, repo, merged, mergeMethod }, summary }"
+        type: contract
+      - id: diff.merge.autonomy-tier2
+        description: "github_merge_pr is classified as Tier 2 in AutonomyClassifier"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-2
+    title: "Inline Diff in PR Card"
+    gherkin: |
+      GIVEN the AI created a PR or the user asks about a PR
+      WHEN the PR card renders in the chat
+      THEN the card shows a syntax-highlighted unified diff of changed files
+      AND displays file count, line additions/removals summary
+      AND offers [Approve & Merge] and [Review Diff] buttons
+    maps_to:
+      - diff.viewer.syntax-highlighting
+      - diff.viewer.file-headers
+      - diff.pr-card.file-summary
+      - diff.pr-card.review-diff-toggle
+      - diff.pr-card.approve-merge-button
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Initial implementation: InlineDiffViewer, GitHubPRCard with merge, github_merge_pr tool"

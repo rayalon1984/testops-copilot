@@ -7,6 +7,8 @@
 
 import { Pool } from 'pg';
 import { AIFeature, AIProviderName, CostSummary, UsageEntry } from './types';
+import { logger } from '../../utils/logger';
+import { NotificationService } from '../notification.service';
 
 export interface CostConfig {
   monthlyBudgetUSD: number;
@@ -263,12 +265,23 @@ export class CostTracker {
       ${summary.byFeature.map(f => `  - ${f.feature}: $${f.cost.toFixed(2)} (${f.requests} requests)`).join('\n')}
     `;
 
-    console.warn(message);
+    logger.warn('AI Budget Alert triggered', {
+      totalCost: summary.totalCost,
+      budgetUsed: summary.budgetUsed,
+      threshold: this.config.alertThresholdPercent,
+    });
 
-    // TODO: Send email if configured
     if (this.config.alertEmail) {
-      // Implementation would go here
-      console.log(`Budget alert would be sent to: ${this.config.alertEmail}`);
+      try {
+        const notificationService = new NotificationService();
+        await notificationService.sendNotifications(
+          { enabled: true, channels: ['email'] },
+          message
+        );
+        logger.info('Budget alert email sent');
+      } catch (error) {
+        logger.error('Failed to send budget alert email', { error });
+      }
     }
   }
 

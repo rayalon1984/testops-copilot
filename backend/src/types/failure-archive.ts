@@ -82,7 +82,7 @@ export interface FailureArchive {
   // I will update it to `tags String?` (CSV).
   // Then update Types.
 
-  metadata?: any; // Json?
+  metadata?: Record<string, unknown>; // Json?
 
   firstOccurrence: Date;
   lastOccurrence: Date;
@@ -148,5 +148,5 @@ export interface FailureInsights {
     count: number;
     lastOccurrence: Date;
   }>;
-  recentPatterns: any[]; // Empty
+  recentPatterns: unknown[]; // Empty
 }

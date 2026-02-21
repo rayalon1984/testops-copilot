@@ -9,7 +9,6 @@ import { getMondayService } from '../services/monday.service';
 import {
   CreateMondayItemInput,
   UpdateMondayItemInput,
-  CreateMondayUpdateInput,
   MondayTestFailureInput,
 } from '../types/monday';
 

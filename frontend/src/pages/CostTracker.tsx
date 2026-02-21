@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Typography,
@@ -56,6 +57,7 @@ interface UsageEntry {
 }
 
 export default function CostTracker() {
+  usePageContext('cost-tracker');
   const [timeRange, setTimeRange] = useState('30d');
 
   // Fetch cost metrics

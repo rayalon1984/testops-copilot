@@ -202,8 +202,8 @@ export class ContextEnrichmentService {
         summary: issue.fields.summary,
         status: issue.fields.status.name,
         type: issue.fields.issuetype.name,
-        priority: issue.fields.priority,
-        assignee: issue.fields.assignee,
+        priority: issue.fields.priority as string | undefined,
+        assignee: issue.fields.assignee as string | undefined,
         url: `${issue.key}`, // Jira base URL is added client-side
       }));
     } catch (error) {

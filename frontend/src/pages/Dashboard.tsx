@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { usePageContext } from '../hooks/usePageContext';
 import {
   Container,
   Grid,
@@ -17,11 +18,9 @@ import {
   DialogActions,
   Button,
   Divider,
-  Tooltip,
   Fade,
   Grow,
   Skeleton,
-  IconButton,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -33,60 +32,20 @@ import {
   Assessment as AssessmentIcon,
   Speed as SpeedIcon,
   AttachMoney as MoneyIcon,
-  CheckCircle as CheckCircleIcon,
   AccessTime as TimeIcon,
   FiberManualRecord as DotIcon,
   ArrowForward as ArrowForwardIcon,
   Cached as CacheIcon,
   Psychology as AIIcon,
   DataUsage as DataUsageIcon,
-  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import { api } from '../api';
+import type { ApiSchemas } from '../api';
+import FlakyTestsWidget from '../components/FlakyTestsWidget/FlakyTestsWidget';
 
-interface DashboardMetrics {
-  totalTestsAnalyzed: number;
-  failuresAutoCategorized: number;
-  timeSavedHours: number;
-  aiCostUSD: number;
-  cacheHitRate: number;
-  cacheHits: number;
-  cacheSavingsPercent: number;
-  lastUpdated: string;
-  timeRange: string;
-  failureCategories: {
-    category: string;
-    count: number;
-    percentage: number;
-    color: string;
-  }[];
-  recentFailures: {
-    id: string;
-    testName: string;
-    errorMessage: string;
-    rootCause: string | null;
-    category: string;
-    confidence: number;
-    similarCount: number;
-    filePath: string | null;
-    timestamp: string;
-  }[];
-  aiPerformance: {
-    avgAnalysisTimeSeconds: number;
-    categorizationAccuracy: number;
-    similarFailuresFound: number;
-    cacheHitRate: number;
-    monthlyBudgetUsed: number;
-    monthlyBudgetTotal: number;
-  };
-  providers: {
-    name: string;
-    costPer1M: number;
-    contextWindow: string;
-    speed: string;
-    isActive: boolean;
-  }[];
-}
+type DashboardMetrics = ApiSchemas['DashboardMetrics'];
+type RecentFailure = ApiSchemas['RecentFailure'];
+type ProviderInfo = ApiSchemas['ProviderInfo'];
 
 const categoryIcons: Record<string, string> = {
   bug_critical: '🔴',
@@ -148,8 +107,6 @@ function MetricGauge({
   color: string;
   suffix?: string;
 }) {
-  const theme = useTheme();
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
       <Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -200,25 +157,17 @@ function MetricGauge({
 }
 
 export default function Dashboard() {
+  usePageContext('dashboard');
   const navigate = useNavigate();
   const theme = useTheme();
-  const [selectedFailure, setSelectedFailure] = useState<
-    DashboardMetrics['recentFailures'][number] | null
-  >(null);
-  const [selectedProvider, setSelectedProvider] = useState<
-    DashboardMetrics['providers'][number] | null
-  >(null);
+  const [selectedFailure, setSelectedFailure] = useState<RecentFailure | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<ProviderInfo | null>(null);
 
   const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
     queryKey: ['dashboard', 'ai-metrics'],
     queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get('/api/v1/dashboard', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data.data;
+      const response = await api.get<{ data: DashboardMetrics }>('/dashboard');
+      return response.data;
     },
     refetchInterval: 30000,
   });
@@ -367,6 +316,7 @@ export default function Dashboard() {
                 fontWeight: 500,
               }}
             />
+
           </Box>
         </Box>
       </Fade>
@@ -384,10 +334,10 @@ export default function Dashboard() {
                   transition: 'all 0.25s ease',
                   '&:hover': card.onClick
                     ? {
-                        transform: 'translateY(-4px)',
-                        borderColor: alpha(card.color, 0.3),
-                        boxShadow: `0 8px 24px ${alpha(card.color, 0.12)}`,
-                      }
+                      transform: 'translateY(-4px)',
+                      borderColor: alpha(card.color, 0.3),
+                      boxShadow: `0 8px 24px ${alpha(card.color, 0.12)}`,
+                    }
                     : {},
                   '&::before': {
                     content: '""',
@@ -651,6 +601,19 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
+
+
+      {/* ─── Flaky Tests Row ─── */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={6}>
+          <Grow in timeout={1000}>
+            <Box sx={{ height: '400px' }}>
+              <FlakyTestsWidget />
+            </Box>
+          </Grow>
+        </Grid>
+      </Grid>
+
       {/* ─── Bottom Row: AI Performance + Providers ─── */}
       <Grid container spacing={3}>
         {/* AI Performance */}
@@ -766,11 +729,10 @@ export default function Dashboard() {
                           sx={{
                             p: 2,
                             borderRadius: 2,
-                            border: `1px solid ${
-                              provider.isActive
-                                ? alpha(theme.palette.primary.main, 0.25)
-                                : alpha(theme.palette.divider, 0.6)
-                            }`,
+                            border: `1px solid ${provider.isActive
+                              ? alpha(theme.palette.primary.main, 0.25)
+                              : alpha(theme.palette.divider, 0.6)
+                              }`,
                             backgroundColor: provider.isActive
                               ? alpha(theme.palette.primary.main, 0.04)
                               : 'transparent',
@@ -1089,6 +1051,6 @@ export default function Dashboard() {
           </>
         )}
       </Dialog>
-    </Container>
+    </Container >
   );
 }

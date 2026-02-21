@@ -8,13 +8,14 @@
 import { Pool } from 'pg';
 import { AIConfigManager, getConfigManager } from './config';
 import { BaseProvider } from './providers/base.provider';
-import { createProviderFromEnv } from './providers/registry';
+import { createProviderFromConfig } from './providers/registry';
 import { WeaviateVectorClient, getVectorClient } from './vector/client';
 import { initializeSchemas } from './vector/schema';
 import { RCAMatchingService } from './features/rca-matching';
 import { CategorizationService } from './features/categorization';
 import { LogSummarizationService } from './features/log-summary';
 import { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './features/context-enrichment';
+import './tools'; // Ensure tools are registered
 import { AICache, getCache } from './cache';
 import { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
 import { TestFailure, SimilarFailure, HealthStatus, FailureCategorization, LogSummary } from './types';
@@ -46,7 +47,7 @@ export class AIManager {
   constructor(config: AIManagerConfig) {
     this.db = config.db;
     this.configManager = getConfigManager();
-    this.cache = getCache();
+    this.cache = getCache(this.configManager.getCacheConfig());
     this.costTracker = getCostTracker(this.db, this.configManager.getCostConfig());
     this.contextEnrichment = new ContextEnrichmentService();
   }
@@ -80,8 +81,9 @@ export class AIManager {
       await this.costTracker.initialize();
       console.log('✅ Cost tracker initialized');
 
-      // Initialize AI provider
-      this.provider = createProviderFromEnv();
+      // Initialize AI provider from central config
+      this.provider = createProviderFromConfig(this.configManager);
+      // this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
       this.contextEnrichment.setProvider(this.provider);
       console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
 
@@ -99,14 +101,20 @@ export class AIManager {
 
       // Initialize vector database
       if (this.configManager.isFeatureEnabled('rcaMatching')) {
-        this.vectorClient = getVectorClient();
-        await this.vectorClient.connect();
-        await initializeSchemas(this.vectorClient);
-        console.log('✅ Vector database initialized');
+        try {
+          this.vectorClient = getVectorClient(this.configManager.getVectorDBConfig());
+          await this.vectorClient.connect();
+          await initializeSchemas(this.vectorClient);
+          console.log('✅ Vector database initialized');
 
-        // Initialize RCA matching service
-        this.rcaMatching = new RCAMatchingService(this.provider, this.vectorClient);
-        console.log('✅ RCA matching service initialized');
+          // Initialize RCA matching service
+          this.rcaMatching = new RCAMatchingService(this.provider, this.vectorClient);
+          console.log('✅ RCA matching service initialized');
+        } catch (error) {
+          console.warn('⚠️  Failed to initialize Vector DB (RCA features disabled):', error instanceof Error ? error.message : error);
+          this.vectorClient = null;
+          this.rcaMatching = null;
+        }
       }
 
       this.initialized = true;
@@ -115,6 +123,14 @@ export class AIManager {
       console.error('❌ Failed to initialize AI services:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get the active AI provider (for direct chat calls).
+   * Returns null if not initialized or AI is disabled.
+   */
+  getProvider(): BaseProvider | null {
+    return this.provider;
   }
 
   /**
@@ -152,8 +168,6 @@ export class AIManager {
       throw new Error('RCA matching service not initialized');
     }
 
-    const startTime = Date.now();
-
     try {
       const results = await this.rcaMatching.findSimilarFailures(failure, options);
 
@@ -177,8 +191,6 @@ export class AIManager {
     if (!this.rcaMatching) {
       throw new Error('RCA matching service not initialized');
     }
-
-    const startTime = Date.now();
 
     try {
       const id = await this.rcaMatching.storeFailure(failure);

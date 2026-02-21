@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables.
+// Fallback chain: .env (user/production overrides) > .env.dev (checked-in dev defaults).
+// dotenv v16+ processes the array in order; first file's values win for any given key.
+// Real environment variables (Docker, CI) always take precedence over file values.
+dotenv.config({ path: ['.env', '.env.dev'] });
 
 // Environment variables schema
 const envSchema = z.object({
@@ -92,6 +95,7 @@ const envSchema = z.object({
   SLACK_BOT_TOKEN: z.string().optional(),
   SLACK_SIGNING_SECRET: z.string().optional(),
   SLACK_CHANNEL: z.string().optional(),
+  SLACK_APP_TOKEN: z.string().optional(), // xapp-... for Socket Mode / Events API
 
   // Email
   EMAIL_HOST: z.string().optional(),
@@ -105,6 +109,20 @@ const envSchema = z.object({
   // Pushover
   PUSHOVER_USER_KEY: z.string().optional(),
   PUSHOVER_APP_TOKEN: z.string().optional(),
+
+  // AI
+  AI_PROVIDER: z.enum(['openai', 'anthropic', 'mock']).default('mock'),
+  AI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().optional(),
+
+  // AWS Bedrock
+  AWS_BEDROCK_REGION: z.string().optional(),
+  AWS_BEDROCK_ACCESS_KEY_ID: z.string().optional(),
+  AWS_BEDROCK_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Microsoft Teams
+  TEAMS_APP_ID: z.string().optional(),
+  TEAMS_APP_PASSWORD: z.string().optional(),
 });
 
 // Parse and validate environment variables
@@ -217,6 +235,11 @@ export interface Config {
       userKey: string;
       appToken: string;
     };
+  };
+  ai: {
+    provider: 'openai' | 'anthropic' | 'mock';
+    apiKey: string;
+    model: string;
   };
 }
 
@@ -340,5 +363,10 @@ export const config: Config = {
         appToken: env.PUSHOVER_APP_TOKEN,
       },
     }),
+  },
+  ai: {
+    provider: env.AI_PROVIDER as 'openai' | 'anthropic' | 'mock',
+    apiKey: env.AI_API_KEY || 'demo-key',
+    model: env.AI_MODEL || 'gpt-4o',
   },
 };

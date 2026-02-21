@@ -52,7 +52,7 @@ export interface TestRailCase {
   estimate: string | null;
   estimate_forecast: string | null;
   suite_id: number;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 export interface TestRailRun {
@@ -100,7 +100,7 @@ export interface TestRailTest {
   estimate_forecast: string | null;
   refs: string | null;
   milestone_id: number | null;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 export interface TestRailResult {
@@ -114,7 +114,7 @@ export interface TestRailResult {
   version: string | null;
   elapsed: string | null;
   defects: string | null;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 export interface TestRailMilestone {
@@ -230,7 +230,7 @@ export interface AddTestResultRequest {
   elapsed?: string;
   defects?: string;
   assignedto_id?: number;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 export interface AddTestResultsRequest {
@@ -243,7 +243,7 @@ export interface AddTestResultsRequest {
     elapsed?: string;
     defects?: string;
     assignedto_id?: number;
-    custom_fields?: Record<string, any>;
+    custom_fields?: Record<string, unknown>;
   }>;
 }
 
@@ -255,7 +255,7 @@ export interface CreateTestCaseRequest {
   estimate?: string;
   milestone_id?: number;
   refs?: string;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 export interface UpdateTestCaseRequest {
@@ -266,7 +266,7 @@ export interface UpdateTestCaseRequest {
   estimate?: string;
   milestone_id?: number;
   refs?: string;
-  custom_fields?: Record<string, any>;
+  custom_fields?: Record<string, unknown>;
 }
 
 // TestRail Configuration

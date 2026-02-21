@@ -136,8 +136,6 @@ function checkMigrationsExist() {
 function checkSchemaConsistency() {
   log(`\nChecking schema consistency...`, colors.blue);
 
-  const productionSchema = path.join(__dirname, '../backend/prisma/schema.production.prisma');
-  const devSchema = path.join(__dirname, '../backend/prisma/schema.dev.prisma');
   const currentSchema = path.join(__dirname, '../backend/prisma/schema.prisma');
 
   if (!fs.existsSync(currentSchema)) {
@@ -163,6 +161,185 @@ function checkSchemaConsistency() {
   }
 
   return true;
+}
+
+/**
+ * Extract model names from a Prisma schema file.
+ */
+function extractModelNames(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  const content = fs.readFileSync(filePath, 'utf8');
+  const matches = content.match(/^model\s+(\w+)\s*\{/gm) || [];
+  return matches.map(m => m.match(/^model\s+(\w+)/)[1]).sort();
+}
+
+/**
+ * Extract field names from each model in a Prisma schema file.
+ * Returns Map<modelName, string[]> where string[] is sorted field names.
+ * Strips type annotations and modifiers — only compares field names,
+ * because types differ between SQLite (String) and PostgreSQL (enum, @db.Uuid).
+ */
+function extractModelFields(filePath) {
+  if (!fs.existsSync(filePath)) return new Map();
+  const content = fs.readFileSync(filePath, 'utf8');
+
+  const models = new Map();
+  // Match each model block: model Name { ... }
+  const modelRegex = /^model\s+(\w+)\s*\{([^}]+)\}/gm;
+  let match;
+  while ((match = modelRegex.exec(content)) !== null) {
+    const modelName = match[1];
+    const body = match[2];
+    // Field lines: start with a word that isn't a directive (@@) or comment (//)
+    const fields = [];
+    for (const line of body.split('\n')) {
+      const trimmed = line.trim();
+      // Skip blank lines, comments, and block-level directives (@@index, @@unique, @@map)
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('@@')) continue;
+      // A field line starts with a lowercase or uppercase identifier followed by whitespace and a type
+      const fieldMatch = trimmed.match(/^(\w+)\s+/);
+      if (fieldMatch) {
+        fields.push(fieldMatch[1]);
+      }
+    }
+    models.set(modelName, fields.sort());
+  }
+  return models;
+}
+
+/**
+ * Check that production and dev schema files declare the same set of models
+ * AND the same fields within each shared model.
+ * Intentional differences (e.g. JiraConfig only in dev) can be allowlisted.
+ */
+function checkModelParity() {
+  log(`\nChecking model parity across schemas...`, colors.blue);
+
+  const productionSchema = path.join(__dirname, '../backend/prisma/schema.production.prisma');
+  const devSchema = path.join(__dirname, '../backend/prisma/schema.dev.prisma');
+
+  if (!fs.existsSync(productionSchema) || !fs.existsSync(devSchema)) {
+    log(`⚠️  Cannot check parity — one or both schema files missing`, colors.yellow);
+    return true;
+  }
+
+  const prodModels = extractModelNames(productionSchema);
+  const devModels = extractModelNames(devSchema);
+
+  // Models that intentionally exist only in one schema
+  const allowlist = new Set(['JiraConfig']);
+
+  let valid = true;
+
+  // Check: models in production but not in dev
+  const prodOnly = prodModels.filter(m => !devModels.includes(m) && !allowlist.has(m));
+  if (prodOnly.length > 0) {
+    log(`❌ Models in schema.production.prisma but MISSING from schema.dev.prisma:`, colors.red);
+    prodOnly.forEach(m => log(`     - ${m}`, colors.red));
+    log(`\n   Fix: Add the missing models to schema.dev.prisma (SQLite version)`, colors.yellow);
+    valid = false;
+  }
+
+  // Check: models in dev but not in production
+  const devOnly = devModels.filter(m => !prodModels.includes(m) && !allowlist.has(m));
+  if (devOnly.length > 0) {
+    log(`❌ Models in schema.dev.prisma but MISSING from schema.production.prisma:`, colors.red);
+    devOnly.forEach(m => log(`     - ${m}`, colors.red));
+    log(`\n   Fix: Add the missing models to schema.production.prisma (PostgreSQL version)`, colors.yellow);
+    valid = false;
+  }
+
+  // Field-level parity for shared models (warning-only for pre-existing drift,
+  // fails CI only for model-level differences — see Sprint 4 postmortem)
+  const prodFields = extractModelFields(productionSchema);
+  const devFields = extractModelFields(devSchema);
+  const sharedModels = prodModels.filter(m => devModels.includes(m));
+  let fieldDriftCount = 0;
+
+  for (const model of sharedModels) {
+    const pf = prodFields.get(model) || [];
+    const df = devFields.get(model) || [];
+
+    const missingInDev = pf.filter(f => !df.includes(f));
+    const missingInProd = df.filter(f => !pf.includes(f));
+
+    if (missingInDev.length > 0) {
+      log(`⚠️  Model "${model}" — fields in production but MISSING from dev schema:`, colors.yellow);
+      missingInDev.forEach(f => log(`     - ${model}.${f}`, colors.yellow));
+      fieldDriftCount += missingInDev.length;
+    }
+    if (missingInProd.length > 0) {
+      log(`⚠️  Model "${model}" — fields in dev but MISSING from production schema:`, colors.yellow);
+      missingInProd.forEach(f => log(`     - ${model}.${f}`, colors.yellow));
+      fieldDriftCount += missingInProd.length;
+    }
+  }
+
+  if (valid && fieldDriftCount === 0) {
+    log(`✅ Model parity OK — ${sharedModels.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+    log(`✅ Field parity OK — all shared models have identical field sets`, colors.green);
+  } else if (valid) {
+    log(`✅ Model parity OK — ${sharedModels.length} shared models, ${allowlist.size} allowlisted`, colors.green);
+    log(`⚠️  Field drift detected: ${fieldDriftCount} field(s) differ across schemas (warning, not blocking)`, colors.yellow);
+    log(`   Run with --strict-fields to fail on field-level drift`, colors.yellow);
+  }
+
+  // If --strict-fields flag is passed, field drift also fails validation
+  if (fieldDriftCount > 0 && process.argv.includes('--strict-fields')) {
+    log(`❌ --strict-fields: field drift is treated as a failure`, colors.red);
+    valid = false;
+  }
+
+  return valid;
+}
+
+/**
+ * Check that key documentation files reference the current version.
+ * Prevents docs from drifting behind development.
+ */
+function checkDocFreshness() {
+  log(`\nChecking documentation freshness...`, colors.blue);
+
+  const pkgPath = path.join(__dirname, '../package.json');
+  if (!fs.existsSync(pkgPath)) {
+    log(`⚠️  Cannot check doc freshness — package.json not found`, colors.yellow);
+    return true;
+  }
+
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  const version = pkg.version; // e.g. "2.9.0-rc.2"
+
+  // Key docs that should reference the current version
+  const docsToCheck = [
+    { file: 'CHANGELOG.md', description: 'Changelog' },
+    { file: 'specs/ROADMAP.md', description: 'Roadmap' },
+  ];
+
+  let valid = true;
+
+  for (const doc of docsToCheck) {
+    const filePath = path.join(__dirname, '..', doc.file);
+    if (!fs.existsSync(filePath)) {
+      log(`⚠️  ${doc.description} not found: ${doc.file}`, colors.yellow);
+      continue;
+    }
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (content.includes(version)) {
+      log(`✅ ${doc.description} references v${version}`, colors.green);
+    } else {
+      log(`❌ ${doc.description} does NOT reference v${version}`, colors.red);
+      log(`   File: ${doc.file}`, colors.red);
+      log(`   Action: Update ${doc.file} to include version ${version}`, colors.yellow);
+      valid = false;
+    }
+  }
+
+  if (valid) {
+    log(`✅ Documentation freshness OK — all key docs reference v${version}`, colors.green);
+  }
+
+  return valid;
 }
 
 // Main validation
@@ -199,6 +376,14 @@ function main() {
   // Check current schema
   checkSchemaConsistency();
 
+  // Check model parity across schemas
+  const parityValid = checkModelParity();
+  allValid = allValid && parityValid;
+
+  // Check documentation freshness
+  const docFreshValid = checkDocFreshness();
+  allValid = allValid && docFreshValid;
+
   // Summary
   log('\n' + '='.repeat(70), colors.blue);
   if (allValid) {
@@ -207,13 +392,10 @@ function main() {
     process.exit(0);
   } else {
     log('❌ Schema validation failed!', colors.red);
-    log('\nCritical Issues:', colors.red);
-    log('  - Production schema MUST use PostgreSQL', colors.red);
-    log('  - Development schema MUST use SQLite', colors.red);
     log('\nTo fix:', colors.yellow);
-    log('  1. Check backend/prisma/schema.production.prisma', colors.yellow);
-    log('  2. Check backend/prisma/schema.dev.prisma', colors.yellow);
-    log('  3. Ensure datasource provider is correct', colors.yellow);
+    log('  1. Ensure production schema uses PostgreSQL, dev schema uses SQLite', colors.yellow);
+    log('  2. Ensure all models exist in BOTH schema.production.prisma and schema.dev.prisma', colors.yellow);
+    log('  3. See model parity errors above for specific missing models', colors.yellow);
     log('='.repeat(70), colors.blue);
     process.exit(1);
   }

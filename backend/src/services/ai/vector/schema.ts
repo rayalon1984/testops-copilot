@@ -4,6 +4,8 @@
  * Defines the schema for storing test failures and their embeddings in Weaviate.
  */
 
+import { WeaviateVectorClient } from './client';
+
 /**
  * Schema for TestFailure class in Weaviate
  *
@@ -190,7 +192,7 @@ export function getAllSchemas() {
 /**
  * Initialize all schemas in Weaviate
  */
-export async function initializeSchemas(client: any): Promise<void> {
+export async function initializeSchemas(client: WeaviateVectorClient): Promise<void> {
   const schemas = getAllSchemas();
 
   for (const schema of schemas) {
@@ -206,7 +208,7 @@ export async function initializeSchemas(client: any): Promise<void> {
 /**
  * Delete all schemas from Weaviate (useful for testing)
  */
-export async function deleteAllSchemas(client: any): Promise<void> {
+export async function deleteAllSchemas(client: WeaviateVectorClient): Promise<void> {
   const schemas = getAllSchemas();
 
   for (const schema of schemas) {

@@ -67,7 +67,8 @@
     "node_modules",
     "dist",
     "coverage",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/__tests__"
   ],
   "ts-node": {
     "files": true

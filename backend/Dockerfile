@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.4
-
 # Stage 1: Base
 # Use alpine for minimal footprint
 FROM node:20-alpine AS base
@@ -8,7 +6,24 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 
-# Stage 2: Builder
+# Stage 2: Development
+# Hot-reload development server
+FROM base AS development
+ENV NODE_ENV=development
+RUN apk add --no-cache python3 make g++
+COPY package*.json ./
+# Use --ignore-scripts to skip Prisma's auto-generate (wrong schema at this point)
+RUN npm install --ignore-scripts
+# Rebuild native modules (bcrypt, etc.) that were skipped by --ignore-scripts
+RUN npm rebuild bcrypt
+COPY . .
+# Use PostgreSQL schema for Docker development (DATABASE_URL points to Postgres)
+RUN cp prisma/schema.production.prisma prisma/schema.prisma
+RUN npx prisma generate
+EXPOSE 4000
+CMD ["npm", "run", "dev"]
+
+# Stage 3: Builder
 # Install dependencies and build the application
 FROM base AS builder
 ENV NODE_ENV=development

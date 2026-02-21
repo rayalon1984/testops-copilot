@@ -7,9 +7,11 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
+    timeout: 30000,
     use: {
-        baseURL: 'http://localhost:5179', // Frontend running on port 5179
+        baseURL: 'http://localhost:5173',
         trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
     },
 
     projects: [
@@ -17,13 +19,14 @@ export default defineConfig({
             name: 'chromium',
             use: { ...devices['Desktop Chrome'] },
         },
-        {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-        },
-        {
-            name: 'webkit',
-            use: { ...devices['Desktop Safari'] },
-        },
     ],
+
+    /* Auto-start the frontend dev server */
+    webServer: {
+        command: 'npm run dev:frontend',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 60000,
+        cwd: '../../',
+    },
 });

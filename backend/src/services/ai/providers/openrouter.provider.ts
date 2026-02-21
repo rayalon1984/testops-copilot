@@ -199,7 +199,7 @@ export class OpenRouterProvider extends BaseProvider {
     }
   }
 
-  async embed(text: string, options?: EmbeddingOptions): Promise<number[]> {
+  async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
     // OpenRouter doesn't support embeddings directly for most models
     throw new Error(
       'OpenRouter does not support embeddings. Use a dedicated embedding provider (OpenAI, Voyage AI, or Google) instead.'
@@ -231,10 +231,16 @@ export class OpenRouterProvider extends BaseProvider {
   /**
    * Override error handling for OpenRouter-specific errors
    */
-  protected handleError(error: any): never {
-    if (error.response) {
-      const status = error.response.status;
-      const message = error.response.data?.error?.message || error.message;
+  protected handleError(error: unknown): never {
+    const err = error as Record<string, unknown>;
+    const response = err.response as Record<string, unknown> | undefined;
+    const errorMessage = err.message as string | undefined;
+
+    if (response) {
+      const status = response.status as number;
+      const data = response.data as Record<string, unknown> | undefined;
+      const nestedError = data?.error as Record<string, unknown> | undefined;
+      const message = (nestedError?.message as string) || errorMessage || 'Unknown error';
 
       if (status === 401) {
         throw new Error(`${this.getName()} authentication failed: Invalid API key`);
@@ -249,6 +255,6 @@ export class OpenRouterProvider extends BaseProvider {
       }
     }
 
-    throw new Error(`${this.getName()} request failed: ${error.message || error}`);
+    throw new Error(`${this.getName()} request failed: ${errorMessage || error}`);
   }
 }

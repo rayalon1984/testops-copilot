@@ -1,9 +1,9 @@
 import { authenticate, authorize } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
+import { validateCreatePipeline, validateUpdatePipeline, validatePipelineSchedule } from '../middleware/validation';
 import { pipelineController } from '../controllers/pipeline.controller';
 import { UserRole, PipelineType } from '../constants';
 import { pipelineRouter as router } from './index';
-import { prisma } from '../lib/prisma';
 
 // Apply authentication to all routes
 router.use(authenticate);
@@ -37,10 +37,10 @@ router.get(
 );
 
 // Create pipeline
-// Create pipeline
 router.post(
   '/',
   authorize(UserRole.EDITOR),
+  validateCreatePipeline,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -63,10 +63,10 @@ router.post(
 );
 
 // Update pipeline
-// Update pipeline
 router.put(
   '/:id',
   authorize(UserRole.EDITOR),
+  validateUpdatePipeline,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });
@@ -124,42 +124,16 @@ router.get(
       return;
     }
 
-    const runs = await prisma.testRun.findMany({
-      where: { pipelineId: req.params.id as string, userId: req.user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: { results: true }
-    });
-
-    const statusMap: Record<string, string> = {
-      'PASSED': 'success',
-      'FAILED': 'failed',
-      'RUNNING': 'running',
-      'PENDING': 'pending'
-    };
-
-    const formattedRuns = runs.map(run => {
-      // Count failed results
-      const failed = run.results?.filter(r => r.status === 'FAILED').length || 0;
-      return {
-        id: run.id,
-        status: statusMap[run.status] || 'pending',
-        startTime: run.startedAt?.toISOString() || run.createdAt.toISOString(),
-        endTime: run.completedAt?.toISOString() || run.createdAt.toISOString(),
-        duration: run.duration || 0,
-        errorCount: failed
-      };
-    });
-
-    res.json(formattedRuns);
+    const runs = await pipelineController.getTestRuns(req.params.id as string, req.user.id);
+    res.json(runs);
   })
 );
 
 // Schedule pipeline
-// Schedule pipeline
 router.post(
   '/:id/schedule',
   authorize(UserRole.EDITOR),
+  validatePipelineSchedule,
   asyncHandler(async (req, res) => {
     if (!req.user) {
       res.status(401).json({ message: 'Not authenticated' });

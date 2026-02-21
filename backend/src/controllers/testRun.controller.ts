@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { TestRunService, CreateTestRunDTO } from '@/services/testRun.service';
-import { logger } from '@/utils/logger';
 
 const testRunService = new TestRunService();
 
@@ -77,12 +76,12 @@ export class TestRunController {
     }
   }
 
-  async getTestRunLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTestRunLogs(_req: Request, res: Response, _next: NextFunction): Promise<void> {
     // TODO: Implement log storage in service
     res.status(501).json({ message: 'Not implemented yet' });
   }
 
-  async getTestRunArtifacts(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTestRunArtifacts(_req: Request, res: Response, _next: NextFunction): Promise<void> {
     // TODO: Implement artifact storage in service
     res.status(501).json({ message: 'Not implemented yet' });
   }
@@ -97,7 +96,7 @@ export class TestRunController {
     }
   }
 
-  async getSystemMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getSystemMetrics(_req: Request, res: Response, _next: NextFunction): Promise<void> {
     // TODO: Move to a Statistics Service or similar
     res.status(501).json({ message: 'Not implemented yet' });
   }
