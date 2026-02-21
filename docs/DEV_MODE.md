@@ -8,7 +8,7 @@ TestOps Companion supports two development modes:
 
 **What you get**:
 - ✅ SQLite database (no Docker needed!)
-- ✅ 150+ realistic test failures pre-loaded
+- ✅ 1,600+ realistic test failures pre-loaded
 - ✅ AI categorization across all types
 - ✅ Beautiful dashboard with real-looking data
 - ✅ AI performance metrics and cost tracking
@@ -19,8 +19,8 @@ TestOps Companion supports two development modes:
 # One command - that's it!
 npm run dev:simple
 
-# Opens on http://localhost:5173
-# Backend: http://localhost:4000
+# Frontend: http://localhost:5173
+# Backend:  http://localhost:3000
 ```
 
 **First time setup** (fresh clone):
@@ -35,15 +35,16 @@ git pull origin main
 npm run dev:simple
 ```
 
+**Login**: `demo@testops.ai` / `demo123`
+
 The dashboard will show:
-- 45 critical bugs
-- 38 minor bugs
-- 28 environment issues
-- 22 flaky tests
-- 17 configuration problems
+- 1,600+ failure archive entries across all categories
+- 150 test runs with varying success rates
+- 15 pipelines (Jenkins, GitHub Actions, custom)
 - Full AI analysis with root causes and solutions
 - Provider comparison (Anthropic, OpenAI, Google)
 - Cost tracking and cache hit rates
+- 26,500+ total data points
 
 ## 🏢 Production Mode (dev) - For COMPANIES
 
@@ -64,8 +65,8 @@ npm run local:setup
 # Daily development
 npm run dev
 
-# Opens on http://localhost:5173
-# Backend: http://localhost:4000
+# Frontend: http://localhost:5173
+# Backend:  http://localhost:3000
 ```
 
 **Requirements**:
@@ -133,7 +134,7 @@ npm run local:setup
 **"Port already in use"**
 ```bash
 # Check what's using the port
-lsof -i :4000  # Backend
+lsof -i :3000  # Backend
 lsof -i :5173  # Frontend
 
 # Kill or change ports
@@ -143,7 +144,7 @@ lsof -i :5173  # Frontend
 
 The `dev:simple` mode includes:
 
-**Test Failures** (150 total):
+**Failure Archive** (1,600+ entries):
 - Payment processing errors (critical)
 - OAuth timeout issues (high)
 - Email validation bugs (medium)
@@ -153,14 +154,16 @@ The `dev:simple` mode includes:
 - Memory issues (critical)
 - Network failures (high)
 
-**AI Usage** (~2,100 calls over 30 days):
+**AI Usage** (~23,600 calls over 30 days):
 - Claude Opus 4.6: 65% cache hit, $3.5/month
 - GPT-4.1: 35% cache hit, $12/month
 - Gemini 3.0 Flash: 70% cache hit, $0.15/month
 
-**Test Runs**: 20 runs with varying success rates
+**Test Runs**: 150 runs with varying success rates
+**Pipelines**: 15 pipelines (Jenkins, GitHub Actions, custom)
 **Time Range**: Last 30 days of data
 **Environments**: Production, Staging, Development
+**Total Data Points**: ~26,500
 
 ## 🎨 Perfect for Demos!
 
