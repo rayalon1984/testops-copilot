@@ -10,7 +10,7 @@
  * Uses a comprehensive seeding approach with Faker for realistic demo data.
  */
 
-import { PrismaClient, Prisma, Pipeline } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -205,7 +205,7 @@ async function seed() {
 
   // ── 3. Pipelines ──
   console.log('Creating pipelines...');
-  const pipelines: Pipeline[] = [];
+  const pipelines: Array<{ id: string; name: string; [k: string]: any }> = [];
   for (const tpl of PIPELINE_TEMPLATES) {
     const pipeline = await prisma.pipeline.create({
       data: {
@@ -641,7 +641,14 @@ async function seed() {
 
   // ── 16. TestRail Runs ──
   console.log('Creating TestRail runs...');
-  const testRailPayloads: Prisma.TestRailRunCreateManyInput[] = [];
+  const testRailPayloads: Array<{
+    testRailRunId: number;
+    projectId: number;
+    suiteId: number;
+    name: string;
+    description: string;
+    testRunId: string | null;
+  }> = [];
   for (let i = 1; i <= 10; i++) {
     testRailPayloads.push({
       testRailRunId: 1000 + i,
