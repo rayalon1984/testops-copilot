@@ -53,14 +53,17 @@ jobs:
       working-directory: .
       run: node scripts/validate-schema.js --strict-fields
 
+    - name: Typecheck with production schema (PostgreSQL enums)
+      run: |
+        cp prisma/schema.production.prisma prisma/schema.prisma
+        npx prisma generate
+        npm run typecheck
+
     - name: Typecheck with dev schema (SQLite / demo mode)
       run: |
-        cp prisma/schema.prisma prisma/schema.prisma.bak
         cp prisma/schema.dev.prisma prisma/schema.prisma
         npx prisma generate
         npm run typecheck
-        mv prisma/schema.prisma.bak prisma/schema.prisma
-        npx prisma generate
 
     - name: Security audit (fail on high severity)
       run: npm audit --audit-level=high
