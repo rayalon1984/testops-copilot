@@ -60,6 +60,9 @@ function findTestFiles(): string[] {
     path.join(BACKEND_SRC, 'services', 'ai', '__tests__'),
     path.join(BACKEND_SRC, 'middleware', '__tests__'),
     path.join(BACKEND_SRC, 'lib', '__tests__'),
+    path.join(FRONTEND_SRC, 'components'),
+    path.join(FRONTEND_SRC, 'contexts'),
+    path.join(FRONTEND_SRC, 'hooks'),
   ];
 
   const files: string[] = [];
@@ -70,7 +73,7 @@ function findTestFiles(): string[] {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (entry.name.endsWith('.test.ts') || entry.name.endsWith('.spec.ts')) {
+      } else if (entry.name.endsWith('.test.ts') || entry.name.endsWith('.spec.ts') || entry.name.endsWith('.test.tsx') || entry.name.endsWith('.spec.tsx')) {
         files.push(full);
       }
     }
@@ -327,7 +330,35 @@ function scan(): void {
     process.exit(1);
   }
 
-  console.log('PASSED — All feature manifests are valid.');
+  // Phase 2: Invariant coverage enforcement
+  // All invariant assertions MUST have tests
+  if (coverage.invariants.tested < coverage.invariants.total) {
+    // Re-extract all tested IDs (fresh scan since testedIds was mutated above)
+    const freshTestedIds = extractTestedAssertionIds(findTestFiles());
+    const untestedInvariants: string[] = [];
+    for (const r of results) {
+      const filePath = path.join(FEATURES_DIR, r.fileName);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const manifest = yaml.load(content) as FeatureManifest;
+      for (const cap of manifest.capabilities) {
+        for (const assertion of cap.assertions) {
+          if (assertion.type === 'invariant' && !assertion.deprecated && !freshTestedIds.has(assertion.id)) {
+            untestedInvariants.push(`${r.featureId}: ${assertion.id}`);
+          }
+        }
+      }
+    }
+    if (untestedInvariants.length > 0) {
+      console.log('Untested invariants (BLOCKING):');
+      for (const inv of untestedInvariants) {
+        console.log(`  - ${inv}`);
+      }
+      console.error(`\nFAILED — ${untestedInvariants.length} invariant assertion(s) have no tests. All invariants must be covered.`);
+      process.exit(1);
+    }
+  }
+
+  console.log('PASSED — All feature manifests are valid. Invariant coverage: 100%.');
 }
 
 scan();

@@ -1,1 +1,54 @@
-{}
+{
+  "proactive-suggestions": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "proactive.engine": "1.0.0",
+      "proactive.jira-prefill": "1.0.0",
+      "proactive.frontend": "1.0.0",
+      "proactive.sse": "1.0.0"
+    },
+    "lastRun": "2026-02-21T11:45:33.291Z"
+  },
+  "jira-housekeeping": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "housekeeping.link-issues": "1.0.0",
+      "housekeeping.add-label": "1.0.0",
+      "housekeeping.autonomy": "1.0.0",
+      "housekeeping.suggestion": "1.0.0",
+      "housekeeping.undo": "1.0.0"
+    },
+    "lastRun": "2026-02-21T11:45:33.353Z"
+  },
+  "giphy-integration": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "giphy.search": "1.0.0",
+      "giphy.fallback": "1.0.0",
+      "giphy.frontend": "1.0.0",
+      "giphy.autonomy": "1.0.0"
+    },
+    "lastRun": "2026-02-21T11:45:33.384Z"
+  },
+  "autonomy-preferences": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "autonomy.classifier": "1.0.0",
+      "autonomy.context-overrides": "1.0.0",
+      "autonomy.user-preference": "1.0.0",
+      "autonomy.gated-check": "1.0.0",
+      "autonomy.frontend": "1.0.0",
+      "autonomy.api": "1.0.0"
+    },
+    "lastRun": "2026-02-21T11:45:33.448Z"
+  },
+  "inline-diff": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "diff.viewer": "1.0.0",
+      "diff.pr-card": "1.0.0",
+      "diff.merge-tool": "1.0.0"
+    },
+    "lastRun": "2026-02-21T11:45:33.515Z"
+  }
+}
