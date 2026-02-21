@@ -13,10 +13,16 @@
 
 ### Default Login Credentials
 
-| Mode | Email | Password |
-|------|-------|----------|
-| **Demo** | `demo@testops.ai` | `demo123` |
-| **Production** | Defined during setup | Defined during setup |
+All demo accounts use password `demo123`:
+
+| Email | Role |
+|-------|------|
+| `admin@testops.ai` | Site Admin |
+| `lead@testops.ai` | QA Lead |
+| `engineer@testops.ai` | QA Engineer |
+| `viewer@testops.ai` | Stakeholder |
+
+Production accounts are defined during setup.
 
 ---
 
@@ -181,7 +187,7 @@ npm install && npm run dev:simple
 **What happens:**
 1. Backend starts with SQLite on port 3000, seeds 1,600+ failures, 150 test runs, 15 pipelines
 2. Frontend opens automatically at http://localhost:5173
-3. Login with: `demo@testops.ai` / `demo123`
+3. Login with any demo account (e.g. `engineer@testops.ai` / `demo123`)
 4. AI copilot works in mock mode — all 18 tools return realistic demo data
 5. Persona routing works — queries are classified to specialists
 

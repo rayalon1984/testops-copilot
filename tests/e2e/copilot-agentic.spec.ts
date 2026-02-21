@@ -38,7 +38,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/login');
 
     // Fill login form
-    await page.getByLabel('Email Address').fill('demo@testops.ai');
+    await page.getByLabel('Email Address').fill('engineer@testops.ai');
     await page.getByLabel('Password').fill('demo123');
     await page.getByRole('button', { name: 'Sign In' }).click();
 

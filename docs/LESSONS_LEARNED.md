@@ -22,6 +22,8 @@ These are the distilled "never again" rules from every incident below. **Read th
 | Never assume the migration baseline has all current models | Baselines go stale as models are added; regenerate periodically | EPR-007 |
 | Never assume code that compiles against SQLite also compiles against PostgreSQL | Enum representation differs; use schema-agnostic return types | EPR-008 |
 | Never assume CI environments have the same env vars as local dev | Missing `REDIS_URL` or `AI_ENABLED` causes test failures invisible locally | EPR-009 |
+| Never mix setup and server start in one concurrent command | If setup fails, the concurrent server processes mask the error | EPR-010 |
+| Never use `ts-node` for seed/script execution on Node 23+ | `ts-node` v10 misresolves Prisma re-exported types; use `tsx` | EPR-011 |
 
 ---
 
@@ -178,6 +180,30 @@ AI_ENABLED=false
 JWT_SECRET=<any value for tests>
 ```
 
+### EPR-010: Concurrent Setup + Server Start
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | `concurrently` running database setup (generate + migrate + seed) alongside the dev server, causing interleaved output and masked failures |
+| **First seen** | Sprint 7 (2026-02-21) |
+| **Impact** | P1 — Seed crash exits backend but frontend keeps running; user sees garbled `[0]`/`[1]`/`[2]` output and can't diagnose the failure |
+| **Root cause** | `npm run dev:simple` used `concurrently` to run setup, frontend, and browser open simultaneously. When the seed failed, only the `[0]` process exited; the `[1]` frontend kept running, making the error look like a proxy issue |
+| **Fix** | Separate setup from server start: `scripts/deploy-demo.sh` (sequential, `set -e`, numbered steps) then `npm run dev` (concurrent server only) |
+| **CI guard** | Deploy script verifies `dev.db` exists before declaring success (`exit 1` if missing) |
+| **Status** | **Mitigated** (Sprint 7) |
+
+### EPR-011: ts-node Type Resolution on Node 23+
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | `ts-node` v10 misresolves Prisma re-exported types (`Pipeline`, `Prisma.TestRailRunCreateManyInput`) as `never` on Node 23+ |
+| **First seen** | Sprint 7 (2026-02-21) |
+| **Impact** | P1 — Demo seed fails to compile, blocking all new-user onboarding |
+| **Root cause** | Node 23 changed module loading internals. `ts-node` v10 can't follow the `@prisma/client` → `.prisma/client/default` re-export chain for some types. Only certain model types (Pipeline, TestRailRun) were affected; others resolved correctly |
+| **Fix** | Replaced `ts-node` with `tsx` (esbuild-based, zero-config, Node 23+ compatible). Added `tsx ^4.21.0` to backend devDependencies. Updated all seed scripts |
+| **CI guard** | `deploy-demo.sh` uses `tsx` for seed execution; if compilation fails, `set -e` kills the script |
+| **Status** | **Mitigated** (Sprint 7) |
+
 ---
 
 ## Automated Guards Summary
@@ -208,6 +234,8 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] Migration baseline includes all models from `schema.production.prisma` (EPR-007)
 - [ ] Backend compiles against both dev and production schemas (EPR-008)
 - [ ] CI workflow env vars match the Required CI Environment Variables list (EPR-009)
+- [ ] `npm run deploy:demo` completes successfully from a clean state (EPR-010)
+- [ ] Seed scripts use `tsx` (not `ts-node`) for Node 23+ compatibility (EPR-011)
 - [ ] Tech debt tracker in `ROADMAP.md` is current
 - [ ] This document has been reviewed for new patterns from the previous sprint
 

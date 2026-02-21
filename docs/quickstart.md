@@ -25,7 +25,11 @@ npm run dev:simple
 4. Starts backend on http://localhost:3000 and frontend on http://localhost:5173
 5. Opens browser automatically
 
-**Login**: `demo@testops.ai` / `demo123`
+**Login** — all accounts use password `demo123`:
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
 
 > AI copilot runs in mock mode with realistic demo data. All 18 tools and persona routing work without API keys.
 
@@ -98,7 +102,13 @@ docker compose -f docker-compose.ghcr.yml up -d
 
 ### 1. Login (Demo Mode)
 
-Use `demo@testops.ai` / `demo123`. All features are pre-loaded.
+All accounts use password `demo123`:
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
+
+All features are pre-loaded.
 
 ### 2. Register an Account (Development/Production Mode)
 

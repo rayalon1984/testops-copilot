@@ -34,8 +34,12 @@ open http://localhost
 ## 🔐 Login Credentials
 
 ### Demo Mode (Development)
-- **Email:** `demo@testops.ai`
-- **Password:** `demo123`
+
+All accounts use password `demo123`:
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
 
 ### Production Mode
 

@@ -14,8 +14,8 @@ import { Page } from '@playwright/test';
 
 const MOCK_USER = {
   id: 'user-e2e-001',
-  email: 'demo@testops.ai',
-  role: 'ADMIN',
+  email: 'engineer@testops.ai',
+  role: 'USER',
 };
 
 const MOCK_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e2e-test-token';
