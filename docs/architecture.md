@@ -1,5 +1,7 @@
 # TestOps Companion Architecture
 
+> **Canonical spec**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md) (v3.0.0) | **Autonomy model**: [`specs/AUTONOMOUS_AI_SPEC.md`](../specs/AUTONOMOUS_AI_SPEC.md)
+
 ## System Overview
 
 TestOps Companion is built using a modern microservices architecture, with clear separation between frontend and backend components. The system is designed to be scalable, maintainable, and easily extensible.

@@ -1,5 +1,7 @@
 # Development Guide
 
+> **Agent instructions**: [`AGENTS.md`](../AGENTS.md) | **Persona routing**: [`specs/team/TEAM_SELECTION.md`](../specs/team/TEAM_SELECTION.md) | **Coding standards**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md)
+
 This guide provides detailed information for developers working on the TestOps Companion project.
 
 ## Development Environment Setup
