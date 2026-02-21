@@ -383,8 +383,10 @@ export async function setupAuthenticatedSession(page: Page): Promise<void> {
   await mockAuthAPIs(page);
   await mockDashboardAPIs(page);
 
-  // Pre-set the access token so AuthContext picks it up
+  // Pre-set the access token and onboarding flag so AuthContext picks it up
+  // and the OnboardingWizard modal doesn't block dashboard interaction
   await page.addInitScript(() => {
     localStorage.setItem('accessToken', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e2e-test-token');
+    localStorage.setItem('onboardingComplete', 'true');
   });
 }
