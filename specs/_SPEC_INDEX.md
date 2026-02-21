@@ -83,11 +83,23 @@ Structured YAML manifests that link specs → assertions → tests. See `plans/2
 | `specs/features/_schema.ts` | TypeScript types and validation for YAML manifests |
 | `specs/features/registry.ts` | Manifest loader, validator, and indexer |
 | `backend/src/__tests__/helpers/feature-spec.ts` | Test helpers: `describeFeature()`, `itAssertion()` |
-| `scripts/scan-feature-specs.ts` | CI scanner: validate, coverage, drift detection |
+| `scripts/scan-feature-specs.ts` | CI scanner: validate, coverage, drift, threshold enforcement |
+| `scripts/feature-health-report.ts` | Health report generator: PR comments and dashboard |
+| `.github/workflows/feature-specs.yml` | CI workflow: validate + auto-post PR coverage report |
 
 **Commands**:
-- `npm run validate:specs` — Run the feature spec scanner
+- `npm run validate:specs` — Validate manifests and enforce coverage thresholds
+- `npm run validate:specs:json` — Same as above but JSON output (for tooling)
+- `npm run report:specs` — Generate PR comment markdown (coverage summary)
+- `npm run report:specs:dashboard` — Generate full health dashboard markdown
 - Assertion types: `invariant` (must always hold) · `behavioral` (may evolve) · `contract` (interface boundary)
+
+**Coverage Thresholds** (Phase 3):
+| Type | Threshold | Configurable via |
+|------|-----------|------------------|
+| Invariant | 100% (non-negotiable) | — |
+| Behavioral | 80% (default) | `SPEC_BEHAVIORAL_THRESHOLD` env var |
+| Contract | 80% (default) | `SPEC_CONTRACT_THRESHOLD` env var |
 
 ---
 
