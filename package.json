@@ -47,7 +47,8 @@
     "mcp:build": "cd mcp-server && npm run build",
     "test:e2e": "npx playwright test --config tests/e2e/playwright.config.ts",
     "test:e2e:headed": "npx playwright test --config tests/e2e/playwright.config.ts --headed",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:e2e",
+    "validate:specs": "npx tsx scripts/scan-feature-specs.ts"
   },
   "keywords": [
     "test",

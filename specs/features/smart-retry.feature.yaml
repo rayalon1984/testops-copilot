@@ -1,0 +1,107 @@
+feature: smart-retry
+name: "Smart Retry with Play Button"
+version: "1.0.0"
+status: shipped
+since: "v3.0.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+capabilities:
+  - id: retry.classification
+    name: "Autonomy Classification"
+    version: "1.0.0"
+    description: "Context-dependent tier classification for testrun_retry"
+    files:
+      - backend/src/services/ai/AutonomyClassifier.ts
+    assertions:
+      - id: retry.classification.default-tier2
+        description: "testrun_retry defaults to Tier 2 (AI proposes card)"
+        type: invariant
+      - id: retry.classification.tier1-high-confidence
+        description: "Downgrade to Tier 1 when confidence > 0.9 AND retryCount < 2"
+        type: invariant
+      - id: retry.classification.no-infinite-loop
+        description: "Remains Tier 2 when retryCount >= 2 even with high confidence"
+        type: invariant
+      - id: retry.classification.conservative-override
+        description: "Conservative user preference forces Tier 2+ (no auto-retry)"
+        type: invariant
+      - id: retry.classification.autonomous-override
+        description: "Autonomous user preference allows Tier 2 to auto-execute as Tier 1"
+        type: behavioral
+
+  - id: retry.suggestion
+    name: "Proactive Retry Suggestion"
+    version: "1.0.0"
+    description: "AI suggests retry when transient failure detected"
+    files:
+      - backend/src/services/ai/ProactiveSuggestionEngine.ts
+    assertions:
+      - id: retry.suggestion.transient-trigger
+        description: "Suggests testrun_retry when failure_predictions contains transient keywords (environment, transient, timeout, network, flaky)"
+        type: invariant
+      - id: retry.suggestion.confidence
+        description: "Suggestion confidence is 0.85 for transient failures"
+        type: behavioral
+      - id: retry.suggestion.tier2
+        description: "Suggestion is Tier 2 (user clicks to approve)"
+        type: invariant
+      - id: retry.suggestion.batch-mode
+        description: "Offers batch retry when 3+ tests affected"
+        type: behavioral
+
+  - id: retry.execution
+    name: "Retry Tool Execution"
+    version: "1.0.0"
+    description: "Test run retry via testrun_retry tool"
+    files:
+      - backend/src/services/ai/tools/testrun.ts
+    assertions:
+      - id: retry.execution.editor-role
+        description: "Requires EDITOR role to execute"
+        type: invariant
+      - id: retry.execution.audit-trail
+        description: "Passes context.userId to service for audit logging"
+        type: invariant
+      - id: retry.execution.return-shape
+        description: "Returns { success, data, summary } contract"
+        type: contract
+
+  - id: retry.frontend
+    name: "Play Button UI"
+    version: "1.0.0"
+    description: "One-click retry button in failure cards"
+    files:
+      - frontend/src/components/AICopilot/cards/RetryCard.tsx
+    assertions:
+      - id: retry.frontend.play-button
+        description: "Failed test cards show a retry play button"
+        type: behavioral
+      - id: retry.frontend.toast-notification
+        description: "Autonomous retry shows a toast notification (not a confirmation card)"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-4
+    title: "Autonomous Retry"
+    gherkin: |
+      GIVEN a test failed with root cause classified as environment/transient
+      AND AI confidence > 0.9
+      AND the test passed in at least 2 of the last 3 runs
+      WHEN the failure is analyzed
+      THEN the test is automatically retried (Tier 1)
+      AND the user is notified with a toast message
+      AND if retry also fails, escalate to Tier 2 card (no infinite loops)
+    maps_to:
+      - retry.classification.tier1-high-confidence
+      - retry.classification.no-infinite-loop
+      - retry.suggestion.transient-trigger
+      - retry.frontend.toast-notification
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-20"
+    product_version: "v3.0.0"
+    changes:
+      - "Initial implementation: context-dependent classification, proactive suggestion, retry execution"
