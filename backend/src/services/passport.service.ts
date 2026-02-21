@@ -4,7 +4,7 @@ import { UserRole } from '../constants';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export class PassportService {
     constructor() {
