@@ -16,8 +16,8 @@ interface UpdatePipelineData extends Partial<BasePipelineData> {
   id: string;
 }
 
-function mapPipelineType(type: PipelineType): string {
-  return type;
+function mapPipelineType(type: PipelineType): Prisma.PipelineCreateInput['type'] {
+  return type as Prisma.PipelineCreateInput['type'];
 }
 
 function mapPipelineStatus(status: PipelineStatus): string {
@@ -61,8 +61,7 @@ export function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
 export function createPipelineInput(data: CreatePipelineData): Prisma.PipelineCreateInput {
   return {
     name: data.name,
-    // PipelineType enum values are strings, compatible with Prisma's string field
-    type: data.type as string,
+    type: mapPipelineType(data.type),
     // Production schema does not have status field
     // status: data.status ? mapPipelineStatus(data.status) : 'PENDING',
     config: JSON.stringify(data.config),

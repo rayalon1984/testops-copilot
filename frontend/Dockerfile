@@ -2,21 +2,24 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 ENV NODE_ENV=production
-ENV VITE_API_URL=http://localhost:4000
-ENV VITE_WEBSOCKET_URL=ws://localhost:4000
 
 # Development stage
 FROM base AS development
 ENV NODE_ENV=development
+ENV VITE_API_URL=http://localhost:4000
+ENV VITE_WEBSOCKET_URL=ws://localhost:4000
 COPY package*.json ./
 RUN npm install
 COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host"]
 
-# Build stage
+# Build stage — VITE_API_URL is empty so the frontend uses relative URLs
+# which nginx proxies to the backend via /api/ location block
 FROM base AS builder
 ENV NODE_ENV=development
+ENV VITE_API_URL=
+ENV VITE_WEBSOCKET_URL=
 COPY package*.json ./
 RUN npm install
 COPY . .
