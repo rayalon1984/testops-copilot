@@ -38,23 +38,16 @@ open http://localhost
 - **Password:** `demo123`
 
 ### Production Mode
-### Production Mode
-The installation script (`scripts/setup.sh`) will prompt you to create an admin account (email and password).
 
-**Use the credentials you defined during the setup process.**
-
-> [!NOTE]
-> The setup script will display your selected credentials at the end of the installation.
-
-If you need to create additional users later, you can use the API:
+Register your first admin account via the API (backend runs on port 3000 inside the Docker network, exposed on the same port):
 
 ```bash
-curl -X POST http://localhost:3000/api/auth/register \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "colleague@company.com",
-    "password": "secure-password",
-    "firstName": "New",
+    "email": "admin@yourcompany.com",
+    "password": "your-secure-password",
+    "firstName": "Admin",
     "lastName": "User"
   }'
 ```

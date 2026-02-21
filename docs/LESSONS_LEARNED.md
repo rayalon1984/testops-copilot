@@ -3,7 +3,25 @@
 > **Owner**: Release QA Engineer + all personas
 > **Status**: Living document — updated every sprint
 > **Purpose**: Track recurring error patterns, root causes, and preventive measures so we never repeat the same class of failure twice.
-> **Current Version**: 2.9.0-rc.4
+> **Current Version**: 3.0.0
+
+---
+
+## Quick Reference: Never Do These
+
+These are the distilled "never again" rules from every incident below. **Read this first.**
+
+| Rule | Why | Pattern |
+|------|-----|---------|
+| Never add a Prisma model to one schema without adding it to all three | Silent erasure in demo mode; broken Docker builds | EPR-001 |
+| Never import a package without verifying it's in `package.json` | Phantom imports pass locally but explode in CI | EPR-002 |
+| Never keep an unmaintained dependency with a known CVE | Security bypass risk; forks exist for a reason | EPR-003 |
+| Never assume `npm audit` alone catches transitive vulnerabilities | Use `overrides` in `package.json` when transitives are pinned | EPR-004 |
+| Never trust types from third-party libraries without narrowing | `unknown` fields cause TS failures under strict mode | EPR-005 |
+| Never put business logic or Prisma imports in controllers | Fat controllers slow onboarding and block testing | EPR-006 |
+| Never assume the migration baseline has all current models | Baselines go stale as models are added; regenerate periodically | EPR-007 |
+| Never assume code that compiles against SQLite also compiles against PostgreSQL | Enum representation differs; use schema-agnostic return types | EPR-008 |
+| Never assume CI environments have the same env vars as local dev | Missing `REDIS_URL` or `AI_ENABLED` causes test failures invisible locally | EPR-009 |
 
 ---
 
@@ -13,6 +31,7 @@
 2. **Before every sprint**, review the Prevention Checklist to verify all guards are still active
 3. **When adding a new CI gate**, add it to the Automated Guards table
 4. **When closing a pattern**, mark it as "Mitigated" with the sprint and mechanism
+5. **When onboarding**, read the Quick Reference table above — these are the hard-won rules
 
 ---
 
@@ -108,17 +127,72 @@ Each entry tracks a class of error (not a single instance) so we catch variation
 
 ---
 
+### EPR-007: Migration Baseline Incompleteness
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Production migration baseline (`0001_baseline/migration.sql`) doesn't include all models from the current schema — new models added over time were never backfilled into the baseline |
+| **First seen** | Sprint 7 (2026-02-21) |
+| **Impact** | P1 — Docker production deployments (`prisma migrate deploy`) create an incomplete database (12 of 22 tables, 4 of 5 enums). Missing tables: `team_members`, `dashboard_configs`, `shared_analyses`, `channel_user_mappings`, `failure_comments`, `failure_patterns`, `ai_usage`, `jira_issues`, `confluence_pages`, `testrail_runs`. Missing enum: `AutonomyLevel` |
+| **Root cause** | The baseline migration was generated from an early schema. As 10 models were added across Sprints 4-6, the baseline was never regenerated. Demo mode (`prisma db push`) doesn't use migrations so the gap was invisible locally |
+| **Prevention** | Regenerate baseline whenever models are added. CI production typecheck step validates schema compiles, but a dedicated migration completeness check would catch this class earlier |
+| **CI guard** | `backend-ci.yml` step "Typecheck with production schema" validates compilation; `installation-test.yml` Docker build validates the full deploy path |
+| **Status** | **Mitigated** (Sprint 7) — Baseline regenerated with all 22 tables and 5 enums |
+
+---
+
+### EPR-008: Cross-Database Type Mismatch (SQLite vs PostgreSQL Enums)
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | TypeScript code compiles cleanly against the SQLite (dev) schema but fails against the PostgreSQL (production) schema because enum types are represented differently |
+| **First seen** | Sprint 7 (2026-02-21) |
+| **Impact** | P1 — Backend Docker production build fails with `tsc` error in `prismaHelpers.ts` |
+| **Root cause** | `mapPipelineType()` used a string union return type (`'CI' \| 'CD' \| ...`). SQLite Prisma generates string unions for enums, so this compiles. PostgreSQL Prisma generates real enum types (`$Enums.PipelineType`), making the string union incompatible |
+| **Fix** | Changed return type to `Prisma.PipelineCreateInput['type']` — schema-agnostic, works with both SQLite strings and PostgreSQL enums |
+| **Prevention** | Always use Prisma's own input/output types (`Prisma.XxxCreateInput['field']`) instead of hand-written unions when dealing with enum fields. The CI "Typecheck with production schema" step catches this automatically |
+| **CI guard** | `backend-ci.yml` step "Typecheck with production schema (PostgreSQL enums)" |
+| **Status** | **Mitigated** (Sprint 7) — all enum-mapping functions now use schema-agnostic types |
+
+---
+
+### EPR-009: CI Environment Variable Gap
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | CI test workflows don't set all environment variables that the backend expects, causing failures that don't reproduce in local development (where `.env` files exist) |
+| **First seen** | Sprint 7 (2026-02-21) |
+| **Impact** | P2 — Installation-test and Docker production CI workflows fail. Backend crashes on startup attempting Redis connection or AI provider initialization |
+| **Root cause** | `installation-test.yml` didn't set `REDIS_URL` (backend's graceful degradation needs the var even if Redis is unreachable) or `AI_ENABLED=false` (without this, AI initialization tries to contact providers without API keys). The frontend Dockerfile baked `VITE_API_URL` at build time for all stages including production |
+| **Prevention** | Maintain a CI environment variable checklist in this document (see below). When adding a new backend dependency or feature flag, add the corresponding env var to all CI workflows |
+| **CI guard** | `installation-test.yml` now includes `REDIS_URL=redis://redis:6379` and `AI_ENABLED=false` |
+| **Status** | **Mitigated** (Sprint 7) |
+
+**Required CI Environment Variables** (update when adding new dependencies):
+
+```
+NODE_ENV=production
+DATABASE_URL=<postgres connection string>
+REDIS_URL=redis://redis:6379
+AI_ENABLED=false
+JWT_SECRET=<any value for tests>
+```
+
+---
+
 ## Automated Guards Summary
 
 | Guard | CI Workflow | What It Catches | Added |
 |-------|------------|-----------------|-------|
 | `tsc --noEmit` | backend-ci, frontend-ci | Type errors, phantom imports, schema drift | Sprint 3 |
 | `tsc --noEmit` (dev schema) | backend-ci | Models missing from `schema.dev.prisma` | Sprint 4 |
+| `tsc --noEmit` (production schema) | backend-ci | Cross-database type mismatches (SQLite vs PostgreSQL enums) | Sprint 7 |
 | `validate-schema.js --strict-fields` | backend-ci, installation-test | Field-level drift between schemas | Sprint 5 |
 | `npm audit --audit-level=high` | backend-ci | Known vulnerabilities in dependencies | Sprint 4 |
 | `eslint` | backend-ci, frontend-ci | Code quality, unused imports, style | Sprint 3 |
 | `jest` / `vitest` | backend-ci, frontend-ci | Functional regressions | Sprint 3 |
 | Weekly dependency scan | dependencies.yml | Outdated deps, new CVEs, license issues | Sprint 4 |
+| Docker production build | installation-test | Dockerfile errors, missing deps, env var gaps | Sprint 7 |
 
 ---
 
@@ -131,6 +205,9 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] No "No fix available" critical/high vulnerabilities in production dependencies
 - [ ] Schema validation passes with `--strict-fields`
 - [ ] All three Prisma schemas are in sync (model + field level)
+- [ ] Migration baseline includes all models from `schema.production.prisma` (EPR-007)
+- [ ] Backend compiles against both dev and production schemas (EPR-008)
+- [ ] CI workflow env vars match the Required CI Environment Variables list (EPR-009)
 - [ ] Tech debt tracker in `ROADMAP.md` is current
 - [ ] This document has been reviewed for new patterns from the previous sprint
 
@@ -152,5 +229,5 @@ Per semver and the `RELEASE_QA_ENGINEER.md` version strategy:
 
 ---
 
-*Last updated: 2026-02-20 (Sprint 6)*
-*Next review: Start of Sprint 7*
+*Last updated: 2026-02-21 (Sprint 7)*
+*Next review: Start of Sprint 8*

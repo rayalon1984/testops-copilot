@@ -179,30 +179,34 @@ npm install && npm run dev:simple
 ```
 
 **What happens:**
-1. Backend starts with SQLite, seeds 1,600+ failures, 150 test runs, 15 pipelines
+1. Backend starts with SQLite on port 3000, seeds 1,600+ failures, 150 test runs, 15 pipelines
 2. Frontend opens automatically at http://localhost:5173
 3. Login with: `demo@testops.ai` / `demo123`
 4. AI copilot works in mock mode — all 18 tools return realistic demo data
 5. Persona routing works — queries are classified to specialists
 
-| | Demo Mode | Production Mode |
+| | Demo Mode | Production Mode (Docker) |
 |---|---|---|
 | **Database** | SQLite (file-based) | PostgreSQL 14+ |
 | **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure |
 | **Integrations** | Simulated responses | Real Jira, Slack, GitHub, etc. |
 | **Setup time** | ~2 minutes | ~15 minutes |
+| **Docker required** | No | Yes |
 | **Best for** | Evaluation, demos, training | Production deployments |
 
 **Demo URLs:**
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:4000/api/v1
+- Backend API: http://localhost:3000/api/v1
 
-### Production Mode
+### Production Mode (Docker)
 
 ```bash
-npm run setup       # Configure everything
-npm run local:start # Start infrastructure (PostgreSQL, Redis, Weaviate)
-npm run dev         # Start application
+# Option A: Pre-built images (fastest)
+cp .env.production.example .env.production   # Edit secrets!
+docker compose -f docker-compose.ghcr.yml up -d
+
+# Option B: Build from source
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for full deployment instructions.
@@ -215,14 +219,13 @@ See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for full depl
 
 ```bash
 # Demo mode (SQLite, mock AI, auto-open browser)
+# Backend: http://localhost:3000 | Frontend: http://localhost:5173
 npm run dev:simple
 
-# Production mode (PostgreSQL + Redis + Weaviate)
-npm run dev
-
-# Or individually:
-npm run dev:backend    # Backend on http://localhost:4000
-npm run dev:frontend   # Frontend on http://localhost:5173
+# Development mode (PostgreSQL + Redis + Weaviate via Docker)
+# Backend: http://localhost:3000 | Frontend: http://localhost:5173
+npm run local:start   # Start Docker services
+npm run dev           # Start app servers
 ```
 
 ### Common Commands

@@ -23,29 +23,33 @@ Yes, TestOps Companion is open source and free to use. We also offer enterprise 
 #### How do I install TestOps Companion?
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/testops-companion.git
-
-# Install dependencies
+git clone https://github.com/rayalon1984/testops-companion.git
 cd testops-companion
-npm run setup
 
-# Start the application
-npm start
+# Quick demo (no Docker needed)
+npm install && npm run dev:simple
+
+# Or full setup with Docker
+npm run setup
+npm run local:start
+npm run dev
 ```
+
+See the [Quick Start Guide](quickstart.md) for detailed instructions.
 
 #### What are the system requirements?
 - Node.js 18.x or higher
-- PostgreSQL 15.x
-- Redis 7.x
-- Docker (optional)
+- PostgreSQL 14+ (production only — demo mode uses SQLite)
+- Redis 7.x (optional — for caching)
+- Docker and Docker Compose (for production/development mode)
 - 2GB RAM minimum
 - 4GB disk space
 
 #### How do I update to the latest version?
 ```bash
 git pull origin main
-npm run setup
-npm run migrate
+npm install
+cd backend && npx prisma migrate deploy  # Apply any new migrations
 ```
 
 ### Configuration
@@ -203,10 +207,10 @@ Contact our sales team at sales@testops-companion.com for enterprise licensing.
 ### Support
 
 #### Where can I get help?
-- Documentation: docs.testops-companion.com
-- Discord: discord.gg/testops-companion
-- GitHub Issues: github.com/yourusername/testops-companion/issues
-- Email: support@testops-companion.com
+- [Quick Start Guide](quickstart.md)
+- [Troubleshooting Guide](troubleshooting.md)
+- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
+- [GitHub Discussions](https://github.com/rayalon1984/testops-companion/discussions)
 
 #### How do I report a bug?
 1. Check existing issues

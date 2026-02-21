@@ -65,40 +65,53 @@ async function setupEnvFile(examplePath, envPath, additionalSetup) {
 
 // Setup backend environment
 async function setupBackendEnv(envContent) {
-  // Replace placeholders with actual values
-  envContent = envContent.replace('DATABASE_URL=', `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/testops`);
-  envContent = envContent.replace('PORT=3000', `PORT=3001`);
-  envContent = envContent.replace('JWT_SECRET=', `JWT_SECRET=${generateRandomString()}`);
-  envContent = envContent.replace('JWT_REFRESH_SECRET=', `JWT_REFRESH_SECRET=${generateRandomString()}`);
-  
+  // Generate secure secrets for JWT
+  envContent = envContent.replace(
+    'JWT_SECRET=your-super-secret-jwt-key',
+    `JWT_SECRET=${generateRandomString(64)}`
+  );
+  envContent = envContent.replace(
+    'JWT_REFRESH_SECRET=your-super-secret-refresh-token-key',
+    `JWT_REFRESH_SECRET=${generateRandomString(64)}`
+  );
+  envContent = envContent.replace(
+    'SESSION_SECRET=your-super-secret-session-key',
+    `SESSION_SECRET=${generateRandomString(64)}`
+  );
+
   // Ask for GitHub token
   const githubToken = await prompt('Enter your GitHub token (leave empty to skip)', '');
   if (githubToken) {
     envContent = envContent.replace('GITHUB_TOKEN=', `GITHUB_TOKEN=${githubToken}`);
   }
-  
+
   // Ask for Jira token
   const jiraToken = await prompt('Enter your Jira API token (leave empty to skip)', '');
   if (jiraToken) {
-    envContent = envContent.replace('JIRA_API_TOKEN=', `JIRA_API_TOKEN=${jiraToken}`);
-    
+    envContent = envContent.replace(
+      'JIRA_API_TOKEN=your-api-token',
+      `JIRA_API_TOKEN=${jiraToken}`
+    );
+
     // Ask for Jira base URL
     const jiraBaseUrl = await prompt('Enter your Jira base URL', 'https://your-domain.atlassian.net');
-    envContent = envContent.replace('JIRA_BASE_URL=https://your-domain.atlassian.net', `JIRA_BASE_URL=${jiraBaseUrl}`);
-    
+    envContent = envContent.replace(
+      'JIRA_BASE_URL=https://your-domain.atlassian.net',
+      `JIRA_BASE_URL=${jiraBaseUrl}`
+    );
+
     // Ask for Jira project key
     const jiraProjectKey = await prompt('Enter your Jira project key', 'PROJ');
     envContent = envContent.replace('JIRA_PROJECT_KEY=PROJ', `JIRA_PROJECT_KEY=${jiraProjectKey}`);
   }
-  
+
   return envContent;
 }
 
 // Setup frontend environment
 async function setupFrontendEnv(envContent) {
-  // Replace placeholders with actual values
-  envContent = envContent.replace('REACT_APP_API_URL=http://localhost:3000/api', 'REACT_APP_API_URL=http://localhost:3001/api');
-  
+  // Frontend uses Vite env vars (VITE_ prefix), no changes needed from template
+  // VITE_API_URL defaults to http://localhost:3000 which matches the backend default
   return envContent;
 }
 
