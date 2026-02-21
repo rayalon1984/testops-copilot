@@ -274,11 +274,17 @@ New Failure → Generate Signature (hash) → Normalize Error
 
 ### 8.1 Modes
 
-| Mode | Start Command | Database | Redis | AI |
-|------|--------------|----------|-------|-----|
-| Demo | `npm run dev:simple` | SQLite (memory) | None | Mock |
-| Development | `npm run dev` | SQLite (file) | Optional | Any |
-| Production | `docker compose up` | PostgreSQL | Redis | Full |
+| Mode | Setup Command | Start Command | Database | Redis | AI |
+|------|--------------|---------------|----------|-------|-----|
+| Demo | `npm run deploy:demo` | `npm run dev` | SQLite (file) | None | Mock |
+| Development | `npm run local:setup` | `npm run dev` | PostgreSQL | Optional | Any |
+| Production | — | `docker compose up` | PostgreSQL | Redis | Full |
+
+Demo test accounts (all use password `demo123`):
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
 
 ### 8.2 Docker Services
 

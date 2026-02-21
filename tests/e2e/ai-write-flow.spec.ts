@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test('AI Write Tool Confirmation Flow', async ({ page }) => {
     // 1. Login
     await page.goto('/login');
-    await page.fill('input[name="email"]', 'demo@testops.ai');
+    await page.fill('input[name="email"]', 'engineer@testops.ai');
     await page.fill('input[name="password"]', 'demo123');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL('/dashboard');

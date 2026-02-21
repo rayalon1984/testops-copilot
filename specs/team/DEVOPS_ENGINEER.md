@@ -37,11 +37,11 @@ You own CI/CD pipelines, Docker configuration, deployment safety, environment ma
 
 ### Deployment Modes
 
-| Mode | Command | DB | Redis | AI |
-|------|---------|-----|-------|-----|
-| Demo | `npm run dev:simple` | SQLite (memory) | None | Mock |
-| Development | `npm run dev` | SQLite (file) | Optional | Any |
-| Production | `docker compose up` | PostgreSQL | Redis | Full |
+| Mode | Setup | Start | DB | Redis | AI |
+|------|-------|-------|-----|-------|-----|
+| Demo | `npm run deploy:demo` | `npm run dev` | SQLite (file) | None | Mock |
+| Development | `npm run local:setup` | `npm run dev` | PostgreSQL | Optional | Any |
+| Production | — | `docker compose up` | PostgreSQL | Redis | Full |
 
 ### CI/CD Pipeline
 

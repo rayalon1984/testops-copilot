@@ -116,7 +116,11 @@ Common mistakes:
 
 ### Demo mode login not working
 
-Use exactly: `demo@testops.ai` / `demo123`
+All accounts use password `demo123`:
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
 
 If the seed didn't run, re-seed:
 ```bash

@@ -212,6 +212,7 @@ Format: `type(scope): subject`
 
 | Action | Command |
 |--------|---------|
+| **Demo setup** | `npm run deploy:demo` |
 | Dev (full stack) | `npm run dev` |
 | Dev (backend only) | `npm run dev:backend` |
 | Dev (frontend only) | `npm run dev:frontend` |

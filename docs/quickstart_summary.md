@@ -28,7 +28,7 @@ npm run dev:simple
 - Start backend with SQLite (in-memory)
 - Load 1,600+ demo test failures
 - Open browser to http://localhost:5173
-- **Login**: \`demo@testops.ai\` / \`demo123\`
+- **Login**: All accounts use password `demo123`: `admin@testops.ai` (Admin), `lead@testops.ai` (QA Lead), `engineer@testops.ai` (QA Engineer), `viewer@testops.ai` (Stakeholder)
 
 ---
 

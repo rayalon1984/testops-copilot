@@ -9,7 +9,8 @@
 
 ```bash
 npm install && npm run dev:simple
-# Login: demo@testops.ai / demo123
+# Login with any demo account (password: demo123):
+# admin@testops.ai | lead@testops.ai | engineer@testops.ai | viewer@testops.ai
 ```
 
 Everything below works in demo mode with zero external dependencies.

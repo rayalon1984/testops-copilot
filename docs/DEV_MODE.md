@@ -35,7 +35,11 @@ git pull origin main
 npm run dev:simple
 ```
 
-**Login**: `demo@testops.ai` / `demo123`
+**Login** — all accounts use password `demo123`:
+- `admin@testops.ai` — Site Admin
+- `lead@testops.ai` — QA Lead
+- `engineer@testops.ai` — QA Engineer
+- `viewer@testops.ai` — Stakeholder
 
 The dashboard will show:
 - 1,600+ failure archive entries across all categories
