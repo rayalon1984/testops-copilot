@@ -1,7 +1,7 @@
 # Living Feature Specs — Architecture Plan
 
 > **Date**: 2026-02-21 · **Owner**: AI_ARCHITECT + TEST_ENGINEER
-> **Status**: APPROVED · Phases 1-3 complete (6 features, 105 assertions, scanner in CI as advisory) · **Personas consulted**: AI_ARCHITECT, TEST_ENGINEER, AI_PRODUCT_MANAGER
+> **Status**: APPROVED · Phases 1-4 complete (16 features, 229 assertions, 100% coverage — beta-ready) · **Personas consulted**: AI_ARCHITECT, TEST_ENGINEER, AI_PRODUCT_MANAGER, DEVOPS_ENGINEER, SECURITY_ENGINEER, QA_LEAD, FRONTEND_ENGINEER, BACKEND_ENGINEER, UX_DESIGNER, AI_ARCHITECT, AI_PRODUCT_MANAGER
 > **PR Branch**: `claude/codebase-review-beta-planning-LhVuu`
 
 ---
@@ -452,6 +452,26 @@ These were chosen because:
 - GitHub Actions workflow (`.github/workflows/feature-specs.yml`) auto-posts coverage to PRs
 - Health scoring: A+ (100%) through D (<70%) grading system
 
+### Phase 4: Full Beta Coverage — COMPLETE
+- Expanded from 6 features (103 assertions) to **16 features (229 assertions)**
+- All 10 remaining product features now have manifests + spec-aware tests:
+  - **Failure Analysis** (17 assertions) — categorization, log summary, RCA matching
+  - **Context Enrichment** (10 assertions) — gathering, confidence, synthesis
+  - **Failure Knowledge Base** (13 assertions) — fingerprinting, matching, RCA docs, insights
+  - **Authentication** (21 assertions) — JWT, RBAC, SSO, token blacklist, audit logging
+  - **ReAct Loop** (12 assertions) — loop bounds, tool execution, SSE streaming, tool registry
+  - **Pipeline Management** (8 assertions) — CRUD, test run tracking, scheduling
+  - **Notifications & Alerting** (8 assertions) — multi-channel dispatch, Slack, URL building
+  - **AI Cost Management** (9 assertions) — budget tracking, cache key format, hit/miss
+  - **Resilience** (13 assertions) — circuit breaker, retry with backoff, timeout, pre-configured breakers
+  - **MCP Server** (15 assertions) — analyze, batch, knowledge base, stats
+- Scanner passes: 229/229 assertions, 100% across all assertion types
+  - Invariants: 144/144 (100%)
+  - Behavioral: 41/41 (100%)
+  - Contracts: 44/44 (100%)
+- All 27 test suites passing (417 tests)
+- Fixed scanner TS type for `lastRun` property in version tracker
+
 ---
 
 ## Trade-offs & Decisions
@@ -500,12 +520,14 @@ These were chosen because:
 
 ## Success Criteria
 
-1. **3 pilot features** have complete manifests with all assertions mapped
-2. **Scanner passes** with no schema errors on all 3 manifests
-3. **Test helpers work** — `describeFeature()` loads manifests and `itAssertion()` creates spec-aware tests
-4. **Version drift detection works** — bumping a capability version causes behavioral tests to show `todo` instead of `fail`
-5. **Orphan detection works** — scanner warns about assertions without tests and tests without assertions
-6. **Zero new runtime dependencies** — uses `js-yaml` (already in `package.json`) and existing test frameworks
+1. ~~**3 pilot features** have complete manifests with all assertions mapped~~ → **16 features** with 229 assertions mapped (Phase 4)
+2. **Scanner passes** with no schema errors on all 16 manifests — **ACHIEVED**
+3. **Test helpers work** — `describeFeature()` loads manifests and `itAssertion()` creates spec-aware tests — **ACHIEVED**
+4. **Version drift detection works** — bumping a capability version causes behavioral tests to show `todo` instead of `fail` — **ACHIEVED**
+5. **Orphan detection works** — scanner warns about assertions without tests and tests without assertions — **ACHIEVED**
+6. **Zero new runtime dependencies** — uses `js-yaml` (already in `package.json`) and existing test frameworks — **ACHIEVED**
+7. **100% coverage** across all assertion types (invariant, behavioral, contract) — **ACHIEVED**
+8. **All 27 test suites pass** — 417 tests green — **ACHIEVED**
 
 ---
 

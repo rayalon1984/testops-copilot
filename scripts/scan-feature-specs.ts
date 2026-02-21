@@ -153,7 +153,7 @@ function extractTestedAssertionIds(testFiles: string[]): Set<string> {
   return ids;
 }
 
-function loadVersionTracker(): Record<string, { lastTestedVersion: string; capabilities: Record<string, string> }> {
+function loadVersionTracker(): Record<string, { lastTestedVersion: string; lastRun?: string; capabilities: Record<string, string> }> {
   try {
     const raw = fs.readFileSync(TRACKER_PATH, 'utf-8');
     return JSON.parse(raw);
