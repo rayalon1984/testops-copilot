@@ -49,7 +49,7 @@
       "diff.pr-card": "1.0.0",
       "diff.merge-tool": "1.0.0"
     },
-    "lastRun": "2026-02-21T16:32:18.275Z"
+    "lastRun": "2026-02-21T20:48:16.849Z"
   },
   "pipeline-management": {
     "lastTestedVersion": "1.0.0",
@@ -76,7 +76,7 @@
       "enrichment.confidence": "1.0.0",
       "enrichment.synthesis": "1.0.0"
     },
-    "lastRun": "2026-02-21T16:24:25.744Z"
+    "lastRun": "2026-02-21T20:48:16.929Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -86,7 +86,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-02-21T16:34:07.153Z"
+    "lastRun": "2026-02-21T20:48:17.264Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -106,7 +106,7 @@
       "react.streaming": "1.0.0",
       "react.tools-registry": "1.0.0"
     },
-    "lastRun": "2026-02-21T16:27:47.569Z"
+    "lastRun": "2026-02-21T20:48:16.950Z"
   },
   "ai-cost-management": {
     "lastTestedVersion": "1.0.0",
@@ -126,5 +126,14 @@
       "auth.audit": "1.0.0"
     },
     "lastRun": "2026-02-21T16:34:07.243Z"
+  },
+  "failure-analysis": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "analysis.categorization": "1.0.0",
+      "analysis.log-summary": "1.0.0",
+      "analysis.rca-matching": "1.0.0"
+    },
+    "lastRun": "2026-02-21T20:48:16.756Z"
   }
 }
