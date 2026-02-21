@@ -1,0 +1,102 @@
+feature: failure-knowledge-base
+name: "Failure Knowledge Base"
+version: "1.0.0"
+status: shipped
+since: "v2.5.3"
+owner: DATA_ENGINEER
+category: ai-tools
+spec_source: SPEC.md
+
+capabilities:
+  - id: kb.fingerprinting
+    name: "Failure Fingerprinting"
+    version: "1.0.0"
+    description: "Deterministic signature generation for failure pattern matching"
+    files:
+      - backend/src/services/failure-archive.service.ts
+    assertions:
+      - id: kb.fingerprint.deterministic
+        description: "Same testName + errorMessage + stackTrace always produces identical signature"
+        type: invariant
+      - id: kb.fingerprint.normalizes-timestamps
+        description: "Timestamps (ISO format) normalized to 'TIMESTAMP' placeholder"
+        type: invariant
+      - id: kb.fingerprint.normalizes-uuids
+        description: "UUIDs normalized to 'UUID' placeholder"
+        type: invariant
+      - id: kb.fingerprint.normalizes-memory
+        description: "Memory addresses (0x...) normalized to '0xADDR' placeholder"
+        type: invariant
+      - id: kb.fingerprint.format
+        description: "Signature format is '{testHash}:{normalizedError}:{stackHash}'"
+        type: contract
+
+  - id: kb.matching
+    name: "Failure Matching"
+    version: "1.0.0"
+    description: "Exact-match lookup for known failures"
+    files:
+      - backend/src/services/failure-archive.service.ts
+    assertions:
+      - id: kb.matching.exact-match-increments
+        description: "If exact signature match found, occurrence count increments instead of creating duplicate"
+        type: invariant
+      - id: kb.matching.reopen-on-recurrence
+        description: "If a resolved failure recurs, resolved flag is set back to false"
+        type: invariant
+
+  - id: kb.rca-docs
+    name: "RCA Documentation"
+    version: "1.0.0"
+    description: "Collaborative root cause analysis documentation with optimistic locking"
+    files:
+      - backend/src/services/failure-archive.service.ts
+    assertions:
+      - id: kb.rca.optimistic-locking
+        description: "Version checking enforced — 409 Conflict thrown if expectedVersion does not match"
+        type: invariant
+      - id: kb.rca.revision-snapshots
+        description: "Old state snapshot created before each RCA update for audit trail"
+        type: invariant
+      - id: kb.rca.comment-authorization
+        description: "Only comment author can delete their comment (403 Forbidden if not author)"
+        type: invariant
+      - id: kb.rca.audit-logging
+        description: "Every create, RCA update, and resolve operation is logged with user context"
+        type: invariant
+
+  - id: kb.insights
+    name: "Failure Insights"
+    version: "1.0.0"
+    description: "Statistical analysis of failure patterns"
+    files:
+      - backend/src/services/failure-archive.service.ts
+    assertions:
+      - id: kb.insights.return-shape
+        description: "Returns { totalFailures, documentedCount, recurringCount, averageTimeToResolve, mostCommonFailures[] }"
+        type: contract
+      - id: kb.insights.default-timeframe
+        description: "Default insights timeframe is 30 days"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-KB-1
+    title: "Failure Knowledge Base"
+    gherkin: |
+      GIVEN test failures are tracked in the system
+      WHEN a new failure occurs with the same signature
+      THEN the occurrence count increments (no duplicates)
+      AND if the failure was previously resolved, it is reopened
+      AND RCA documentation supports optimistic locking for concurrent edits
+    maps_to:
+      - kb.fingerprint.deterministic
+      - kb.matching.exact-match-increments
+      - kb.matching.reopen-on-recurrence
+      - kb.rca.optimistic-locking
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: fingerprinting, matching, RCA docs, insights"

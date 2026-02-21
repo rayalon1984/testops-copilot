@@ -1,0 +1,78 @@
+feature: notifications-alerting
+name: "Notifications & Alerting"
+version: "1.0.0"
+status: shipped
+since: "v1.0.0"
+owner: SENIOR_ENGINEER
+category: pipeline
+spec_source: SPEC.md
+
+capabilities:
+  - id: notify.dispatch
+    name: "Multi-Channel Dispatch"
+    version: "1.0.0"
+    description: "Sends notifications to Slack, Email, and Pushover channels"
+    files:
+      - backend/src/services/notification.service.ts
+    assertions:
+      - id: notify.dispatch.channel-isolation
+        description: "Failure in one channel does not block other channels from sending"
+        type: invariant
+      - id: notify.dispatch.graceful-init
+        description: "Null clients initialized when credentials missing (graceful degradation)"
+        type: invariant
+      - id: notify.dispatch.condition-normalization
+        description: "Conditions normalized: 'passed' -> 'success', 'failed' -> 'failure'"
+        type: invariant
+
+  - id: notify.slack
+    name: "Slack Integration"
+    version: "1.0.0"
+    description: "Rich Slack messages with Block Kit formatting"
+    files:
+      - backend/src/services/notification.service.ts
+    assertions:
+      - id: notify.slack.rich-blocks
+        description: "When context (pipeline + testRun) provided, builds rich message blocks"
+        type: behavioral
+      - id: notify.slack.fallback-plain
+        description: "Falls back to plain text if context missing"
+        type: invariant
+      - id: notify.slack.stats-parse-safety
+        description: "Test results parsed as array OR JSON string with fallback to 'N/A'"
+        type: invariant
+
+  - id: notify.urls
+    name: "URL Building"
+    version: "1.0.0"
+    description: "Consistent URL generation for notification links"
+    files:
+      - backend/src/services/notification.service.ts
+    assertions:
+      - id: notify.urls.strips-api-prefix
+        description: "Button URLs strip '/api/v1' suffix from base URL"
+        type: invariant
+      - id: notify.urls.test-run-format
+        description: "Test run link format: /test-runs/{id}"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-NA-1
+    title: "Notifications"
+    gherkin: |
+      GIVEN a pipeline event occurs (start, completion, failure)
+      WHEN notifications are dispatched
+      THEN each enabled channel receives the notification
+      AND one channel failure does not prevent other channels from sending
+      AND Slack messages include rich formatting when context is available
+    maps_to:
+      - notify.dispatch.channel-isolation
+      - notify.slack.rich-blocks
+      - notify.slack.fallback-plain
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: multi-channel dispatch, Slack integration, URL building"

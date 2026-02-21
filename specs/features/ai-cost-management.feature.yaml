@@ -1,0 +1,73 @@
+feature: ai-cost-management
+name: "AI Cost Management"
+version: "1.0.0"
+status: shipped
+since: "v2.5.3"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AI_TOOLS.md
+
+capabilities:
+  - id: cost.tracking
+    name: "Cost Tracker"
+    version: "1.0.0"
+    description: "Records AI usage with per-feature, per-provider tracking"
+    files:
+      - backend/src/services/ai/cost-tracker.ts
+    assertions:
+      - id: cost.tracking.records-all-fields
+        description: "Each usage record includes: timestamp, provider, model, feature, input_tokens, output_tokens, total_tokens, cost_usd, cached"
+        type: contract
+      - id: cost.tracking.budget-alert-once
+        description: "Budget alert sent only once per session (alertSent flag prevents duplicates)"
+        type: invariant
+      - id: cost.tracking.budget-calculation
+        description: "Budget used = (totalCost / monthlyBudgetUSD) * 100"
+        type: invariant
+
+  - id: cost.cache
+    name: "AI Response Cache"
+    version: "1.0.0"
+    description: "3-tier Redis caching for AI responses, embeddings, and summaries"
+    files:
+      - backend/src/services/ai/cache.ts
+    assertions:
+      - id: cost.cache.key-format
+        description: "Cache key format is 'ai:{prefix}:{sha256(content)}' — deterministic"
+        type: invariant
+      - id: cost.cache.disabled-noop
+        description: "When config.enabled is false, all operations return null (no-op)"
+        type: invariant
+      - id: cost.cache.hit-miss-tracking
+        description: "Hits and misses counters track all attempts; hitRate = hits / (hits + misses)"
+        type: invariant
+      - id: cost.cache.cached-flag
+        description: "Retrieved cached responses include 'cached: true' flag"
+        type: contract
+      - id: cost.cache.error-resilience
+        description: "Redis errors are caught and logged; function returns null, increments misses"
+        type: invariant
+      - id: cost.cache.singleton
+        description: "getCache() returns same instance on subsequent calls"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-CM-1
+    title: "AI Cost Management"
+    gherkin: |
+      GIVEN the AI system processes requests
+      WHEN each AI call completes
+      THEN usage is recorded with provider, tokens, and cost
+      AND budget alerts fire at threshold but never duplicate within session
+      AND cached responses are returned with a 'cached: true' flag
+    maps_to:
+      - cost.tracking.records-all-fields
+      - cost.tracking.budget-alert-once
+      - cost.cache.cached-flag
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: cost tracking, budget alerts, 3-tier caching"
