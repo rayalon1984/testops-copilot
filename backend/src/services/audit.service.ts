@@ -39,7 +39,7 @@ export class AuditService {
                     entityType,
                     entityId,
                     userId,
-                    metadata: safeMetadata,
+                    metadata: JSON.stringify(safeMetadata),
                 },
             });
         } catch (error) {

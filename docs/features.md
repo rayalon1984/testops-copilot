@@ -63,5 +63,5 @@
 - **22 AI Tools**: 8 read-only (auto-execute) + 11 write (tiered approval) + 3 housekeeping
 - **Proactive Suggestions**: AI anticipates next steps after every action
 - **Page-Aware Context**: AI adapts behavior based on which page you're viewing
-- **Living Feature Specs**: 105 machine-readable assertions with automated drift detection
+- **Living Feature Specs**: 229 machine-readable assertions with automated drift detection
 - **Resilience Layer**: Circuit breakers, retries, and timeouts on all external services

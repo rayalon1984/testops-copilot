@@ -268,13 +268,13 @@ describe('errorHandler', () => {
   });
 
   describe('next() invocation', () => {
-    it('should call next() after handling the error', () => {
+    it('should NOT call next() after sending the error response', () => {
       const { req, res, next } = createMocks();
       const err = new ApiError(500, 'Test error');
 
       errorHandler(err, req, res, next);
 
-      expect(next).toHaveBeenCalled();
+      expect(next).not.toHaveBeenCalled();
     });
   });
 });

@@ -119,6 +119,20 @@ export class CostTracker {
     const totalResult = await this.db.query(totalQuery, [startDate, endDate]);
     const total = totalResult.rows[0];
 
+    // Mock DB pool (SQLite demo mode) returns empty rows
+    if (!total) {
+      return {
+        period: { start: startDate, end: endDate },
+        totalCost: 0,
+        totalRequests: 0,
+        totalTokens: 0,
+        byFeature: [],
+        byProvider: [],
+        cacheHitRate: 0,
+        budgetUsed: 0,
+      };
+    }
+
     // Get breakdown by feature
     const featureQuery = `
       SELECT

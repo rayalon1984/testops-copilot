@@ -33,7 +33,7 @@ export const errorHandler = (
   err: ApiError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next?: NextFunction
 ) => {
   const isDevelopment = config.env === 'development';
 
@@ -70,8 +70,6 @@ export const errorHandler = (
       details: err
     })
   });
-
-  next();
 };
 
 export const notFoundHandler = (
