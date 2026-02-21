@@ -27,6 +27,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testops}
+      - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=info
     depends_on:
       db:

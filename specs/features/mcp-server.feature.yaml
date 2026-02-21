@@ -1,0 +1,109 @@
+feature: mcp-server
+name: "MCP Server (IDE Integration)"
+version: "1.0.0"
+status: shipped
+since: "v2.8.5"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AI_TOOLS.md
+
+capabilities:
+  - id: mcp.analyze
+    name: "Failure Analysis Tools"
+    version: "1.0.0"
+    description: "Single and batch failure analysis via MCP protocol"
+    files:
+      - mcp-server/src/tools/analyze.ts
+      - mcp-server/src/tools/batch.ts
+    assertions:
+      - id: mcp.analyze.required-inputs
+        description: "testops_analyze_failure requires testName and errorMessage (validated by Zod)"
+        type: invariant
+      - id: mcp.analyze.partial-on-failure
+        description: "If any analysis step fails, tool continues with partial results (never fails completely)"
+        type: invariant
+      - id: mcp.analyze.log-summary-threshold
+        description: "Log summary only populated if logs exceed 100 characters"
+        type: behavioral
+      - id: mcp.analyze.return-shape
+        description: "Returns { categorization, similarFailures[], logSummary?, estimatedCostUSD }"
+        type: contract
+
+  - id: mcp.batch
+    name: "Batch Analysis"
+    version: "1.0.0"
+    description: "Cost-optimized batch failure analysis"
+    files:
+      - mcp-server/src/tools/batch.ts
+    assertions:
+      - id: mcp.batch.requires-input
+        description: "Either testRunId OR failures array must be provided; both missing throws error"
+        type: contract
+      - id: mcp.batch.max-failures-limit
+        description: "maxFailures acts as hard limit; excess failures silently dropped"
+        type: invariant
+      - id: mcp.batch.skips-logs
+        description: "Batch mode does NOT include logs per failure (cost optimization)"
+        type: invariant
+      - id: mcp.batch.priority-buckets
+        description: "All failures classified into exactly one priority: high, medium, or low"
+        type: invariant
+
+  - id: mcp.knowledge
+    name: "Knowledge Base Tools"
+    version: "1.0.0"
+    description: "Search, add, and stats for organizational knowledge base"
+    files:
+      - mcp-server/src/tools/knowledge.ts
+    assertions:
+      - id: mcp.knowledge.search-injection-safe
+        description: "Search uses parameterized queries (injection-safe)"
+        type: invariant
+      - id: mcp.knowledge.add-requires-fields
+        description: "testops_add_knowledge requires testName, errorMessage, category, resolution, resolvedBy"
+        type: contract
+      - id: mcp.knowledge.stats-empty-safe
+        description: "Empty database returns all counts as 0 and arrays empty (not errors)"
+        type: invariant
+
+  - id: mcp.stats
+    name: "Statistics & Health Tools"
+    version: "1.0.0"
+    description: "Pipeline stats, test history, cost tracking, and health check"
+    files:
+      - mcp-server/src/tools/stats.ts
+    assertions:
+      - id: mcp.stats.flakiness-min-runs
+        description: "Flakiness score requires >= 5 runs; returns 0 with insufficient data"
+        type: invariant
+      - id: mcp.stats.health-database-critical
+        description: "Health check: healthy=true only if database check passes"
+        type: invariant
+      - id: mcp.stats.cost-default-period
+        description: "Cost stats default to last 30 days if no dates specified"
+        type: behavioral
+      - id: mcp.stats.pipeline-success-rate
+        description: "Success rate = (passing / total) * 100, rounded to 1 decimal; 0 if no runs"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-MCP-1
+    title: "MCP Server Tools"
+    gherkin: |
+      GIVEN an IDE connects via MCP protocol
+      WHEN calling analysis, knowledge, or stats tools
+      THEN inputs are validated by Zod schemas
+      AND partial failures return partial results (not errors)
+      AND batch mode optimizes cost by skipping individual log analysis
+    maps_to:
+      - mcp.analyze.required-inputs
+      - mcp.analyze.partial-on-failure
+      - mcp.batch.skips-logs
+      - mcp.knowledge.search-injection-safe
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: 8 MCP tools across analyze, knowledge, and stats categories"

@@ -1,91 +1,194 @@
 # Troubleshooting Guide
 
-## Common Issues
+## Demo Mode Issues
 
-### Environment Setup
-- [Environment Configuration Guide](quickstart.md#environment-setup)
-- [Port Conflicts](quickstart.md#port-conflicts)
-- [Database Setup Issues](quickstart.md#database-setup-issues)
+### "Prisma client not found"
 
-### Authentication
-- [JWT Configuration](quickstart.md#authentication)
-- [User Management](api.md#authentication-endpoints)
-- [Session Handling](development.md#session-management)
-
-### Pipeline Integration
-- [GitHub Actions Setup](development.md#github-actions-integration)
-- [Jenkins Configuration](development.md#jenkins-integration)
-- [Custom Pipeline Setup](development.md#custom-pipelines)
-
-## Support Resources
-
-### Documentation
-- [API Documentation](https://github.com/rayalon1984/testops-companion/blob/main/docs/api.md)
-- [Architecture Guide](https://github.com/rayalon1984/testops-companion/blob/main/docs/architecture.md)
-- [Deployment Guide](https://github.com/rayalon1984/testops-companion/blob/main/docs/deployment.md)
-- [Development Guide](https://github.com/rayalon1984/testops-companion/blob/main/docs/development.md)
-
-### Issue Tracking
-- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
-- [Bug Report Template](https://github.com/rayalon1984/testops-companion/issues/new?template=bug_report.md)
-- [Feature Request Template](https://github.com/rayalon1984/testops-companion/issues/new?template=feature_request.md)
-
-### Community
-- [Discord Server](https://discord.gg/testops-companion)
-- [Stack Overflow [testops-companion]](https://stackoverflow.com/questions/tagged/testops-companion)
-- [GitHub Discussions](https://github.com/rayalon1984/testops-companion/discussions)
-
-### Monitoring
-- [Grafana Dashboard Setup](deployment.md#monitoring-setup)
-- [Prometheus Metrics](deployment.md#available-metrics)
-- [Error Tracking with Sentry](deployment.md#error-tracking)
-
-## Quick Solutions
-
-### Database Reset
 ```bash
-# Stop all services
-docker-compose down
-
-# Remove existing database
-rm -rf backend/prisma/migrations
-
-# Start fresh
-docker-compose up -d db
-cd backend && npm run migrate:dev
+cd backend && npx prisma generate
 ```
 
-### Environment Refresh
+### "Database is locked" (SQLite)
+
+The SQLite file is in use by another process, or a previous crash left a lock.
+
 ```bash
-# Remove existing environment files
-rm backend/.env frontend/.env
+rm backend/prisma/dev.db
+npm run dev:simple
+```
 
-# Generate new environment files
-npm run setup:env
+### Backend crashes on startup
 
-# Restart services
+Check if a `.env` file in `backend/` is overriding demo mode defaults:
+
+```bash
+# Demo mode should work without any .env file
+# If you have one, temporarily rename it:
+mv backend/.env backend/.env.bak
+npm run dev:simple
+```
+
+---
+
+## Development Mode Issues (Docker)
+
+### "Can't reach database" / ECONNREFUSED 5432
+
+```bash
+# 1. Verify Docker is running
+docker ps
+
+# 2. Check if PostgreSQL container is healthy
+docker compose logs db
+
+# 3. Restart infrastructure
+npm run local:stop
+npm run local:start
+```
+
+### "Redis connection refused"
+
+```bash
+# Check Redis container
+docker compose logs redis
+
+# Restart Redis only
+docker compose restart redis
+```
+
+### Port 3000 or 5173 already in use
+
+```bash
+# Find what's using the port
+lsof -i :3000
+lsof -i :5173
+
+# Change backend port in backend/.env:
+# PORT=3001
+# Then update frontend/.env:
+# VITE_API_URL=http://localhost:3001
+```
+
+---
+
+## Database Operations
+
+### Safe Database Reset (Development)
+
+```bash
+# Preserves migration history — resets data only
+cd backend && npx prisma migrate reset --force
+```
+
+> **Warning**: Never run `rm -rf backend/prisma/migrations`. The migration baseline is required for production deployments and cannot be regenerated from scratch. See [LESSONS_LEARNED.md — EPR-007](LESSONS_LEARNED.md#epr-007-migration-baseline-incompleteness).
+
+### Re-seed Demo Data
+
+```bash
+cd backend && npm run dev:simple:seed
+```
+
+### Re-seed Production Data
+
+```bash
+cd backend && npx prisma db seed
+```
+
+---
+
+## Authentication Issues
+
+### "Invalid token" or 401 errors
+
+Verify these are set in `backend/.env`:
+
+```env
+JWT_SECRET=<any-string-at-least-32-chars>
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=<different-string-at-least-32-chars>
+JWT_REFRESH_EXPIRES_IN=7d
+```
+
+Common mistakes:
+- Using `REFRESH_TOKEN_SECRET` instead of `JWT_REFRESH_SECRET`
+- Missing `JWT_REFRESH_EXPIRES_IN`
+- Expired tokens after server restart (clear browser localStorage)
+
+### Demo mode login not working
+
+Use exactly: `demo@testops.ai` / `demo123`
+
+If the seed didn't run, re-seed:
+```bash
+cd backend && npm run dev:simple:seed
+```
+
+---
+
+## Build & TypeScript Issues
+
+### TypeScript compilation errors
+
+```bash
+# Check which schema is active
+head -5 backend/prisma/schema.prisma
+
+# Regenerate Prisma client
+cd backend && npx prisma generate
+
+# Full typecheck
+cd backend && npx tsc --noEmit
+```
+
+### Schema-related type errors
+
+If you see errors about missing Prisma models or enum types, the active schema may be wrong for your mode:
+
+```bash
+# For demo mode: use dev schema
+cp backend/prisma/schema.dev.prisma backend/prisma/schema.prisma
+cd backend && npx prisma generate
+
+# For production: use production schema
+cp backend/prisma/schema.production.prisma backend/prisma/schema.prisma
+cd backend && npx prisma generate
+```
+
+> See [LESSONS_LEARNED.md — EPR-008](LESSONS_LEARNED.md#epr-008-cross-database-type-mismatch-sqlite-vs-postgresql-enums) for why SQLite and PostgreSQL schemas can have different type behavior.
+
+---
+
+## Environment Refresh
+
+```bash
+# Regenerate .env files from templates
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Edit secrets (required)
+# backend/.env: JWT_SECRET, JWT_REFRESH_SECRET, DATABASE_URL
+
+# Restart
 npm run dev
 ```
 
-### Cache Clear
-```bash
-# Clear Redis cache
-docker-compose exec redis redis-cli FLUSHALL
+---
 
-# Clear browser cache
-# In Chrome DevTools:
-# 1. Application tab
-# 2. Clear Storage
-# 3. Clear site data
+## Cache Clear
+
+```bash
+# Clear Redis cache (development mode)
+docker compose exec redis redis-cli FLUSHALL
+
+# Clear browser state
+# Chrome DevTools → Application → Clear Storage → Clear site data
 ```
+
+---
 
 ## Getting Help
 
-If you're stuck:
-
-1. Check the [Common Issues](#common-issues) section above
-2. Search [existing issues](https://github.com/rayalon1984/testops-companion/issues)
-3. Join our [Discord community](https://discord.gg/testops-companion)
+1. Check the [Quick Start Guide](quickstart.md) for setup instructions
+2. Review [Lessons Learned](LESSONS_LEARNED.md) for known pitfalls
+3. Search [existing issues](https://github.com/rayalon1984/testops-companion/issues)
 4. Open a [new issue](https://github.com/rayalon1984/testops-companion/issues/new/choose)
-
-For urgent production issues, please follow our [incident response process](deployment.md#incident-response).

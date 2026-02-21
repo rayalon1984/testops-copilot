@@ -1,0 +1,145 @@
+feature: authentication
+name: "Authentication & Authorization"
+version: "1.0.0"
+status: shipped
+since: "v1.0.0"
+owner: SECURITY_ENGINEER
+category: auth
+spec_source: SPEC.md
+
+capabilities:
+  - id: auth.jwt
+    name: "JWT Token Management"
+    version: "1.0.0"
+    description: "Access and refresh token generation, verification, and refresh flow"
+    files:
+      - backend/src/services/jwt.service.ts
+    assertions:
+      - id: auth.jwt.token-format
+        description: "Generated tokens are valid 3-part JWT strings (header.payload.signature)"
+        type: invariant
+      - id: auth.jwt.includes-iat-exp
+        description: "Verified tokens always contain numeric iat and exp fields"
+        type: invariant
+      - id: auth.jwt.access-refresh-different
+        description: "Access and refresh tokens from same payload are always different strings"
+        type: contract
+      - id: auth.jwt.invalid-token-throws
+        description: "Invalid token string throws AuthenticationError"
+        type: contract
+      - id: auth.jwt.expired-token-throws
+        description: "Expired token throws AuthenticationError"
+        type: contract
+      - id: auth.jwt.cross-type-rejection
+        description: "Refresh token fails access verification and vice versa"
+        type: contract
+      - id: auth.jwt.token-pair-shape
+        description: "generateTokenPair returns { accessToken, refreshToken } both verifiable"
+        type: contract
+      - id: auth.jwt.refresh-preserves-identity
+        description: "Refreshed tokens preserve original userId and role"
+        type: invariant
+
+  - id: auth.rbac
+    name: "Role-Based Access Control"
+    version: "1.0.0"
+    description: "Role hierarchy and authorization middleware"
+    files:
+      - backend/src/middleware/auth.ts
+    assertions:
+      - id: auth.rbac.hierarchy
+        description: "Role hierarchy: ADMIN(40) > EDITOR(30) = USER(30) > BILLING(20) > VIEWER(10)"
+        type: invariant
+      - id: auth.rbac.higher-passes
+        description: "Higher role always passes authorization check for lower required role"
+        type: invariant
+      - id: auth.rbac.lower-fails
+        description: "Lower role fails authorization check for higher required role"
+        type: invariant
+      - id: auth.rbac.no-user-throws
+        description: "Missing authenticated user throws AuthenticationError"
+        type: contract
+
+  - id: auth.sso
+    name: "SAML SSO"
+    version: "1.0.0"
+    description: "SAML 2.0 authentication with JIT provisioning"
+    files:
+      - backend/src/services/passport.service.ts
+    assertions:
+      - id: auth.sso.jit-provision
+        description: "New SAML profile without matching email creates user with default role USER"
+        type: invariant
+      - id: auth.sso.existing-user-no-duplicate
+        description: "Existing email returns that user without creating duplicate"
+        type: invariant
+      - id: auth.sso.enabled-guard
+        description: "SAML strategy only initialized when config.sso.enabled is true"
+        type: invariant
+
+  - id: auth.blacklist
+    name: "Token Blacklist"
+    version: "1.0.0"
+    description: "Token revocation with Redis + in-memory fallback"
+    files:
+      - backend/src/services/tokenBlacklist.service.ts
+    assertions:
+      - id: auth.blacklist.redis-first
+        description: "Tries Redis first, falls back to in-memory Map on Redis failure"
+        type: contract
+      - id: auth.blacklist.expired-returns-false
+        description: "Expired blacklisted token returns false (no longer blacklisted)"
+        type: invariant
+      - id: auth.blacklist.non-existent-false
+        description: "Token never added returns false"
+        type: invariant
+
+  - id: auth.audit
+    name: "Audit Logging"
+    version: "1.0.0"
+    description: "Security event logging with PII redaction"
+    files:
+      - backend/src/services/audit.service.ts
+    assertions:
+      - id: auth.audit.redacts-sensitive
+        description: "Sensitive keys (password, token, secret, authorization, cookie, key) are redacted before logging"
+        type: invariant
+      - id: auth.audit.no-throw
+        description: "Audit log errors are caught and logged, never thrown (fire-and-forget)"
+        type: contract
+      - id: auth.audit.default-limit
+        description: "Default query limit is 50 records"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-AUTH-1
+    title: "JWT Authentication"
+    gherkin: |
+      GIVEN a user authenticates with valid credentials
+      WHEN the system issues a token pair
+      THEN both access and refresh tokens are valid JWTs with iat and exp
+      AND refresh tokens cannot be used as access tokens (and vice versa)
+      AND expired tokens throw AuthenticationError
+    maps_to:
+      - auth.jwt.token-format
+      - auth.jwt.includes-iat-exp
+      - auth.jwt.cross-type-rejection
+      - auth.jwt.expired-token-throws
+
+  - id: AC-AUTH-2
+    title: "RBAC Authorization"
+    gherkin: |
+      GIVEN a role hierarchy ADMIN > EDITOR = USER > BILLING > VIEWER
+      WHEN a user with insufficient role accesses a protected resource
+      THEN an AuthorizationError is thrown
+    maps_to:
+      - auth.rbac.hierarchy
+      - auth.rbac.higher-passes
+      - auth.rbac.lower-fails
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: JWT, RBAC, SSO, token blacklist, audit logging"

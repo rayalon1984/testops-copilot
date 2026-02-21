@@ -1,0 +1,85 @@
+feature: context-enrichment
+name: "Cross-Platform Context Enrichment"
+version: "1.0.0"
+status: shipped
+since: "v2.8.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: SPEC.md
+
+capabilities:
+  - id: enrichment.gathering
+    name: "Multi-Source Context Gathering"
+    version: "1.0.0"
+    description: "Parallel queries to Jira, Confluence, and GitHub for failure context"
+    files:
+      - backend/src/services/ai/features/context-enrichment.ts
+    assertions:
+      - id: enrichment.gathering.parallel-allsettled
+        description: "All source queries run via Promise.allSettled — one source failure never blocks others"
+        type: invariant
+      - id: enrichment.gathering.source-independence
+        description: "If a source service is not configured, that source is skipped gracefully"
+        type: invariant
+      - id: enrichment.gathering.max-results-per-source
+        description: "Each source limited to maxResultsPerSource (default 5) results"
+        type: invariant
+      - id: enrichment.gathering.patch-truncation
+        description: "GitHub file patches truncated at 2000 chars with '... (truncated)' marker"
+        type: invariant
+
+  - id: enrichment.confidence
+    name: "Confidence Scoring"
+    version: "1.0.0"
+    description: "Dynamic confidence calculation based on available sources"
+    files:
+      - backend/src/services/ai/features/context-enrichment.ts
+    assertions:
+      - id: enrichment.confidence.base-score
+        description: "Base confidence is 0.3, with bonuses per source (Jira +0.2, Confluence +0.15, GitHub PR +0.25)"
+        type: behavioral
+      - id: enrichment.confidence.max-cap
+        description: "Confidence is capped at 0.95 maximum"
+        type: invariant
+      - id: enrichment.confidence.range
+        description: "Confidence always returns a number between 0.0 and 1.0"
+        type: invariant
+
+  - id: enrichment.synthesis
+    name: "AI Synthesis"
+    version: "1.0.0"
+    description: "AI-powered analysis combining all gathered context"
+    files:
+      - backend/src/services/ai/features/context-enrichment.ts
+    assertions:
+      - id: enrichment.synthesis.fallback-without-ai
+        description: "Falls back to buildBasicSummary() if no AI provider is available"
+        type: invariant
+      - id: enrichment.synthesis.return-shape
+        description: "Returns { analysis, confidence, context: { jiraIssues[], confluencePages[], codeChanges }, sourcesQueried[] }"
+        type: contract
+      - id: enrichment.synthesis.file-relevance-scoring
+        description: "PR files scored by relevance: direct path match (+10), basename match (+5), test file (+2)"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-CE-1
+    title: "Context Enrichment"
+    gherkin: |
+      GIVEN a test failure with error details
+      WHEN the enrichment service gathers context
+      THEN it queries Jira, Confluence, and GitHub in parallel
+      AND a single source failure does not block other sources
+      AND returns a synthesized analysis with confidence score
+    maps_to:
+      - enrichment.gathering.parallel-allsettled
+      - enrichment.gathering.source-independence
+      - enrichment.synthesis.return-shape
+      - enrichment.confidence.range
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: multi-source gathering, confidence scoring, AI synthesis"

@@ -7,7 +7,7 @@
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-2.9.0--rc.6-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
 
 > **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/README_MCP.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 
@@ -24,9 +24,7 @@
 
 TestOps Companion is a platform that connects to your CI/CD pipelines (Jenkins, GitHub Actions), collects test results, and uses AI to figure out **why** things failed. It builds a knowledge base so the **same failure never wastes your time twice**.
 
-**What makes v2.9+ different:** An agentic AI copilot that doesn't just analyze failures — it autonomously searches Jira, queries Confluence, checks pipelines, creates branches, opens PRs, and files issues. All through natural language conversation.
-
-**What's new in v3.0 (Phase 1):** [Virtual Team Routing](#-virtual-team-persona-routing) — queries are classified and routed to the right AI specialist (Test Engineer, DevOps Engineer, Security Engineer, etc.) before fulfillment.
+**What makes v3.0 different:** An agentic AI copilot that doesn't just analyze failures — it autonomously searches Jira, queries Confluence, checks pipelines, creates branches, opens PRs, and files issues. All through natural language conversation with a [virtual team of 9 AI specialists](#-virtual-team-persona-routing) and [graduated autonomy](#graduated-autonomy) that lets you control how much the AI does on its own.
 
 ![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
 *3-column Mission Control: navigation | main content | AI Copilot panel with persona routing*
@@ -181,30 +179,34 @@ npm install && npm run dev:simple
 ```
 
 **What happens:**
-1. Backend starts with SQLite, seeds 1,600+ failures, 150 test runs, 15 pipelines
+1. Backend starts with SQLite on port 3000, seeds 1,600+ failures, 150 test runs, 15 pipelines
 2. Frontend opens automatically at http://localhost:5173
 3. Login with: `demo@testops.ai` / `demo123`
 4. AI copilot works in mock mode — all 18 tools return realistic demo data
 5. Persona routing works — queries are classified to specialists
 
-| | Demo Mode | Production Mode |
+| | Demo Mode | Production Mode (Docker) |
 |---|---|---|
 | **Database** | SQLite (file-based) | PostgreSQL 14+ |
 | **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure |
 | **Integrations** | Simulated responses | Real Jira, Slack, GitHub, etc. |
 | **Setup time** | ~2 minutes | ~15 minutes |
+| **Docker required** | No | Yes |
 | **Best for** | Evaluation, demos, training | Production deployments |
 
 **Demo URLs:**
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:4000/api/v1
+- Backend API: http://localhost:3000/api/v1
 
-### Production Mode
+### Production Mode (Docker)
 
 ```bash
-npm run setup       # Configure everything
-npm run local:start # Start infrastructure (PostgreSQL, Redis, Weaviate)
-npm run dev         # Start application
+# Option A: Pre-built images (fastest)
+cp .env.production.example .env.production   # Edit secrets!
+docker compose -f docker-compose.ghcr.yml up -d
+
+# Option B: Build from source
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for full deployment instructions.
@@ -217,14 +219,13 @@ See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for full depl
 
 ```bash
 # Demo mode (SQLite, mock AI, auto-open browser)
+# Backend: http://localhost:3000 | Frontend: http://localhost:5173
 npm run dev:simple
 
-# Production mode (PostgreSQL + Redis + Weaviate)
-npm run dev
-
-# Or individually:
-npm run dev:backend    # Backend on http://localhost:4000
-npm run dev:frontend   # Frontend on http://localhost:5173
+# Development mode (PostgreSQL + Redis + Weaviate via Docker)
+# Backend: http://localhost:3000 | Frontend: http://localhost:5173
+npm run local:start   # Start Docker services
+npm run dev           # Start app servers
 ```
 
 ### Common Commands

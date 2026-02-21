@@ -6,7 +6,8 @@
   "scripts": {
     "postinstall": "npm run install:backend && npm run install:frontend && npm run install:mcp",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:simple": "concurrently \"npm run dev:simple:backend\" \"npm run dev:frontend\" \"npm run dev:browser\"",
+    "deploy:demo": "./scripts/deploy-demo.sh",
+    "dev:simple": "npm run deploy:demo && npm run dev",
     "dev:simple:backend": "cd backend && npm run dev:simple",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",

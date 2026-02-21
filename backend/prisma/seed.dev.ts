@@ -132,16 +132,26 @@ async function seed() {
 
   // ── 1. Users ──
   console.log('Creating users...');
-  const adminHash = await bcrypt.hash('admin123', 10);
   const demoHash = await bcrypt.hash('demo123', 10);
 
   const admin = await prisma.user.create({
     data: {
       email: 'admin@testops.ai',
-      password: adminHash,
-      firstName: 'Admin',
-      lastName: 'User',
+      password: demoHash,
+      firstName: 'Dana',
+      lastName: 'Reeves',
       role: 'ADMIN',
+      autonomyLevel: 'autonomous',
+    },
+  });
+
+  const lead = await prisma.user.create({
+    data: {
+      email: 'lead@testops.ai',
+      password: demoHash,
+      firstName: 'Jordan',
+      lastName: 'Chen',
+      role: 'USER',
       autonomyLevel: 'autonomous',
     },
   });
@@ -150,8 +160,8 @@ async function seed() {
     data: {
       email: 'engineer@testops.ai',
       password: demoHash,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
+      firstName: 'Alex',
+      lastName: 'Moreno',
       role: 'USER',
       autonomyLevel: 'balanced',
     },
@@ -161,14 +171,14 @@ async function seed() {
     data: {
       email: 'viewer@testops.ai',
       password: demoHash,
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
+      firstName: 'Sam',
+      lastName: 'Patel',
       role: 'USER',
       autonomyLevel: 'conservative',
     },
   });
 
-  const users = [admin, engineer, viewer];
+  const users = [admin, lead, engineer, viewer];
   console.log(`  Created ${users.length} users`);
 
   // ── 2. Teams ──
@@ -187,25 +197,28 @@ async function seed() {
       name: 'QA Automation',
       slug: 'qa-automation',
       description: 'Test automation and quality assurance',
-      createdBy: engineer.id,
+      createdBy: lead.id,
     },
   });
 
   await prisma.teamMember.createMany({
     data: [
       { teamId: team.id, userId: admin.id, role: 'OWNER' },
+      { teamId: team.id, userId: lead.id, role: 'ADMIN' },
       { teamId: team.id, userId: engineer.id, role: 'MEMBER' },
       { teamId: team.id, userId: viewer.id, role: 'VIEWER' },
-      { teamId: team2.id, userId: engineer.id, role: 'OWNER' },
+      { teamId: team2.id, userId: lead.id, role: 'OWNER' },
       { teamId: team2.id, userId: admin.id, role: 'ADMIN' },
+      { teamId: team2.id, userId: engineer.id, role: 'MEMBER' },
+      { teamId: team2.id, userId: viewer.id, role: 'VIEWER' },
     ],
   });
 
-  console.log('  Created 2 teams with 5 memberships');
+  console.log('  Created 2 teams with 8 memberships');
 
   // ── 3. Pipelines ──
   console.log('Creating pipelines...');
-  const pipelines = [];
+  const pipelines: Array<{ id: string; name: string; [k: string]: any }> = [];
   for (const tpl of PIPELINE_TEMPLATES) {
     const pipeline = await prisma.pipeline.create({
       data: {
@@ -641,7 +654,14 @@ async function seed() {
 
   // ── 16. TestRail Runs ──
   console.log('Creating TestRail runs...');
-  const testRailPayloads = [];
+  const testRailPayloads: Array<{
+    testRailRunId: number;
+    projectId: number;
+    suiteId: number;
+    name: string;
+    description: string;
+    testRunId: string | null;
+  }> = [];
   for (let i = 1; i <= 10; i++) {
     testRailPayloads.push({
       testRailRunId: 1000 + i,

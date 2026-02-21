@@ -1,0 +1,119 @@
+feature: failure-analysis
+name: "AI-Powered Failure Analysis"
+version: "1.0.0"
+status: shipped
+since: "v2.5.3"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: SPEC.md
+
+capabilities:
+  - id: analysis.categorization
+    name: "Failure Categorization"
+    version: "1.0.0"
+    description: "Classifies test failures into 6 fixed categories with confidence scoring"
+    files:
+      - backend/src/services/ai/features/categorization.ts
+    assertions:
+      - id: analysis.categorization.six-categories
+        description: "Always returns one of exactly 6 categories: bug_critical, bug_minor, environment, flaky, configuration, unknown"
+        type: invariant
+      - id: analysis.categorization.confidence-range
+        description: "Confidence is always clamped to [0.0, 1.0] via Math.max(0, Math.min(1, value))"
+        type: invariant
+      - id: analysis.categorization.fallback-on-error
+        description: "Returns category='unknown', confidence=0 on parse failure (never throws)"
+        type: invariant
+      - id: analysis.categorization.normalizes-variations
+        description: "Maps common category variations to canonical names (e.g. 'CRITICAL BUG' -> 'bug_critical')"
+        type: behavioral
+      - id: analysis.categorization.batch-allsettled
+        description: "Batch categorization uses Promise.allSettled (individual failure never blocks batch)"
+        type: invariant
+      - id: analysis.categorization.return-shape
+        description: "Returns { category, confidence, reasoning, suggestedAction, relatedIssues? }"
+        type: contract
+
+  - id: analysis.log-summary
+    name: "Log Summarization"
+    version: "1.0.0"
+    description: "Extracts root cause, error location, and suggested fixes from test logs"
+    files:
+      - backend/src/services/ai/features/log-summary.ts
+    assertions:
+      - id: analysis.log-summary.max-log-length
+        description: "Enforces maximum log length (default 50000 chars) before sending to AI"
+        type: invariant
+      - id: analysis.log-summary.key-lines-limit
+        description: "Key log lines capped at maximum 10 entries"
+        type: invariant
+      - id: analysis.log-summary.relevance-values
+        description: "Key log line relevance is always one of: 'high', 'medium', 'low'"
+        type: invariant
+      - id: analysis.log-summary.deterministic-hash
+        description: "generateLogHash produces consistent SHA256 for identical log content"
+        type: invariant
+      - id: analysis.log-summary.prioritize-errors
+        description: "Log preprocessing prioritizes ERROR, EXCEPTION, FAILED, FATAL lines"
+        type: behavioral
+      - id: analysis.log-summary.return-shape
+        description: "Returns { summary, rootCause, errorLocation?, keyLogLines[], suggestedFix, confidence }"
+        type: contract
+
+  - id: analysis.rca-matching
+    name: "RCA Semantic Matching"
+    version: "1.0.0"
+    description: "Finds similar historical failures using vector similarity search"
+    files:
+      - backend/src/services/ai/features/rca-matching.ts
+    assertions:
+      - id: analysis.rca.similarity-threshold
+        description: "Default similarity threshold is 0.75; only returns failures above this"
+        type: invariant
+      - id: analysis.rca.only-resolved-default
+        description: "By default only returns resolved failures (onlyResolved: true)"
+        type: invariant
+      - id: analysis.rca.result-limit
+        description: "Default limit is 5 results; configurable via options"
+        type: behavioral
+      - id: analysis.rca.fallback-without-ai
+        description: "If AI enhancement fails, returns original vector search results"
+        type: invariant
+      - id: analysis.rca.return-shape
+        description: "Returns SimilarFailure[] with { failure, similarity, explanation, resolution?, resolvedAt?, ticketUrl? }"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-FA-1
+    title: "Failure Categorization"
+    gherkin: |
+      GIVEN a test failure with error message and stack trace
+      WHEN the AI categorization service processes the failure
+      THEN it returns one of 6 categories with a confidence score between 0 and 1
+      AND includes reasoning and a suggested action
+      AND never throws on malformed input (returns 'unknown' instead)
+    maps_to:
+      - analysis.categorization.six-categories
+      - analysis.categorization.confidence-range
+      - analysis.categorization.fallback-on-error
+      - analysis.categorization.return-shape
+
+  - id: AC-FA-2
+    title: "Log Summarization"
+    gherkin: |
+      GIVEN test logs (potentially very large)
+      WHEN the log summarization service processes them
+      THEN it extracts root cause, error location, and suggested fix
+      AND key log lines are limited to 10 entries
+      AND logs are truncated to prevent excessive AI prompt sizes
+    maps_to:
+      - analysis.log-summary.max-log-length
+      - analysis.log-summary.key-lines-limit
+      - analysis.log-summary.return-shape
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: categorization, log summarization, RCA matching"

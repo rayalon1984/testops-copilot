@@ -1,0 +1,78 @@
+feature: pipeline-management
+name: "Pipeline Management"
+version: "1.0.0"
+status: shipped
+since: "v1.0.0"
+owner: SENIOR_ENGINEER
+category: pipeline
+spec_source: SPEC.md
+
+capabilities:
+  - id: pipeline.crud
+    name: "Pipeline CRUD"
+    version: "1.0.0"
+    description: "Create, read, update, delete pipelines with validation"
+    files:
+      - backend/src/services/pipeline.service.ts
+    assertions:
+      - id: pipeline.crud.not-found-throws
+        description: "Get/Update/Delete on non-existent pipeline throws NotFoundError"
+        type: contract
+      - id: pipeline.crud.validates-connection
+        description: "GitHub connection validated before pipeline creation"
+        type: invariant
+      - id: pipeline.crud.audit-trail
+        description: "All CRUD operations are audit logged with action details"
+        type: invariant
+
+  - id: pipeline.runs
+    name: "Test Run Tracking"
+    version: "1.0.0"
+    description: "Test run aggregation and status tracking"
+    files:
+      - backend/src/services/pipeline.service.ts
+    assertions:
+      - id: pipeline.runs.success-rate
+        description: "Success rate calculated as (passed / total) * 100, returns 0 if no runs"
+        type: invariant
+      - id: pipeline.runs.recent-limit
+        description: "Recent runs limited to 20 per pipeline, ordered by creation DESC"
+        type: behavioral
+      - id: pipeline.runs.status-mapping
+        description: "Status mapping: PASSED -> 'success', FAILED -> 'failed', RUNNING -> 'running', PENDING -> 'pending'"
+        type: contract
+
+  - id: pipeline.scheduling
+    name: "Pipeline Scheduling"
+    version: "1.0.0"
+    description: "Schedule configuration and trigger support"
+    files:
+      - backend/src/services/pipeline.service.ts
+    assertions:
+      - id: pipeline.scheduling.config-merge
+        description: "Schedule update merges into existing config (preserves other config keys)"
+        type: invariant
+      - id: pipeline.scheduling.unsupported-type-throws
+        description: "Start pipeline on unsupported type throws error"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-PM-1
+    title: "Pipeline Management"
+    gherkin: |
+      GIVEN pipelines are configured in the system
+      WHEN a user creates, updates, or deletes a pipeline
+      THEN all operations are audit logged
+      AND non-existent pipelines return NotFoundError
+      AND success rates are correctly calculated from test run results
+    maps_to:
+      - pipeline.crud.not-found-throws
+      - pipeline.crud.audit-trail
+      - pipeline.runs.success-rate
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: CRUD, test run tracking, scheduling"

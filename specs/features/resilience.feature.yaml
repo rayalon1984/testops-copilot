@@ -1,0 +1,102 @@
+feature: resilience
+name: "Resilience Layer"
+version: "1.0.0"
+status: shipped
+since: "v2.8.0"
+owner: SENIOR_ENGINEER
+category: infra
+spec_source: ARCHITECTURE.md
+
+capabilities:
+  - id: resilience.circuit-breaker
+    name: "Circuit Breaker"
+    version: "1.0.0"
+    description: "Three-state circuit breaker protecting external service calls"
+    files:
+      - backend/src/lib/resilience.ts
+    assertions:
+      - id: resilience.cb.initial-closed
+        description: "Circuit breaker starts in CLOSED state with 0 failures"
+        type: invariant
+      - id: resilience.cb.opens-at-threshold
+        description: "After failureThreshold consecutive failures, state becomes OPEN"
+        type: invariant
+      - id: resilience.cb.open-rejects
+        description: "OPEN circuit throws CircuitOpenError without calling the function"
+        type: contract
+      - id: resilience.cb.error-properties
+        description: "CircuitOpenError has serviceName and retryAfterMs properties"
+        type: contract
+      - id: resilience.cb.half-open-recovery
+        description: "After resetTimeout, circuit enters HALF_OPEN; success closes, failure reopens"
+        type: invariant
+      - id: resilience.cb.reset-clears
+        description: "Manual reset() clears failures and returns to CLOSED"
+        type: behavioral
+
+  - id: resilience.retry
+    name: "Retry with Backoff"
+    version: "1.0.0"
+    description: "Exponential backoff retry with jitter"
+    files:
+      - backend/src/lib/resilience.ts
+    assertions:
+      - id: resilience.retry.retryable-errors
+        description: "Retries on ECONNREFUSED, ECONNRESET, ETIMEDOUT, ENOTFOUND, EAI_AGAIN, 5xx, 429"
+        type: invariant
+      - id: resilience.retry.no-retry-4xx
+        description: "Does NOT retry on 4xx errors (except 429)"
+        type: invariant
+      - id: resilience.retry.max-attempts
+        description: "Attempts up to maxRetries + 1 (initial + retries), default maxRetries=2"
+        type: invariant
+
+  - id: resilience.timeout
+    name: "Timeout Enforcement"
+    version: "1.0.0"
+    description: "Request-level timeout with TimeoutError"
+    files:
+      - backend/src/lib/resilience.ts
+    assertions:
+      - id: resilience.timeout.throws-on-exceed
+        description: "Throws TimeoutError when function exceeds timeoutMs"
+        type: contract
+      - id: resilience.timeout.error-properties
+        description: "TimeoutError has message containing operation name and timeoutMs property"
+        type: contract
+
+  - id: resilience.preconfigured
+    name: "Pre-configured Breakers"
+    version: "1.0.0"
+    description: "Ready-made circuit breakers for each external service"
+    files:
+      - backend/src/lib/resilience.ts
+    assertions:
+      - id: resilience.preconfigured.four-services
+        description: "Pre-configured breakers exist for: github, jira, jenkins, confluence"
+        type: invariant
+      - id: resilience.preconfigured.all-statuses
+        description: "getAllCircuitBreakerStatuses returns array of 4 status objects"
+        type: contract
+
+acceptance_criteria:
+  - id: AC-RE-1
+    title: "Resilience"
+    gherkin: |
+      GIVEN external services are called through the resilience layer
+      WHEN a service fails consecutively
+      THEN the circuit breaker opens and fast-fails subsequent calls
+      AND after a reset timeout, recovery is attempted via HALF_OPEN state
+      AND retries use exponential backoff with jitter
+    maps_to:
+      - resilience.cb.opens-at-threshold
+      - resilience.cb.open-rejects
+      - resilience.cb.half-open-recovery
+      - resilience.retry.retryable-errors
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: circuit breaker, retry, timeout, pre-configured breakers"

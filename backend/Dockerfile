@@ -39,13 +39,20 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
-# Stage 3: Production
+# Stage 4: Production dependencies
+# Separate stage with build tools to compile native modules (bcrypt)
+FROM base AS deps-production
+RUN apk add --no-cache python3 make g++
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Stage 5: Production
 # Final image with only production dependencies and artifacts
 FROM base AS production
-# Copy package files
+# Copy production node_modules with pre-compiled native modules
+COPY --from=deps-production /app/node_modules ./node_modules
+# Copy package files (for npm scripts and metadata)
 COPY package*.json ./
-# Install production dependencies only
-RUN npm ci --only=production && npm cache clean --force
 # Install Prisma CLI for migrations (start.sh uses it)
 RUN npm install -g prisma@5 && npm cache clean --force
 

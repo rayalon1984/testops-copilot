@@ -2,7 +2,7 @@
 
 > **Date**: 2026-02-19
 > **Author**: AI + Rotem
-> **Status**: DRAFT — Awaiting approval
+> **Status**: IN_PROGRESS — Phases 1-2 complete (AGENTS.md, specs/team/, living feature specs). Phase 3 (skills) deferred to post-beta. Phase 4 wiring complete.
 > **Goal**: Transform TestOps Companion into an AI-native, spec-driven codebase by adopting EMHub's Smart Coding Architecture — fully adapted for our TestOps domain.
 
 ---

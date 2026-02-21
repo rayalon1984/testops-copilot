@@ -1,0 +1,99 @@
+feature: react-loop
+name: "Agentic ReAct Loop"
+version: "1.0.0"
+status: shipped
+since: "v2.9.0"
+owner: AI_ARCHITECT
+category: ai-tools
+spec_source: AI_TOOLS.md
+
+capabilities:
+  - id: react.loop
+    name: "ReAct Loop Engine"
+    version: "1.0.0"
+    description: "Reason-Act-Observe loop with safety bounds"
+    files:
+      - backend/src/services/ai/AIChatService.ts
+    assertions:
+      - id: react.loop.max-iterations
+        description: "Loop terminates at MAX_REACT_ITERATIONS (8) with error event"
+        type: invariant
+      - id: react.loop.max-tool-calls
+        description: "Tool execution stops at MAX_TOOL_CALLS (5) per request"
+        type: invariant
+      - id: react.loop.tool-not-found-graceful
+        description: "Unknown tool name adds error message to history, loop continues (never throws)"
+        type: invariant
+      - id: react.loop.no-tool-calls-is-answer
+        description: "Response with no tool calls is treated as final answer"
+        type: invariant
+
+  - id: react.tools
+    name: "Tool Execution"
+    version: "1.0.0"
+    description: "Tool dispatch with role enforcement and autonomy tiers"
+    files:
+      - backend/src/services/ai/AIChatService.ts
+    assertions:
+      - id: react.tools.role-enforcement
+        description: "Tool requiring higher role than user returns access denied (tool NOT executed)"
+        type: invariant
+      - id: react.tools.tier1-auto-execute
+        description: "Tier 1 tools auto-execute and emit 'autonomous_action' SSE event"
+        type: invariant
+      - id: react.tools.tier3-pauses-loop
+        description: "Tier 3 tools create pending action and pause loop with confirmation_request"
+        type: invariant
+
+  - id: react.streaming
+    name: "SSE Streaming"
+    version: "1.0.0"
+    description: "Server-Sent Events for real-time client communication"
+    files:
+      - backend/src/services/ai/AIChatService.ts
+    assertions:
+      - id: react.streaming.event-types
+        description: "SSE events include: thinking, tool_start, tool_result, answer_chunk, answer, done, error"
+        type: contract
+      - id: react.streaming.ui-context-injection
+        description: "If uiContext exists, it is prepended to user message as [UI Context: ...]"
+        type: behavioral
+      - id: react.streaming.timestamps
+        description: "Each SSE event includes a timestamp field"
+        type: invariant
+
+  - id: react.tools-registry
+    name: "Tool Registry"
+    version: "1.0.0"
+    description: "Registry of available AI tools (read and write)"
+    files:
+      - backend/src/services/ai/tools/index.ts
+    assertions:
+      - id: react.registry.read-tools-count
+        description: "7 read-only tools registered: jira_search, jira_get, github_get_commit, github_get_pr, confluence_search, jenkins_get_status, dashboard_metrics"
+        type: invariant
+      - id: react.registry.write-tools-count
+        description: "6+ write tools registered with requiresConfirmation flag"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-RL-1
+    title: "ReAct Loop Safety"
+    gherkin: |
+      GIVEN the AI copilot is processing a user message
+      WHEN the ReAct loop executes tool calls
+      THEN it never exceeds 5 tool calls or 8 iterations
+      AND unknown tools are handled gracefully without crashes
+      AND role-insufficient tool calls are blocked
+    maps_to:
+      - react.loop.max-iterations
+      - react.loop.max-tool-calls
+      - react.loop.tool-not-found-graceful
+      - react.tools.role-enforcement
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-02-21"
+    product_version: "v3.0.0"
+    changes:
+      - "Feature spec created: ReAct loop, tool execution, SSE streaming, tool registry"

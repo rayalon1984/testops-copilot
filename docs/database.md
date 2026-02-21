@@ -1,5 +1,7 @@
 # Database Schema Documentation
 
+> **Canonical schema**: [`backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) (23 models) | **Architecture**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md) §4
+
 ## Overview
 
 TestOps Companion uses PostgreSQL as its primary database. The schema is managed using Prisma ORM with TypeScript.
