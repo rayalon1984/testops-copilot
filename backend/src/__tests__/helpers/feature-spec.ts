@@ -97,10 +97,15 @@ export function describeFeature(
     const manifest = loadManifest(featureId);
     const tracker = loadTracker();
 
-    beforeAll(() => {
-      _activeManifest = manifest;
-      _activeTracker = tracker;
-    });
+    // Set active context during describe phase so itAssertion can register tests
+    _activeManifest = manifest;
+    _activeTracker = tracker;
+
+    fn(manifest);
+
+    // Clear after registration (cleanup happens in afterAll for tracker updates)
+    _activeManifest = null;
+    _activeTracker = null;
 
     afterAll(() => {
       // Update tracker with current versions
@@ -114,11 +119,7 @@ export function describeFeature(
         lastRun: new Date().toISOString(),
       };
       saveTracker(tracker);
-      _activeManifest = null;
-      _activeTracker = null;
     });
-
-    fn(manifest);
   });
 }
 
