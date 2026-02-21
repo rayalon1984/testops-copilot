@@ -6,7 +6,19 @@ set -euo pipefail
 # Pushes all version tags and creates/updates GitHub Releases with rich notes.
 # Requires: gh CLI (brew install gh) and git
 # Usage: bash scripts/push-all-releases.sh
+#   also works piped: git show origin/branch:scripts/push-all-releases.sh | bash
 # ============================================================================
+
+# When piped (stdin is not a terminal), heredocs can't read from stdin.
+# Re-execute from a temp file so heredocs work correctly.
+if [ ! -t 0 ]; then
+  _tmp=$(mktemp)
+  cat > "$_tmp"
+  bash "$_tmp"
+  _rc=$?
+  rm -f "$_tmp"
+  exit $_rc
+fi
 
 REPO="rayalon1984/testops-companion"
 
