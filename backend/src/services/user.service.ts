@@ -6,7 +6,7 @@
  * logging live here.
  */
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { config } from '../config';
 import { prisma } from '../lib/prisma';
 import { JwtService } from './jwt.service';
