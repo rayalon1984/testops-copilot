@@ -13,7 +13,7 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as crypto from 'crypto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 

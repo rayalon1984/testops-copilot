@@ -122,7 +122,7 @@ echo ""
 # ── Step 6: Seed demo data ──────────────────────────────────────────────
 echo -e "${YELLOW}Step 6: Seeding demo data...${NC}"
 
-npx tsx prisma/seed.dev.ts 2>&1 | grep -E "Creating|Created|created|Total|===|Error|seeded"
+npx tsx prisma/seed.dev.ts
 
 echo -e "${GREEN}✓ Database seeded${NC}"
 echo ""
