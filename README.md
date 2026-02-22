@@ -416,6 +416,7 @@ testops-companion/
 | **[Changelog](CHANGELOG.md)** | Version history |
 | **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry and prevention checklist |
 | **[MCP Server](docs/MCP_INTEGRATION.md)** | Model Context Protocol integration |
+| **[UI Tour](docs/UI_TOUR.md)** | Visual walkthrough with annotated screenshots |
 
 ---
 
