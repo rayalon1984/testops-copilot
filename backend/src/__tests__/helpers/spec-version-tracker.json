@@ -8,7 +8,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-02-21T22:22:13.939Z"
+    "lastRun": "2026-02-22T04:53:16.047Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -18,7 +18,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-02-21T22:50:15.683Z"
+    "lastRun": "2026-02-22T04:53:16.463Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -68,5 +68,27 @@
       "giphy.autonomy": "1.0.0"
     },
     "lastRun": "2026-02-21T22:22:13.898Z"
+  },
+  "autonomy-preferences": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "autonomy.classifier": "1.0.0",
+      "autonomy.context-overrides": "1.0.0",
+      "autonomy.user-preference": "1.0.0",
+      "autonomy.gated-check": "1.0.0",
+      "autonomy.frontend": "1.0.0",
+      "autonomy.api": "1.0.0"
+    },
+    "lastRun": "2026-02-22T04:53:15.994Z"
+  },
+  "react-loop": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "react.loop": "1.0.0",
+      "react.tools": "1.0.0",
+      "react.streaming": "1.0.0",
+      "react.tools-registry": "1.0.0"
+    },
+    "lastRun": "2026-02-22T04:53:16.182Z"
   }
 }

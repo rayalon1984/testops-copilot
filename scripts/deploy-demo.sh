@@ -76,7 +76,10 @@ JWT_SECRET=${JWT_SECRET}
 JWT_REFRESH_SECRET=${JWT_REFRESH}
 JWT_EXPIRES_IN=24h
 JWT_REFRESH_EXPIRES_IN=7d
-AI_ENABLED=false
+AI_ENABLED=true
+AI_PROVIDER=mock
+AI_MODEL=mock
+GIPHY_ENABLED=true
 CORS_ORIGIN=http://localhost:5173
 EOF
     echo -e "  Created backend/.env (demo config)"

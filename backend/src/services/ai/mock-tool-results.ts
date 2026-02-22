@@ -228,6 +228,7 @@ const giphySearch: MockResultFn = (args) => ({
         selected: { id: 'gif-001', title: 'Celebration Dance', url: 'https://media.giphy.com/media/example1/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example1/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example1' },
         query: args.query || 'celebration',
         attribution: 'Powered by GIPHY',
+        fallbackEmoji: '🎉',
     },
 });
 

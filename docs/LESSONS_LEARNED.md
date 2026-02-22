@@ -24,6 +24,8 @@ These are the distilled "never again" rules from every incident below. **Read th
 | Never assume CI environments have the same env vars as local dev | Missing `REDIS_URL` or `AI_ENABLED` causes test failures invisible locally | EPR-009 |
 | Never mix setup and server start in one concurrent command | If setup fails, the concurrent server processes mask the error | EPR-010 |
 | Never use `ts-node` for seed/script execution on Node 23+ | `ts-node` v10 misresolves Prisma re-exported types; use `tsx` | EPR-011 |
+| Never register a Playwright catch-all route after specific routes | LIFO order means catch-all evaluates first, hijacking all requests | EPR-012 |
+| Never ship demo mode with core features disabled in generated .env | `AI_ENABLED=false` in deploy-demo.sh disables the entire AI copilot | EPR-013 |
 
 ---
 
@@ -204,6 +206,34 @@ JWT_SECRET=<any value for tests>
 | **CI guard** | `deploy-demo.sh` uses `tsx` for seed execution; if compilation fails, `set -e` kills the script |
 | **Status** | **Mitigated** (Sprint 7) |
 
+### EPR-012: Playwright Route Ordering (LIFO Catch-All Trap)
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Catch-all `page.route('**/api/v1/**')` registered LAST in `mockDashboardAPIs()` evaluates FIRST due to Playwright's LIFO (last-in-first-out) handler order — intercepts ALL requests before specific handlers (auth, dashboard, chat) can fire |
+| **First seen** | Sprint 7 (2026-02-22) |
+| **Impact** | P1 — 13/15 E2E tests fail. GET `/auth/me` returns `{ data: [] }` instead of user object → auth fails → redirect to /login. POST `/auth/login` calls `route.continue()` → network → ECONNREFUSED |
+| **Root cause** | `mockDashboardAPIs()` registered specific routes first, then a catch-all last. Playwright evaluates handlers in reverse registration order (LIFO), so the catch-all ran first for every request, shadowing all specific handlers |
+| **Fix** | Register catch-all FIRST in `setupAuthenticatedSession()` (so it evaluates LAST in LIFO), then register specific routes after (so they evaluate FIRST) |
+| **Prevention** | Always register Playwright catch-all/fallback routes BEFORE specific routes. Add a comment explaining LIFO evaluation. Consider using `route.fallback()` for pass-through patterns |
+| **CI guard** | E2E test suite (`npx playwright test`) — all 15 tests must pass |
+| **Status** | **Mitigated** (Sprint 7) |
+
+---
+
+### EPR-013: Demo Mode Feature Flags (AI Disabled in Generated .env)
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | `deploy-demo.sh` generates `backend/.env` with `AI_ENABLED=false`, disabling the entire AI copilot in demo mode. The mock provider exists and works correctly, but `AIChatService.handleChatStream()` short-circuits before reaching it |
+| **First seen** | Sprint 7 (2026-02-22) |
+| **Impact** | P1 — Copilot shows "AI services are not initialized or enabled" for every query. No tool cards rendered, no Giphy, no agentic workflow visible. Demo mode is fundamentally broken |
+| **Root cause** | The demo script was written conservatively with `AI_ENABLED=false` to avoid API key errors. But the mock provider (`AI_PROVIDER=mock`) doesn't need API keys and is specifically designed for demo mode |
+| **Fix** | Changed `deploy-demo.sh` to generate `AI_ENABLED=true`, `AI_PROVIDER=mock`, `AI_MODEL=mock` in the .env file |
+| **Prevention** | Demo script must enable mock provider. Smoke test after deploy: verify copilot responds with tool cards. Add `GIPHY_ENABLED=true` for full demo experience |
+| **CI guard** | Deploy-demo smoke test should verify copilot functionality (not just server start) |
+| **Status** | **Mitigated** (Sprint 7) |
+
 ---
 
 ## Automated Guards Summary
@@ -236,6 +266,8 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] CI workflow env vars match the Required CI Environment Variables list (EPR-009)
 - [ ] `npm run deploy:demo` completes successfully from a clean state (EPR-010)
 - [ ] Seed scripts use `tsx` (not `ts-node`) for Node 23+ compatibility (EPR-011)
+- [ ] E2E Playwright catch-all routes are registered BEFORE specific routes (EPR-012)
+- [ ] `deploy-demo.sh` generates `.env` with `AI_ENABLED=true` and `AI_PROVIDER=mock` (EPR-013)
 - [ ] Tech debt tracker in `ROADMAP.md` is current
 - [ ] This document has been reviewed for new patterns from the previous sprint
 
@@ -257,5 +289,5 @@ Per semver and the `RELEASE_QA_ENGINEER.md` version strategy:
 
 ---
 
-*Last updated: 2026-02-21 (Sprint 7)*
+*Last updated: 2026-02-22 (Sprint 7)*
 *Next review: Start of Sprint 8*

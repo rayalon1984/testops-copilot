@@ -39,6 +39,7 @@ interface GiphyEmbedCardProps {
 export default function GiphyEmbedCard({ data }: GiphyEmbedCardProps) {
     const giphyData = data as unknown as GiphyData;
     const [dismissed, setDismissed] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
     // If dismissed, show nothing
     if (dismissed) return null;
@@ -57,6 +58,39 @@ export default function GiphyEmbedCard({ data }: GiphyEmbedCardProps) {
     const aspectRatio = gif.width / gif.height;
     const displayWidth = Math.min(200, gif.width);
     const displayHeight = displayWidth / aspectRatio;
+
+    // Image failed to load (e.g. mock URLs in demo mode) — show emoji fallback
+    if (imgError) {
+        const emoji = giphyData.fallbackEmoji || '🎉';
+        return (
+            <Paper
+                sx={{
+                    mb: 1.5,
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    display: 'inline-block',
+                    maxWidth: 220,
+                    border: 1,
+                    borderColor: 'divider',
+                    textAlign: 'center',
+                    py: 2,
+                    px: 3,
+                }}
+            >
+                <Box sx={{ fontSize: '2.5rem', mb: 0.5 }} role="img" aria-label={gif.title}>
+                    {emoji}
+                </Box>
+                <Typography variant="caption" color="text.secondary" display="block">
+                    {gif.title}
+                </Typography>
+                <Box sx={{ px: 1, py: 0.25, mt: 0.5 }}>
+                    <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.55rem' }}>
+                        {giphyData.attribution}
+                    </Typography>
+                </Box>
+            </Paper>
+        );
+    }
 
     return (
         <Paper
@@ -90,12 +124,13 @@ export default function GiphyEmbedCard({ data }: GiphyEmbedCardProps) {
                     <CloseIcon sx={{ fontSize: 12 }} />
                 </IconButton>
 
-                {/* GIF image */}
+                {/* GIF image — falls back to emoji card on load error */}
                 <Box
                     component="img"
                     src={gif.url}
                     alt={gif.title}
                     loading="lazy"
+                    onError={() => setImgError(true)}
                     sx={{
                         display: 'block',
                         width: displayWidth,

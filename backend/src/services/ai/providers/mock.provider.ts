@@ -3,7 +3,7 @@
  *
  * Returns native toolCalls matching realistic user intents so the
  * complete card experience renders without a real LLM or external APIs.
- * Covers all 18 registered tools across 8 services.
+ * Covers all 22 registered tools across 8 services.
  */
 
 import { BaseProvider, ProviderConfig, ProviderLimits, ProviderPricing, CompletionOptions, EmbeddingOptions } from './base.provider';
@@ -65,6 +65,11 @@ const INTENT_RULES: IntentRule[] = [
     { primary: ['testops-', 'proj-', 'jira-', 'issue key', 'get issue', 'show issue', 'get ticket'],
       tool: 'jira_get', args: { issueKey: 'TESTOPS-142' },
       preamble: 'Retrieving the issue details.' },
+
+    // Giphy — celebratory / fun personality layer (Sprint 7, housekeeping tier)
+    { primary: ['gif', 'giphy', 'celebrate', 'celebration', 'meme', 'fun', 'party', 'hooray', 'woohoo'],
+      tool: 'giphy_search', args: { query: 'celebration' },
+      preamble: 'Let me find a fun GIF for that!' },
 
     // ── Write tools (Phase 2) — these trigger confirmation previews ──
 
@@ -162,6 +167,7 @@ const TOOL_SUMMARIES: Record<string, string> = {
     testrun_cancel: 'Test run cancelled successfully. The run has been marked as CANCELLED.',
     testrun_retry: 'Retrying the failed test run. A new run has been queued as PENDING.',
     github_rerun_workflow: 'GitHub Actions workflow `ci.yml` has been re-triggered on `main`. It should start shortly.',
+    giphy_search: 'Here\'s a celebratory GIF! Enjoy the moment.',
 };
 
 // ─── Provider ───
