@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { authRouter as router } from './index';
+import { authRouter as router } from './routers';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import passport from 'passport';

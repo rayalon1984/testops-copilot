@@ -3,7 +3,7 @@ import { authenticate, authorize } from '../middleware/auth';
 import { validateNotificationPreferences, validateChannelVerification, validateBroadcastNotification, validateGlobalNotificationSettings } from '../middleware/validation';
 import { NotificationController } from '../controllers/notification.controller';
 import { UserRole } from '../constants';
-import { notificationRouter as router } from './index';
+import { notificationRouter as router } from './routers';
 import { prisma } from '../lib/prisma';
 
 const notificationController = new NotificationController();

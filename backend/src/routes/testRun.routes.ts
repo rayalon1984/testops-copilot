@@ -1,6 +1,6 @@
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticate } from '../middleware/auth';
-import { testRunRouter as router } from './index';
+import { testRunRouter as router } from './routers';
 import { prisma } from '../lib/prisma';
 
 // @route   GET /api/v1/test-runs

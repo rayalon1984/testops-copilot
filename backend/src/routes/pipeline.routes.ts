@@ -3,7 +3,7 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { validateCreatePipeline, validateUpdatePipeline, validatePipelineSchedule } from '../middleware/validation';
 import { pipelineController } from '../controllers/pipeline.controller';
 import { UserRole, PipelineType } from '../constants';
-import { pipelineRouter as router } from './index';
+import { pipelineRouter as router } from './routers';
 
 // Apply authentication to all routes
 router.use(authenticate);

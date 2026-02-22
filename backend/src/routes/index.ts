@@ -1,4 +1,4 @@
-import { Application, Router, IRouter } from 'express';
+import { Application } from 'express';
 import { jiraController } from '../controllers/jira.controller';
 import failureArchiveRouter from './failure-archive.routes';
 import mondayRouter from './monday.routes';
@@ -13,13 +13,11 @@ import shareRouter from './share.routes';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middleware/auth';
 
-// Create and export routers
-export const authRouter: IRouter = Router();
-export const pipelineRouter: IRouter = Router();
-export const testRunRouter: IRouter = Router();
-export const notificationRouter: IRouter = Router();
+// Shared router instances (extracted to avoid circular deps)
+import { authRouter, pipelineRouter, testRunRouter, notificationRouter } from './routers';
+export { authRouter, pipelineRouter, testRunRouter, notificationRouter };
 
-// Import route handlers
+// Import route handlers (side-effect: registers routes on the shared routers)
 import './auth.routes';
 import './pipeline.routes';
 import './testRun.routes';
