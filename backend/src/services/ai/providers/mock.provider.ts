@@ -201,7 +201,9 @@ export class MockProvider extends BaseProvider {
             return this.makeResponse(wrapUp, 200);
         }
 
-        const userContent = lastMessage.content.toLowerCase();
+        // Strip [UI Context: ...] prefix so intent matching uses only the user's actual query
+        const rawContent = lastMessage.content.replace(/^\[UI Context:[^\]]*\]\s*/i, '');
+        const userContent = rawContent.toLowerCase();
 
         // Greeting
         if (this.matchesAny(userContent, ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon'])) {
