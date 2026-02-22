@@ -54,17 +54,53 @@ export async function mockAuthAPIs(page: Page): Promise<void> {
 // ─── Dashboard & Data Mocks ──────────────────────────────────────────
 
 export async function mockDashboardAPIs(page: Page): Promise<void> {
-  // Dashboard stats
+  // Dashboard stats — must match DashboardMetrics schema to avoid runtime crash
   await page.route('**/api/v1/dashboard**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
         data: {
-          pipelineCount: 12,
-          testRunCount: 245,
-          failureRate: 8.3,
-          recentRuns: [],
+          totalTestsAnalyzed: 245,
+          failuresAutoCategorized: 38,
+          timeSavedHours: 12,
+          aiCostUSD: 42.50,
+          cacheHitRate: 0.34,
+          cacheHits: 89,
+          cacheSavingsPercent: 18,
+          lastUpdated: '2026-02-20T10:00:00Z',
+          timeRange: 'Last 30 days',
+          failureCategories: [
+            { category: 'bug_critical', count: 12, percentage: 31.6, color: '#f44336' },
+            { category: 'flaky', count: 10, percentage: 26.3, color: '#ff9800' },
+            { category: 'environment', count: 8, percentage: 21.1, color: '#2196f3' },
+            { category: 'configuration', count: 5, percentage: 13.2, color: '#9c27b0' },
+            { category: 'unknown', count: 3, percentage: 7.9, color: '#607d8b' },
+          ],
+          recentFailures: [
+            {
+              id: 'f1',
+              testName: 'checkout-flow.spec.ts',
+              errorMessage: 'Timeout waiting for element',
+              rootCause: 'API latency spike',
+              category: 'environment',
+              confidence: 0.92,
+              similarCount: 3,
+              filePath: 'tests/e2e/checkout-flow.spec.ts',
+              timestamp: '2026-02-20T09:45:00Z',
+            },
+          ],
+          aiPerformance: {
+            avgAnalysisTimeSeconds: 2.3,
+            categorizationAccuracy: 91,
+            similarFailuresFound: 24,
+            cacheHitRate: 0.34,
+            monthlyBudgetUsed: 42.50,
+            monthlyBudgetTotal: 200,
+          },
+          providers: [
+            { name: 'Mock (Demo)', costPer1M: 0, contextWindow: '128k', speed: 'instant', isActive: true },
+          ],
         },
       }),
     });
