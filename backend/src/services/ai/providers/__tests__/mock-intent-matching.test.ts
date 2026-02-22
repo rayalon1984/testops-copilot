@@ -120,6 +120,59 @@ describe('MockProvider — intent matching', () => {
         });
     });
 
+    // ── Dynamic GIF query extraction ──
+
+    describe('giphy_search dynamic query extraction', () => {
+        it('routes "gif" to giphy_search with default celebration query', async () => {
+            const res = await provider.chat(userMsg('gif'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'celebration' });
+        });
+
+        it('extracts query from "gif about success"', async () => {
+            const res = await provider.chat(userMsg('gif about success'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'success' });
+        });
+
+        it('maps "celebrate" to celebration query', async () => {
+            const res = await provider.chat(userMsg('celebrate'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'celebration' });
+        });
+
+        it('maps failure-related keywords to pipeline_broken query', async () => {
+            const res = await provider.chat(userMsg('gif failure'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'pipeline_broken' });
+        });
+
+        it('maps success-related keywords to all_tests_passed query', async () => {
+            const res = await provider.chat(userMsg('gif passed'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'all_tests_passed' });
+        });
+
+        it('extracts "gif for pipeline fix" as contextual query', async () => {
+            const res = await provider.chat(userMsg('gif for pipeline fix'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'pipeline fix' });
+        });
+
+        it('works with UI context prefix', async () => {
+            const res = await provider.chat(userMsg('gif', 'User is viewing: Dashboard overview'));
+            expect(res.toolCalls).toBeDefined();
+            expect(res.toolCalls![0].name).toBe('giphy_search');
+            expect(res.toolCalls![0].arguments).toEqual({ query: 'celebration' });
+        });
+    });
+
     // ── Tool result wrap-up ──
 
     describe('tool result wrap-up', () => {

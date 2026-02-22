@@ -216,21 +216,50 @@ const githubRerunWorkflow: MockResultFn = (args) => ({
 
 // ─── Sprint 7: New Tools ───
 
-const giphySearch: MockResultFn = (args) => ({
-    success: true,
-    summary: `Found GIF: "Celebration Dance" for "${args.query || 'celebration'}"`,
-    data: {
-        gifs: [
-            { id: 'gif-001', title: 'Celebration Dance', url: 'https://media.giphy.com/media/example1/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example1/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example1' },
-            { id: 'gif-002', title: 'High Five', url: 'https://media.giphy.com/media/example2/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example2/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example2' },
-            { id: 'gif-003', title: 'Nailed It', url: 'https://media.giphy.com/media/example3/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example3/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example3' },
-        ],
-        selected: { id: 'gif-001', title: 'Celebration Dance', url: 'https://media.giphy.com/media/example1/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/example1/100w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/example1' },
-        query: args.query || 'celebration',
-        attribution: 'Powered by GIPHY',
-        fallbackEmoji: '🎉',
-    },
-});
+/** Real Giphy CDN URLs grouped by category. No API key needed to load these. */
+const MOCK_GIF_SETS: Record<string, Array<{ id: string; title: string; url: string; thumbnailUrl: string; width: number; height: number; giphyUrl: string }>> = {
+    celebration: [
+        { id: '26gsfdArwyEnXnDGw', title: 'Hip Hip Hooray', url: 'https://media.giphy.com/media/26gsfdArwyEnXnDGw/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/26gsfdArwyEnXnDGw/200w.gif', width: 200, height: 200, giphyUrl: 'https://giphy.com/gifs/studiosoriginals-26gsfdArwyEnXnDGw' },
+        { id: 'FV6wzF5woJQ94uNBdS', title: 'Party Celebration', url: 'https://media.giphy.com/media/FV6wzF5woJQ94uNBdS/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/FV6wzF5woJQ94uNBdS/200w.gif', width: 200, height: 200, giphyUrl: 'https://giphy.com/gifs/kindafunny-FV6wzF5woJQ94uNBdS' },
+        { id: '3oEduLyQaF5JoKnuM0', title: 'Confetti Celebrate', url: 'https://media.giphy.com/media/3oEduLyQaF5JoKnuM0/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/3oEduLyQaF5JoKnuM0/200w.gif', width: 200, height: 200, giphyUrl: 'https://giphy.com/gifs/att-3oEduLyQaF5JoKnuM0' },
+    ],
+    success: [
+        { id: 'ZP4jnpcaMT51C', title: 'Great Success', url: 'https://media.giphy.com/media/ZP4jnpcaMT51C/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/ZP4jnpcaMT51C/200w.gif', width: 200, height: 133, giphyUrl: 'https://giphy.com/gifs/ZP4jnpcaMT51C' },
+        { id: 'bw9sc2HXiK5ES9mJU4', title: 'Thumbs Up', url: 'https://media.giphy.com/media/bw9sc2HXiK5ES9mJU4/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/bw9sc2HXiK5ES9mJU4/200w.gif', width: 200, height: 200, giphyUrl: 'https://giphy.com/gifs/Sound-FX-bw9sc2HXiK5ES9mJU4' },
+        { id: 'C4lSxWjqSJLfG', title: 'High Five', url: 'https://media.giphy.com/media/C4lSxWjqSJLfG/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/C4lSxWjqSJLfG/200w.gif', width: 200, height: 150, giphyUrl: 'https://giphy.com/gifs/editingandlayout-C4lSxWjqSJLfG' },
+    ],
+    failure: [
+        { id: '3jbR27OLT5YJv0ewvN', title: 'This Is Fine', url: 'https://media.giphy.com/media/3jbR27OLT5YJv0ewvN/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/3jbR27OLT5YJv0ewvN/200w.gif', width: 200, height: 200, giphyUrl: 'https://giphy.com/gifs/meme-3jbR27OLT5YJv0ewvN' },
+        { id: 'YmszCwM1FV7zCI8sgL', title: 'Facepalm', url: 'https://media.giphy.com/media/YmszCwM1FV7zCI8sgL/giphy.gif', thumbnailUrl: 'https://media.giphy.com/media/YmszCwM1FV7zCI8sgL/200w.gif', width: 200, height: 167, giphyUrl: 'https://giphy.com/gifs/theoffice-YmszCwM1FV7zCI8sgL' },
+    ],
+};
+
+/** Map query keywords to GIF category */
+function resolveGifCategory(query: string): string {
+    const q = (query || 'celebration').toLowerCase();
+    if (['fail', 'failure', 'error', 'broken', 'bug', 'crash', 'fire'].some(k => q.includes(k))) return 'failure';
+    if (['success', 'pass', 'passed', 'nailed', 'thumbs', 'approve', 'merged', 'ship'].some(k => q.includes(k))) return 'success';
+    return 'celebration';
+}
+
+const giphySearch: MockResultFn = (args) => {
+    const query = (args.query as string) || 'celebration';
+    const category = resolveGifCategory(query);
+    const gifs = MOCK_GIF_SETS[category] || MOCK_GIF_SETS.celebration;
+    const selected = gifs[0];
+
+    return {
+        success: true,
+        summary: `Found GIF: "${selected.title}" for "${query}"`,
+        data: {
+            gifs,
+            selected,
+            query,
+            attribution: 'Powered by GIPHY',
+            fallbackEmoji: '\uD83C\uDF89',
+        },
+    };
+};
 
 const jiraLinkIssues: MockResultFn = (args) => ({
     success: true,
@@ -299,8 +328,14 @@ const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
 /**
  * Get a mock tool result for demo mode.
  * Returns null if no mock is available (tool executes normally).
+ *
+ * Special case: when GIPHY_API_KEY is set, giphy_search falls through to the
+ * real Giphy API for varied, fresh GIFs instead of static mock data.
  */
 export function getMockToolResult(toolName: string, args: Record<string, unknown>): ToolResult | null {
+    if (toolName === 'giphy_search' && process.env.GIPHY_API_KEY) {
+        return null; // Fall through to real Giphy API
+    }
     const fn = MOCK_TOOL_RESULTS[toolName];
     return fn ? fn(args) : null;
 }

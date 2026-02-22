@@ -17,6 +17,8 @@ interface IntentRule {
     tool: string;
     args: Record<string, unknown>;
     preamble: string; // text before tool call
+    /** Optional: build dynamic args from the user's message instead of using static `args`. */
+    argBuilder?: (userContent: string) => Record<string, unknown>;
 }
 
 const INTENT_RULES: IntentRule[] = [
@@ -69,7 +71,18 @@ const INTENT_RULES: IntentRule[] = [
     // Giphy — celebratory / fun personality layer (Sprint 7, housekeeping tier)
     { primary: ['gif', 'giphy', 'celebrate', 'celebration', 'meme', 'fun', 'party', 'hooray', 'woohoo'],
       tool: 'giphy_search', args: { query: 'celebration' },
-      preamble: 'Let me find a fun GIF for that!' },
+      preamble: 'Let me find a fun GIF for that!',
+      argBuilder: (text) => {
+          // Extract contextual query: "gif about success" → "success", "celebrate a fix" → "fix_merged"
+          const aboutMatch = text.match(/gif\s+(?:about|for|of)\s+(.+)/i);
+          if (aboutMatch) return { query: aboutMatch[1].trim() };
+          // Map matched keywords to curated categories
+          if (['success', 'pass', 'passed', 'nailed', 'thumbs up', 'approve'].some(k => text.includes(k))) return { query: 'all_tests_passed' };
+          if (['fail', 'failure', 'error', 'broken', 'bug', 'fire'].some(k => text.includes(k))) return { query: 'pipeline_broken' };
+          if (['fix', 'merged', 'ship', 'deploy', 'release'].some(k => text.includes(k))) return { query: 'fix_merged' };
+          if (['party', 'hooray', 'woohoo', 'celebrate', 'celebration'].some(k => text.includes(k))) return { query: 'celebration' };
+          return { query: 'celebration' };
+      } },
 
     // ── Write tools (Phase 2) — these trigger confirmation previews ──
 
@@ -244,7 +257,7 @@ export class MockProvider extends BaseProvider {
         // Match intent → tool call
         for (const rule of INTENT_RULES) {
             if (this.matchesIntent(userContent, rule.primary, rule.secondary)) {
-                return this.makeToolCallResponse(rule);
+                return this.makeToolCallResponse(rule, userContent);
             }
         }
 
@@ -292,11 +305,15 @@ export class MockProvider extends BaseProvider {
         };
     }
 
-    private makeToolCallResponse(rule: IntentRule): AIResponse {
+    private makeToolCallResponse(rule: IntentRule, userContent?: string): AIResponse {
+        const args = rule.argBuilder && userContent
+            ? rule.argBuilder(userContent)
+            : rule.args;
+
         const toolCall: ToolCall = {
             id: `mock_${rule.tool}_${Date.now()}`,
             name: rule.tool,
-            arguments: rule.args,
+            arguments: args,
         };
 
         return {
