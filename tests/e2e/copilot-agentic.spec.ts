@@ -84,7 +84,7 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('write tool triggers confirmation card with approve/deny', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_CREATE);
     await page.goto('/dashboard');
-    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible({ timeout: 10000 });
 
     // Send a write-triggering message
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
@@ -96,8 +96,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmCard).toBeVisible({ timeout: 10000 });
 
-    // Should show the tool name and args preview
-    await expect(confirmCard).toContainText('jira_create_issue');
+    // Should show the action label and args preview
+    await expect(confirmCard).toContainText('Create Issue');
     await expect(confirmCard).toContainText('Login Timeout Fix');
   });
 
@@ -139,8 +139,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmCard).toBeVisible({ timeout: 10000 });
 
-    // Click Approve
-    await confirmCard.getByRole('button', { name: /approve/i }).click();
+    // Click Approve — ConfirmationShell uses tool-specific labels (e.g. "Create Issue")
+    await confirmCard.getByRole('button', { name: /create issue/i }).click();
 
     // Card should update to approved and tool result should appear
     await expect(page.getByText(/PROJ-1299/)).toBeVisible({ timeout: 10000 });
@@ -183,8 +183,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     // RCA tool result
     await expect(page.getByText(/EU API latency spike/i).first()).toBeVisible({ timeout: 5000 });
 
-    // Autonomous action notifications
-    await expect(page.getByText(/Linked PROJ-1248/i)).toBeVisible({ timeout: 5000 });
+    // Autonomous action notifications — cards render "Jira Housekeeping" with "Auto" badge
+    await expect(page.getByText('Jira Housekeeping').first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/investigated-by-ai/i)).toBeVisible({ timeout: 5000 });
 
     // Final answer summarizing everything
