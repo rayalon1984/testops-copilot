@@ -232,13 +232,11 @@ export const SCENARIO_JIRA_SEARCH: SSEEvent[] = [
     type: 'tool_result',
     data: JSON.stringify({
       summary: 'Found 3 matching issues',
-      data: {
-        issues: [
-          { key: 'PROJ-1248', summary: 'Login timeout on EU region', status: 'Open', assignee: 'jsmith' },
-          { key: 'PROJ-1189', summary: 'API latency spike in tax service', status: 'In Progress', assignee: 'alee' },
-          { key: 'PROJ-1100', summary: 'Flaky E2E test: checkout flow', status: 'Done', assignee: 'mwong' },
-        ],
-      },
+      data: [
+        { key: 'PROJ-1248', summary: 'Login timeout on EU region', status: 'Open', assignee: 'jsmith' },
+        { key: 'PROJ-1189', summary: 'API latency spike in tax service', status: 'In Progress', assignee: 'alee' },
+        { key: 'PROJ-1100', summary: 'Flaky E2E test: checkout flow', status: 'Done', assignee: 'mwong' },
+      ],
     }),
     tool: 'jira_search',
   },
@@ -290,7 +288,7 @@ export const SCENARIO_PROACTIVE_SUGGESTION: SSEEvent[] = [
   { type: 'tool_start', data: 'Searching Jira', tool: 'jira_search' },
   {
     type: 'tool_result',
-    data: JSON.stringify({ summary: 'No matching issues found', data: { issues: [] } }),
+    data: JSON.stringify({ summary: 'No matching issues found', data: [] }),
     tool: 'jira_search',
   },
   {

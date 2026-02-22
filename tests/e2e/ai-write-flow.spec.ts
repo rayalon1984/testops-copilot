@@ -20,8 +20,8 @@ test('AI Write Tool Confirmation Flow', async ({ page }) => {
     await input.fill('Create a Jira bug: "E2E Test Failure"');
     await input.press('Enter');
 
-    // Wait for confirmation card
-    const confirmationCard = page.locator('.MuiPaper-root').filter({ hasText: 'APPROVAL REQUIRED' }).first();
+    // Wait for confirmation card — ConfirmationShell renders 'REVIEW' status
+    const confirmationCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmationCard).toBeVisible({ timeout: 10000 });
 
     // Verify tool args are visible
@@ -30,7 +30,7 @@ test('AI Write Tool Confirmation Flow', async ({ page }) => {
     // Deny Action
     await confirmationCard.getByRole('button', { name: /deny/i }).click();
 
-    // Verify status update
-    const deniedCard = page.locator('.MuiPaper-root').filter({ hasText: 'ACTION DENIED' }).first();
+    // Verify status update — ConfirmationShell renders 'DENIED' status
+    const deniedCard = page.locator('.MuiPaper-root').filter({ hasText: 'DENIED' }).first();
     await expect(deniedCard).toBeVisible({ timeout: 5000 });
 });

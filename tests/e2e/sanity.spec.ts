@@ -15,6 +15,6 @@ test('loads dashboard and shows metrics', async ({ page }) => {
     // Wait for main layout
     await expect(page.locator('#root')).toBeVisible();
 
-    // Wait for some content to load — "Dashboard" is the page title in the top bar
-    await expect(page.getByText('Dashboard')).toBeVisible();
+    // Wait for some content to load — "Dashboard" appears in sidebar, heading, and breadcrumb
+    await expect(page.getByText('Dashboard').first()).toBeVisible();
 });

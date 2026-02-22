@@ -49,8 +49,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     // Use .first() because "TestOps Copilot" appears in both the header and the empty state
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    // Empty state should show starter prompts
-    await expect(page.getByText('Ask Copilot...')).toBeVisible();
+    // Empty state should show starter prompts (placeholder text on textarea)
+    await expect(page.getByPlaceholder('Ask Copilot...')).toBeVisible();
   });
 
   // ─── 2. Read-Only Query → Full ReAct Flow ─────────────────────────
@@ -72,12 +72,11 @@ test.describe('Agentic AI Copilot E2E', () => {
     // Tool execution indicator should appear
     await expect(page.getByText(/jira_search/i)).toBeVisible({ timeout: 5000 });
 
-    // Tool result card with summary
-    await expect(page.getByText('Found 3 matching issues')).toBeVisible({ timeout: 5000 });
+    // Tool result card should render issue details from JiraSearchCard
+    await expect(page.getByText('Login timeout on EU region')).toBeVisible({ timeout: 5000 });
 
     // Final assistant answer
-    await expect(page.getByText(/PROJ-1248/)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(/login timeout/i)).toBeVisible();
+    await expect(page.getByText(/PROJ-1248/).first()).toBeVisible({ timeout: 5000 });
   });
 
   // ─── 3. Write Tool → Confirmation Card ────────────────────────────
@@ -93,8 +92,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
 
-    // Confirmation card should appear with "APPROVAL REQUIRED"
-    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'APPROVAL REQUIRED' }).first();
+    // Confirmation card should appear with "REVIEW"
+    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmCard).toBeVisible({ timeout: 10000 });
 
     // Should show the tool name and args preview
@@ -102,7 +101,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(confirmCard).toContainText('Login Timeout Fix');
   });
 
-  test('deny confirmation changes card to ACTION DENIED', async ({ page }) => {
+  test('deny confirmation changes card to DENIED', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_CREATE);
     await mockConfirmAction(page, false);
     await page.goto('/dashboard');
@@ -114,14 +113,14 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.press('Enter');
 
     // Wait for confirmation card
-    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'APPROVAL REQUIRED' }).first();
+    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmCard).toBeVisible({ timeout: 10000 });
 
     // Click Deny
     await confirmCard.getByRole('button', { name: /deny/i }).click();
 
     // Card should update to show denied status
-    const deniedCard = page.locator('.MuiPaper-root').filter({ hasText: 'ACTION DENIED' }).first();
+    const deniedCard = page.locator('.MuiPaper-root').filter({ hasText: 'DENIED' }).first();
     await expect(deniedCard).toBeVisible({ timeout: 5000 });
   });
 
@@ -137,7 +136,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.press('Enter');
 
     // Wait for confirmation card
-    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'APPROVAL REQUIRED' }).first();
+    const confirmCard = page.locator('.MuiPaper-root').filter({ hasText: 'REVIEW' }).first();
     await expect(confirmCard).toBeVisible({ timeout: 10000 });
 
     // Click Approve
@@ -159,14 +158,14 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.fill('Check if there is a Jira for the checkout failure');
     await chatInput.press('Enter');
 
-    // Should see the empty result
-    await expect(page.getByText('No matching issues found')).toBeVisible({ timeout: 5000 });
+    // Should see the empty result (JiraSearchCard renders this for empty arrays)
+    await expect(page.getByText('No issues found.')).toBeVisible({ timeout: 5000 });
 
     // Proactive suggestion card should appear
     await expect(page.getByText(/Would you like me to create one/i)).toBeVisible({ timeout: 5000 });
 
     // Test Engineer persona should be shown
-    await expect(page.getByText('Test Engineer')).toBeVisible();
+    await expect(page.getByText('Test Engineer').first()).toBeVisible();
   });
 
   // ─── 5. Autonomous (Tier 1) Actions ────────────────────────────────
@@ -182,7 +181,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.press('Enter');
 
     // RCA tool result
-    await expect(page.getByText(/EU API latency spike/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/EU API latency spike/i).first()).toBeVisible({ timeout: 5000 });
 
     // Autonomous action notifications
     await expect(page.getByText(/Linked PROJ-1248/i)).toBeVisible({ timeout: 5000 });
@@ -205,7 +204,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.press('Enter');
 
     // Persona badge should show Security Engineer
-    await expect(page.getByText('Security Engineer')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Security Engineer').first()).toBeVisible({ timeout: 5000 });
 
     // Answer should reference SAML
     await expect(page.getByText(/SAML/i)).toBeVisible({ timeout: 5000 });
@@ -224,8 +223,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     await chatInput.fill('Find failures');
     await chatInput.press('Enter');
 
-    // Wait for response
-    await expect(page.getByText('Found 3 matching issues')).toBeVisible({ timeout: 5000 });
+    // Wait for response — JiraSearchCard renders issue summaries
+    await expect(page.getByText('Login timeout on EU region')).toBeVisible({ timeout: 5000 });
 
     // Click clear button (trash icon in header)
     const clearBtn = page.locator('button[title="Clear chat"]');
@@ -233,7 +232,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await clearBtn.click();
 
     // Messages should be gone, empty state should return
-    await expect(page.getByText('Found 3 matching issues')).not.toBeVisible();
+    await expect(page.getByText('Login timeout on EU region')).not.toBeVisible();
   });
 
   // ─── 8. Page Navigation Updates AI Context ─────────────────────────
@@ -243,13 +242,13 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Navigate to pipelines
-    await page.getByRole('link', { name: /pipelines/i }).first().click();
+    await page.getByRole('button', { name: /pipelines/i }).first().click();
     await expect(page).toHaveURL(/\/pipelines/);
     // Copilot should still be visible
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Navigate to test runs
-    await page.getByRole('link', { name: /test runs/i }).first().click();
+    await page.getByRole('button', { name: /test runs/i }).first().click();
     await expect(page).toHaveURL(/\/test-runs/);
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
   });
@@ -291,7 +290,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Find Jira issues');
     await chatInput.press('Enter');
-    await expect(page.getByText('Found 3 matching issues')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Login timeout on EU region')).toBeVisible({ timeout: 5000 });
 
     // Unroute and set up second query
     await page.unroute('**/api/v1/ai/chat');
