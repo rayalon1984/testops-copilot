@@ -106,35 +106,29 @@ export async function mockDashboardAPIs(page: Page): Promise<void> {
     });
   });
 
-  // Pipelines
+  // Pipelines — PipelineList expects api.get to return Pipeline[] directly (no .data unwrap)
   await page.route('**/api/v1/pipelines**', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [
-            { id: 'p1', name: 'E2E Suite', status: 'PASSED', source: 'github_actions', lastRunAt: '2026-02-20T10:00:00Z' },
-            { id: 'p2', name: 'Unit Tests', status: 'FAILED', source: 'jenkins', lastRunAt: '2026-02-20T09:30:00Z' },
-          ],
-          pagination: { total: 2, page: 1, limit: 20 },
-        }),
+        body: JSON.stringify([
+          { id: 'p1', name: 'E2E Suite', type: 'github-actions', status: 'success', lastRun: '2026-02-20T10:00:00Z', successRate: 95, config: {} },
+          { id: 'p2', name: 'Unit Tests', type: 'jenkins', status: 'failed', lastRun: '2026-02-20T09:30:00Z', successRate: 80, config: {} },
+        ]),
       });
     }
   });
 
-  // Test runs
+  // Test runs — TestRunList expects api.get to return TestRun[] directly (no .data unwrap)
   await page.route('**/api/v1/test-runs**', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          data: [
-            { id: 'tr-1', name: 'Run #42', status: 'FAILED', passed: 95, failed: 5, duration: 120, createdAt: '2026-02-20T10:00:00Z' },
-          ],
-          pagination: { total: 1, page: 1, limit: 20 },
-        }),
+        body: JSON.stringify([
+          { id: 'tr-1', pipelineId: 'p1', pipelineName: 'E2E Suite', status: 'failed', startTime: '2026-02-20T10:00:00Z', endTime: '2026-02-20T10:02:00Z', duration: 120, errorCount: 5 },
+        ]),
       });
     }
   });
