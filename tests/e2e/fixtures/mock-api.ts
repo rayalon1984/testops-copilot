@@ -127,7 +127,7 @@ export async function mockDashboardAPIs(page: Page): Promise<void> {
     });
   });
 
-  // AI cost tracking
+  // AI cost tracking (usage)
   await page.route('**/api/v1/ai/usage**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -136,19 +136,26 @@ export async function mockDashboardAPIs(page: Page): Promise<void> {
     });
   });
 
-  // Catch-all for other API routes to prevent 404s
-  await page.route('**/api/v1/**', async (route) => {
-    // Only intercept GET requests that haven't been handled above
-    if (route.request().method() === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ data: [] }),
-      });
-    } else {
-      await route.continue();
-    }
+  // AI cost tracking (costs — used by QuotaIndicator)
+  await page.route('**/api/v1/ai/costs**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          totalCost: 42.50,
+          monthlySpent: 42.50,
+          monthlyBudget: 200,
+          cacheSavings: 8.20,
+          cacheHitRate: 0.34,
+        },
+      }),
+    });
   });
+
+  // NOTE: The API catch-all route is registered in setupAuthenticatedSession()
+  // BEFORE these specific routes, so Playwright's LIFO evaluation ensures
+  // specific routes fire first and the catch-all only handles unmatched URLs.
 }
 
 // ─── SSE Chat Mock Helpers ───────────────────────────────────────────
@@ -378,13 +385,29 @@ export async function mockConfirmAction(page: Page, approved: boolean): Promise<
 /**
  * Sets up all API mocks and logs the user in.
  * After calling this, the page will be at /dashboard with a logged-in user.
+ *
+ * IMPORTANT — Playwright route ordering (LIFO):
+ * Handlers run in REVERSE registration order. The catch-all is registered
+ * FIRST so it evaluates LAST (as a fallback). Specific routes registered
+ * AFTER take priority because they evaluate FIRST.
  */
 export async function setupAuthenticatedSession(page: Page): Promise<void> {
+  // 1. Catch-all FIRST — Playwright LIFO means this evaluates LAST (fallback)
+  //    Prevents unmatched API routes from hitting the Vite proxy (no backend running)
+  await page.route('**/api/v1/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: [] }),
+    });
+  });
+
+  // 2. Specific routes AFTER — Playwright LIFO means these evaluate FIRST
   await mockAuthAPIs(page);
   await mockDashboardAPIs(page);
 
-  // Pre-set the access token and onboarding flag so AuthContext picks it up
-  // and the OnboardingWizard modal doesn't block dashboard interaction
+  // 3. Pre-set the access token and onboarding flag so AuthContext picks it up
+  //    and the OnboardingWizard modal doesn't block dashboard interaction
   await page.addInitScript(() => {
     localStorage.setItem('accessToken', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.e2e-test-token');
     localStorage.setItem('onboardingComplete', 'true');
