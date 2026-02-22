@@ -46,7 +46,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page).toHaveURL(/\/dashboard/);
 
     // Copilot panel should be visible (embedded in 3-column layout)
-    await expect(page.getByText('TestOps Copilot')).toBeVisible();
+    // Use .first() because "TestOps Copilot" appears in both the header and the empty state
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Empty state should show starter prompts
     await expect(page.getByText('Ask Copilot...')).toBeVisible();
@@ -57,10 +58,11 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('send query and see full ReAct flow: thinking → tool → result → answer', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_SEARCH);
     await page.goto('/dashboard');
-    await expect(page.getByText('TestOps Copilot')).toBeVisible();
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Type a message in the copilot chat
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Find recent Jira failures');
     await chatInput.press('Enter');
 
@@ -83,9 +85,11 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('write tool triggers confirmation card with approve/deny', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_CREATE);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Send a write-triggering message
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
 
@@ -102,8 +106,10 @@ test.describe('Agentic AI Copilot E2E', () => {
     await mockChatSSE(page, SCENARIO_JIRA_CREATE);
     await mockConfirmAction(page, false);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
 
@@ -123,8 +129,10 @@ test.describe('Agentic AI Copilot E2E', () => {
     await mockChatSSE(page, SCENARIO_JIRA_CREATE);
     await mockConfirmAction(page, true);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
 
@@ -144,8 +152,10 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('proactive suggestion card appears after empty search', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_PROACTIVE_SUGGESTION);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Check if there is a Jira for the checkout failure');
     await chatInput.press('Enter');
 
@@ -164,8 +174,10 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('Tier 1 autonomous actions show notification cards', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_AUTONOMOUS_ACTION);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Analyze the root cause of PROJ-1248');
     await chatInput.press('Enter');
 
@@ -185,8 +197,10 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('security query routes to Security Engineer persona', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_SECURITY_PERSONA);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Are there any auth vulnerabilities?');
     await chatInput.press('Enter');
 
@@ -202,9 +216,11 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('clear chat removes all messages', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_SEARCH);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Send a message to populate chat
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Find failures');
     await chatInput.press('Enter');
 
@@ -224,18 +240,18 @@ test.describe('Agentic AI Copilot E2E', () => {
 
   test('navigating between pages works with copilot visible', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page.getByText('TestOps Copilot')).toBeVisible();
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Navigate to pipelines
     await page.getByRole('link', { name: /pipelines/i }).first().click();
     await expect(page).toHaveURL(/\/pipelines/);
     // Copilot should still be visible
-    await expect(page.getByText('TestOps Copilot')).toBeVisible();
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Navigate to test runs
     await page.getByRole('link', { name: /test runs/i }).first().click();
     await expect(page).toHaveURL(/\/test-runs/);
-    await expect(page.getByText('TestOps Copilot')).toBeVisible();
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
   });
 
   // ─── 9. Chat Input Behavior ────────────────────────────────────────
@@ -243,8 +259,10 @@ test.describe('Agentic AI Copilot E2E', () => {
   test('Enter sends message, Shift+Enter adds newline', async ({ page }) => {
     await mockChatSSE(page, SCENARIO_JIRA_SEARCH);
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
 
     // Shift+Enter should add newline without sending
     await chatInput.fill('Line 1');
@@ -265,10 +283,12 @@ test.describe('Agentic AI Copilot E2E', () => {
 
   test('multiple queries accumulate in chat history', async ({ page }) => {
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // First query
     await mockChatSSE(page, SCENARIO_JIRA_SEARCH);
     const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    await expect(chatInput).toBeVisible();
     await chatInput.fill('Find Jira issues');
     await chatInput.press('Enter');
     await expect(page.getByText('Found 3 matching issues')).toBeVisible({ timeout: 5000 });

@@ -5,7 +5,7 @@
  *     updateMessage for in-card mutations, sendActionPrompt for card actions.
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { api } from '../api';
 
 export type MessageRole = 'user' | 'assistant' | 'tool_start' | 'tool_result' | 'thinking' | 'error' | 'confirmation_request' | 'proactive_suggestion' | 'autonomous_action';
@@ -75,6 +75,12 @@ export function useAICopilot(): UseAICopilotReturn {
     const [activePersona, setActivePersona] = useState<PersonaInfo | null>(null);
     const sessionIdRef = useRef<string>(generateSessionId());
     const abortRef = useRef<AbortController | null>(null);
+    const messagesRef = useRef<ChatMessage[]>(messages);
+
+    // Keep messagesRef in sync without triggering callback recreation
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
 
     const updateMessage = useCallback((id: string, patch: Partial<ChatMessage>) => {
         setMessages(prev => prev.map(msg =>
@@ -97,7 +103,7 @@ export function useAICopilot(): UseAICopilotReturn {
         setError(null);
 
         // Build history from existing messages (only user/assistant for the LLM)
-        const history = messages
+        const history = messagesRef.current
             .filter(m => m.role === 'user' || m.role === 'assistant')
             .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
@@ -340,7 +346,7 @@ export function useAICopilot(): UseAICopilotReturn {
         } finally {
             setIsStreaming(false);
         }
-    }, [isStreaming, messages]);
+    }, [isStreaming]);
 
     const sendActionPrompt = useCallback((prompt: string, sourceMessageId: string) => {
         // Mark the source card as pending

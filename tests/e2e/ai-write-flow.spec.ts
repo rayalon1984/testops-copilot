@@ -12,6 +12,7 @@ test('AI Write Tool Confirmation Flow', async ({ page }) => {
     await mockConfirmAction(page, false);
 
     await page.goto('/dashboard');
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Trigger write action via copilot chat
     const input = page.locator('textarea[placeholder="Ask Copilot..."]');
