@@ -106,6 +106,29 @@ npm run dev
 - Testing with beta users
 - Full integration testing
 
+## 📝 Switching Between Modes
+
+### Switch to Simple Mode:
+```bash
+cd backend
+cp .env.dev .env
+npm run dev:simple:setup  # Re-setup database
+cd ..
+npm run dev:simple
+```
+
+### Switch to Full Mode:
+```bash
+cd backend
+cp .env.full .env
+npm run db:migrate  # Run migrations
+cd ..
+npm run local:start  # Start Docker services
+npm run dev
+```
+
+> **Tip:** Simple mode automatically overwrites `.env` when you run `npm run dev:simple`. Backup your `.env` before switching if you have custom settings.
+
 ## 🔧 Troubleshooting
 
 ### dev:simple issues

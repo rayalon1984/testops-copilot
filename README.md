@@ -9,7 +9,7 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
 [![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
 
-> **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/README_MCP.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
+> **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/MCP_INTEGRATION.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 
 ### Default Login Credentials
 
@@ -415,7 +415,7 @@ testops-companion/
 | **[Roadmap](specs/ROADMAP.md)** | What's shipped and what's next |
 | **[Changelog](CHANGELOG.md)** | Version history |
 | **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry and prevention checklist |
-| **[MCP Server](docs/README_MCP.md)** | Model Context Protocol integration |
+| **[MCP Server](docs/MCP_INTEGRATION.md)** | Model Context Protocol integration |
 
 ---
 

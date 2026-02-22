@@ -20,6 +20,24 @@ The TestOps Companion MCP Server enables AI assistants to intelligently analyze 
 - **Team Knowledge**: Shared solutions in searchable knowledge base
 - **Smart Batching**: Analyze 20 failures for $0.10 vs $1.00 individually
 
+### Architecture
+
+```
+┌─────────────────┐
+│  Claude Code    │ (AI Assistant)
+└────────┬────────┘
+         │ MCP Protocol (stdio/JSON-RPC)
+         ▼
+┌─────────────────┐
+│   MCP Server    │ (Node.js)
+└────────┬────────┘
+         │
+         ├─────▶ PostgreSQL (TestOps data)
+         ├─────▶ AI Providers (Anthropic/OpenAI/etc)
+         ├─────▶ Vector DB (Weaviate - semantic search)
+         └─────▶ Cache (Redis - optional)
+```
+
 ---
 
 ## Prerequisites
@@ -160,6 +178,59 @@ Claude should respond using `testops_health_check` tool.
 
 ---
 
+## Available Tools
+
+### 🔍 Analysis Tools
+
+- **`testops_analyze_failure`** — Comprehensive single failure analysis ($0.01–0.05)
+- **`testops_batch_analyze`** — Batch analyze multiple failures from CI runs ($0.05–0.30 for 10–20 failures, 80% cheaper than individual)
+
+### 📚 Knowledge Base Tools
+
+- **`testops_search_knowledge`** — Search historical failures with solutions ($0.001)
+- **`testops_add_knowledge`** — Add resolved failures to knowledge base ($0.001)
+- **`testops_get_knowledge_stats`** — Knowledge base statistics (free)
+
+### 📊 Statistics & Health Tools
+
+- **`testops_get_pipeline_stats`** — Pipeline health and metrics (free)
+- **`testops_get_test_history`** — Test flakiness analysis (free)
+- **`testops_get_cost_stats`** — AI usage and cost tracking (free)
+- **`testops_health_check`** — Service health monitoring (free)
+
+---
+
+## Cost Optimization
+
+### Search-First Pattern
+
+```
+❌ Bad: Analyze every failure → $0.05 each
+✅ Good: Search KB first → $0.001, only analyze if not found
+
+Savings: 98% for known issues
+```
+
+### Batch Analysis
+
+```
+❌ Bad: 10 individual analyses → $0.50
+✅ Good: 1 batch analysis → $0.10
+
+Savings: 80%
+```
+
+### Build Knowledge Base
+
+```
+First time: Analyze ($0.05) + Add to KB ($0.001)
+Next 11 times: Search KB ($0.001 each)
+
+Annual savings: $0.54 per recurring issue (90%)
+```
+
+---
+
 ## Usage Examples
 
 ### Example 1: Analyze a Test Failure
@@ -269,6 +340,42 @@ After fixing: "Can you add this to the knowledge base?"
 ```
 
 **Cost benefit:** 99% reduction in token costs
+
+---
+
+## Development
+
+### Build
+
+```bash
+npm run mcp:build
+# or
+cd mcp-server && npm run build
+```
+
+### Development Mode
+
+```bash
+npm run mcp:dev
+# or
+cd mcp-server && npm run dev
+```
+
+### Testing with MCP Inspector
+
+```bash
+npm run mcp:inspector
+# or
+cd mcp-server && npm run inspector
+```
+
+### Type Checking
+
+```bash
+npm run typecheck:mcp
+# or
+cd mcp-server && npm run typecheck
+```
 
 ---
 
