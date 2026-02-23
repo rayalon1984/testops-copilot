@@ -16,7 +16,7 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-02-23T10:01:08.271Z"
+    "lastRun": "2026-02-23T17:19:27.553Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -35,7 +35,7 @@
       "diff.pr-card": "1.0.0",
       "diff.merge-tool": "1.0.0"
     },
-    "lastRun": "2026-02-23T09:56:47.812Z"
+    "lastRun": "2026-02-23T17:35:16.343Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -56,6 +56,95 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-02-23T10:01:08.308Z"
+    "lastRun": "2026-02-23T17:35:15.977Z"
+  },
+  "proactive-suggestions": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "proactive.engine": "1.0.0",
+      "proactive.jira-prefill": "1.0.0",
+      "proactive.frontend": "1.0.0",
+      "proactive.sse": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:19:27.383Z"
+  },
+  "context-enrichment": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "enrichment.gathering": "1.0.0",
+      "enrichment.confidence": "1.0.0",
+      "enrichment.synthesis": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.237Z"
+  },
+  "react-loop": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "react.loop": "1.0.0",
+      "react.tools": "1.0.0",
+      "react.streaming": "1.0.0",
+      "react.tools-registry": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.538Z"
+  },
+  "authentication": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "auth.jwt": "1.0.0",
+      "auth.rbac": "1.0.0",
+      "auth.sso": "1.0.0",
+      "auth.blacklist": "1.0.0",
+      "auth.audit": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.851Z"
+  },
+  "pipeline-management": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "pipeline.crud": "1.0.0",
+      "pipeline.runs": "1.0.0",
+      "pipeline.scheduling": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.265Z"
+  },
+  "autonomy-preferences": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "autonomy.classifier": "1.0.0",
+      "autonomy.context-overrides": "1.0.0",
+      "autonomy.user-preference": "1.0.0",
+      "autonomy.gated-check": "1.0.0",
+      "autonomy.frontend": "1.0.0",
+      "autonomy.api": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:15.936Z"
+  },
+  "smart-retry": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "retry.classification": "1.0.0",
+      "retry.suggestion": "1.0.0",
+      "retry.execution": "1.0.0",
+      "retry.frontend": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.253Z"
+  },
+  "mcp-server": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "mcp.analyze": "1.0.0",
+      "mcp.batch": "1.0.0",
+      "mcp.knowledge": "1.0.0",
+      "mcp.stats": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.588Z"
+  },
+  "ai-cost-management": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "cost.tracking": "1.0.0",
+      "cost.cache": "1.0.0"
+    },
+    "lastRun": "2026-02-23T17:35:16.682Z"
   }
 }
