@@ -11,6 +11,7 @@ import {
   UpdateMondayItemInput,
   MondayTestFailureInput,
 } from '../types/monday';
+import { safeParseInt } from '@/utils/common';
 
 export class MondayController {
   /**
@@ -63,7 +64,7 @@ export class MondayController {
   static async getItems(req: Request, res: Response): Promise<void> {
     try {
       const boardId = req.params.boardId as string;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 25;
+      const limit = safeParseInt(req.query.limit as string | undefined, 25, 1, 500);
 
       const mondayService = getMondayService();
       const items = await mondayService.getItems(boardId, limit);
@@ -87,15 +88,6 @@ export class MondayController {
   static async createItem(req: Request, res: Response): Promise<void> {
     try {
       const input: CreateMondayItemInput = req.body;
-
-      if (!input.boardId || !input.itemName) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId and itemName are required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.createItem(input);
 
@@ -119,15 +111,6 @@ export class MondayController {
     try {
       const itemId = req.params.itemId as string;
       const input: Omit<UpdateMondayItemInput, 'itemId'> = req.body;
-
-      if (!input.boardId) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId is required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.updateItem({
         itemId,
@@ -154,15 +137,6 @@ export class MondayController {
     try {
       const itemId = req.params.itemId as string;
       const { body } = req.body;
-
-      if (!body) {
-        res.status(400).json({
-          success: false,
-          error: 'body is required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const update = await mondayService.createUpdate({
         itemId,
@@ -188,15 +162,6 @@ export class MondayController {
   static async createItemFromTestFailure(req: Request, res: Response): Promise<void> {
     try {
       const input: MondayTestFailureInput = req.body;
-
-      if (!input.boardId || !input.testRunId || !input.testName || !input.errorMessage) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId, testRunId, testName, and errorMessage are required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.createItemFromTestFailure(input);
 

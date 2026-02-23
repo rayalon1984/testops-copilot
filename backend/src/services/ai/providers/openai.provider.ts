@@ -5,6 +5,7 @@
 import OpenAI from 'openai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
+import { logger } from '@/utils/logger';
 
 export class OpenAIProvider extends BaseProvider {
   private client: OpenAI;
@@ -134,7 +135,7 @@ export class OpenAIProvider extends BaseProvider {
           try {
             args = JSON.parse(fnCall.function.arguments);
           } catch {
-            console.warn(`Failed to parse tool call arguments for ${fnCall.function.name}:`, fnCall.function.arguments);
+            logger.warn(`[OpenAIProvider] Failed to parse tool call arguments for ${fnCall.function.name}:`, fnCall.function.arguments);
             args = {};
           }
           return { id: fnCall.id, name: fnCall.function.name, arguments: args };
@@ -193,7 +194,7 @@ export class OpenAIProvider extends BaseProvider {
 
       return response.choices.length > 0;
     } catch (error) {
-      console.error(`OpenAI health check failed:`, error);
+      logger.error(`[OpenAIProvider] Health check failed:`, error);
       return false;
     }
   }

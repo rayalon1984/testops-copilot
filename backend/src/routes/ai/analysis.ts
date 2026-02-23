@@ -11,6 +11,7 @@ import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
 import { SummarizationOptions } from '../../services/ai/features/log-summary';
 import { EnrichmentInput } from '../../services/ai/features/context-enrichment';
+import { logger } from '../../utils/logger';
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.post('/rca/similar', async (req: Request, res: Response) => {
       })),
     });
   } catch (error) {
-    console.error('RCA matching failed:', error);
+    logger.error('[AIAnalysis] RCA matching failed:', error);
     return res.status(500).json({ error: 'RCA matching failed', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -69,7 +70,7 @@ router.post('/rca/store', async (req: Request, res: Response) => {
     const id = await aiManager.storeFailure(failure);
     return res.status(201).json({ id, message: 'Failure stored successfully' });
   } catch (error) {
-    console.error('Failed to store failure:', error);
+    logger.error('[AIAnalysis] Failed to store failure:', error);
     return res.status(500).json({ error: 'Failed to store failure', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -89,7 +90,7 @@ router.put('/rca/:id/resolve', async (req: Request, res: Response) => {
     await aiManager.markFailureAsResolved(req.params.id as string, resolution, resolvedBy, ticketUrl);
     return res.json({ message: 'Failure marked as resolved', id: req.params.id });
   } catch (error) {
-    console.error('Failed to mark failure as resolved:', error);
+    logger.error('[AIAnalysis] Failed to mark failure as resolved:', error);
     return res.status(500).json({ error: 'Failed to mark failure as resolved', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -121,7 +122,7 @@ router.post('/categorize', async (req: Request, res: Response) => {
       relatedIssues: result.relatedIssues,
     });
   } catch (error) {
-    console.error('Categorization failed:', error);
+    logger.error('[AIAnalysis] Categorization failed:', error);
     return res.status(500).json({ error: 'Categorization failed', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -149,7 +150,7 @@ router.post('/summarize', async (req: Request, res: Response) => {
       confidence: summary.confidence,
     });
   } catch (error) {
-    console.error('Log summarization failed:', error);
+    logger.error('[AIAnalysis] Log summarization failed:', error);
     return res.status(500).json({ error: 'Log summarization failed', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -177,7 +178,7 @@ router.post('/enrich', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Context enrichment failed:', error);
+    logger.error('[AIAnalysis] Context enrichment failed:', error);
     return res.status(500).json({ error: 'Context enrichment failed', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -195,7 +196,7 @@ router.get('/costs', async (req: Request, res: Response) => {
 
     return res.json(summary);
   } catch (error) {
-    console.error('Failed to get cost summary:', error);
+    logger.error('[AIAnalysis] Failed to get cost summary:', error);
     return res.status(500).json({ error: 'Failed to get cost summary', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
@@ -212,7 +213,7 @@ router.get('/stats', async (_req: Request, res: Response) => {
 
     return res.json({ costs: costSummary, cache: cacheStats, rca: rcaStats });
   } catch (error) {
-    console.error('Failed to get stats:', error);
+    logger.error('[AIAnalysis] Failed to get stats:', error);
     return res.status(500).json({ error: 'Failed to get stats', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

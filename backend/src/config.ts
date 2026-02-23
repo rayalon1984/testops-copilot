@@ -2,7 +2,8 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 
 // Load environment variables.
-// Fallback chain: .env (user/production overrides) > .env.dev (checked-in dev defaults).
+// Fallback chain: .env (user/production overrides) > .env.dev (local dev defaults, gitignored).
+// New devs: cp .env.dev.example .env.dev to get started.
 // dotenv v16+ processes the array in order; first file's values win for any given key.
 // Real environment variables (Docker, CI) always take precedence over file values.
 dotenv.config({ path: ['.env', '.env.dev'] });
@@ -16,7 +17,7 @@ const envSchema = z.object({
   // API
   API_PREFIX: z.string().default('/api/v1'),
 
-  // CORS
+  // CORS — comma-separated for multiple origins (e.g. "https://app.example.com,https://admin.example.com")
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
   // Rate Limiting
@@ -26,6 +27,8 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string(),
   DATABASE_SSL: z.string().transform(val => val === 'true').default('false'),
+  DATABASE_POOL_SIZE: z.string().transform(Number).default('10'),
+  DATABASE_POOL_TIMEOUT: z.string().transform(Number).default('10'),
 
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production security'),
@@ -65,7 +68,8 @@ const envSchema = z.object({
   // Security
   BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
-  SESSION_SECRET: z.string().optional(),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters').default('session-dev-secret-change-in-production-32c'),
+  CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters').default('csrf-dev-secret-change-in-production-32chars'),
 
   // Redis
   REDIS_MODE: z.enum(['standalone', 'cluster', 'sentinel']).default('standalone'),
@@ -128,6 +132,33 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
+/**
+ * Append Prisma connection pool parameters to a PostgreSQL DATABASE_URL.
+ * SQLite / file-based URLs are returned as-is (pool params don't apply).
+ */
+export function buildDatabaseUrl(
+  baseUrl: string,
+  poolSize: number,
+  poolTimeout: number,
+): string {
+  // Only apply pool params to PostgreSQL URLs
+  if (!baseUrl.startsWith('postgresql://') && !baseUrl.startsWith('postgres://')) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}connection_limit=${poolSize}&pool_timeout=${poolTimeout}`;
+}
+
+/**
+ * Parse CORS_ORIGIN into a single string or array of origins.
+ * Supports comma-separated values for multi-frontend deployments.
+ */
+export function parseCorsOrigin(raw: string): string | string[] {
+  const origins = raw.split(',').map(s => s.trim()).filter(Boolean);
+  return origins.length === 1 ? origins[0] : origins;
+}
+
 // Export configuration object
 export interface GitHubConfig {
   token?: string;
@@ -142,7 +173,7 @@ export interface Config {
     prefix: string;
   };
   cors: {
-    origin: string;
+    origin: string | string[];
   };
   rateLimit: {
     windowMs: number;
@@ -151,6 +182,8 @@ export interface Config {
   database: {
     url: string;
     ssl: boolean;
+    poolSize: number;
+    poolTimeout: number;
   };
   jwt: {
     secret: string;
@@ -186,7 +219,8 @@ export interface Config {
   security: {
     bcryptSaltRounds: number;
     secureCookie: boolean;
-    sessionSecret?: string;
+    sessionSecret: string;
+    csrfSecret: string;
   };
   redis: {
     mode: 'standalone' | 'cluster' | 'sentinel';
@@ -250,15 +284,17 @@ export const config: Config = {
     prefix: env.API_PREFIX,
   },
   cors: {
-    origin: env.CORS_ORIGIN,
+    origin: parseCorsOrigin(env.CORS_ORIGIN),
   },
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
   },
   database: {
-    url: env.DATABASE_URL,
+    url: buildDatabaseUrl(env.DATABASE_URL, env.DATABASE_POOL_SIZE, env.DATABASE_POOL_TIMEOUT),
     ssl: env.DATABASE_SSL,
+    poolSize: env.DATABASE_POOL_SIZE,
+    poolTimeout: env.DATABASE_POOL_TIMEOUT,
   },
   jwt: {
     secret: env.JWT_SECRET,
@@ -305,6 +341,7 @@ export const config: Config = {
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
     secureCookie: env.SECURE_COOKIE,
     sessionSecret: env.SESSION_SECRET,
+    csrfSecret: env.CSRF_SECRET,
   },
   redis: {
     mode: env.REDIS_MODE,

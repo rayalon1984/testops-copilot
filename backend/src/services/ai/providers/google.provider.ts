@@ -5,6 +5,7 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { logger } from '@/utils/logger';
 
 export class GoogleProvider extends BaseProvider {
   private client: GoogleGenerativeAI;
@@ -160,7 +161,7 @@ export class GoogleProvider extends BaseProvider {
       const response = await result.response;
       return response.text().length > 0;
     } catch (error) {
-      console.error(`Google health check failed:`, error);
+      logger.error(`[GoogleProvider] Health check failed:`, error);
       return false;
     }
   }

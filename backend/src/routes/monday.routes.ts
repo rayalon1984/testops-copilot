@@ -7,6 +7,12 @@
 import { Router, type Router as RouterType } from 'express';
 import { MondayController } from '../controllers/monday.controller';
 import { authenticate } from '../middleware/auth';
+import {
+  validateCreateMondayItem,
+  validateUpdateMondayItem,
+  validateCreateMondayUpdate,
+  validateMondayTestFailure,
+} from '../middleware/validation';
 
 const router: RouterType = Router();
 
@@ -20,14 +26,14 @@ router.get('/boards/:boardId/items', MondayController.getItems);
 router.get('/boards/:boardId/search', MondayController.searchItems);
 
 // Item routes
-router.post('/items', MondayController.createItem);
-router.put('/items/:itemId', MondayController.updateItem);
+router.post('/items', validateCreateMondayItem, MondayController.createItem);
+router.put('/items/:itemId', validateUpdateMondayItem, MondayController.updateItem);
 
 // Update (comment) routes
-router.post('/items/:itemId/updates', MondayController.createUpdate);
+router.post('/items/:itemId/updates', validateCreateMondayUpdate, MondayController.createUpdate);
 
 // Test failure integration
-router.post('/test-failures', MondayController.createItemFromTestFailure);
+router.post('/test-failures', validateMondayTestFailure, MondayController.createItemFromTestFailure);
 
 // Connection testing
 router.get('/test-connection', MondayController.testConnection);

@@ -61,3 +61,25 @@ export const formatDate = (date: Date): string => {
 export const calculateDuration = (startDate: Date, endDate: Date): number => {
   return endDate.getTime() - startDate.getTime();
 };
+
+/**
+ * Safely parse an integer from a string with bounds clamping.
+ * Returns the default value when the input is undefined, empty, or NaN.
+ * Clamps the result to [min, max] to prevent extreme values in DB queries.
+ *
+ * @param value  Raw string (typically from req.query)
+ * @param defaultVal  Fallback when value is missing or unparseable
+ * @param min  Lower bound (inclusive)
+ * @param max  Upper bound (inclusive)
+ */
+export const safeParseInt = (
+  value: string | undefined,
+  defaultVal: number,
+  min: number,
+  max: number,
+): number => {
+  if (value === undefined || value === '') return defaultVal;
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) return defaultVal;
+  return Math.max(min, Math.min(max, parsed));
+};

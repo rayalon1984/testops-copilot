@@ -70,7 +70,7 @@ router.post('/chat', validateChatMessage, async (req: Request, res: Response): P
 
     if (!res.writableEnded) res.end();
   } catch (error) {
-    console.error('Chat endpoint failed:', error);
+    logger.error('[AIChat] Chat endpoint failed:', error);
     if (!res.headersSent) {
       res.status(500).json({ error: 'Chat failed', message: error instanceof Error ? error.message : 'Unknown error' });
       return;

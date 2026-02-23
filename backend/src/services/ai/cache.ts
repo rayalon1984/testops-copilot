@@ -11,6 +11,7 @@ import * as crypto from 'crypto';
 import { redis } from '../../lib/redis';
 import { AIResponse, Embedding, LogSummary } from './types';
 import { getConfigManager } from './config';
+import { logger } from '@/utils/logger';
 
 export interface CacheConfig {
   enabled: boolean;
@@ -59,7 +60,7 @@ export class AICache {
         JSON.stringify(response)
       );
     } catch (error) {
-      console.error('Failed to cache response:', error);
+      logger.error('[AICache] Failed to cache response:', error);
     }
   }
 
@@ -86,7 +87,7 @@ export class AICache {
       this.stats.misses++;
       return null;
     } catch (error) {
-      console.error('Failed to get cached response:', error);
+      logger.error('[AICache] Failed to get cached response:', error);
       this.stats.misses++;
       return null;
     }
@@ -106,7 +107,7 @@ export class AICache {
         JSON.stringify(embedding)
       );
     } catch (error) {
-      console.error('Failed to cache embedding:', error);
+      logger.error('[AICache] Failed to cache embedding:', error);
     }
   }
 
@@ -131,7 +132,7 @@ export class AICache {
       this.stats.misses++;
       return null;
     } catch (error) {
-      console.error('Failed to get cached embedding:', error);
+      logger.error('[AICache] Failed to get cached embedding:', error);
       this.stats.misses++;
       return null;
     }
@@ -151,7 +152,7 @@ export class AICache {
         JSON.stringify(summary)
       );
     } catch (error) {
-      console.error('Failed to cache summary:', error);
+      logger.error('[AICache] Failed to cache summary:', error);
     }
   }
 
@@ -176,7 +177,7 @@ export class AICache {
       this.stats.misses++;
       return null;
     } catch (error) {
-      console.error('Failed to get cached summary:', error);
+      logger.error('[AICache] Failed to get cached summary:', error);
       this.stats.misses++;
       return null;
     }
@@ -194,7 +195,7 @@ export class AICache {
         await redis.del(...keys);
       }
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      logger.error('[AICache] Failed to clear cache:', error);
     }
   }
 

@@ -1,6 +1,7 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
@@ -8,6 +9,7 @@ import passport from 'passport';
 import { config } from './config';
 import './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
+import { doubleCsrfProtection, csrfTokenHandler } from './middleware/csrf';
 import { registerRoutes } from './routes';
 import { ApiError } from './types/error';
 import { asMiddleware } from './types/middleware';
@@ -18,6 +20,7 @@ declare global {
   namespace Express {
     interface Request {
       startTime?: number;
+      requestId?: string;
     }
   }
 }
@@ -75,30 +78,45 @@ app.use(asMiddleware(express.json({
 })));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
+app.use(asMiddleware(cookieParser()));
 
-
-// import { redis } from './lib/redis';
+import { redis } from './lib/redis';
 
 // Workaround for TS resolution issue with connect-redis v9 in CommonJS env
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const _RedisStore = require('connect-redis').RedisStore as unknown;
+const RedisStore = require('connect-redis').RedisStore;
 
-// Session configuration
-app.use(session({
-  // store: new RedisStore({ client: redis }), // Disabled for demo/simple mode without Docker
-  secret: config.security.sessionSecret || 'default_secret', // Should be in env
+// Session configuration — RedisStore for production, graceful fallback to MemoryStore
+const sessionConfig: session.SessionOptions = {
+  secret: config.security.sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: config.security.secureCookie,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+};
+
+// Use RedisStore when Redis is available (production); MemoryStore fallback for local dev
+if (redis.status === 'ready' || redis.status === 'connecting') {
+  sessionConfig.store = new RedisStore({ client: redis });
+}
+
+app.use(session(sessionConfig));
 
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF protection (double-submit cookie pattern)
+app.get('/api/v1/csrf-token', csrfTokenHandler);
+app.use(asMiddleware(doubleCsrfProtection));
+
+// Request ID / correlation ID (early — before timing and routes)
+import { requestIdMiddleware } from './middleware/requestId';
+app.use(requestIdMiddleware);
 
 // Request timing middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -110,13 +128,16 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 import { recordResponseTime } from './middleware/responseTime';
 app.use(recordResponseTime);
 
-// Health check endpoint (no sensitive system info)
+// Health check endpoints (no auth required)
+import { livenessCheck, readinessCheck } from './controllers/health.controller';
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString()
   });
 });
+app.get('/health/live', livenessCheck);
+app.get('/health/ready', readinessCheck);
 
 // Register API routes
 registerRoutes(app);

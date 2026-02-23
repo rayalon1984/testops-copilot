@@ -4,9 +4,11 @@
  */
 
 import { Request, Response } from 'express';
+import { logger } from '@/utils/logger';
 import { FailureArchiveService } from '../services/failure-archive.service';
 import { FailureStatus, FailureSeverity } from '../types/failure-archive';
 import { z } from 'zod';
+import { safeParseInt } from '@/utils/common';
 
 // Validation schemas
 const createFailureSchema = z.object({
@@ -90,7 +92,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error creating failure:', error);
+      logger.error('[FailureArchiveController] Error creating failure:', error);
       res.status(500).json({ error: 'Failed to create failure archive entry' });
     }
   }
@@ -120,7 +122,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error documenting RCA:', error);
+      logger.error('[FailureArchiveController] Error documenting RCA:', error);
       res.status(500).json({ error: 'Failed to document RCA' });
     }
   }
@@ -152,7 +154,7 @@ export class FailureArchiveController {
         similarFailures: similarFailures.filter(sf => sf.failure.id !== id)
       });
     } catch (error) {
-      console.error('Error fetching failure:', error);
+      logger.error('[FailureArchiveController] Error fetching failure:', error);
       res.status(500).json({ error: 'Failed to fetch failure' });
     }
   }
@@ -166,8 +168,8 @@ export class FailureArchiveController {
       const query = searchSchema.parse({
         ...req.query,
         tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+        limit: req.query.limit ? safeParseInt(req.query.limit as string, 50, 1, 500) : undefined,
+        offset: req.query.offset ? safeParseInt(req.query.offset as string, 0, 0, 100000) : undefined,
         isRecurring: req.query.isRecurring === 'true' ? true : req.query.isRecurring === 'false' ? false : undefined,
         isKnownIssue: req.query.isKnownIssue === 'true' ? true : req.query.isKnownIssue === 'false' ? false : undefined
       });
@@ -186,7 +188,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error searching failures:', error);
+      logger.error('[FailureArchiveController] Error searching failures:', error);
       res.status(500).json({ error: 'Failed to search failures' });
     }
   }
@@ -213,7 +215,7 @@ export class FailureArchiveController {
 
       res.json({ similarFailures });
     } catch (error) {
-      console.error('Error finding similar failures:', error);
+      logger.error('[FailureArchiveController] Error finding similar failures:', error);
       res.status(500).json({ error: 'Failed to find similar failures' });
     }
   }
@@ -224,12 +226,12 @@ export class FailureArchiveController {
    */
   static async getInsights(req: Request, res: Response): Promise<void> {
     try {
-      const days = req.query.days ? parseInt(req.query.days as string) : 30;
+      const days = safeParseInt(req.query.days as string | undefined, 30, 1, 365);
       const insights = await FailureArchiveService.getInsights(days);
 
       res.json(insights);
     } catch (error) {
-      console.error('Error getting insights:', error);
+      logger.error('[FailureArchiveController] Error getting insights:', error);
       res.status(500).json({ error: 'Failed to get insights' });
     }
   }
@@ -263,7 +265,7 @@ export class FailureArchiveController {
         message: 'Failure marked as resolved'
       });
     } catch (error) {
-      console.error('Error resolving failure:', error);
+      logger.error('[FailureArchiveController] Error resolving failure:', error);
       res.status(500).json({ error: 'Failed to resolve failure' });
     }
   }
@@ -298,8 +300,8 @@ export class FailureArchiveController {
   static async getComments(req: Request, res: Response): Promise<void> {
     try {
       const id = String(req.params.id);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const limit = safeParseInt(req.query.limit as string | undefined, 50, 1, 500);
+      const offset = safeParseInt(req.query.offset as string | undefined, 0, 0, 100000);
       const result = await FailureArchiveService.getComments(id, limit, offset);
       res.json({ success: true, data: result });
     } catch (error) {
@@ -324,7 +326,7 @@ export class FailureArchiveController {
   static async getActivityFeed(req: Request, res: Response): Promise<void> {
     try {
       const id = String(req.params.id);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
+      const limit = safeParseInt(req.query.limit as string | undefined, 30, 1, 500);
       const feed = await FailureArchiveService.getActivityFeed(id, limit);
       res.json({ success: true, data: feed });
     } catch (error) {

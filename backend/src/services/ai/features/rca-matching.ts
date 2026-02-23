@@ -9,6 +9,7 @@ import { BaseProvider } from '../providers/base.provider';
 import { WeaviateVectorClient } from '../vector/client';
 import { VectorSearch, SearchOptions } from '../vector/search';
 import { TestFailure, SimilarFailure, Embedding } from '../types';
+import { logger } from '@/utils/logger';
 
 export interface RCAMatchingOptions {
   /**
@@ -219,7 +220,7 @@ export class RCAMatchingService {
 
       return similarFailures;
     } catch (error) {
-      console.error('Failed to enhance with AI analysis:', error);
+      logger.error('[RCAMatching] Failed to enhance with AI analysis:', error);
       // Return original results if AI enhancement fails
       return similarFailures;
     }

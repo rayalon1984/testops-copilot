@@ -1,7 +1,17 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import Redis from 'ioredis';
+import { redis } from '../lib/redis';
 import { getAllCircuitBreakerStatuses, type CircuitBreakerStatus } from '../lib/resilience';
+
+/** Run a promise with a timeout; resolves to false on timeout */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_resolve, reject) =>
+      setTimeout(() => reject(new Error(`Health check timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
 
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -101,19 +111,10 @@ async function checkDatabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    const responseTime = Date.now() - startTime;
-
-    // Get database info
-    const userCount = await prisma.user.count();
-
+    await withTimeout(prisma.$queryRaw`SELECT 1`, 3000);
     return {
       status: 'up',
-      responseTime,
-      details: {
-        users: userCount,
-        provider: 'postgresql'
-      }
+      responseTime: Date.now() - startTime,
     };
   } catch (error: unknown) {
     return {
@@ -125,28 +126,21 @@ async function checkDatabase(): Promise<ServiceStatus> {
 }
 
 /**
- * Check Redis connectivity
+ * Check Redis connectivity using the shared singleton
  */
 async function checkRedis(): Promise<ServiceStatus | undefined> {
-  // Skip if Redis is not configured
-  if (!process.env.REDIS_URL) {
+  // Skip if Redis is not connected
+  if (redis.status !== 'ready') {
     return undefined;
   }
 
   const startTime = Date.now();
 
   try {
-    // const { default: Redis } = await import('ioredis');
-    const redis = new Redis(process.env.REDIS_URL as string);
-
-    await redis.ping();
-    const responseTime = Date.now() - startTime;
-
-    await redis.quit();
-
+    await withTimeout(redis.ping(), 3000);
     return {
       status: 'up',
-      responseTime
+      responseTime: Date.now() - startTime,
     };
   } catch (error: unknown) {
     return {
@@ -251,30 +245,45 @@ async function checkAI(): Promise<ServiceStatus | undefined> {
 }
 
 /**
- * Readiness check - are we ready to serve traffic?
+ * Readiness check — are we ready to serve traffic?
+ * Checks DB (required) and Redis (when enabled).
+ * Returns 200 OK or 503 Service Unavailable.
  */
-export async function readinessCheck(req: Request, res: Response): Promise<void> {
-  try {
-    // Must be able to connect to database
-    await prisma.$queryRaw`SELECT 1`;
+export async function readinessCheck(_req: Request, res: Response): Promise<void> {
+  const checks: Record<string, { status: string; error?: string }> = {};
+  let healthy = true;
 
-    res.status(200).json({
-      ready: true,
-      timestamp: new Date().toISOString()
-    });
+  // Database — always required
+  try {
+    await withTimeout(prisma.$queryRaw`SELECT 1`, 3000);
+    checks.database = { status: 'up' };
   } catch (error) {
-    res.status(503).json({
-      ready: false,
-      timestamp: new Date().toISOString(),
-      error: 'Database not ready'
-    });
+    checks.database = { status: 'down', error: error instanceof Error ? error.message : 'Unknown error' };
+    healthy = false;
   }
+
+  // Redis — only when connected
+  if (redis.status === 'ready') {
+    try {
+      await withTimeout(redis.ping(), 3000);
+      checks.redis = { status: 'up' };
+    } catch (error) {
+      checks.redis = { status: 'down', error: error instanceof Error ? error.message : 'Unknown error' };
+      healthy = false;
+    }
+  }
+
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    checks,
+  });
 }
 
 /**
  * Liveness check - is the application alive?
  */
-export async function livenessCheck(req: Request, res: Response): Promise<void> {
+export async function livenessCheck(_req: Request, res: Response): Promise<void> {
   // Simple check - if we can respond, we're alive
   res.status(200).json({
     alive: true,

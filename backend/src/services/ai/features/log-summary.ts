@@ -12,6 +12,7 @@
 import { BaseProvider } from '../providers/base.provider';
 import { LogSummary, ChatMessage } from '../types';
 import * as crypto from 'crypto';
+import { logger } from '@/utils/logger';
 
 export interface SummarizationOptions {
   /**
@@ -76,7 +77,7 @@ export class LogSummarizationService {
 
       return this.parseSummaryResponse(response.content);
     } catch (error) {
-      console.error('Log summarization failed:', error);
+      logger.error('[LogSummary] Log summarization failed:', error);
       return {
         summary: 'Failed to generate summary',
         rootCause: 'Unable to determine',
@@ -228,8 +229,8 @@ Focus on actionable insights. Be concise but precise.`;
 
       return summary;
     } catch (error) {
-      console.error('Failed to parse summary response:', error);
-      console.error('Response content:', content);
+      logger.error('[LogSummary] Failed to parse summary response:', error);
+      logger.error('[LogSummary] Response content:', content);
 
       // Try to extract basic info from text
       return {

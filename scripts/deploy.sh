@@ -91,11 +91,23 @@ check_ssl_certificates() {
     fi
 }
 
-# Function to run database migrations
+# Function to restore database from backup
+restore_database() {
+    local backup_file="$1"
+    echo -e "${YELLOW}Restoring database from backup: ${backup_file}${NC}"
+
+    docker-compose exec -T db psql -U postgres -d testops < "$backup_file"
+}
+
+# Function to run database migrations (with automatic rollback on failure)
 run_migrations() {
     echo -e "${YELLOW}Running database migrations...${NC}"
-    
-    docker-compose exec -T backend npm run migrate:deploy
+
+    if ! docker-compose exec -T backend npm run migrate:deploy; then
+        echo -e "${RED}Migration failed — restoring database from backup...${NC}"
+        restore_database "${BACKUP_DIR}/db_backup.sql"
+        handle_error "Database migration failed. Rolled back to pre-migration backup."
+    fi
 }
 
 # Function to perform health checks

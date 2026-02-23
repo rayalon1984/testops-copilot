@@ -5,6 +5,7 @@
  */
 
 import { WeaviateVectorClient } from './client';
+import { logger } from '@/utils/logger';
 
 /**
  * Schema for TestFailure class in Weaviate
@@ -199,7 +200,7 @@ export async function initializeSchemas(client: WeaviateVectorClient): Promise<v
     try {
       await client.createClass(schema.class, schema);
     } catch (error) {
-      console.error(`Failed to create schema for ${schema.class}:`, error);
+      logger.error(`[VectorSchema] Failed to create schema for ${schema.class}:`, error);
       throw error;
     }
   }
@@ -215,7 +216,7 @@ export async function deleteAllSchemas(client: WeaviateVectorClient): Promise<vo
     try {
       await client.deleteClass(schema.class);
     } catch (error) {
-      console.warn(`Failed to delete schema ${schema.class}:`, error);
+      logger.warn(`[VectorSchema] Failed to delete schema ${schema.class}:`, error);
     }
   }
 }

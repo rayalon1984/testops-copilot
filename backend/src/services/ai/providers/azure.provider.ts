@@ -6,6 +6,7 @@
 import { AzureOpenAI } from '@azure/openai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { logger } from '@/utils/logger';
 
 export interface AzureProviderConfig extends ProviderConfig {
   endpoint: string;
@@ -182,7 +183,7 @@ export class AzureProvider extends BaseProvider {
 
       return response.choices.length > 0;
     } catch (error) {
-      console.error(`Azure OpenAI health check failed:`, error);
+      logger.error(`[AzureProvider] Health check failed:`, error);
       return false;
     }
   }
