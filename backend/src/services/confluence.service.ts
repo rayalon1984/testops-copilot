@@ -87,6 +87,55 @@ export interface TestReportOptions {
   includeFailureDetails?: boolean;
 }
 
+/** Shape of a failure record passed to buildRCAContent */
+interface RCAFailureData {
+  testName: string;
+  occurredAt?: string | Date;
+  lastOccurrence?: string | Date;
+  severity: string | null;
+  status?: string;
+  errorMessage: string;
+  stackTrace?: string | null;
+  rootCause?: string | null;
+  detailedAnalysis?: string | null;
+  solution?: string | null;
+  preventionSteps?: string | null;
+  prevention?: string | null;
+  workaround?: string | null;
+  environment?: string | null;
+  buildNumber?: string | null;
+  branch?: string | null;
+  commitSha?: string | null;
+  isRecurring?: boolean;
+  occurrenceCount: number;
+  timeToResolve?: number | null;
+  jiraIssue?: { issueKey: string; summary: string };
+  tags?: string | string[] | null;
+  [key: string]: unknown;
+}
+
+/** Shape of a test case within a test run */
+interface TestRunCase {
+  status: string;
+  testName?: string;
+  name?: string | null;
+  error?: string | null;
+  message?: string | null;
+  duration?: number | null;
+}
+
+/** Shape of a test run passed to buildTestReportContent */
+interface TestRunReportData {
+  pipeline: { name: string };
+  createdAt: string | Date;
+  status: string;
+  branch?: string | null;
+  commit?: string | null;
+  duration?: number | null;
+  testResults?: TestRunCase[];
+  testCases?: TestRunCase[];
+}
+
 export class ConfluenceService {
   private client: AxiosInstance | null = null;
   private spaceKey: string = '';
@@ -598,14 +647,13 @@ export class ConfluenceService {
   /**
    * Build RCA document content in Confluence storage format
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildRCAContent(failure: any, linkToJira: boolean): string {
+  private buildRCAContent(failure: RCAFailureData, linkToJira: boolean): string {
     let html = `
 <h2>Root Cause Analysis</h2>
 <p><strong>Test:</strong> ${this.escapeHtml(failure.testName)}</p>
-<p><strong>Occurred At:</strong> ${new Date(failure.occurredAt).toLocaleString()}</p>
+<p><strong>Occurred At:</strong> ${new Date(failure.occurredAt || failure.lastOccurrence || Date.now()).toLocaleString()}</p>
 <p><strong>Severity:</strong> <ac:structured-macro ac:name="status" ac:schema-version="1">
-  <ac:parameter ac:name="colour">${this.getSeverityColor(failure.severity)}</ac:parameter>
+  <ac:parameter ac:name="colour">${this.getSeverityColor(failure.severity || 'unknown')}</ac:parameter>
   <ac:parameter ac:name="title">${failure.severity}</ac:parameter>
 </ac:structured-macro></p>
 <p><strong>Status:</strong> ${failure.status}</p>
@@ -627,7 +675,7 @@ export class ConfluenceService {
 
     html += `
 <h3>Root Cause</h3>
-<p>${this.escapeHtml(failure.rootCause)}</p>
+<p>${this.escapeHtml(failure.rootCause || '')}</p>
 `;
 
     if (failure.detailedAnalysis) {
@@ -681,10 +729,11 @@ export class ConfluenceService {
 `;
     }
 
-    if (failure.tags && failure.tags.length > 0) {
+    const tagList = Array.isArray(failure.tags) ? failure.tags : [];
+    if (tagList.length > 0) {
       html += `
 <h3>Tags</h3>
-<p>${failure.tags.map((tag: string) => `<ac:link><ri:page ri:content-title="${tag}"/></ac:link>`).join(', ')}</p>
+<p>${tagList.map((tag: string) => `<ac:link><ri:page ri:content-title="${tag}"/></ac:link>`).join(', ')}</p>
 `;
     }
 
@@ -697,10 +746,9 @@ export class ConfluenceService {
   /**
    * Build test report content
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private buildTestReportContent(testRun: any, includeFailureDetails: boolean): string {
+  private buildTestReportContent(testRun: TestRunReportData, includeFailureDetails: boolean): string {
     // Adapter for testResults vs testCases naming (Prisma model uses testResults)
-    const cases = testRun.testResults || testRun.testCases || [];
+    const cases: TestRunCase[] = testRun.testResults || testRun.testCases || [];
 
     const totalTests = cases.length;
     const passedTests = cases.filter((tc) => tc.status === 'PASSED').length;
@@ -742,7 +790,7 @@ ${testRun.duration ? `<p><strong>Duration:</strong> ${this.formatDuration(testRu
         .forEach((tc) => {
           html += `
   <tr>
-    <td>${this.escapeHtml(tc.testName || tc.name)}</td>
+    <td>${this.escapeHtml(tc.testName || tc.name || 'Unknown')}</td>
     <td>${this.escapeHtml(tc.error || tc.message || 'No error message')}</td>
     <td>${tc.duration ? `${tc.duration}ms` : 'N/A'}</td>
   </tr>
