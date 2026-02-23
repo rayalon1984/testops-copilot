@@ -1,6 +1,7 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
@@ -8,6 +9,7 @@ import passport from 'passport';
 import { config } from './config';
 import './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
+import { doubleCsrfProtection, csrfTokenHandler } from './middleware/csrf';
 import { registerRoutes } from './routes';
 import { ApiError } from './types/error';
 import { asMiddleware } from './types/middleware';
@@ -75,7 +77,7 @@ app.use(asMiddleware(express.json({
 })));
 app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
-
+app.use(asMiddleware(cookieParser()));
 
 // import { redis } from './lib/redis';
 
@@ -99,6 +101,10 @@ app.use(session({
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// CSRF protection (double-submit cookie pattern)
+app.get('/api/v1/csrf-token', csrfTokenHandler);
+app.use(asMiddleware(doubleCsrfProtection));
 
 // Request timing middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {

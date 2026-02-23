@@ -66,6 +66,7 @@ const envSchema = z.object({
   BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
   SESSION_SECRET: z.string().optional(),
+  CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters').default('csrf-dev-secret-change-in-production-32chars'),
 
   // Redis
   REDIS_MODE: z.enum(['standalone', 'cluster', 'sentinel']).default('standalone'),
@@ -187,6 +188,7 @@ export interface Config {
     bcryptSaltRounds: number;
     secureCookie: boolean;
     sessionSecret?: string;
+    csrfSecret: string;
   };
   redis: {
     mode: 'standalone' | 'cluster' | 'sentinel';
@@ -305,6 +307,7 @@ export const config: Config = {
     bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
     secureCookie: env.SECURE_COOKIE,
     sessionSecret: env.SESSION_SECRET,
+    csrfSecret: env.CSRF_SECRET,
   },
   redis: {
     mode: env.REDIS_MODE,
