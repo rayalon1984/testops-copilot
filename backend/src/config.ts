@@ -2,7 +2,8 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 
 // Load environment variables.
-// Fallback chain: .env (user/production overrides) > .env.dev (checked-in dev defaults).
+// Fallback chain: .env (user/production overrides) > .env.dev (local dev defaults, gitignored).
+// New devs: cp .env.dev.example .env.dev to get started.
 // dotenv v16+ processes the array in order; first file's values win for any given key.
 // Real environment variables (Docker, CI) always take precedence over file values.
 dotenv.config({ path: ['.env', '.env.dev'] });
