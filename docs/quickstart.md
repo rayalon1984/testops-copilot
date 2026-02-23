@@ -202,9 +202,66 @@ cd backend && npx prisma migrate reset --force
 
 ---
 
+## Mode Comparison
+
+| Feature | `dev:simple` (Demo) | `dev` (Development) |
+|---------|---------------------|---------------------|
+| **Setup Time** | 30 seconds | 5 minutes |
+| **Docker Required** | No | Yes |
+| **Database** | SQLite (file) | PostgreSQL (Docker) |
+| **Data** | 26,500+ seeded data points | Real data |
+| **Caching** | None | Redis |
+| **Vector Search** | Disabled | Weaviate |
+| **Best For** | Demos, UI dev, evaluation | Backend dev, integration testing |
+
+### Switching Between Modes
+
+**To Demo Mode:**
+```bash
+npm run dev:simple
+```
+
+**To Development Mode:**
+```bash
+npm run local:start   # Start Docker services
+npm run dev
+```
+
+> `dev:simple` automatically configures `.env` for SQLite. Back up `backend/.env` if you have custom settings before switching.
+
+---
+
+## Common Commands
+
+```bash
+# Development
+npm run dev              # Start frontend + backend
+npm run dev:backend      # Backend only
+npm run dev:frontend     # Frontend only
+
+# Docker services (Development Mode)
+npm run local:start      # Start PostgreSQL, Redis, Weaviate
+npm run local:stop       # Stop Docker services
+
+# Database
+cd backend
+npm run db:generate      # Generate Prisma client
+npm run db:migrate       # Run migrations
+npm run db:studio        # Open Prisma Studio (DB GUI)
+npm run db:reset         # Reset database
+
+# Testing & quality
+npm run test             # Run all tests
+npm run lint             # Lint code
+npm run typecheck        # Type check TypeScript
+npm run build            # Build for production
+```
+
+---
+
 ## Next Steps
 
-- [Development Modes](DEV_MODE.md) — Demo vs production mode details
+- [Development Guide](development.md) — Coding standards, testing, git workflow
 - [API Reference](api.md) — Full REST API documentation
 - [Architecture](architecture.md) — System design overview
 - [Lessons Learned](LESSONS_LEARNED.md) — Known pitfalls and prevention

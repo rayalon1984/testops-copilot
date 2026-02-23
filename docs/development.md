@@ -4,14 +4,9 @@
 
 This guide provides detailed information for developers working on the TestOps Companion project.
 
-## Development Environment Setup
+## Getting Started
 
-### Prerequisites
-- Node.js 18.x or higher
-- npm 9.x or higher
-- Docker and Docker Compose (recommended)
-- Git
-- VS Code (recommended)
+For installation and setup instructions, see the **[Quick Start Guide](quickstart.md)**.
 
 ### Recommended VS Code Extensions
 - ESLint
@@ -19,38 +14,7 @@ This guide provides detailed information for developers working on the TestOps C
 - Docker
 - GitLens
 - Jest Runner
-- Tailwind CSS IntelliSense
-- TypeScript Vue Plugin
 - Mermaid Preview
-
-### Initial Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/testops-companion.git
-cd testops-companion
-```
-
-2. Install dependencies:
-```bash
-npm run setup
-```
-
-3. Set up environment variables:
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-4. Start development servers:
-```bash
-# Start all services with Docker
-docker-compose up -d
-
-# Or start services individually
-npm run start:backend
-npm run start:frontend
-```
 
 ## Project Structure
 
