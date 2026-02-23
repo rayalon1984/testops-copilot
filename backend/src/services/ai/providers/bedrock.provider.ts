@@ -13,6 +13,7 @@ import {
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
 import { ToolParameter } from '../tools/types';
+import { logger } from '@/utils/logger';
 
 export interface BedrockProviderConfig extends ProviderConfig {
   region: string;
@@ -241,7 +242,7 @@ export class BedrockProvider extends BaseProvider {
       const body = JSON.parse(new TextDecoder().decode(response.body));
       return Array.isArray(body.content) && body.content.length > 0;
     } catch (error) {
-      console.error('Bedrock health check failed:', error);
+      logger.error('[BedrockProvider] Health check failed:', error);
       return false;
     }
   }

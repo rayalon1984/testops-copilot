@@ -12,6 +12,7 @@
 
 import { BaseProvider } from '../providers/base.provider';
 import { TestFailure, FailureCategory, FailureCategorization, ChatMessage } from '../types';
+import { logger } from '@/utils/logger';
 
 export interface CategorizationOptions {
   /**
@@ -69,7 +70,7 @@ export class CategorizationService {
 
       return this.parseCategorizationResponse(response.content);
     } catch (error) {
-      console.error('Categorization failed:', error);
+      logger.error('[Categorization] Categorization failed:', error);
       return {
         category: 'unknown',
         confidence: 0,
@@ -197,8 +198,8 @@ Respond ONLY in this exact JSON format:
         relatedIssues: Array.isArray(parsed.relatedIssues) ? parsed.relatedIssues : undefined,
       };
     } catch (error) {
-      console.error('Failed to parse categorization response:', error);
-      console.error('Response content:', content);
+      logger.error('[Categorization] Failed to parse categorization response:', error);
+      logger.error('[Categorization] Response content:', content);
 
       // Try to extract category from text if JSON parsing fails
       const categoryMatch = content.match(/category["\s:]+([a-z_]+)/i);

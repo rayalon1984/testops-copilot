@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { AIConfig, AIProviderName } from './types';
+import { logger } from '@/utils/logger';
 
 /**
  * Default AI configuration
@@ -94,7 +95,7 @@ export class AIConfigManager {
         const yamlData = yaml.load(fileContent) as Record<string, unknown>;
         fileConfig = this.parseYamlConfig((yamlData.ai || yamlData) as Record<string, unknown>);
       } catch (error) {
-        console.warn(`Failed to load AI config from ${this.configPath}:`, error);
+        logger.warn(`[AIConfig] Failed to load AI config from ${this.configPath}:`, error);
       }
     }
 

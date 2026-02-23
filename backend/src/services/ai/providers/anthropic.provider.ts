@@ -6,6 +6,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage, ToolCall } from '../types';
 import { ToolParameter } from '../tools/types';
+import { logger } from '@/utils/logger';
 
 /** Anthropic Messages API message format */
 interface AnthropicMessage {
@@ -215,7 +216,7 @@ export class AnthropicProvider extends BaseProvider {
 
       return response.content.length > 0;
     } catch (error) {
-      console.error(`Anthropic health check failed:`, error);
+      logger.error(`[AnthropicProvider] Health check failed:`, error);
       return false;
     }
   }

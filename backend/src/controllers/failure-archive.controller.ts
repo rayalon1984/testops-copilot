@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logger } from '@/utils/logger';
 import { FailureArchiveService } from '../services/failure-archive.service';
 import { FailureStatus, FailureSeverity } from '../types/failure-archive';
 import { z } from 'zod';
@@ -90,7 +91,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error creating failure:', error);
+      logger.error('[FailureArchiveController] Error creating failure:', error);
       res.status(500).json({ error: 'Failed to create failure archive entry' });
     }
   }
@@ -120,7 +121,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error documenting RCA:', error);
+      logger.error('[FailureArchiveController] Error documenting RCA:', error);
       res.status(500).json({ error: 'Failed to document RCA' });
     }
   }
@@ -152,7 +153,7 @@ export class FailureArchiveController {
         similarFailures: similarFailures.filter(sf => sf.failure.id !== id)
       });
     } catch (error) {
-      console.error('Error fetching failure:', error);
+      logger.error('[FailureArchiveController] Error fetching failure:', error);
       res.status(500).json({ error: 'Failed to fetch failure' });
     }
   }
@@ -186,7 +187,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      console.error('Error searching failures:', error);
+      logger.error('[FailureArchiveController] Error searching failures:', error);
       res.status(500).json({ error: 'Failed to search failures' });
     }
   }
@@ -213,7 +214,7 @@ export class FailureArchiveController {
 
       res.json({ similarFailures });
     } catch (error) {
-      console.error('Error finding similar failures:', error);
+      logger.error('[FailureArchiveController] Error finding similar failures:', error);
       res.status(500).json({ error: 'Failed to find similar failures' });
     }
   }
@@ -229,7 +230,7 @@ export class FailureArchiveController {
 
       res.json(insights);
     } catch (error) {
-      console.error('Error getting insights:', error);
+      logger.error('[FailureArchiveController] Error getting insights:', error);
       res.status(500).json({ error: 'Failed to get insights' });
     }
   }
@@ -263,7 +264,7 @@ export class FailureArchiveController {
         message: 'Failure marked as resolved'
       });
     } catch (error) {
-      console.error('Error resolving failure:', error);
+      logger.error('[FailureArchiveController] Error resolving failure:', error);
       res.status(500).json({ error: 'Failed to resolve failure' });
     }
   }

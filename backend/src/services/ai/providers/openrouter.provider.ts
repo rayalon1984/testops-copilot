@@ -14,6 +14,7 @@
 import OpenAI from 'openai';
 import { BaseProvider, CompletionOptions, EmbeddingOptions, ProviderConfig, ProviderLimits, ProviderPricing } from './base.provider';
 import { AIProviderName, AIResponse, ChatMessage } from '../types';
+import { logger } from '@/utils/logger';
 
 export interface OpenRouterProviderConfig extends ProviderConfig {
   /** Optional site URL sent as HTTP-Referer for OpenRouter analytics */
@@ -115,7 +116,7 @@ export class OpenRouterProvider extends BaseProvider {
       });
 
       if (!response.ok) {
-        console.warn(`OpenRouter models API returned ${response.status}`);
+        logger.warn(`[OpenRouterProvider] Models API returned ${response.status}`);
         return null;
       }
 
@@ -128,12 +129,12 @@ export class OpenRouterProvider extends BaseProvider {
         this.pricing = this.getPricing();
         this.limits = this.getLimits();
       } else {
-        console.warn(`Model '${this.config.model}' not found on OpenRouter`);
+        logger.warn(`[OpenRouterProvider] Model '${this.config.model}' not found on OpenRouter`);
       }
 
       return model || null;
     } catch (error) {
-      console.warn('Failed to fetch OpenRouter model info:', error);
+      logger.warn('[OpenRouterProvider] Failed to fetch model info:', error);
       return null;
     }
   }
@@ -216,7 +217,7 @@ export class OpenRouterProvider extends BaseProvider {
 
       return response.choices.length > 0;
     } catch (error) {
-      console.error(`OpenRouter health check failed:`, error);
+      logger.error(`[OpenRouterProvider] Health check failed:`, error);
       return false;
     }
   }

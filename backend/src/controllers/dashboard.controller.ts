@@ -6,6 +6,7 @@
  */
 
 import { Request, Response } from 'express';
+import { logger } from '@/utils/logger';
 import { dashboardService } from '../services/dashboard.service';
 
 export type { DashboardMetrics } from '../services/dashboard.service';
@@ -21,7 +22,7 @@ export class DashboardController {
         data: metrics,
       });
     } catch (error) {
-      console.error('Failed to fetch dashboard metrics:', error);
+      logger.error('[DashboardController] Failed to fetch dashboard metrics:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to fetch dashboard metrics',

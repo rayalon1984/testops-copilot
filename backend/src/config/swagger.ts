@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
+import { logger } from '@/utils/logger';
 
 /**
  * Load the OpenAPI spec from the canonical YAML source of truth.
@@ -16,7 +17,7 @@ function loadSpec(): Record<string, unknown> {
         const raw = fs.readFileSync(specPath, 'utf-8');
         return yaml.load(raw) as Record<string, unknown>;
     } catch {
-        console.warn('[Swagger] openapi.yaml not found — serving minimal spec');
+        logger.warn('[Swagger] openapi.yaml not found — serving minimal spec');
         return {
             openapi: '3.0.3',
             info: { title: 'TestOps Companion API', version: '1.0.0' },
