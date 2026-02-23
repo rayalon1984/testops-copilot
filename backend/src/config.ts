@@ -68,7 +68,7 @@ const envSchema = z.object({
   // Security
   BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
-  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters').default('session-dev-secret-change-in-production-32c'),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters').default('csrf-dev-secret-change-in-production-32chars'),
 
   // Redis

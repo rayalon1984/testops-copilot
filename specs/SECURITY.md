@@ -44,11 +44,10 @@ Refresh
 
 ### 1.3 Token Blacklist
 
-- **Storage**: In-memory `Map<string, number>` with TTL expiry
-- **Cleanup**: Every 15 minutes, purge expired entries
+- **Storage**: Redis SET with TTL (primary); in-memory `Map<string, number>` fallback when Redis unavailable
+- **Cleanup**: Redis TTL auto-expires; in-memory purge every 15 minutes
 - **Checked on**: Every authenticated request (before JWT verification)
-- **Limitation**: Single-instance only — not shared across horizontal replicas
-- **Production path**: Migrate to Redis SET with TTL
+- **Scaling**: Redis store shared across horizontal replicas
 
 ### 1.4 Password Requirements
 
@@ -111,9 +110,9 @@ All default Helmet protections enabled:
 
 ### 3.2 CORS
 
-- **Allowed origin**: `CORS_ORIGIN` env var (default: `http://localhost:5173`)
+- **Allowed origins**: `CORS_ORIGIN` env var — comma-separated for multiple origins (e.g. `https://app.example.com,https://admin.example.com`)
 - **Credentials**: Enabled (for cookie-based refresh tokens)
-- **Limitation**: Single origin; no multi-origin support yet
+- **Parsing**: `parseCorsOrigin()` splits, trims, and filters empty segments
 
 ### 3.3 Cookie Security
 
@@ -121,6 +120,23 @@ All default Helmet protections enabled:
 - `secure: true` — HTTPS only (production; controlled by `SECURE_COOKIE`)
 - `sameSite: strict` — CSRF protection
 - `maxAge: 7d` — Matches refresh token expiry
+
+### 3.4 CSRF Protection
+
+- **Library**: `csrf-csrf` (double-submit cookie pattern)
+- **Cookie**: `__csrf` (`httpOnly`, `sameSite: strict`, `secure` in production)
+- **Header**: `X-CSRF-Token` required on all state-changing requests (POST/PUT/DELETE)
+- **Config**: `CSRF_SECRET` env var (min 32 chars)
+- **Token endpoint**: `GET /api/v1/csrf-token` — returns fresh token
+- **Exemptions**: Webhook routes (`/api/v1/channels/*`) — these use their own signature verification (Slack HMAC, Teams JWT)
+- **Frontend**: Automatic token fetch + retry on 403/CSRF_INVALID via `frontend/src/api/client.ts`
+
+### 3.5 Session Security
+
+- **Store**: Redis (`connect-redis`) in production; MemoryStore fallback for local dev
+- **Secret**: `SESSION_SECRET` env var (**required**, min 32 chars, no default)
+- **Cookie**: `httpOnly`, `sameSite: strict`, `secure` in production, 24h max-age
+- **Scaling**: Redis store shared across horizontal replicas
 
 ---
 
@@ -163,7 +179,9 @@ Fields redacted from all error logs:
 
 ### 6.3 Audit Logging
 
-Every error logged with: URL, HTTP method, status code, message, timestamp.
+Every error logged with: **requestId**, URL, HTTP method, status code, message, timestamp.
+
+Request IDs are generated per-request via `requestIdMiddleware` (reads `X-Request-ID` header from upstream proxy or generates UUID v4). The ID is set on the response header and included in all error logs for correlation.
 
 ---
 
@@ -219,9 +237,12 @@ LLM proposes write tool → PendingAction created (DB) → SSE notification → 
 |-----|----------|--------|------------|
 | Token blacklist in-memory | Medium | **Resolved** | Migrated to Redis with TTL; in-memory fallback when Redis unavailable |
 | No SSRF validation on external URLs | Medium | **Resolved** | Shared `validateUrlForSSRF()` in `utils/ssrf-validator.ts`; applied to Jenkins, Confluence, TestRail, Monday.com |
-| Single CORS origin | Low | Known | Multi-origin config |
-| No 2FA | Medium | Planned v3.0 | TOTP / WebAuthn |
-| No secret rotation mechanism | Low | Planned | Add rotation API + expiry tracking |
+| No CSRF protection | High | **Resolved** | `csrf-csrf` double-submit cookie; see §3.4 |
+| Single CORS origin | Low | **Resolved** | Comma-separated `CORS_ORIGIN` support; see §3.2 |
+| Session store in-memory | Medium | **Resolved** | Redis session store (`connect-redis`); MemoryStore dev fallback; see §3.5 |
+| No request correlation | Medium | **Resolved** | `X-Request-ID` middleware; UUID v4; included in error logs |
+| No 2FA | Medium | Planned v3.1 | TOTP / WebAuthn |
+| No secret rotation mechanism | Low | Planned v3.1 | Add rotation API + expiry tracking |
 | No pre-commit secrets scanning | Low | Recommended | Add git-secrets or gitleaks hook |
 | `SECURE_COOKIE` defaults to false | Low | By design | Must set `true` in production env |
 

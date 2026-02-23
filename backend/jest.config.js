@@ -1,3 +1,16 @@
+// Provide required env vars for tests that import config.ts directly without mocking
+// (e.g. buildDatabaseUrl.test.ts, parseCorsOrigin.test.ts, monday-validation.test.ts)
+// These fallbacks are only used when env vars are not already set (e.g. from .env.dev).
+const testEnvDefaults = {
+  DATABASE_URL: 'file:./prisma/test.db',
+  JWT_SECRET: 'test-jwt-secret-must-be-at-least-32-characters-long',
+  JWT_REFRESH_SECRET: 'test-jwt-refresh-secret-must-be-at-least-32-chars',
+  SESSION_SECRET: 'test-session-secret-must-be-at-least-32-characters',
+};
+for (const [key, value] of Object.entries(testEnvDefaults)) {
+  process.env[key] = process.env[key] || value;
+}
+
 module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],

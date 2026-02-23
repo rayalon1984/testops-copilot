@@ -6,6 +6,49 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.0.0-rc.3] - 2026-02-23
+
+> **Security Hardening & Production Readiness Audit**
+
+### Highlights
+
+Full audit of unified remediation plan (Phase 1 + Phase 2). All 9 items verified, 3 gaps closed, specs updated, and 706 tests passing (571 backend + 135 frontend).
+
+### Security (Phase 1 — Release Blockers)
+
+- **SQL Injection Prevention** — `$queryRawUnsafe` replaced with `$queryRaw` + Prisma.sql tagged templates in prediction analysis (1.1)
+- **Secrets Hygiene** — `.env.dev` removed from git tracking; `.env.dev.example` with safe placeholders provided (1.2)
+- **CSRF Protection** — Double-submit cookie via `csrf-csrf`; `X-CSRF-Token` header on all state-changing requests; webhook routes exempted (1.3)
+- **Redis Session Store** — `connect-redis` enabled in production; MemoryStore fallback for dev; `SESSION_SECRET` now required with no default (1.4)
+
+### Hardening (Phase 2 — Critical Improvements)
+
+- **Structured Logging** — All `console.log/error/warn` replaced with winston logger (only `tracing.ts` exempted) (2.1)
+- **Input Validation** — Zod schemas on all Monday.com POST/PUT routes (2.2)
+- **Safe parseInt** — `safeParseInt()` utility with bounds clamping on all query param parsing (2.3)
+- **Request Correlation** — `X-Request-ID` middleware with UUID v4; propagated to response headers and error logs (2.4)
+- **Deep Health Checks** — `/health/ready` (DB + Redis), `/health/live` (liveness), `/health/full` (all services including Weaviate + AI) (2.5)
+
+### Infrastructure
+
+- Backend healthcheck added to `docker-compose.prod.yml` (points to `/health/ready`)
+- Test environment defaults in `jest.config.js` for isolated worktree runs
+
+### Specs Updated
+
+- `SECURITY.md` — Added CSRF protection (§3.4), session security (§3.5), request correlation (§6.3); updated token blacklist (§1.3), CORS multi-origin (§3.2), known gaps (§9)
+
+### Quality Gates
+
+| Gate | Status |
+|------|--------|
+| Tests | **706 passing** (38 backend suites + 13 frontend suites) |
+| TypeScript | Zero errors |
+| Build | All packages compile |
+| Lint | Clean |
+
+---
+
 ## [3.0.0-rc.2] - 2026-02-21
 
 > **Phase 4: Full Beta Coverage — 16 Features, 229 Assertions**
