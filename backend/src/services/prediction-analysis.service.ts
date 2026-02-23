@@ -5,6 +5,7 @@
  * Uses in-database aggregation + lightweight TypeScript statistics (no external ML libs).
  */
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import {
   TimeSeriesPoint,
@@ -38,32 +39,32 @@ export class PredictionAnalysisService {
     const days = params.days ?? 30;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    // Build WHERE clauses
-    const conditions: string[] = ['lastOccurrence >= ?'];
-    const values: unknown[] = [since.toISOString()];
+    // Conditional WHERE fragments using Prisma.sql (no string interpolation)
+    const testNameFilter = params.testName
+      ? Prisma.sql`AND testName = ${params.testName}`
+      : Prisma.empty;
+    const categoryFilter = params.category
+      ? Prisma.sql`AND category = ${params.category}`
+      : Prisma.empty;
 
-    if (params.testName) {
-      conditions.push('testName = ?');
-      values.push(params.testName);
-    }
-    if (params.category) {
-      conditions.push('category = ?');
-      values.push(params.category);
-    }
-
-    const where = conditions.join(' AND ');
-    const dateFn = params.groupBy === 'week'
-      ? "strftime('%Y-W%W', lastOccurrence)"   // SQLite week format
-      : "DATE(lastOccurrence)";
-
-    const rows = await prisma.$queryRawUnsafe<Array<{ date: string; count: bigint }>>(
-      `SELECT ${dateFn} as date, COUNT(*) as count
-       FROM FailureArchive
-       WHERE ${where}
-       GROUP BY date
-       ORDER BY date ASC`,
-      ...values,
-    );
+    // Two static queries — date function cannot be parameterized, so we branch
+    const rows = params.groupBy === 'week'
+      ? await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+          SELECT strftime('%Y-W%W', lastOccurrence) as date, COUNT(*) as count
+          FROM FailureArchive
+          WHERE lastOccurrence >= ${since.toISOString()}
+          ${testNameFilter}
+          ${categoryFilter}
+          GROUP BY date
+          ORDER BY date ASC`
+      : await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+          SELECT DATE(lastOccurrence) as date, COUNT(*) as count
+          FROM FailureArchive
+          WHERE lastOccurrence >= ${since.toISOString()}
+          ${testNameFilter}
+          ${categoryFilter}
+          GROUP BY date
+          ORDER BY date ASC`;
 
     return rows.map(r => ({
       date: r.date,
