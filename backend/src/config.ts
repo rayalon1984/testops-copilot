@@ -27,6 +27,8 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.string(),
   DATABASE_SSL: z.string().transform(val => val === 'true').default('false'),
+  DATABASE_POOL_SIZE: z.string().transform(Number).default('10'),
+  DATABASE_POOL_TIMEOUT: z.string().transform(Number).default('10'),
 
   // JWT
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production security'),
@@ -130,6 +132,24 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
+/**
+ * Append Prisma connection pool parameters to a PostgreSQL DATABASE_URL.
+ * SQLite / file-based URLs are returned as-is (pool params don't apply).
+ */
+export function buildDatabaseUrl(
+  baseUrl: string,
+  poolSize: number,
+  poolTimeout: number,
+): string {
+  // Only apply pool params to PostgreSQL URLs
+  if (!baseUrl.startsWith('postgresql://') && !baseUrl.startsWith('postgres://')) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}connection_limit=${poolSize}&pool_timeout=${poolTimeout}`;
+}
+
 // Export configuration object
 export interface GitHubConfig {
   token?: string;
@@ -153,6 +173,8 @@ export interface Config {
   database: {
     url: string;
     ssl: boolean;
+    poolSize: number;
+    poolTimeout: number;
   };
   jwt: {
     secret: string;
@@ -260,8 +282,10 @@ export const config: Config = {
     maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
   },
   database: {
-    url: env.DATABASE_URL,
+    url: buildDatabaseUrl(env.DATABASE_URL, env.DATABASE_POOL_SIZE, env.DATABASE_POOL_TIMEOUT),
     ssl: env.DATABASE_SSL,
+    poolSize: env.DATABASE_POOL_SIZE,
+    poolTimeout: env.DATABASE_POOL_TIMEOUT,
   },
   jwt: {
     secret: env.JWT_SECRET,
