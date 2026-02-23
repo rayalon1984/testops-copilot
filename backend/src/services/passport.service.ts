@@ -18,8 +18,7 @@ export class PassportService {
         }
 
         // Serialize user for the session
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        passport.serializeUser((user: any, done) => {
+        passport.serializeUser((user: Express.User, done) => {
             done(null, user.id);
         });
 
@@ -27,8 +26,7 @@ export class PassportService {
         passport.deserializeUser(async (id: string, done) => {
             try {
                 const user = await prisma.user.findUnique({ where: { id } });
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                done(null, user as any);
+                done(null, user as Express.User | null);
             } catch (error) {
                 done(error);
             }
