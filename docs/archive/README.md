@@ -1,99 +1,42 @@
-# AI Integration Specification
+# Archive
 
-**Status:** 📋 Approved - Ready for Implementation
-**Version:** 1.0
-**Last Updated:** 2025-11-20
-**Estimated Duration:** 12 weeks
+Superseded documents and completed plans. Kept for historical reference only.
 
----
+## Completed Plans (moved from `plans/`)
 
-## Overview
+| File | Date | Description |
+|------|------|-------------|
+| `sprint-0-report.md` | 2026-02-20 | Sprint 0 discovery report (v2.9.0-rc.2) |
+| `sprint-2-3-plan.md` | 2026-02-20 | Lint/warning cleanup plan |
+| `2026-02-19-chat-ux-overhaul-v3.md` | 2026-02-19 | Chat UX overhaul v3 plan |
+| `2026-02-21-beta-grooming-report.md` | 2026-02-21 | Beta go/no-go report |
+| `2026-02-21-living-feature-specs.md` | 2026-02-21 | Living feature specs architecture |
 
-This specification defines the integration of AI capabilities into TestOps Companion to provide intelligent failure analysis, automated categorization, and semantic search.
+## Pre-v3 Specifications (November 2025)
 
-## Key Features
+| File | Description |
+|------|-------------|
+| `AI_INTEGRATION_SPEC.md` | Original AI integration specification (v1.0) |
+| `PRD.md` | Original product requirements document |
+| `ARCHITECTURE.md` | Pre-v3 architecture document |
+| `API.md` | Pre-v3 API specification |
+| `IMPLEMENTATION_PLAN.md` | 12-week implementation roadmap |
+| `BETA.md` | Beta program planning |
 
-1. **Smart RCA Matching** - Semantic similarity search for historical failures
-2. **Automated Categorization** - AI-powered failure classification (Bug/Environment/Flaky)
-3. **Log Summarization** - Intelligent summarization of lengthy logs
-4. **Natural Language Queries** - Ask questions in plain English
-5. **Intelligent Ticket Creation** - Auto-generate comprehensive tickets
-6. **Multi-Provider Support** - Anthropic, OpenAI, Google, Azure
+## Historical Documents
 
-## Expected Impact
-
-- ⚡ **70%+ reduction** in failure resolution time
-- 🎯 **85%+ accuracy** in failure categorization
-- 💰 **~$5/user/month** cost (budget-friendly)
-- 🚀 **70%+ adoption** rate among beta users
-
----
-
-## Documents
-
-### [📋 PRD.md](PRD.md) - Product Requirements Document
-- User personas and use cases
-- Feature specifications
-- Success metrics
-- Cost model
-- Privacy considerations
-
-### [🏗️ ARCHITECTURE.md](ARCHITECTURE.md) - Technical Architecture
-- System design and components
-- Provider abstraction layer
-- Vector database integration
-- Cost tracking system
-- Security and data redaction
-- Performance targets
-
-### [🔌 API.md](API.md) - API Design & Interfaces
-- TypeScript interfaces
-- REST API endpoints
-- CLI commands
-- WebSocket events
-- Error codes
-
-### [📅 IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) - Implementation Roadmap
-- 12-week phased rollout
-- Directory structure
-- Code examples
-- Testing strategy
-- Deployment checklist
-
----
-
-## Quick Links
-
-- [View Full PRD](PRD.md)
-- [Architecture Diagram](ARCHITECTURE.md#architecture-overview)
-- [API Reference](API.md#rest-api-endpoints)
-- [Getting Started](IMPLEMENTATION_PLAN.md#phase-0-foundation--setup-week-1-2)
-
----
-
-## Implementation Status
-
-| Phase | Duration | Status | Description |
-|-------|----------|--------|-------------|
-| **Phase 0** | Week 1-2 | 🔜 Not Started | Foundation & Setup |
-| **Phase 1** | Week 3-5 | 🔜 Not Started | Smart RCA Matching |
-| **Phase 2** | Week 6-7 | 🔜 Not Started | Failure Categorization |
-| **Phase 3** | Week 8-9 | 🔜 Not Started | Log Summarization |
-| **Phase 4** | Week 10-12 | 🔜 Not Started | Advanced Features |
-
----
-
-## Next Steps
-
-1. **Review** specifications with team
-2. **Validate** with beta users
-3. **Start** Phase 0 implementation
-4. **Set up** development environment
-
----
-
-## Questions?
-
-For questions or feedback on this specification:
-- Open an issue with label `ai-integration`
-- Contact: [Your team contact info]
+| File | Description |
+|------|-------------|
+| `2026-02-19-chat-ux-overhaul-v2.md` | Chat UX overhaul v2 (superseded by v3) |
+| `DEPLOYMENT_COMPLETE.md` | Deployment completion report |
+| `INSTALLATION_FIXES_SUMMARY.md` | Installation fix summary |
+| `INSTALLATION_ISSUES_REPORT.md` | Installation issues report |
+| `MCP_SERVER_SUMMARY.md` | MCP server implementation summary |
+| `POSTMORTEM_SPRINT4_DEMO_MODE_FAILURE.md` | Sprint 4 postmortem |
+| `PRODUCTION_READINESS_ANALYSIS.md` | Production readiness assessment |
+| `RELEASE_NOTES_v2.5.6.md` | Release notes for v2.5.6 |
+| `RELEASE_NOTES_v2.6.0.md` | Release notes for v2.6.0 |
+| `SETUP_COMPLETE.md` | Setup completion report |
+| `CREATE_PR.md` | PR creation template |
+| `PR_DESCRIPTION.md` | PR description template |
+| `PR_DESCRIPTION_PACKAGE_LOCK.md` | Package lock PR description |

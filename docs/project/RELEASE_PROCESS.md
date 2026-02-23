@@ -11,7 +11,7 @@ TestOps Companion follows [Semantic Versioning](https://semver.org/):
 
 ## Current Version
 
-**Latest Release:** v2.5.0 (2025-11-16)
+**Latest Release:** v3.0.0 (2026-02-20)
 
 ## Release Checklist
 
@@ -202,9 +202,11 @@ Thanks to everyone who contributed to this release!
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 3.0.0 | 2026-02-20 | Graduated autonomy, global AI context, high-fidelity seeding |
+| 2.9.0 | 2026-02-19 | Agentic AI, ReAct loop, proactive suggestions |
+| 2.8.0 | 2026-02-15 | Cross-platform context enrichment |
 | 1.1.0 | 2025-11-16 | Grafana integration, Monday.com, Failure Knowledge Base |
 | 1.0.0 | 2024-12-01 | Initial stable release |
-| 0.4.5 | 2024-11-XX | Beta release |
 
 ## Automation
 
@@ -279,5 +281,5 @@ For questions about the release process:
 
 ---
 
-**Last Updated:** 2025-11-16
+**Last Updated:** 2026-02-23
 **Maintained by:** Rotem Ayalon

@@ -33,7 +33,6 @@
 | Database | `backend/prisma/` | Prisma schema and migrations |
 | Specs | `specs/` | Living specification documents (source of truth) |
 | Personas | `specs/team/` | 11 expert persona files for task routing |
-| Skills | `.cursor/skills/` | Reusable workflow templates |
 | Plans | `plans/` | Dated planning and decision documents |
 | Docs | `docs/` | Detailed reference documentation |
 | Tests | `tests/` + `backend/src/**/__tests__/` | E2E (Playwright), integration, unit (Jest/Vitest) |
@@ -250,7 +249,6 @@ When working on this repo, read documents in this priority:
 7. **specs/AI_TOOLS.md** — AI tool registry (for AI work)
 8. **specs/API_CONTRACT.md** — API specifications (for API work)
 9. **specs/SECURITY.md** — Security architecture (for auth/data work)
-10. **.cursor/skills/*.md** — Reusable workflow templates
 
 ---
 

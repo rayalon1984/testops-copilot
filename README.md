@@ -407,11 +407,11 @@ testops-companion/
 | Document | Description |
 |----------|-------------|
 | **[How Does It Work?](docs/HOW_DOES_IT_WORK.md)** | Plain-English guide to the platform |
-| **[Demo Guide](docs/DEMO.md)** | Visual guide with workflow diagrams |
 | **[Quick Start](docs/quickstart.md)** | Get running in 5 minutes |
+| **[Demo Guide](docs/DEMO.md)** | Visual guide with workflow diagrams |
 | **[API Reference](docs/api.md)** | Full REST API documentation |
 | **[Architecture](docs/architecture.md)** | System design and components |
-| **[Development Modes](docs/DEV_MODE.md)** | Demo vs production mode details |
+| **[Development Guide](docs/development.md)** | Coding standards, testing, git workflow |
 | **[Roadmap](specs/ROADMAP.md)** | What's shipped and what's next |
 | **[Changelog](CHANGELOG.md)** | Version history |
 | **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry and prevention checklist |

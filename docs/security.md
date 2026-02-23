@@ -1,5 +1,7 @@
 # Security Guide
 
+> **Canonical spec**: [`specs/SECURITY.md`](../specs/SECURITY.md) (v3.0.0) — auth, RBAC, transport, rate limiting, AI gates
+
 ## Overview
 
 This guide outlines security best practices and implementations for TestOps Companion.

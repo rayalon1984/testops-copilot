@@ -81,12 +81,14 @@ The setup script will:
 
 ```
 testops-companion/
-├── .github/          # GitHub specific files (workflows, templates)
-├── backend/         # Backend Node.js/Express application
-├── frontend/        # Frontend React application
-├── nginx/           # Nginx configuration files
-├── prometheus/      # Prometheus configuration
-├── scripts/         # Utility scripts
+├── .github/          # GitHub Actions workflows and templates
+├── backend/          # Backend Node.js/Express application
+├── frontend/         # Frontend React application
+├── mcp-server/       # MCP server for AI-powered test analysis
+├── infra/            # Infrastructure configs (nginx, prometheus, grafana)
+├── specs/            # Living specifications (source of truth)
+├── scripts/          # Utility scripts
+├── docs/             # Documentation
 └── docker-compose.yml
 ```
 
@@ -134,4 +136,4 @@ Feel free to open an issue with the tag `question` if you have any questions abo
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+By contributing, you agree that your contributions will be licensed under the Apache License 2.0.
