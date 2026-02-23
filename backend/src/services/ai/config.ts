@@ -421,7 +421,13 @@ export class AIConfigManager {
       this.config.contextWindow = { ...this.config.contextWindow, ...override.contextWindow };
     }
     if (override.localModel) {
-      this.config.localModel = { ...this.config.localModel, ...override.localModel };
+      // When base localModel is undefined, require a complete object to avoid
+      // partial config with missing required fields (provider, model)
+      if (this.config.localModel) {
+        this.config.localModel = { ...this.config.localModel, ...override.localModel };
+      } else {
+        this.config.localModel = override.localModel as AIConfig['localModel'];
+      }
     }
   }
 
@@ -440,7 +446,7 @@ export class AIConfigManager {
 
     if (this.config.enabled) {
       // Check provider is valid
-      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
+      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock'];
       if (!validProviders.includes(this.config.provider)) {
         errors.push(`Invalid provider: ${this.config.provider}`);
       }
@@ -470,6 +476,30 @@ export class AIConfigManager {
 
       if (this.config.rateLimit.perMinute > this.config.rateLimit.perDay) {
         errors.push('Rate limit per minute cannot exceed rate limit per day');
+      }
+
+      // Check context window settings if present
+      if (this.config.contextWindow) {
+        const cw = this.config.contextWindow;
+        if (cw.sizeOverride !== undefined && cw.sizeOverride <= 0) {
+          errors.push('Context window size override must be positive');
+        }
+        if (cw.maxToolResultTokens !== undefined && cw.maxToolResultTokens <= 0) {
+          errors.push('maxToolResultTokens must be positive');
+        }
+        if (cw.maxTotalToolResultTokens !== undefined && cw.maxTotalToolResultTokens <= 0) {
+          errors.push('maxTotalToolResultTokens must be positive');
+        }
+      }
+
+      // Check local model settings if present
+      if (this.config.localModel?.enabled) {
+        if (!this.config.localModel.model) {
+          errors.push('Local model must specify a model ID when enabled');
+        }
+        if (!validProviders.includes(this.config.localModel.provider)) {
+          errors.push(`Invalid local model provider: ${this.config.localModel.provider}`);
+        }
       }
     }
 

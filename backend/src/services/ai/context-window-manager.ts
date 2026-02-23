@@ -99,8 +99,11 @@ export class ContextWindowManager {
       return { messages: [], tracker };
     }
 
-    // 1. Account for system prompt
-    const systemMessage = messages[0]?.role === 'system' ? messages[0] : null;
+    // 1. Clone messages to avoid mutating the caller's array
+    const cloned = messages.map(m => ({ ...m }));
+
+    // 2. Account for system prompt
+    const systemMessage = cloned[0]?.role === 'system' ? cloned[0] : null;
     if (systemMessage) {
       const systemTokens = estimateMessageTokens(systemMessage);
 
@@ -120,9 +123,10 @@ export class ContextWindowManager {
       }
     }
 
-    // 2. Account for the user's latest message
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === 'user') {
+    // 3. Account for the user's latest message (if last message is user role)
+    const lastMessage = cloned[cloned.length - 1];
+    const lastIsUser = lastMessage?.role === 'user';
+    if (lastIsUser) {
       const userTokens = estimateMessageTokens(lastMessage);
       if (userTokens > this.budgetConfig.maxUserMessageTokens) {
         lastMessage.content = truncateToTokenBudget(
@@ -136,26 +140,22 @@ export class ContextWindowManager {
       }
     }
 
-    // 3. Prune history (everything between system prompt and latest user message)
+    // 4. Prune history (everything between system prompt and latest user message)
     const historyBudget = tracker.availableForHistory();
     const historyStart = systemMessage ? 1 : 0;
-    const historyEnd = lastMessage?.role === 'user' ? messages.length - 1 : messages.length;
-    const historyMessages = messages.slice(historyStart, historyEnd);
+    // If the last message is a user message, exclude it from history (it's appended separately)
+    const historyEnd = lastIsUser ? cloned.length - 1 : cloned.length;
+    const historyMessages = cloned.slice(historyStart, historyEnd);
 
     const prunedHistory = pruneHistory(historyMessages, historyBudget);
     tracker.recordHistory(estimateConversationTokens(prunedHistory));
 
-    // 4. Reassemble messages
+    // 5. Reassemble messages
     const prepared: ChatMessage[] = [];
     if (systemMessage) prepared.push(systemMessage);
     prepared.push(...prunedHistory);
-    if (lastMessage?.role === 'user' && historyEnd < messages.length) {
+    if (lastIsUser) {
       prepared.push(lastMessage);
-    } else if (lastMessage?.role === 'user' && historyEnd === messages.length) {
-      // lastMessage was already the last one, add it if not in prunedHistory
-      if (!prunedHistory.includes(lastMessage)) {
-        prepared.push(lastMessage);
-      }
     }
 
     tracker.logState('prepared');
@@ -176,12 +176,15 @@ export class ContextWindowManager {
     const maxTokens = tracker.availableForNextToolResult();
 
     if (maxTokens <= 0) {
+      const placeholder = '[Tool result omitted — token budget exceeded]';
       logger.warn('[ContextWindowManager] Tool result budget exhausted, returning placeholder');
-      tracker.recordToolResult(estimateTokenCount('[Tool result omitted — token budget exceeded]'));
-      return '[Tool result omitted — token budget exceeded]';
+      tracker.recordToolResult(estimateTokenCount(placeholder));
+      return placeholder;
     }
 
-    const truncated = truncateToolResult(data, maxTokens);
+    // Guard against undefined/null data (when both toolResult.data and .error are nullish)
+    const safeData = data ?? '[No data returned]';
+    const truncated = truncateToolResult(safeData, maxTokens);
     const actualTokens = estimateTokenCount(truncated);
     tracker.recordToolResult(actualTokens);
 

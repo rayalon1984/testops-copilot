@@ -220,15 +220,17 @@ export function resolveModelProfile(
   provider: AIProviderName,
   contextWindow?: number
 ): ModelProfile {
-  // Check known models first
+  // Check known models first (exact match)
   const known = KNOWN_MODELS.find(m => m.modelId === modelId);
   if (known) return known;
 
-  // Partial match (model ID might include version suffix)
-  const partial = KNOWN_MODELS.find(m =>
-    modelId.startsWith(m.modelId) || m.modelId.startsWith(modelId)
+  // Prefix match: the caller's model ID starts with a known model ID
+  // (handles version suffixes like 'claude-opus-4-6-20250601')
+  // Requires the known ID to be a substantial prefix (>10 chars) to avoid false positives.
+  const prefixMatch = KNOWN_MODELS.find(m =>
+    m.modelId.length >= 10 && modelId.startsWith(m.modelId)
   );
-  if (partial) return { ...partial, modelId };
+  if (prefixMatch) return { ...prefixMatch, modelId, provider };
 
   // Heuristic: infer tier from model name patterns
   const tier = inferTierFromModelId(modelId, provider);
@@ -252,39 +254,55 @@ export function resolveModelProfile(
 
 /**
  * Infer tier from model ID string patterns.
+ *
+ * Uses delimiter-aware matching to avoid substring collisions:
+ * e.g. '3b' must not match inside '13b'. We check that the size marker
+ * is preceded by a non-alphanumeric character (or start of string).
  */
 function inferTierFromModelId(modelId: string, provider: AIProviderName): ModelTier {
   const lower = modelId.toLowerCase();
 
-  // Small model signals
-  if (
-    lower.includes('3b') || lower.includes('7b') || lower.includes('8b') ||
-    lower.includes('mini') || lower.includes('tiny') || lower.includes('nano') ||
-    lower.includes('phi-3') || lower.includes('gemma-2')
-  ) {
-    return 'small';
+  // Helper: check if a size marker appears as a distinct token in the model ID
+  // (preceded by a delimiter like '-', '_', '/', or start of string)
+  function hasSizeMarker(marker: string): boolean {
+    const idx = lower.indexOf(marker);
+    if (idx < 0) return false;
+    if (idx === 0) return true;
+    const prev = lower[idx - 1];
+    return prev === '-' || prev === '_' || prev === '/' || prev === '.';
   }
 
-  // Medium model signals
+  // Frontier providers default to large (check before size heuristics —
+  // 'gpt-4.1-mini' should still be large-tier since it's a frontier model)
+  if (provider === 'anthropic' || provider === 'openai' || provider === 'google') {
+    return 'large';
+  }
+  if (provider === 'azure' || provider === 'bedrock') {
+    return 'large';
+  }
+
+  // Medium model signals (check BEFORE small to prevent '13b' matching '3b')
   if (
-    lower.includes('13b') || lower.includes('14b') || lower.includes('22b') ||
-    lower.includes('34b') || lower.includes('70b') || lower.includes('mixtral') ||
+    hasSizeMarker('13b') || hasSizeMarker('14b') || hasSizeMarker('22b') ||
+    hasSizeMarker('32b') || hasSizeMarker('34b') || hasSizeMarker('70b') ||
+    hasSizeMarker('72b') || hasSizeMarker('405b') ||
+    lower.includes('mixtral') ||
     lower.includes('mistral-small') || lower.includes('mistral-medium')
   ) {
     return 'medium';
   }
 
-  // Frontier providers default to large
-  if (provider === 'anthropic' || provider === 'openai' || provider === 'google') {
-    return 'large';
+  // Small model signals
+  if (
+    hasSizeMarker('3b') || hasSizeMarker('7b') || hasSizeMarker('8b') ||
+    hasSizeMarker('9b') || hasSizeMarker('12b') ||
+    lower.includes('tiny') || lower.includes('nano') ||
+    lower.includes('phi-3') || lower.includes('gemma-2')
+  ) {
+    return 'small';
   }
 
-  // Azure and Bedrock typically host large models
-  if (provider === 'azure' || provider === 'bedrock') {
-    return 'large';
-  }
-
-  // OpenRouter default to medium (could be anything)
+  // OpenRouter / unknown provider: default to medium (could be anything)
   return 'medium';
 }
 

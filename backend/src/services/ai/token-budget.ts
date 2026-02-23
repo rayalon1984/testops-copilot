@@ -55,18 +55,29 @@ export const MEDIUM_MODEL_BUDGET: TokenBudgetConfig = {
   maxUserMessageTokens: 2000,
 };
 
-/** Budget for small models (4k-8k context, e.g. Llama 3B, Mistral 7B) */
+/**
+ * Budget for small models (4k-8k context, e.g. Llama 3B, Mistral 7B).
+ * Available input = 8000 - 1024 = 6976 tokens.
+ * Component sum = 1000 + 1800 + 2800 + 800 = 6400 (fits within 6976).
+ */
 export const SMALL_MODEL_BUDGET: TokenBudgetConfig = {
   contextWindowSize: 8000,
   reservedForOutput: 1024,
-  maxSystemPromptTokens: 1200,
-  maxHistoryTokens: 2000,
-  maxToolResultTokens: 1500,
-  maxTotalToolResultTokens: 3000,
-  maxUserMessageTokens: 1000,
+  maxSystemPromptTokens: 1000,
+  maxHistoryTokens: 1800,
+  maxToolResultTokens: 1200,
+  maxTotalToolResultTokens: 2800,
+  maxUserMessageTokens: 800,
 };
 
 // ── Token Estimation ────────────────────────────────────────────────────
+
+/**
+ * Characters-per-token ratio for the heuristic estimator.
+ * ~4 for English prose, ~3.5 for code-heavy content.
+ * 3.8 is a safe middle ground that slightly over-estimates.
+ */
+const CHARS_PER_TOKEN = 3.8;
 
 /**
  * Estimate the token count for a text string.
@@ -76,9 +87,7 @@ export const SMALL_MODEL_BUDGET: TokenBudgetConfig = {
  */
 export function estimateTokenCount(text: string): number {
   if (!text) return 0;
-  // ~4 characters per token for English prose, ~3.5 for code-heavy content.
-  // We use 3.8 as a safe middle ground that slightly over-estimates.
-  return Math.ceil(text.length / 3.8);
+  return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
 
 /**
@@ -139,7 +148,7 @@ export function truncateToTokenBudget(
   if (currentTokens <= maxTokens) return text;
 
   // Convert token budget to approximate character limit
-  const maxChars = Math.floor(maxTokens * 3.8);
+  const maxChars = Math.floor(maxTokens * CHARS_PER_TOKEN);
   const marker = '\n\n... [truncated — content exceeded token budget] ...';
   const markerLen = marker.length;
   const usableChars = maxChars - markerLen;
@@ -220,9 +229,19 @@ export function truncateToolResult(
   data: unknown,
   maxTokens: number
 ): string {
-  const serialized = typeof data === 'string' ? data : JSON.stringify(data, null, 0);
-  const currentTokens = estimateTokenCount(serialized);
+  // Safely serialize — catch circular references
+  let serialized: string;
+  if (typeof data === 'string') {
+    serialized = data;
+  } else {
+    try {
+      serialized = JSON.stringify(data);
+    } catch {
+      serialized = String(data);
+    }
+  }
 
+  const currentTokens = estimateTokenCount(serialized);
   if (currentTokens <= maxTokens) return serialized;
 
   // For JSON objects/arrays, try to preserve structure but trim values
@@ -239,7 +258,7 @@ export function truncateToolResult(
  * Keeps keys and short values, truncates long string values and arrays.
  */
 function truncateJsonStructure(data: unknown, maxTokens: number): string {
-  const maxChars = Math.floor(maxTokens * 3.8);
+  const maxChars = Math.floor(maxTokens * CHARS_PER_TOKEN);
 
   function truncateValue(value: unknown, budget: number): unknown {
     if (value === null || value === undefined) return value;
@@ -350,6 +369,15 @@ export class TokenBudgetTracker {
   /** Record user message token usage */
   recordUserMessage(tokens: number): void {
     this.usage.userMessage = tokens;
+  }
+
+  /**
+   * Record tokens added during the ReAct loop (assistant responses,
+   * synthetic user messages, error tool messages) that aren't covered
+   * by the specific component recorders above.
+   */
+  recordLoopOverhead(tokens: number): void {
+    this.usage.history += tokens;
   }
 
   /**
