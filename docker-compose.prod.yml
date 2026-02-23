@@ -29,6 +29,12 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testops}
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=info
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3000/health/ready || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy

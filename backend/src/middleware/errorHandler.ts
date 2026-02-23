@@ -51,6 +51,7 @@ export const errorHandler = (
   };
 
   logger.error('API Error:', {
+    requestId: req.requestId,
     url: req.url,
     method: req.method,
     statusCode: err.statusCode,
