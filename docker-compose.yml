@@ -54,7 +54,7 @@ services:
       - testops-network
 
   adminer:
-    image: adminer
+    image: adminer:4.8.1
     ports:
       - "8080:8080"
     depends_on:
@@ -72,7 +72,7 @@ services:
       - testops-network
 
   weaviate:
-    image: semitechnologies/weaviate:latest
+    image: semitechnologies/weaviate:1.35.10
     ports:
       - "8081:8080"  # Using 8081 as 8080 is taken by adminer
     environment:
