@@ -65,7 +65,7 @@ const envSchema = z.object({
   // Security
   BCRYPT_SALT_ROUNDS: z.string().transform(Number).default('12'),
   SECURE_COOKIE: z.string().transform(val => val === 'true').default('false'),
-  SESSION_SECRET: z.string().optional(),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters').default('session-dev-secret-change-in-production-32c'),
 
   // Redis
   REDIS_MODE: z.enum(['standalone', 'cluster', 'sentinel']).default('standalone'),
@@ -186,7 +186,7 @@ export interface Config {
   security: {
     bcryptSaltRounds: number;
     secureCookie: boolean;
-    sessionSecret?: string;
+    sessionSecret: string;
   };
   redis: {
     mode: 'standalone' | 'cluster' | 'sentinel';

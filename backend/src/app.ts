@@ -77,24 +77,31 @@ app.use(asMiddleware(express.urlencoded({ extended: true, limit: '1mb' })));
 app.use(asMiddleware(compression()));
 
 
-// import { redis } from './lib/redis';
+import { redis } from './lib/redis';
 
 // Workaround for TS resolution issue with connect-redis v9 in CommonJS env
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const _RedisStore = require('connect-redis').RedisStore as unknown;
+const RedisStore = require('connect-redis').RedisStore;
 
-// Session configuration
-app.use(session({
-  // store: new RedisStore({ client: redis }), // Disabled for demo/simple mode without Docker
-  secret: config.security.sessionSecret || 'default_secret', // Should be in env
+// Session configuration — RedisStore for production, graceful fallback to MemoryStore
+const sessionConfig: session.SessionOptions = {
+  secret: config.security.sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: config.security.secureCookie,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+    sameSite: 'strict',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+};
+
+// Use RedisStore when Redis is available (production); MemoryStore fallback for local dev
+if (redis.status === 'ready' || redis.status === 'connecting') {
+  sessionConfig.store = new RedisStore({ client: redis });
+}
+
+app.use(session(sessionConfig));
 
 // Initialize Passport
 app.use(passport.initialize());
