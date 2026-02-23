@@ -11,6 +11,7 @@ import {
   UpdateMondayItemInput,
   MondayTestFailureInput,
 } from '../types/monday';
+import { safeParseInt } from '@/utils/common';
 
 export class MondayController {
   /**
@@ -63,7 +64,7 @@ export class MondayController {
   static async getItems(req: Request, res: Response): Promise<void> {
     try {
       const boardId = req.params.boardId as string;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 25;
+      const limit = safeParseInt(req.query.limit as string | undefined, 25, 1, 500);
 
       const mondayService = getMondayService();
       const items = await mondayService.getItems(boardId, limit);
