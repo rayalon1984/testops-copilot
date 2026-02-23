@@ -20,6 +20,7 @@ declare global {
   namespace Express {
     interface Request {
       startTime?: number;
+      requestId?: string;
     }
   }
 }
@@ -112,6 +113,10 @@ app.use(passport.session());
 // CSRF protection (double-submit cookie pattern)
 app.get('/api/v1/csrf-token', csrfTokenHandler);
 app.use(asMiddleware(doubleCsrfProtection));
+
+// Request ID / correlation ID (early — before timing and routes)
+import { requestIdMiddleware } from './middleware/requestId';
+app.use(requestIdMiddleware);
 
 // Request timing middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
