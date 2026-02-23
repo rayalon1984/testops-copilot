@@ -21,6 +21,8 @@ import { routeToPersona, PersonaSelection } from './PersonaRouter';
 import { getPersonaInstruction } from './PersonaInstructions';
 import { classifyTool, type AutonomyLevel } from './AutonomyClassifier';
 import { evaluateSuggestion } from './ProactiveSuggestionEngine';
+import { ContextWindowManager } from './context-window-manager';
+import { TokenBudgetTracker } from './token-budget';
 import { logger } from '@/utils/logger';
 
 /** Chunk size for token-by-token answer streaming (characters) */
@@ -193,24 +195,34 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         sessionId: req.sessionId || 'anonymous',
     };
 
+    // Initialize context window manager for token budgeting
+    const configManager = getConfigManager();
+    const ctxManager = new ContextWindowManager({
+        modelId: configManager.getModel(),
+        provider: configManager.getProvider(),
+    });
+
     // Build conversation history, injecting UI context when available
     const userContent = req.uiContext
         ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
         : req.message;
 
-    const messages: ChatMessage[] = [
+    const rawMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
         { role: 'user', content: userContent },
     ];
 
+    // Apply token budgeting — prune history and track usage
+    const { messages, tracker } = ctxManager.prepareMessages(rawMessages);
+
     let toolCallCount = 0;
     const collectedResults: { name: string; result: ToolResult }[] = [];
 
-    // Get tool definitions for native tool calling
+    // Get tool definitions for native tool calling (skip for models that don't support it)
+    const useNativeTools = ctxManager.supportsNativeToolCalling();
     const toolDefinitions = toolRegistry.getToolDefinitions();
-    logger.info(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
-    console.log(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
+    logger.info(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}, native: ${useNativeTools}`);
 
     // ReAct Loop
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
@@ -220,10 +232,11 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         let aiResponse;
         try {
             // Use the provider via the internal chat method, passing tools
+            const maxOutputTokens = ctxManager.getMaxOutputTokens(2048);
             aiResponse = await aiManager.getProvider()!.chat(messages, {
-                maxTokens: 2048,
+                maxTokens: maxOutputTokens,
                 temperature: 0.3,
-                tools: toolDefinitions // Native tool definitions
+                tools: useNativeTools ? toolDefinitions : undefined,
             });
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'LLM call failed';
@@ -455,12 +468,16 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 logger.info(`[AIChatService] Proactive suggestion: ${suggestion.tool} (confidence: ${suggestion.confidence})`);
             }
 
-            // Feed result back
+            // Feed result back — truncate to token budget
+            const resultContent = ctxManager.truncateToolResultForBudget(
+                toolResult.data ?? toolResult.error,
+                tracker
+            );
             messages.push({
                 role: 'tool',
                 toolCallId: toolCall.id,
                 name: tool.name,
-                content: JSON.stringify(toolResult.data ?? toolResult.error)
+                content: resultContent,
             });
         }
     }
@@ -516,28 +533,40 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
         sessionId: req.sessionId || 'anonymous',
     };
 
+    // Initialize context window manager for token budgeting
+    const bufferedConfigManager = getConfigManager();
+    const ctxManagerBuffered = new ContextWindowManager({
+        modelId: bufferedConfigManager.getModel(),
+        provider: bufferedConfigManager.getProvider(),
+    });
+
     const bufferedUserContent = req.uiContext
         ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
         : req.message;
 
-    const messages: ChatMessage[] = [
+    const rawBufferedMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
         { role: 'user', content: bufferedUserContent },
     ];
 
+    // Apply token budgeting
+    const { messages, tracker: bufferedTracker } = ctxManagerBuffered.prepareMessages(rawBufferedMessages);
+
     const collectedToolCalls: BufferedChatResponse['toolCalls'] = [];
     let toolCallCount = 0;
+    const useNativeToolsBuffered = ctxManagerBuffered.supportsNativeToolCalling();
     const toolDefinitions = toolRegistry.getToolDefinitions();
 
     // ReAct Loop (same logic as streaming, but collects results)
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
         let aiResponse;
         try {
+            const maxOutputTokensBuffered = ctxManagerBuffered.getMaxOutputTokens(2048);
             aiResponse = await aiManager.getProvider()!.chat(messages, {
-                maxTokens: 2048,
+                maxTokens: maxOutputTokensBuffered,
                 temperature: 0.3,
-                tools: toolDefinitions,
+                tools: useNativeToolsBuffered ? toolDefinitions : undefined,
             });
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'LLM call failed';
@@ -635,11 +664,16 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
                 data: toolResult.data,
             });
 
+            // Truncate tool result to token budget
+            const bufferedResultContent = ctxManagerBuffered.truncateToolResultForBudget(
+                toolResult.data ?? toolResult.error,
+                bufferedTracker
+            );
             messages.push({
                 role: 'tool',
                 toolCallId: toolCall.id,
                 name: tool.name,
-                content: JSON.stringify(toolResult.data ?? toolResult.error),
+                content: bufferedResultContent,
             });
         }
     }

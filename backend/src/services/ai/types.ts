@@ -66,6 +66,35 @@ export interface AIConfig {
     timeoutMs: number;
   };
 
+  /**
+   * Context window management settings.
+   * Controls token budgeting to prevent context overflow.
+   */
+  contextWindow?: {
+    /** Override the model's context window size (auto-detected if omitted) */
+    sizeOverride?: number;
+    /** Maximum tokens for a single tool result (default: auto per model tier) */
+    maxToolResultTokens?: number;
+    /** Maximum total tokens for all tool results (default: auto per model tier) */
+    maxTotalToolResultTokens?: number;
+  };
+
+  /**
+   * Small model / on-prem configuration.
+   * When set, basic features (categorization, flaky detection) use this model
+   * instead of the primary model, enabling on-prem analysis without cloud calls.
+   */
+  localModel?: {
+    /** Enable local model routing for basic features */
+    enabled: boolean;
+    /** Provider for the local model (typically 'openrouter' pointed at a local endpoint) */
+    provider: AIProviderName;
+    /** Model ID (e.g. 'meta-llama/llama-3.2-3b-instruct') */
+    model: string;
+    /** Optional: override the base URL for self-hosted inference */
+    baseUrl?: string;
+  };
+
   providerSecrets: {
     anthropicApiKey?: string;
     openaiApiKey?: string;
