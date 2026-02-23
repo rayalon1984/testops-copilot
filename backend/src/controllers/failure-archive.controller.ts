@@ -3,8 +3,7 @@
  * API endpoints for RCA management
  */
 
-import { Request, Response } from 'express';
-import { logger } from '@/utils/logger';
+import { Request, Response, NextFunction } from 'express';
 import { FailureArchiveService } from '../services/failure-archive.service';
 import { FailureStatus, FailureSeverity } from '../types/failure-archive';
 import { z } from 'zod';
@@ -61,7 +60,7 @@ export class FailureArchiveController {
    * POST /api/failure-archive
    * Create a new failure archive entry
    */
-  static async createFailure(req: Request, res: Response): Promise<void> {
+  static async createFailure(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const parsed = createFailureSchema.parse(req.body);
       const data = {
@@ -92,8 +91,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      logger.error('[FailureArchiveController] Error creating failure:', error);
-      res.status(500).json({ error: 'Failed to create failure archive entry' });
+      next(error);
     }
   }
 
@@ -101,7 +99,7 @@ export class FailureArchiveController {
    * PUT /api/failure-archive/:id/document-rca
    * Document root cause analysis
    */
-  static async documentRCA(req: Request, res: Response): Promise<void> {
+  static async documentRCA(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const data = documentRCASchema.parse(req.body);
@@ -122,8 +120,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      logger.error('[FailureArchiveController] Error documenting RCA:', error);
-      res.status(500).json({ error: 'Failed to document RCA' });
+      next(error);
     }
   }
 
@@ -131,7 +128,7 @@ export class FailureArchiveController {
    * GET /api/failure-archive/:id
    * Get failure details by ID
    */
-  static async getById(req: Request, res: Response): Promise<void> {
+  static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const failure = await FailureArchiveService.getById(id);
@@ -154,8 +151,7 @@ export class FailureArchiveController {
         similarFailures: similarFailures.filter(sf => sf.failure.id !== id)
       });
     } catch (error) {
-      logger.error('[FailureArchiveController] Error fetching failure:', error);
-      res.status(500).json({ error: 'Failed to fetch failure' });
+      next(error);
     }
   }
 
@@ -163,7 +159,7 @@ export class FailureArchiveController {
    * GET /api/failure-archive/search
    * Search failures with filters
    */
-  static async searchFailures(req: Request, res: Response): Promise<void> {
+  static async searchFailures(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const query = searchSchema.parse({
         ...req.query,
@@ -188,8 +184,7 @@ export class FailureArchiveController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      logger.error('[FailureArchiveController] Error searching failures:', error);
-      res.status(500).json({ error: 'Failed to search failures' });
+      next(error);
     }
   }
 
@@ -197,7 +192,7 @@ export class FailureArchiveController {
    * POST /api/failure-archive/find-similar
    * Find similar failures for a given error
    */
-  static async findSimilar(req: Request, res: Response): Promise<void> {
+  static async findSimilar(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { testName, errorMessage, stackTrace, limit } = req.body;
 
@@ -215,8 +210,7 @@ export class FailureArchiveController {
 
       res.json({ similarFailures });
     } catch (error) {
-      logger.error('[FailureArchiveController] Error finding similar failures:', error);
-      res.status(500).json({ error: 'Failed to find similar failures' });
+      next(error);
     }
   }
 
@@ -224,15 +218,14 @@ export class FailureArchiveController {
    * GET /api/failure-archive/insights
    * Get failure insights and statistics
    */
-  static async getInsights(req: Request, res: Response): Promise<void> {
+  static async getInsights(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const days = safeParseInt(req.query.days as string | undefined, 30, 1, 365);
       const insights = await FailureArchiveService.getInsights(days);
 
       res.json(insights);
     } catch (error) {
-      logger.error('[FailureArchiveController] Error getting insights:', error);
-      res.status(500).json({ error: 'Failed to get insights' });
+      next(error);
     }
   }
 
@@ -240,7 +233,7 @@ export class FailureArchiveController {
    * PUT /api/failure-archive/:id/resolve
    * Mark failure as resolved
    */
-  static async markResolved(req: Request, res: Response): Promise<void> {
+  static async markResolved(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = req.params.id as string;
       const { resolvedBy, timeToResolve } = req.body;
@@ -265,25 +258,23 @@ export class FailureArchiveController {
         message: 'Failure marked as resolved'
       });
     } catch (error) {
-      logger.error('[FailureArchiveController] Error resolving failure:', error);
-      res.status(500).json({ error: 'Failed to resolve failure' });
+      next(error);
     }
   }
 
   // ─── Collaborative RCA endpoints ────────────────────────────
 
-  static async getRevisions(req: Request, res: Response): Promise<void> {
+  static async getRevisions(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = String(req.params.id);
       const revisions = await FailureArchiveService.getRCARevisions(id);
       res.json({ success: true, data: revisions });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async addComment(req: Request, res: Response): Promise<void> {
+  static async addComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = String(req.params.id);
       const userId = String(req.user!.id);
@@ -292,12 +283,15 @@ export class FailureArchiveController {
       const comment = await FailureArchiveService.addComment(id, userId, content);
       res.status(201).json({ success: true, data: comment });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ error: msg });
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: 'Validation error', details: error.errors });
+        return;
+      }
+      next(error);
     }
   }
 
-  static async getComments(req: Request, res: Response): Promise<void> {
+  static async getComments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = String(req.params.id);
       const limit = safeParseInt(req.query.limit as string | undefined, 50, 1, 500);
@@ -305,33 +299,29 @@ export class FailureArchiveController {
       const result = await FailureArchiveService.getComments(id, limit, offset);
       res.json({ success: true, data: result });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async deleteComment(req: Request, res: Response): Promise<void> {
+  static async deleteComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const commentId = String(req.params.commentId);
       const userId = String(req.user!.id);
       await FailureArchiveService.deleteComment(commentId, userId);
       res.json({ success: true, message: 'Comment deleted' });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async getActivityFeed(req: Request, res: Response): Promise<void> {
+  static async getActivityFeed(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const id = String(req.params.id);
       const limit = safeParseInt(req.query.limit as string | undefined, 30, 1, 500);
       const feed = await FailureArchiveService.getActivityFeed(id, limit);
       res.json({ success: true, data: feed });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 }

@@ -136,6 +136,6 @@ export interface HealthStatus {
     database?: { healthy: boolean; error?: string };
     aiProvider?: { healthy: boolean; name?: string; error?: string };
     vectorDB?: { healthy: boolean; error?: string };
-    cache?: { healthy: boolean; stats?: any };
+    cache?: { healthy: boolean; stats?: Record<string, unknown> };
   };
 }

@@ -4,7 +4,7 @@
  * Handles HTTP requests for Prometheus metrics export
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import MetricsService from '../services/metrics.service';
 import { MetricsTimeRange } from '../types/metrics';
 import { safeParseInt } from '@/utils/common';
@@ -14,7 +14,7 @@ export class MetricsController {
    * GET /metrics
    * Export metrics in Prometheus text format (standard endpoint)
    */
-  static async getPrometheusMetrics(req: Request, res: Response): Promise<void> {
+  static async getPrometheusMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const includeTimestamp = req.query.timestamp === 'true';
 
@@ -36,7 +36,7 @@ export class MetricsController {
       res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
       res.send(metricsText);
     } catch (error) {
-      res.status(500).send('# Error exporting metrics\n');
+      next(error);
     }
   }
 
@@ -44,7 +44,7 @@ export class MetricsController {
    * GET /api/v1/metrics/summary
    * Get metrics summary in JSON format (for dashboards)
    */
-  static async getMetricsSummary(req: Request, res: Response): Promise<void> {
+  static async getMetricsSummary(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let timeRange: MetricsTimeRange | undefined;
       if (req.query.start && req.query.end) {
@@ -61,10 +61,7 @@ export class MetricsController {
         data: summary,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch metrics summary',
-      });
+      next(error);
     }
   }
 
@@ -72,7 +69,7 @@ export class MetricsController {
    * GET /api/v1/metrics/top-failures
    * Get top failing tests
    */
-  static async getTopFailures(req: Request, res: Response): Promise<void> {
+  static async getTopFailures(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const limit = safeParseInt(req.query.limit as string | undefined, 10, 1, 100);
       const topFailures = await MetricsService.getTopFailingTests(limit);
@@ -82,10 +79,7 @@ export class MetricsController {
         data: topFailures,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch top failures',
-      });
+      next(error);
     }
   }
 
@@ -93,7 +87,7 @@ export class MetricsController {
    * GET /api/v1/metrics/health
    * Health check endpoint for monitoring
    */
-  static async getHealth(req: Request, res: Response): Promise<void> {
+  static async getHealth(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       res.json({
         success: true,
@@ -102,11 +96,7 @@ export class MetricsController {
         uptime: process.uptime(),
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Health check failed',
-      });
+      next(error);
     }
   }
 }

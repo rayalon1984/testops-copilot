@@ -29,7 +29,7 @@ export type AnalyzeInput = z.infer<typeof AnalyzeInputSchema>;
  * Cost: ~$0.01-0.05 per analysis (depending on log size)
  */
 export async function analyzeTool(input: AnalyzeInput): Promise<AnalysisResult> {
-  console.log(`Analyzing failure: ${input.testName}`);
+  process.stderr.write(`[analyze] Analyzing failure: ${input.testName}\n`);
 
   // Validate input
   const validatedInput = AnalyzeInputSchema.parse(input);
@@ -64,7 +64,7 @@ export async function analyzeTool(input: AnalyzeInput): Promise<AnalysisResult> 
     result.categorization = category;
     totalCost += 0.005; // Rough estimate
   } catch (error) {
-    console.error('Categorization failed:', error);
+    process.stderr.write(`[analyze] Categorization failed: ${error instanceof Error ? error.message : String(error)}\n`);
     // Continue with analysis even if categorization fails
   }
 
@@ -74,7 +74,7 @@ export async function analyzeTool(input: AnalyzeInput): Promise<AnalysisResult> 
     result.similarFailures = similar;
     totalCost += 0.01; // Embedding + search cost
   } catch (error) {
-    console.error('Similar failure search failed:', error);
+    process.stderr.write(`[analyze] Similar failure search failed: ${error instanceof Error ? error.message : String(error)}\n`);
     // Continue with analysis
   }
 
@@ -92,7 +92,7 @@ export async function analyzeTool(input: AnalyzeInput): Promise<AnalysisResult> 
       const logTokens = Math.ceil(validatedInput.logs.length / 4);
       totalCost += (logTokens / 1000000) * 3; // $3 per million tokens (Claude Sonnet)
     } catch (error) {
-      console.error('Log summarization failed:', error);
+      process.stderr.write(`[analyze] Log summarization failed: ${error instanceof Error ? error.message : String(error)}\n`);
       // Continue without log summary
     }
   }
@@ -153,7 +153,18 @@ async function findSimilarFailures(failure: TestFailure): Promise<SimilarFailure
   try {
     // Query database for similar failures
     // This is a simplified version - in production would use vector similarity
-    const results = await query<any>(`
+    interface SimilarFailureRow {
+      id: string;
+      testName: string;
+      errorMessage: string;
+      resolution: string | null;
+      resolvedBy: string | null;
+      resolvedAt: Date | null;
+      ticketUrl: string | null;
+      occurrences: string;
+    }
+
+    const results = await query<SimilarFailureRow>(`
       SELECT
         fr.id,
         fr.test_name as "testName",
@@ -175,14 +186,14 @@ async function findSimilarFailures(failure: TestFailure): Promise<SimilarFailure
       testName: row.testName,
       errorMessage: row.errorMessage,
       similarity: 0.85, // Would come from vector search
-      resolution: row.resolution,
-      resolvedBy: row.resolvedBy,
-      resolvedAt: row.resolvedAt,
-      ticketUrl: row.ticketUrl,
+      resolution: row.resolution ?? undefined,
+      resolvedBy: row.resolvedBy ?? undefined,
+      resolvedAt: row.resolvedAt ?? undefined,
+      ticketUrl: row.ticketUrl ?? undefined,
       occurrences: parseInt(row.occurrences) || 1,
     }));
   } catch (error) {
-    console.error('Database query failed:', error);
+    process.stderr.write(`[analyze] Database query failed: ${error instanceof Error ? error.message : String(error)}\n`);
     return [];
   }
 }

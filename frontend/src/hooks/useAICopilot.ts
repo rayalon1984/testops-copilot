@@ -327,9 +327,8 @@ export function useAICopilot(): UseAICopilotReturn {
                                 // Stream complete
                                 break;
                         }
-                    } catch (e) {
-                        console.error('Failed to parse SSE event:', jsonStr, e);
-                        // Skip malformed JSON lines
+                    } catch {
+                        // Skip malformed JSON lines from SSE stream
                     }
                 }
             }

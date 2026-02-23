@@ -12,13 +12,11 @@ import { toolRegistry } from '../../services/ai/tools';
 import { ToolResult } from '../../services/ai/tools/types';
 import { getConfigManager } from '../../services/ai/config';
 import { getMockToolResult } from '../../services/ai/mock-tool-results';
-import { prisma } from '../../lib/prisma';
+import { getUserAutonomyLevel } from '../../services/ai/autonomy.service';
 import { validateChatMessage, validateConfirmAction } from '../../middleware/validation';
 import { logger } from '../../utils/logger';
 
 const router = Router();
-
-const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as const;
 
 // ─── SSE Chat ───
 
@@ -43,13 +41,7 @@ router.post('/chat', validateChatMessage, async (req: Request, res: Response): P
     let autonomyLevel: 'conservative' | 'balanced' | 'autonomous' = 'balanced';
     if (user?.id) {
       try {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { autonomyLevel: true },
-        });
-        if (dbUser?.autonomyLevel && VALID_AUTONOMY_LEVELS.includes(dbUser.autonomyLevel as typeof VALID_AUTONOMY_LEVELS[number])) {
-          autonomyLevel = dbUser.autonomyLevel as typeof autonomyLevel;
-        }
+        autonomyLevel = await getUserAutonomyLevel(user.id);
       } catch {
         // Fall through to default
       }

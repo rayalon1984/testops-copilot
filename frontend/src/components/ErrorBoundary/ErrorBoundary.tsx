@@ -34,9 +34,9 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log the error to an error reporting service
-    console.error('Error caught by error boundary:', error, errorInfo);
+  componentDidCatch(_error: Error, _errorInfo: React.ErrorInfo) {
+    // Error is captured in state via getDerivedStateFromError.
+    // In production, send to error reporting service (e.g., Sentry).
   }
 
   handleRefresh = () => {

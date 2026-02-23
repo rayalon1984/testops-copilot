@@ -4,7 +4,7 @@
  * Handles HTTP requests for Monday.com integration
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { getMondayService } from '../services/monday.service';
 import {
   CreateMondayItemInput,
@@ -18,7 +18,7 @@ export class MondayController {
    * GET /api/v1/monday/boards
    * Get all accessible Monday boards
    */
-  static async getBoards(req: Request, res: Response): Promise<void> {
+  static async getBoards(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const mondayService = getMondayService();
       const boards = await mondayService.getBoards();
@@ -28,10 +28,7 @@ export class MondayController {
         data: boards,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch Monday boards',
-      });
+      next(error);
     }
   }
 
@@ -39,7 +36,7 @@ export class MondayController {
    * GET /api/v1/monday/boards/:boardId
    * Get a specific Monday board
    */
-  static async getBoard(req: Request, res: Response): Promise<void> {
+  static async getBoard(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const boardId = req.params.boardId as string;
       const mondayService = getMondayService();
@@ -50,10 +47,7 @@ export class MondayController {
         data: board,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch Monday board',
-      });
+      next(error);
     }
   }
 
@@ -61,7 +55,7 @@ export class MondayController {
    * GET /api/v1/monday/boards/:boardId/items
    * Get items from a Monday board
    */
-  static async getItems(req: Request, res: Response): Promise<void> {
+  static async getItems(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const boardId = req.params.boardId as string;
       const limit = safeParseInt(req.query.limit as string | undefined, 25, 1, 500);
@@ -74,10 +68,7 @@ export class MondayController {
         data: items,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch Monday items',
-      });
+      next(error);
     }
   }
 
@@ -85,7 +76,7 @@ export class MondayController {
    * POST /api/v1/monday/items
    * Create a new item on a Monday board
    */
-  static async createItem(req: Request, res: Response): Promise<void> {
+  static async createItem(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const input: CreateMondayItemInput = req.body;
       const mondayService = getMondayService();
@@ -96,10 +87,7 @@ export class MondayController {
         data: item,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create Monday item',
-      });
+      next(error);
     }
   }
 
@@ -107,7 +95,7 @@ export class MondayController {
    * PUT /api/v1/monday/items/:itemId
    * Update an existing Monday item
    */
-  static async updateItem(req: Request, res: Response): Promise<void> {
+  static async updateItem(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const itemId = req.params.itemId as string;
       const input: Omit<UpdateMondayItemInput, 'itemId'> = req.body;
@@ -122,10 +110,7 @@ export class MondayController {
         data: item,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to update Monday item',
-      });
+      next(error);
     }
   }
 
@@ -133,7 +118,7 @@ export class MondayController {
    * POST /api/v1/monday/items/:itemId/updates
    * Create an update (comment) on a Monday item
    */
-  static async createUpdate(req: Request, res: Response): Promise<void> {
+  static async createUpdate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const itemId = req.params.itemId as string;
       const { body } = req.body;
@@ -148,10 +133,7 @@ export class MondayController {
         data: update,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create Monday update',
-      });
+      next(error);
     }
   }
 
@@ -159,7 +141,7 @@ export class MondayController {
    * POST /api/v1/monday/test-failures
    * Create a Monday item from a test failure
    */
-  static async createItemFromTestFailure(req: Request, res: Response): Promise<void> {
+  static async createItemFromTestFailure(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const input: MondayTestFailureInput = req.body;
       const mondayService = getMondayService();
@@ -171,10 +153,7 @@ export class MondayController {
         message: 'Monday item created successfully from test failure',
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create Monday item from test failure',
-      });
+      next(error);
     }
   }
 
@@ -182,7 +161,7 @@ export class MondayController {
    * GET /api/v1/monday/boards/:boardId/search
    * Search for items on a Monday board
    */
-  static async searchItems(req: Request, res: Response): Promise<void> {
+  static async searchItems(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const boardId = req.params.boardId as string;
       const { q } = req.query;
@@ -203,10 +182,7 @@ export class MondayController {
         data: items,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to search Monday items',
-      });
+      next(error);
     }
   }
 
@@ -214,7 +190,7 @@ export class MondayController {
    * GET /api/v1/monday/test-connection
    * Test Monday.com API connection
    */
-  static async testConnection(req: Request, res: Response): Promise<void> {
+  static async testConnection(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const mondayService = getMondayService();
       const isConnected = await mondayService.testConnection();
@@ -231,10 +207,7 @@ export class MondayController {
         });
       }
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to test Monday.com connection',
-      });
+      next(error);
     }
   }
 }

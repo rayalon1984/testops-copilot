@@ -22,6 +22,9 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
   const validatedInput = GetPipelineStatsInputSchema.parse(input);
 
   try {
+    const params: Array<string | number> = [validatedInput.daysBack];
+    let paramIndex = 2;
+
     let sql = `
       WITH pipeline_runs AS (
         SELECT
@@ -36,14 +39,13 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
           tr.total_tests
         FROM pipelines p
         LEFT JOIN test_runs tr ON p.id = tr.pipeline_id
-        WHERE tr.started_at >= NOW() - INTERVAL '${validatedInput.daysBack} days'
+        WHERE tr.started_at >= NOW() - make_interval(days => $1::int)
     `;
 
-    const params: any[] = [];
-
     if (validatedInput.pipelineId) {
-      sql += ` AND p.id = $1`;
+      sql += ` AND p.id = $${paramIndex}`;
       params.push(validatedInput.pipelineId);
+      paramIndex++;
     }
 
     sql += `
@@ -52,10 +54,28 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
       SELECT * FROM pipeline_runs
     `;
 
-    const results = await query<any>(sql, params);
+    interface PipelineRunRow {
+      id: string;
+      name: string;
+      type: string;
+      run_id: string | null;
+      status: string;
+      started_at: Date;
+      duration: number | null;
+      failed: number;
+      total_tests: number;
+    }
 
-    // Group by pipeline
-    const pipelineMap = new Map<string, any>();
+    const results = await query<PipelineRunRow>(sql, params);
+
+    interface PipelineGroup {
+      id: string;
+      name: string;
+      type: string;
+      runs: { id: string; status: string; startedAt: Date; duration?: number; failed: number }[];
+    }
+
+    const pipelineMap = new Map<string, PipelineGroup>();
 
     for (const row of results) {
       if (!pipelineMap.has(row.id)) {
@@ -74,7 +94,7 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
           id: row.run_id,
           status: row.status,
           startedAt: row.started_at,
-          duration: row.duration,
+          duration: row.duration ?? undefined,
           failed: row.failed,
         });
       }
@@ -86,11 +106,11 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
     for (const pipeline of pipelineMap.values()) {
       // Success rate
       const totalRuns = pipeline.runs.length;
-      const successfulRuns = pipeline.runs.filter((r: any) => r.status === 'PASSED').length;
+      const successfulRuns = pipeline.runs.filter((r) => r.status === 'PASSED').length;
       const successRate = totalRuns > 0 ? (successfulRuns / totalRuns) * 100 : 0;
 
       // Average duration
-      const durationsWithValues = pipeline.runs.filter((r: any) => r.duration).map((r: any) => r.duration);
+      const durationsWithValues = pipeline.runs.filter((r): r is typeof r & { duration: number } => r.duration != null).map((r) => r.duration);
       const avgDuration = durationsWithValues.length > 0
         ? durationsWithValues.reduce((a: number, b: number) => a + b, 0) / durationsWithValues.length
         : 0;
@@ -111,7 +131,7 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
 
     return stats;
   } catch (error) {
-    console.error('Failed to get pipeline stats:', error);
+    process.stderr.write(`[stats] Failed to get pipeline stats: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to get pipeline stats: ${error}`);
   }
 }
@@ -121,7 +141,13 @@ export async function getPipelineStatsTool(input: GetPipelineStatsInput): Promis
  */
 async function getCommonFailures(pipelineId: string, daysBack: number) {
   try {
-    const results = await query<any>(`
+    interface CommonFailureRow {
+      testName: string;
+      count: string;
+      lastOccurrence: Date;
+    }
+
+    const results = await query<CommonFailureRow>(`
       SELECT
         tr_result.test_name as "testName",
         COUNT(*) as count,
@@ -130,11 +156,11 @@ async function getCommonFailures(pipelineId: string, daysBack: number) {
       JOIN test_runs tr ON tr_result.test_run_id = tr.id
       WHERE tr.pipeline_id = $1
         AND tr_result.status = 'FAILED'
-        AND tr_result.created_at >= NOW() - INTERVAL '${daysBack} days'
+        AND tr_result.created_at >= NOW() - make_interval(days => $2::int)
       GROUP BY tr_result.test_name
       ORDER BY count DESC
       LIMIT 5
-    `, [pipelineId]);
+    `, [pipelineId, daysBack]);
 
     return results.map(row => ({
       testName: row.testName,
@@ -142,7 +168,7 @@ async function getCommonFailures(pipelineId: string, daysBack: number) {
       lastOccurrence: row.lastOccurrence,
     }));
   } catch (error) {
-    console.error('Failed to get common failures:', error);
+    process.stderr.write(`[stats] Failed to get common failures: ${error instanceof Error ? error.message : String(error)}\n`);
     return [];
   }
 }
@@ -163,8 +189,17 @@ export async function getTestHistoryTool(input: GetTestHistoryInput): Promise<Te
   const validatedInput = GetTestHistoryInputSchema.parse(input);
 
   try {
+    interface TestRunRow {
+      id: string;
+      status: string;
+      timestamp: Date;
+      errorMessage: string | null;
+      branch: string;
+      pipeline: string;
+    }
+
     // Get all runs for this test
-    const runs = await query<any>(`
+    const runs = await query<TestRunRow>(`
       SELECT
         tr_result.id,
         tr_result.status,
@@ -176,13 +211,13 @@ export async function getTestHistoryTool(input: GetTestHistoryInput): Promise<Te
       JOIN test_runs tr ON tr_result.test_run_id = tr.id
       JOIN pipelines p ON tr.pipeline_id = p.id
       WHERE tr_result.test_name = $1
-        AND tr_result.created_at >= NOW() - INTERVAL '${validatedInput.daysBack} days'
+        AND tr_result.created_at >= NOW() - make_interval(days => $2::int)
       ORDER BY tr_result.created_at DESC
-      LIMIT $2
-    `, [validatedInput.testName, validatedInput.limit]);
+      LIMIT $3
+    `, [validatedInput.testName, validatedInput.daysBack, validatedInput.limit]);
 
     const totalRuns = runs.length;
-    const failures = runs.filter((r: any) => r.status === 'FAILED').length;
+    const failures = runs.filter((r) => r.status === 'FAILED').length;
 
     // Calculate flakiness score (0-1)
     // Consider: pass/fail alternation, failure rate, recent trends
@@ -224,7 +259,7 @@ export async function getTestHistoryTool(input: GetTestHistoryInput): Promise<Te
       failures,
       flakinessScore: Math.round(flakinessScore * 100) / 100,
       failurePatterns: patterns,
-      recentRuns: runs.slice(0, 10).map((r: any) => ({
+      recentRuns: runs.slice(0, 10).map((r) => ({
         id: r.id,
         status: r.status,
         timestamp: r.timestamp,
@@ -233,7 +268,7 @@ export async function getTestHistoryTool(input: GetTestHistoryInput): Promise<Te
       })),
     };
   } catch (error) {
-    console.error('Failed to get test history:', error);
+    process.stderr.write(`[stats] Failed to get test history: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to get test history: ${error}`);
   }
 }
@@ -241,7 +276,7 @@ export async function getTestHistoryTool(input: GetTestHistoryInput): Promise<Te
 /**
  * Calculate flakiness score (0 = stable, 1 = very flaky)
  */
-function calculateFlakinessScore(runs: any[]): number {
+function calculateFlakinessScore(runs: { status: string }[]): number {
   if (runs.length < 5) {
     return 0; // Not enough data
   }
@@ -308,8 +343,15 @@ export async function getCostStatsTool(input: GetCostStatsInput): Promise<CostSt
 
     const totalCostUSD = parseFloat(totalResult[0]?.total || '0');
 
+    interface CostBreakdownRow {
+      feature: string;
+      calls: string;
+      totalTokens: string;
+      costUSD: string;
+    }
+
     // Breakdown by feature
-    const breakdownResult = await query<any>(`
+    const breakdownResult = await query<CostBreakdownRow>(`
       SELECT
         feature,
         COUNT(*) as calls,
@@ -328,8 +370,15 @@ export async function getCostStatsTool(input: GetCostStatsInput): Promise<CostSt
       costUSD: parseFloat(row.costUSD) || 0,
     }));
 
+    interface ExpensiveOpRow {
+      timestamp: Date;
+      feature: string;
+      costUSD: string;
+      tokens: string;
+    }
+
     // Top expensive operations
-    const expensiveResult = await query<any>(`
+    const expensiveResult = await query<ExpensiveOpRow>(`
       SELECT
         timestamp,
         feature,
@@ -358,7 +407,7 @@ export async function getCostStatsTool(input: GetCostStatsInput): Promise<CostSt
       topExpensiveOperations,
     };
   } catch (error) {
-    console.error('Failed to get cost stats:', error);
+    process.stderr.write(`[stats] Failed to get cost stats: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to get cost stats: ${error}`);
   }
 }

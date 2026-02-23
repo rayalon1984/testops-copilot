@@ -139,7 +139,7 @@ const pipelineSchema = z.object({
 const testRunSchema = z.object({
   pipelineId: z.string().uuid(),
   branch: z.string().optional(),
-  parameters: z.record(z.string(), z.any()).optional(),
+  parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   priority: z.enum(['low', 'medium', 'high']).optional(),
   timeout: z.number().min(0).optional(),
 });
@@ -149,7 +149,7 @@ const scheduleSchema = z.object({
   cronExpression: z.string(),
   timezone: z.string().optional(),
   enabled: z.boolean(),
-  parameters: z.record(z.string(), z.any()).optional(),
+  parameters: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 // Pipeline metrics query validation schema

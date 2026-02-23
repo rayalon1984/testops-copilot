@@ -3,7 +3,7 @@
  * HTTP handlers for team, member, and pipeline endpoints.
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { TeamService } from '../services/team.service';
 import { DashboardConfigService } from '../services/dashboard-config.service';
@@ -44,7 +44,7 @@ const updateDashboardSchema = z.object({
 export class TeamController {
   // ─── Team CRUD ──────────────────────────────────────────────
 
-  static async createTeam(req: Request, res: Response): Promise<void> {
+  static async createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const data = createTeamSchema.parse(req.body);
       const userId = String(req.user!.id);
@@ -55,36 +55,31 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async listTeams(req: Request, res: Response): Promise<void> {
+  static async listTeams(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = String(req.user!.id);
       const teams = await TeamService.listUserTeams(userId);
       res.json({ success: true, data: teams });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async getTeam(req: Request, res: Response): Promise<void> {
+  static async getTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const team = await TeamService.getTeamById(teamId);
       res.json({ success: true, data: team });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async updateTeam(req: Request, res: Response): Promise<void> {
+  static async updateTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const userId = String(req.user!.id);
@@ -96,13 +91,11 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async deleteTeam(req: Request, res: Response): Promise<void> {
+  static async deleteTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const userId = String(req.user!.id);
@@ -110,26 +103,23 @@ export class TeamController {
       await TeamService.deleteTeam(teamId, userId, isGlobalAdmin);
       res.json({ success: true, message: 'Team deleted' });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
   // ─── Member Management ──────────────────────────────────────
 
-  static async getMembers(req: Request, res: Response): Promise<void> {
+  static async getMembers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const members = await TeamService.getMembers(teamId);
       res.json({ success: true, data: members });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async addMember(req: Request, res: Response): Promise<void> {
+  static async addMember(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const actorUserId = String(req.user!.id);
@@ -146,13 +136,11 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async removeMember(req: Request, res: Response): Promise<void> {
+  static async removeMember(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const targetUserId = String(req.params.userId);
@@ -160,13 +148,11 @@ export class TeamController {
       await TeamService.removeMember(teamId, targetUserId, actorUserId);
       res.json({ success: true, message: 'Member removed' });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async updateMemberRole(req: Request, res: Response): Promise<void> {
+  static async updateMemberRole(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const targetUserId = String(req.params.userId);
@@ -184,26 +170,23 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
   // ─── Pipeline Scoping ───────────────────────────────────────
 
-  static async getTeamPipelines(req: Request, res: Response): Promise<void> {
+  static async getTeamPipelines(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const pipelines = await TeamService.getTeamPipelines(teamId);
       res.json({ success: true, data: pipelines });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async assignPipeline(req: Request, res: Response): Promise<void> {
+  static async assignPipeline(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const teamId = String(req.params.teamId);
       const pipelineId = String(req.params.pipelineId);
@@ -211,15 +194,13 @@ export class TeamController {
       const pipeline = await TeamService.assignPipeline(teamId, pipelineId, actorUserId);
       res.json({ success: true, data: pipeline });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
   // ─── Dashboard Config ───────────────────────────────────────
 
-  static async createDashboard(req: Request, res: Response): Promise<void> {
+  static async createDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = String(req.user!.id);
       const teamId = req.params.teamId ? String(req.params.teamId) : undefined;
@@ -234,24 +215,22 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async listDashboards(req: Request, res: Response): Promise<void> {
+  static async listDashboards(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = String(req.user!.id);
       const teamId = req.params.teamId ? String(req.params.teamId) : undefined;
       const dashboards = await DashboardConfigService.list(userId, teamId);
       res.json({ success: true, data: dashboards });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: msg });
+      next(error);
     }
   }
 
-  static async updateDashboard(req: Request, res: Response): Promise<void> {
+  static async updateDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dashboardId = String(req.params.dashboardId);
       const userId = String(req.user!.id);
@@ -263,22 +242,18 @@ export class TeamController {
         res.status(400).json({ error: 'Validation error', details: error.errors });
         return;
       }
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 
-  static async deleteDashboard(req: Request, res: Response): Promise<void> {
+  static async deleteDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dashboardId = String(req.params.dashboardId);
       const userId = String(req.user!.id);
       await DashboardConfigService.remove(dashboardId, userId);
       res.json({ success: true, message: 'Dashboard deleted' });
     } catch (error) {
-      const statusCode = (error as Record<string, number>).statusCode || 500;
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(statusCode).json({ error: msg });
+      next(error);
     }
   }
 }

@@ -1,7 +1,6 @@
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { testImpactService } from '../services/test/TestImpactService';
-import { logger } from '../utils/logger';
 
 class TestImpactController {
     /**
@@ -9,26 +8,26 @@ class TestImpactController {
      * POST /api/v1/ci/smart-select
      * Body: { files: string[] }
      */
-    async getImpactedtests(req: Request, res: Response) {
+    async getImpactedtests(req: Request, res: Response, next: NextFunction) {
         try {
             const { files } = req.body;
 
             if (!files || !Array.isArray(files)) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: 'Invalid input. "files" must be an array of strings.'
                 });
+                return;
             }
 
             const result = await testImpactService.getTestsForChanges(files);
 
-            return res.json({
+            res.json({
                 success: true,
                 data: result
             });
         } catch (error) {
-            logger.error('[TestImpactController] Failed to determine impacted tests:', error);
-            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+            next(error);
         }
     }
 }

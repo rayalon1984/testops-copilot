@@ -113,8 +113,8 @@ export default function LogViewer({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(processedLogs.join('\n'));
-    } catch (error) {
-      console.error('Failed to copy logs:', error);
+    } catch {
+      // Clipboard API may fail in insecure contexts; silently degrade
     }
   };
 
