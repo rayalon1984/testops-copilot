@@ -76,14 +76,14 @@ export class TestRunController {
     }
   }
 
+  /** Planned for v3.1 — requires log storage backend (S3/GCS) */
   async getTestRunLogs(_req: Request, res: Response, _next: NextFunction): Promise<void> {
-    // TODO: Implement log storage in service
-    res.status(501).json({ message: 'Not implemented yet' });
+    res.status(501).json({ message: 'Log retrieval not yet implemented — planned for v3.1' });
   }
 
+  /** Planned for v3.1 — requires artifact storage backend (S3/GCS) */
   async getTestRunArtifacts(_req: Request, res: Response, _next: NextFunction): Promise<void> {
-    // TODO: Implement artifact storage in service
-    res.status(501).json({ message: 'Not implemented yet' });
+    res.status(501).json({ message: 'Artifact retrieval not yet implemented — planned for v3.1' });
   }
 
   async deleteTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -96,8 +96,8 @@ export class TestRunController {
     }
   }
 
+  /** Planned for v3.1 — will be moved to a dedicated Statistics Service */
   async getSystemMetrics(_req: Request, res: Response, _next: NextFunction): Promise<void> {
-    // TODO: Move to a Statistics Service or similar
-    res.status(501).json({ message: 'Not implemented yet' });
+    res.status(501).json({ message: 'System metrics not yet implemented — planned for v3.1' });
   }
 }

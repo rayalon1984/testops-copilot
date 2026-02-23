@@ -165,8 +165,7 @@ export class VectorSearch {
   }> {
     const stats = await this.client.getStats('TestFailure');
 
-    // TODO: Implement aggregation queries for detailed stats
-    // For now, return basic stats
+    // Aggregation queries for byCategory/resolved breakdown planned for v3.1
     return {
       total: stats.count,
       byCategory: {},
