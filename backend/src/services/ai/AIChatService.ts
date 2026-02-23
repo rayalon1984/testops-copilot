@@ -21,6 +21,8 @@ import { routeToPersona, PersonaSelection } from './PersonaRouter';
 import { getPersonaInstruction } from './PersonaInstructions';
 import { classifyTool, type AutonomyLevel } from './AutonomyClassifier';
 import { evaluateSuggestion } from './ProactiveSuggestionEngine';
+import { ContextWindowManager } from './context-window-manager';
+import { estimateMessageTokens } from './token-budget';
 import { logger } from '@/utils/logger';
 
 /** Chunk size for token-by-token answer streaming (characters) */
@@ -193,24 +195,40 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         sessionId: req.sessionId || 'anonymous',
     };
 
+    // Initialize context window manager for token budgeting
+    const configManager = getConfigManager();
+    const ctxWindowConfig = configManager.getContextWindowConfig();
+    const ctxManager = new ContextWindowManager({
+        modelId: configManager.getModel(),
+        provider: configManager.getProvider(),
+        contextWindowOverride: ctxWindowConfig?.sizeOverride,
+        budgetOverride: ctxWindowConfig ? {
+            maxToolResultTokens: ctxWindowConfig.maxToolResultTokens,
+            maxTotalToolResultTokens: ctxWindowConfig.maxTotalToolResultTokens,
+        } : undefined,
+    });
+
     // Build conversation history, injecting UI context when available
     const userContent = req.uiContext
         ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
         : req.message;
 
-    const messages: ChatMessage[] = [
+    const rawMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
         { role: 'user', content: userContent },
     ];
 
+    // Apply token budgeting — prune history and track usage
+    const { messages, tracker } = ctxManager.prepareMessages(rawMessages);
+
     let toolCallCount = 0;
     const collectedResults: { name: string; result: ToolResult }[] = [];
 
-    // Get tool definitions for native tool calling
+    // Get tool definitions for native tool calling (skip for models that don't support it)
+    const useNativeTools = ctxManager.supportsNativeToolCalling();
     const toolDefinitions = toolRegistry.getToolDefinitions();
-    logger.info(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
-    console.log(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}`);
+    logger.info(`[AIChatService] Available tools: ${toolDefinitions.map(t => t.name).join(', ')}, native: ${useNativeTools}`);
 
     // ReAct Loop
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
@@ -220,10 +238,11 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         let aiResponse;
         try {
             // Use the provider via the internal chat method, passing tools
+            const maxOutputTokens = ctxManager.getMaxOutputTokens(2048);
             aiResponse = await aiManager.getProvider()!.chat(messages, {
-                maxTokens: 2048,
+                maxTokens: maxOutputTokens,
                 temperature: 0.3,
-                tools: toolDefinitions // Native tool definitions
+                tools: useNativeTools ? toolDefinitions : undefined,
             });
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'LLM call failed';
@@ -268,31 +287,37 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
         if (toolCallCount >= MAX_TOOL_CALLS) {
             sendSSE(res, createEvent('error', `Tool call limit reached (${MAX_TOOL_CALLS}). Providing answer with available information.`));
             // Force the LLM to answer without more tools
-            messages.push({ role: 'assistant', content: responseText });
-            messages.push({ role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' });
+            const limitAssistantMsg: ChatMessage = { role: 'assistant', content: responseText };
+            const limitUserMsg: ChatMessage = { role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' };
+            messages.push(limitAssistantMsg);
+            messages.push(limitUserMsg);
+            tracker.recordLoopOverhead(estimateMessageTokens(limitAssistantMsg) + estimateMessageTokens(limitUserMsg));
             continue;
         }
 
         // Add assistant message with tool calls to history
-        messages.push({
+        const assistantMsg: ChatMessage = {
             role: 'assistant',
             content: responseText,
             toolCalls: toolCalls
-        });
+        };
+        messages.push(assistantMsg);
+        tracker.recordLoopOverhead(estimateMessageTokens(assistantMsg));
 
         // Execute each tool
         for (const toolCall of toolCalls) {
             const tool = toolRegistry.get(toolCall.name);
-            console.log(`[AIChatService] Processing tool call: ${toolCall.name}, Found: ${!!tool}, SessionID: ${req.sessionId}`);
             logger.info(`[AIChatService] Processing tool call: ${toolCall.name}, Found: ${!!tool}, SessionID: ${req.sessionId}`);
 
             if (!tool) {
-                messages.push({
+                const errMsg: ChatMessage = {
                     role: 'tool',
                     toolCallId: toolCall.id,
                     name: toolCall.name,
                     content: `Error: Tool "${toolCall.name}" does not exist.`
-                });
+                };
+                messages.push(errMsg);
+                tracker.recordLoopOverhead(estimateMessageTokens(errMsg));
                 continue;
             }
 
@@ -304,12 +329,14 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                     summary: msg,
                     data: null,
                 }), tool.name));
-                messages.push({
+                const roleErrMsg: ChatMessage = {
                     role: 'tool',
                     toolCallId: toolCall.id,
                     name: tool.name,
                     content: msg,
-                });
+                };
+                messages.push(roleErrMsg);
+                tracker.recordLoopOverhead(estimateMessageTokens(roleErrMsg));
                 continue;
             }
 
@@ -323,12 +350,14 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 // Tier 3: Full confirmation (current behavior — pause loop, wait for user)
                 if (classification.tier === 3) {
                     if (!req.sessionId) {
-                        messages.push({
+                        const noSessionMsg: ChatMessage = {
                             role: 'tool',
                             toolCallId: toolCall.id,
                             name: tool.name,
                             content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
-                        });
+                        };
+                        messages.push(noSessionMsg);
+                        tracker.recordLoopOverhead(estimateMessageTokens(noSessionMsg));
                         continue;
                     }
 
@@ -362,12 +391,14 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 // The tool is NOT executed yet — the frontend will show a card with approve/dismiss
                 if (classification.tier === 2) {
                     if (!req.sessionId) {
-                        messages.push({
+                        const noSessionMsg2: ChatMessage = {
                             role: 'tool',
                             toolCallId: toolCall.id,
                             name: tool.name,
                             content: `Error: Tool "${tool.name}" requires user confirmation, but no session ID was provided.`
-                        });
+                        };
+                        messages.push(noSessionMsg2);
+                        tracker.recordLoopOverhead(estimateMessageTokens(noSessionMsg2));
                         continue;
                     }
 
@@ -455,12 +486,16 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
                 logger.info(`[AIChatService] Proactive suggestion: ${suggestion.tool} (confidence: ${suggestion.confidence})`);
             }
 
-            // Feed result back
+            // Feed result back — truncate to token budget
+            const resultContent = ctxManager.truncateToolResultForBudget(
+                toolResult.data ?? toolResult.error,
+                tracker
+            );
             messages.push({
                 role: 'tool',
                 toolCallId: toolCall.id,
                 name: tool.name,
-                content: JSON.stringify(toolResult.data ?? toolResult.error)
+                content: resultContent,
             });
         }
     }
@@ -516,28 +551,46 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
         sessionId: req.sessionId || 'anonymous',
     };
 
+    // Initialize context window manager for token budgeting
+    const bufferedConfigManager = getConfigManager();
+    const bufferedCtxWindowConfig = bufferedConfigManager.getContextWindowConfig();
+    const ctxManagerBuffered = new ContextWindowManager({
+        modelId: bufferedConfigManager.getModel(),
+        provider: bufferedConfigManager.getProvider(),
+        contextWindowOverride: bufferedCtxWindowConfig?.sizeOverride,
+        budgetOverride: bufferedCtxWindowConfig ? {
+            maxToolResultTokens: bufferedCtxWindowConfig.maxToolResultTokens,
+            maxTotalToolResultTokens: bufferedCtxWindowConfig.maxTotalToolResultTokens,
+        } : undefined,
+    });
+
     const bufferedUserContent = req.uiContext
         ? `[UI Context: ${req.uiContext}]\n\n${req.message}`
         : req.message;
 
-    const messages: ChatMessage[] = [
+    const rawBufferedMessages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         ...(req.history || []),
         { role: 'user', content: bufferedUserContent },
     ];
 
+    // Apply token budgeting
+    const { messages, tracker: bufferedTracker } = ctxManagerBuffered.prepareMessages(rawBufferedMessages);
+
     const collectedToolCalls: BufferedChatResponse['toolCalls'] = [];
     let toolCallCount = 0;
+    const useNativeToolsBuffered = ctxManagerBuffered.supportsNativeToolCalling();
     const toolDefinitions = toolRegistry.getToolDefinitions();
 
     // ReAct Loop (same logic as streaming, but collects results)
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
         let aiResponse;
         try {
+            const maxOutputTokensBuffered = ctxManagerBuffered.getMaxOutputTokens(2048);
             aiResponse = await aiManager.getProvider()!.chat(messages, {
-                maxTokens: 2048,
+                maxTokens: maxOutputTokensBuffered,
                 temperature: 0.3,
-                tools: toolDefinitions,
+                tools: useNativeToolsBuffered ? toolDefinitions : undefined,
             });
         } catch (error) {
             const msg = error instanceof Error ? error.message : 'LLM call failed';
@@ -567,30 +620,41 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
 
         // Tool call limit
         if (toolCallCount >= MAX_TOOL_CALLS) {
-            messages.push({ role: 'assistant', content: responseText });
-            messages.push({ role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' });
+            const bLimitAssist: ChatMessage = { role: 'assistant', content: responseText };
+            const bLimitUser: ChatMessage = { role: 'user', content: 'You have reached the tool call limit. Please provide your best answer with the information gathered so far.' };
+            messages.push(bLimitAssist);
+            messages.push(bLimitUser);
+            bufferedTracker.recordLoopOverhead(estimateMessageTokens(bLimitAssist) + estimateMessageTokens(bLimitUser));
             continue;
         }
 
-        messages.push({ role: 'assistant', content: responseText, toolCalls });
+        const bAssistantMsg: ChatMessage = { role: 'assistant', content: responseText, toolCalls };
+        messages.push(bAssistantMsg);
+        bufferedTracker.recordLoopOverhead(estimateMessageTokens(bAssistantMsg));
 
         for (const toolCall of toolCalls) {
             const tool = toolRegistry.get(toolCall.name);
             if (!tool) {
-                messages.push({ role: 'tool', toolCallId: toolCall.id, name: toolCall.name, content: `Error: Tool "${toolCall.name}" does not exist.` });
+                const bToolErr: ChatMessage = { role: 'tool', toolCallId: toolCall.id, name: toolCall.name, content: `Error: Tool "${toolCall.name}" does not exist.` };
+                messages.push(bToolErr);
+                bufferedTracker.recordLoopOverhead(estimateMessageTokens(bToolErr));
                 continue;
             }
 
             if (tool.requiredRole && !hasRequiredRole(req.userRole, tool.requiredRole)) {
                 const msg = `Access denied: tool "${tool.name}" requires ${tool.requiredRole} role.`;
-                messages.push({ role: 'tool', toolCallId: toolCall.id, name: tool.name, content: msg });
+                const bRoleErr: ChatMessage = { role: 'tool', toolCallId: toolCall.id, name: tool.name, content: msg };
+                messages.push(bRoleErr);
+                bufferedTracker.recordLoopOverhead(estimateMessageTokens(bRoleErr));
                 continue;
             }
 
             // Write tools: create pending action and return immediately
             if (tool.requiresConfirmation) {
                 if (!req.sessionId) {
-                    messages.push({ role: 'tool', toolCallId: toolCall.id, name: tool.name, content: `Error: Tool "${tool.name}" requires confirmation but no session ID.` });
+                    const bNoSess: ChatMessage = { role: 'tool', toolCallId: toolCall.id, name: tool.name, content: `Error: Tool "${tool.name}" requires confirmation but no session ID.` };
+                    messages.push(bNoSess);
+                    bufferedTracker.recordLoopOverhead(estimateMessageTokens(bNoSess));
                     continue;
                 }
                 const pendingAction = await confirmationService.createPendingAction({
@@ -635,11 +699,16 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
                 data: toolResult.data,
             });
 
+            // Truncate tool result to token budget
+            const bufferedResultContent = ctxManagerBuffered.truncateToolResultForBudget(
+                toolResult.data ?? toolResult.error,
+                bufferedTracker
+            );
             messages.push({
                 role: 'tool',
                 toolCallId: toolCall.id,
                 name: tool.name,
-                content: JSON.stringify(toolResult.data ?? toolResult.error),
+                content: bufferedResultContent,
             });
         }
     }

@@ -29,6 +29,8 @@ const DEFAULT_CONFIG: AIConfig = {
     timeoutMs: 60000,
   },
   providerSecrets: {},
+  contextWindow: undefined,
+  localModel: undefined,
   vectorDB: {
     url: 'http://localhost:8080',
   },
@@ -117,6 +119,9 @@ export class AIConfigManager {
     const cache = data.cache as Record<string, unknown> | undefined;
     const rateLimit = data.rate_limit as Record<string, unknown> | undefined;
 
+    const contextWindow = data.context_window as Record<string, unknown> | undefined;
+    const localModel = data.local_model as Record<string, unknown> | undefined;
+
     return {
       enabled: data.enabled as boolean | undefined,
       provider: data.provider as AIProviderName | undefined,
@@ -132,6 +137,17 @@ export class AIConfigManager {
         maxTokens: providerSettings.max_tokens as number,
         temperature: providerSettings.temperature as number,
         timeoutMs: providerSettings.timeout_ms as number,
+      } : undefined,
+      contextWindow: contextWindow ? {
+        sizeOverride: contextWindow.size_override as number | undefined,
+        maxToolResultTokens: contextWindow.max_tool_result_tokens as number | undefined,
+        maxTotalToolResultTokens: contextWindow.max_total_tool_result_tokens as number | undefined,
+      } : undefined,
+      localModel: localModel ? {
+        enabled: localModel.enabled as boolean,
+        provider: localModel.provider as AIProviderName,
+        model: localModel.model as string,
+        baseUrl: localModel.base_url as string | undefined,
       } : undefined,
       vectorDB: vectorDb ? {
         url: vectorDb.url as string,
@@ -246,6 +262,25 @@ export class AIConfigManager {
       };
     }
 
+    // Context window overrides
+    if (env.AI_CONTEXT_WINDOW_SIZE || env.AI_MAX_TOOL_RESULT_TOKENS || env.AI_MAX_TOTAL_TOOL_RESULT_TOKENS) {
+      config.contextWindow = {
+        sizeOverride: env.AI_CONTEXT_WINDOW_SIZE ? parseInt(env.AI_CONTEXT_WINDOW_SIZE, 10) : undefined,
+        maxToolResultTokens: env.AI_MAX_TOOL_RESULT_TOKENS ? parseInt(env.AI_MAX_TOOL_RESULT_TOKENS, 10) : undefined,
+        maxTotalToolResultTokens: env.AI_MAX_TOTAL_TOOL_RESULT_TOKENS ? parseInt(env.AI_MAX_TOTAL_TOOL_RESULT_TOKENS, 10) : undefined,
+      };
+    }
+
+    // Local model for on-prem
+    if (env.AI_LOCAL_MODEL_ENABLED === 'true') {
+      config.localModel = {
+        enabled: true,
+        provider: (env.AI_LOCAL_MODEL_PROVIDER || 'openrouter') as AIProviderName,
+        model: env.AI_LOCAL_MODEL || 'meta-llama/llama-3.2-3b-instruct',
+        baseUrl: env.AI_LOCAL_MODEL_BASE_URL || undefined,
+      };
+    }
+
     return config;
   }
 
@@ -345,6 +380,27 @@ export class AIConfigManager {
   }
 
   /**
+   * Get context window configuration overrides
+   */
+  getContextWindowConfig() {
+    return this.config.contextWindow ? { ...this.config.contextWindow } : undefined;
+  }
+
+  /**
+   * Get local model configuration for on-prem deployments
+   */
+  getLocalModelConfig() {
+    return this.config.localModel ? { ...this.config.localModel } : undefined;
+  }
+
+  /**
+   * Check if a local model is configured and enabled
+   */
+  isLocalModelEnabled(): boolean {
+    return !!this.config.localModel?.enabled;
+  }
+
+  /**
    * Apply a runtime override (e.g. from DB-stored provider config).
    * Merges the override into the current config without touching disk/env sources.
    */
@@ -360,6 +416,18 @@ export class AIConfigManager {
     }
     if (override.features) {
       this.config.features = { ...this.config.features, ...override.features };
+    }
+    if (override.contextWindow) {
+      this.config.contextWindow = { ...this.config.contextWindow, ...override.contextWindow };
+    }
+    if (override.localModel) {
+      // When base localModel is undefined, require a complete object to avoid
+      // partial config with missing required fields (provider, model)
+      if (this.config.localModel) {
+        this.config.localModel = { ...this.config.localModel, ...override.localModel };
+      } else {
+        this.config.localModel = override.localModel as AIConfig['localModel'];
+      }
     }
   }
 
@@ -378,7 +446,7 @@ export class AIConfigManager {
 
     if (this.config.enabled) {
       // Check provider is valid
-      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'mock'];
+      const validProviders: AIProviderName[] = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock'];
       if (!validProviders.includes(this.config.provider)) {
         errors.push(`Invalid provider: ${this.config.provider}`);
       }
@@ -408,6 +476,30 @@ export class AIConfigManager {
 
       if (this.config.rateLimit.perMinute > this.config.rateLimit.perDay) {
         errors.push('Rate limit per minute cannot exceed rate limit per day');
+      }
+
+      // Check context window settings if present
+      if (this.config.contextWindow) {
+        const cw = this.config.contextWindow;
+        if (cw.sizeOverride !== undefined && cw.sizeOverride <= 0) {
+          errors.push('Context window size override must be positive');
+        }
+        if (cw.maxToolResultTokens !== undefined && cw.maxToolResultTokens <= 0) {
+          errors.push('maxToolResultTokens must be positive');
+        }
+        if (cw.maxTotalToolResultTokens !== undefined && cw.maxTotalToolResultTokens <= 0) {
+          errors.push('maxTotalToolResultTokens must be positive');
+        }
+      }
+
+      // Check local model settings if present
+      if (this.config.localModel?.enabled) {
+        if (!this.config.localModel.model) {
+          errors.push('Local model must specify a model ID when enabled');
+        }
+        if (!validProviders.includes(this.config.localModel.provider)) {
+          errors.push(`Invalid local model provider: ${this.config.localModel.provider}`);
+        }
       }
     }
 
