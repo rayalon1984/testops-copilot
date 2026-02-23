@@ -7,6 +7,7 @@
 import { Request, Response } from 'express';
 import MetricsService from '../services/metrics.service';
 import { MetricsTimeRange } from '../types/metrics';
+import { safeParseInt } from '@/utils/common';
 
 export class MetricsController {
   /**
@@ -73,7 +74,7 @@ export class MetricsController {
    */
   static async getTopFailures(req: Request, res: Response): Promise<void> {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const limit = safeParseInt(req.query.limit as string | undefined, 10, 1, 100);
       const topFailures = await MetricsService.getTopFailingTests(limit);
 
       res.json({

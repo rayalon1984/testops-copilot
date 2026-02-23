@@ -8,6 +8,7 @@ import { logger } from '@/utils/logger';
 import { FailureArchiveService } from '../services/failure-archive.service';
 import { FailureStatus, FailureSeverity } from '../types/failure-archive';
 import { z } from 'zod';
+import { safeParseInt } from '@/utils/common';
 
 // Validation schemas
 const createFailureSchema = z.object({
@@ -167,8 +168,8 @@ export class FailureArchiveController {
       const query = searchSchema.parse({
         ...req.query,
         tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+        limit: req.query.limit ? safeParseInt(req.query.limit as string, 50, 1, 500) : undefined,
+        offset: req.query.offset ? safeParseInt(req.query.offset as string, 0, 0, 100000) : undefined,
         isRecurring: req.query.isRecurring === 'true' ? true : req.query.isRecurring === 'false' ? false : undefined,
         isKnownIssue: req.query.isKnownIssue === 'true' ? true : req.query.isKnownIssue === 'false' ? false : undefined
       });
@@ -225,7 +226,7 @@ export class FailureArchiveController {
    */
   static async getInsights(req: Request, res: Response): Promise<void> {
     try {
-      const days = req.query.days ? parseInt(req.query.days as string) : 30;
+      const days = safeParseInt(req.query.days as string | undefined, 30, 1, 365);
       const insights = await FailureArchiveService.getInsights(days);
 
       res.json(insights);
@@ -299,8 +300,8 @@ export class FailureArchiveController {
   static async getComments(req: Request, res: Response): Promise<void> {
     try {
       const id = String(req.params.id);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+      const limit = safeParseInt(req.query.limit as string | undefined, 50, 1, 500);
+      const offset = safeParseInt(req.query.offset as string | undefined, 0, 0, 100000);
       const result = await FailureArchiveService.getComments(id, limit, offset);
       res.json({ success: true, data: result });
     } catch (error) {
@@ -325,7 +326,7 @@ export class FailureArchiveController {
   static async getActivityFeed(req: Request, res: Response): Promise<void> {
     try {
       const id = String(req.params.id);
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
+      const limit = safeParseInt(req.query.limit as string | undefined, 30, 1, 500);
       const feed = await FailureArchiveService.getActivityFeed(id, limit);
       res.json({ success: true, data: feed });
     } catch (error) {
