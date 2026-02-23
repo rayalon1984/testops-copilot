@@ -226,6 +226,37 @@ const emailShareSchema = z.object({
   recipientEmail: z.string().email('Invalid email address'),
 });
 
+// ── Monday.com integration schemas ──
+
+// POST /api/v1/monday/items
+const createMondayItemSchema = z.object({
+  boardId: z.string().min(1, 'boardId is required'),
+  groupId: z.string().optional(),
+  itemName: z.string().min(1, 'itemName is required').max(500),
+  columnValues: z.record(z.string(), z.unknown()).optional(),
+});
+
+// PUT /api/v1/monday/items/:itemId
+const updateMondayItemSchema = z.object({
+  boardId: z.string().min(1, 'boardId is required'),
+  columnValues: z.record(z.string(), z.unknown()).optional(),
+});
+
+// POST /api/v1/monday/items/:itemId/updates
+const createMondayUpdateSchema = z.object({
+  body: z.string().min(1, 'body is required').max(10000),
+});
+
+// POST /api/v1/monday/test-failures
+const mondayTestFailureSchema = z.object({
+  boardId: z.string().min(1, 'boardId is required'),
+  testRunId: z.string().min(1, 'testRunId is required'),
+  testName: z.string().min(1, 'testName is required').max(500),
+  errorMessage: z.string().min(1, 'errorMessage is required').max(5000),
+  stackTrace: z.string().max(50000).optional(),
+  groupId: z.string().optional(),
+});
+
 // Validation middleware factory
 const validate = (schema: z.ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -268,6 +299,12 @@ export const validateConfirmAction = validate(confirmActionSchema);
 export const validateCreateShare = validate(createShareSchema);
 export const validateEmailShare = validate(emailShareSchema);
 
+// Monday.com exports
+export const validateCreateMondayItem = validate(createMondayItemSchema);
+export const validateUpdateMondayItem = validate(updateMondayItemSchema);
+export const validateCreateMondayUpdate = validate(createMondayUpdateSchema);
+export const validateMondayTestFailure = validate(mondayTestFailureSchema);
+
 // Export schemas for reuse
 export const schemas = {
   register: registerSchema,
@@ -292,6 +329,10 @@ export const schemas = {
   confirmAction: confirmActionSchema,
   createShare: createShareSchema,
   emailShare: emailShareSchema,
+  createMondayItem: createMondayItemSchema,
+  updateMondayItem: updateMondayItemSchema,
+  createMondayUpdate: createMondayUpdateSchema,
+  mondayTestFailure: mondayTestFailureSchema,
 };
 
 // Type definitions

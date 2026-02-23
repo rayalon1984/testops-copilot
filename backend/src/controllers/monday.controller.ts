@@ -87,15 +87,6 @@ export class MondayController {
   static async createItem(req: Request, res: Response): Promise<void> {
     try {
       const input: CreateMondayItemInput = req.body;
-
-      if (!input.boardId || !input.itemName) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId and itemName are required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.createItem(input);
 
@@ -119,15 +110,6 @@ export class MondayController {
     try {
       const itemId = req.params.itemId as string;
       const input: Omit<UpdateMondayItemInput, 'itemId'> = req.body;
-
-      if (!input.boardId) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId is required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.updateItem({
         itemId,
@@ -154,15 +136,6 @@ export class MondayController {
     try {
       const itemId = req.params.itemId as string;
       const { body } = req.body;
-
-      if (!body) {
-        res.status(400).json({
-          success: false,
-          error: 'body is required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const update = await mondayService.createUpdate({
         itemId,
@@ -188,15 +161,6 @@ export class MondayController {
   static async createItemFromTestFailure(req: Request, res: Response): Promise<void> {
     try {
       const input: MondayTestFailureInput = req.body;
-
-      if (!input.boardId || !input.testRunId || !input.testName || !input.errorMessage) {
-        res.status(400).json({
-          success: false,
-          error: 'boardId, testRunId, testName, and errorMessage are required',
-        });
-        return;
-      }
-
       const mondayService = getMondayService();
       const item = await mondayService.createItemFromTestFailure(input);
 
