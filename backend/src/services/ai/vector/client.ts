@@ -7,6 +7,7 @@
 import weaviate, { WeaviateClient, ApiKey } from 'weaviate-ts-client';
 import { Embedding } from '../types';
 import { getConfigManager } from '../config';
+import { logger } from '@/utils/logger';
 
 export interface VectorDBConfig {
   url: string;
@@ -54,7 +55,7 @@ export class WeaviateVectorClient {
     try {
       const meta = await this.client.misc.metaGetter().do();
       this.connected = true;
-      console.log(`✅ Connected to Weaviate ${meta.version}`);
+      logger.info(`[Weaviate] Connected to Weaviate ${meta.version}`);
     } catch (error) {
       this.connected = false;
       throw new Error(`Failed to connect to Weaviate: ${error}`);
@@ -75,11 +76,11 @@ export class WeaviateVectorClient {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await this.client.schema.classCreator().withClass(schema as any).do();
-      console.log(`Created Weaviate class: ${className}`);
+      logger.info(`[Weaviate] Created class: ${className}`);
     } catch (error: unknown) {
       // Ignore if class already exists
       if (error instanceof Error && error.message?.includes('already exists')) {
-        console.log(`ℹ️  Weaviate class already exists: ${className}`);
+        logger.info(`[Weaviate] Class already exists: ${className}`);
       } else {
         throw error;
       }
@@ -92,9 +93,9 @@ export class WeaviateVectorClient {
   async deleteClass(className: string): Promise<void> {
     try {
       await this.client.schema.classDeleter().withClassName(className).do();
-      console.log(`✅ Deleted Weaviate class: ${className}`);
+      logger.info(`[Weaviate] Deleted class: ${className}`);
     } catch (error) {
-      console.warn(`Failed to delete class ${className}:`, error);
+      logger.warn(`[Weaviate] Failed to delete class ${className}: ${error}`);
     }
   }
 

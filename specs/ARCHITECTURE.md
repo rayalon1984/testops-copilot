@@ -312,9 +312,9 @@ services:
 
 | Limitation | Impact | Mitigation Path |
 |-----------|--------|-----------------|
-| Token blacklist is in-memory | Single-instance only; lost on restart | Migrate to Redis (tracked) |
+| Token blacklist is in-memory fallback | Redis primary with in-memory fallback; single-instance only when Redis unavailable | **Resolved** — Migrated to Redis with TTL (v2.9.0-rc.1) |
 | No WebSocket support | Polling for non-AI updates | Add Socket.IO for real-time |
-| Notification endpoints use mock data | Not persisted to DB | Implement persistence layer |
+| Notification endpoints use mock data | Not persisted to DB | **Resolved** — Migrated to Prisma queries (v2.9.0-rc.1) |
 | No fine-grained permissions | Role-only, no resource-level ACL | Add permission matrix |
 | Single CORS origin | One frontend URL at a time | Add multi-origin support |
 

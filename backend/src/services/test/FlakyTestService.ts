@@ -15,10 +15,8 @@
  *    - Score > 0: LOW
  */
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
-
-const prisma = new PrismaClient();
 
 export interface FlakyStats {
     testName: string;

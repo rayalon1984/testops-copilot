@@ -199,7 +199,7 @@ describeFeature('mcp-server', () => {
 
   itAssertion('mcp.stats.health-database-critical', () => {
     const dbHealthy = true;
-    const aiHealthy = false; // can be down
+    const _aiHealthy = false; // can be down
     const overallHealthy = dbHealthy; // DB is the critical dependency
     expect(overallHealthy).toBe(true);
 
