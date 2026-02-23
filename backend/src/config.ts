@@ -17,7 +17,7 @@ const envSchema = z.object({
   // API
   API_PREFIX: z.string().default('/api/v1'),
 
-  // CORS
+  // CORS — comma-separated for multiple origins (e.g. "https://app.example.com,https://admin.example.com")
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
   // Rate Limiting
@@ -130,6 +130,15 @@ const envSchema = z.object({
 // Parse and validate environment variables
 const env = envSchema.parse(process.env);
 
+/**
+ * Parse CORS_ORIGIN into a single string or array of origins.
+ * Supports comma-separated values for multi-frontend deployments.
+ */
+export function parseCorsOrigin(raw: string): string | string[] {
+  const origins = raw.split(',').map(s => s.trim()).filter(Boolean);
+  return origins.length === 1 ? origins[0] : origins;
+}
+
 // Export configuration object
 export interface GitHubConfig {
   token?: string;
@@ -144,7 +153,7 @@ export interface Config {
     prefix: string;
   };
   cors: {
-    origin: string;
+    origin: string | string[];
   };
   rateLimit: {
     windowMs: number;
@@ -253,7 +262,7 @@ export const config: Config = {
     prefix: env.API_PREFIX,
   },
   cors: {
-    origin: env.CORS_ORIGIN,
+    origin: parseCorsOrigin(env.CORS_ORIGIN),
   },
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW_MS,
