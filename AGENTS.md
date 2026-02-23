@@ -85,6 +85,15 @@ Routes → Controllers (thin: HTTP only) → Services (thick: business logic) �
 - Reuse components from `frontend/src/components/` before building new ones
 - Dark-mode command-center aesthetic (data-dense, scannable, breathable)
 
+### H) Break Once, Never Again
+Every failure follows a four-step cycle — no exceptions:
+1. **Detect** — Surface the failure (test, lint, build, runtime error)
+2. **Understand** — Root-cause it. Don't just fix the symptom.
+3. **Fix** — Resolve the underlying issue
+4. **Prevent** — Add a guard so the same class of bug can never recur (test case, lint rule, CI check, type constraint, or validation)
+
+If a fix doesn't include a prevention step, the fix is incomplete.
+
 ---
 
 ## 3) Persona Routing — Route, Read, Build
