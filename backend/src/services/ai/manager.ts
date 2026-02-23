@@ -17,6 +17,7 @@ import { LogSummarizationService } from './features/log-summary';
 import { ContextEnrichmentService, EnrichmentInput, EnrichmentResult } from './features/context-enrichment';
 import './tools'; // Ensure tools are registered
 import { AICache, getCache } from './cache';
+import { logger } from '@/utils/logger';
 import { CostTracker, getCostTracker, UsageRecord } from './cost-tracker';
 import { TestFailure, SimilarFailure, HealthStatus, FailureCategorization, LogSummary } from './types';
 import { RCAMatchingOptions } from './features/rca-matching';
@@ -57,15 +58,15 @@ export class AIManager {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.log('ℹ️  AI services already initialized');
+      logger.info('[AIManager] AI services already initialized');
       return;
     }
 
-    console.log('🚀 Initializing AI services...');
+    logger.info('[AIManager] Initializing AI services...');
 
     // Check if AI is enabled
     if (!this.configManager.isEnabled()) {
-      console.log('ℹ️  AI features are disabled');
+      logger.info('[AIManager] AI features are disabled');
       this.initialized = true;
       return;
     }
@@ -79,24 +80,24 @@ export class AIManager {
     try {
       // Initialize cost tracker database schema
       await this.costTracker.initialize();
-      console.log('✅ Cost tracker initialized');
+      logger.info('[AIManager] Cost tracker initialized');
 
       // Initialize AI provider from central config
       this.provider = createProviderFromConfig(this.configManager);
       // this.provider = new MockProvider({ apiKey: 'mock', model: 'mock' });
       this.contextEnrichment.setProvider(this.provider);
-      console.log(`✅ AI provider initialized: ${this.provider.getName()}`);
+      logger.info(`[AIManager] AI provider initialized: ${this.provider.getName()}`);
 
       // Initialize categorization service (always available)
       if (this.configManager.isFeatureEnabled('categorization')) {
         this.categorization = new CategorizationService(this.provider);
-        console.log('✅ Categorization service initialized');
+        logger.info('[AIManager] Categorization service initialized');
       }
 
       // Initialize log summarization service (always available)
       if (this.configManager.isFeatureEnabled('logSummary')) {
         this.logSummarization = new LogSummarizationService(this.provider);
-        console.log('✅ Log summarization service initialized');
+        logger.info('[AIManager] Log summarization service initialized');
       }
 
       // Initialize vector database
@@ -105,22 +106,22 @@ export class AIManager {
           this.vectorClient = getVectorClient(this.configManager.getVectorDBConfig());
           await this.vectorClient.connect();
           await initializeSchemas(this.vectorClient);
-          console.log('✅ Vector database initialized');
+          logger.info('[AIManager] Vector database initialized');
 
           // Initialize RCA matching service
           this.rcaMatching = new RCAMatchingService(this.provider, this.vectorClient);
-          console.log('✅ RCA matching service initialized');
+          logger.info('[AIManager] RCA matching service initialized');
         } catch (error) {
-          console.warn('⚠️  Failed to initialize Vector DB (RCA features disabled):', error instanceof Error ? error.message : error);
+          logger.warn(`[AIManager] Failed to initialize Vector DB (RCA features disabled): ${error instanceof Error ? error.message : error}`);
           this.vectorClient = null;
           this.rcaMatching = null;
         }
       }
 
       this.initialized = true;
-      console.log('✅ AI services initialized successfully');
+      logger.info('[AIManager] AI services initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize AI services:', error);
+      logger.error('[AIManager] Failed to initialize AI services:', error);
       throw error;
     }
   }
@@ -176,7 +177,7 @@ export class AIManager {
 
       return results;
     } catch (error) {
-      console.error('RCA matching failed:', error);
+      logger.error('[AIManager] RCA matching failed:', error);
       throw error;
     }
   }
@@ -213,7 +214,7 @@ export class AIManager {
 
       return id;
     } catch (error) {
-      console.error('Failed to store failure:', error);
+      logger.error('[AIManager] Failed to store failure:', error);
       throw error;
     }
   }
@@ -272,7 +273,7 @@ export class AIManager {
 
       return result;
     } catch (error) {
-      console.error('Categorization failed:', error);
+      logger.error('[AIManager] Categorization failed:', error);
       throw error;
     }
   }
@@ -319,7 +320,7 @@ export class AIManager {
 
       return result;
     } catch (error) {
-      console.error('Log summarization failed:', error);
+      logger.error('[AIManager] Log summarization failed:', error);
       throw error;
     }
   }
@@ -351,7 +352,7 @@ export class AIManager {
 
       return result;
     } catch (error) {
-      console.error('Context enrichment failed:', error);
+      logger.error('[AIManager] Context enrichment failed:', error);
       throw error;
     }
   }
@@ -445,7 +446,7 @@ export class AIManager {
   async cleanup(daysToKeep: number = 90): Promise<void> {
     if (this.rcaMatching) {
       const deleted = await this.rcaMatching.cleanup(daysToKeep);
-      console.log(`🗑️  Cleaned up ${deleted} old failure records`);
+      logger.info(`[AIManager] Cleaned up ${deleted} old failure records`);
     }
   }
 
@@ -453,7 +454,7 @@ export class AIManager {
    * Shutdown AI services
    */
   async shutdown(): Promise<void> {
-    console.log('🛑 Shutting down AI services...');
+    logger.info('[AIManager] Shutting down AI services...');
 
     if (this.vectorClient) {
       await this.vectorClient.close();
@@ -464,7 +465,7 @@ export class AIManager {
     }
 
     this.initialized = false;
-    console.log('✅ AI services shut down');
+    logger.info('[AIManager] AI services shut down');
   }
 
   /**

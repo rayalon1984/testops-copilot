@@ -154,7 +154,7 @@ describeFeature('authentication', () => {
   itAssertion('auth.sso.existing-user-no-duplicate', () => {
     // Existing email -> return user, no create
     const existingUser = { id: 'user-1', email: 'existing@example.com', role: 'ADMIN' };
-    const samlProfile = { email: 'existing@example.com' };
+    const _samlProfile = { email: 'existing@example.com' };
     const shouldCreate = !existingUser;
     expect(shouldCreate).toBe(false);
   });
