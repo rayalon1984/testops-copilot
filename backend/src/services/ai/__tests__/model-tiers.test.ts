@@ -8,7 +8,6 @@ import {
   getRequiredTier,
   getPromptHints,
   DEFAULT_FEATURE_REQUIREMENTS,
-  type ModelTier,
 } from '../model-tiers';
 
 // ── Model Profile Resolution ──

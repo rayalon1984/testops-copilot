@@ -1,36 +1,4 @@
 {
-  "jira-housekeeping": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "housekeeping.link-issues": "1.0.0",
-      "housekeeping.add-label": "1.0.0",
-      "housekeeping.autonomy": "1.0.0",
-      "housekeeping.suggestion": "1.0.0",
-      "housekeeping.undo": "1.0.0"
-    },
-    "lastRun": "2026-02-22T04:53:16.047Z"
-  },
-  "resilience": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "resilience.circuit-breaker": "1.0.0",
-      "resilience.retry": "1.0.0",
-      "resilience.timeout": "1.0.0",
-      "resilience.preconfigured": "1.0.0"
-    },
-    "lastRun": "2026-02-22T04:53:16.463Z"
-  },
-  "authentication": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "auth.jwt": "1.0.0",
-      "auth.rbac": "1.0.0",
-      "auth.sso": "1.0.0",
-      "auth.blacklist": "1.0.0",
-      "auth.audit": "1.0.0"
-    },
-    "lastRun": "2026-02-21T22:50:16.212Z"
-  },
   "failure-analysis": {
     "lastTestedVersion": "1.0.0",
     "capabilities": {
@@ -38,26 +6,7 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-02-21T22:21:26.444Z"
-  },
-  "inline-diff": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "diff.viewer": "1.0.0",
-      "diff.pr-card": "1.0.0",
-      "diff.merge-tool": "1.0.0"
-    },
-    "lastRun": "2026-02-21T22:50:15.150Z"
-  },
-  "mcp-server": {
-    "lastTestedVersion": "1.0.0",
-    "capabilities": {
-      "mcp.analyze": "1.0.0",
-      "mcp.batch": "1.0.0",
-      "mcp.knowledge": "1.0.0",
-      "mcp.stats": "1.0.0"
-    },
-    "lastRun": "2026-02-21T22:50:15.113Z"
+    "lastRun": "2026-02-23T10:01:08.225Z"
   },
   "giphy-integration": {
     "lastTestedVersion": "1.0.0",
@@ -67,28 +16,46 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-02-21T22:22:13.898Z"
+    "lastRun": "2026-02-23T10:01:08.271Z"
   },
-  "autonomy-preferences": {
+  "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
     "capabilities": {
-      "autonomy.classifier": "1.0.0",
-      "autonomy.context-overrides": "1.0.0",
-      "autonomy.user-preference": "1.0.0",
-      "autonomy.gated-check": "1.0.0",
-      "autonomy.frontend": "1.0.0",
-      "autonomy.api": "1.0.0"
+      "kb.fingerprinting": "1.0.0",
+      "kb.matching": "1.0.0",
+      "kb.rca-docs": "1.0.0",
+      "kb.insights": "1.0.0"
     },
-    "lastRun": "2026-02-22T04:53:15.994Z"
+    "lastRun": "2026-02-23T09:56:47.771Z"
   },
-  "react-loop": {
+  "inline-diff": {
     "lastTestedVersion": "1.0.0",
     "capabilities": {
-      "react.loop": "1.0.0",
-      "react.tools": "1.0.0",
-      "react.streaming": "1.0.0",
-      "react.tools-registry": "1.0.0"
+      "diff.viewer": "1.0.0",
+      "diff.pr-card": "1.0.0",
+      "diff.merge-tool": "1.0.0"
     },
-    "lastRun": "2026-02-22T04:53:16.182Z"
+    "lastRun": "2026-02-23T09:56:47.812Z"
+  },
+  "resilience": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "resilience.circuit-breaker": "1.0.0",
+      "resilience.retry": "1.0.0",
+      "resilience.timeout": "1.0.0",
+      "resilience.preconfigured": "1.0.0"
+    },
+    "lastRun": "2026-02-23T10:01:08.736Z"
+  },
+  "jira-housekeeping": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "housekeeping.link-issues": "1.0.0",
+      "housekeeping.add-label": "1.0.0",
+      "housekeeping.autonomy": "1.0.0",
+      "housekeeping.suggestion": "1.0.0",
+      "housekeeping.undo": "1.0.0"
+    },
+    "lastRun": "2026-02-23T10:01:08.308Z"
   }
 }

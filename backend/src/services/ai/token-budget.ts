@@ -160,10 +160,11 @@ export function truncateToTokenBudget(
       // Keep the end of the content (most recent)
       return marker + '\n' + text.slice(-usableChars);
 
-    case 'middle':
+    case 'middle': {
       // Keep beginning and end, cut the middle
       const halfChars = Math.floor(usableChars / 2);
       return text.slice(0, halfChars) + marker + text.slice(-halfChars);
+    }
 
     case 'smart_log':
       return truncateLogSmart(text, usableChars, marker);
@@ -185,7 +186,6 @@ function truncateLogSmart(text: string, maxChars: number, marker: string): strin
   // Extract high-signal lines (errors, exceptions, failures, assertions)
   const errorPatterns = /\b(error|exception|failed|fatal|assert|panic|segfault|abort|stack\s*trace|caused\s*by|traceback)\b/i;
   const errorLines: string[] = [];
-  const recentLines: string[] = [];
 
   // Collect error lines from the entire log
   for (const line of lines) {
