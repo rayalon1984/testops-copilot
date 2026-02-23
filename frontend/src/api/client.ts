@@ -30,13 +30,26 @@ export class ApiError extends Error {
   }
 }
 
+// ─── CSRF token management ───
+
+let csrfToken: string | null = null;
+
+async function fetchCsrfToken(): Promise<string> {
+  const res = await fetch(`${API_BASE}/csrf-token`, { credentials: 'include' });
+  const data = await res.json();
+  csrfToken = data.token as string;
+  return csrfToken;
+}
+
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
 // ─── Auth helpers ───
 
 function getToken(): string | null {
   return localStorage.getItem('accessToken');
 }
 
-function buildHeaders(customHeaders?: HeadersInit): Headers {
+function buildHeaders(customHeaders?: HeadersInit, method?: string): Headers {
   const headers = new Headers({
     'Content-Type': 'application/json',
     ...customHeaders,
@@ -47,6 +60,11 @@ function buildHeaders(customHeaders?: HeadersInit): Headers {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
+  // Attach CSRF token on state-changing requests
+  if (csrfToken && STATE_CHANGING_METHODS.has(method ?? '')) {
+    headers.set('X-CSRF-Token', csrfToken);
+  }
+
   return headers;
 }
 
@@ -55,12 +73,19 @@ function buildHeaders(customHeaders?: HeadersInit): Headers {
 async function apiFetch<T>(
   path: string,
   options?: RequestInit & { rawResponse?: boolean },
+  _csrfRetried = false,
 ): Promise<T> {
   const { rawResponse, headers: customHeaders, ...fetchOptions } = options || {};
+  const method = fetchOptions.method ?? 'GET';
+
+  // Ensure CSRF token is available before state-changing requests
+  if (STATE_CHANGING_METHODS.has(method) && !csrfToken) {
+    await fetchCsrfToken();
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
     ...fetchOptions,
-    headers: buildHeaders(customHeaders as HeadersInit | undefined),
+    headers: buildHeaders(customHeaders as HeadersInit | undefined, method),
     credentials: 'include',
   });
 
@@ -68,6 +93,16 @@ async function apiFetch<T>(
     // On 401, clear token — let the caller (AuthContext) decide on redirect
     if (response.status === 401) {
       localStorage.removeItem('accessToken');
+    }
+
+    // On 403 with CSRF error, refresh token and retry once
+    if (response.status === 403 && !_csrfRetried) {
+      const body = await response.json().catch(() => ({}));
+      if (body.code === 'CSRF_INVALID' || body.message?.includes('CSRF')) {
+        await fetchCsrfToken();
+        return apiFetch<T>(path, options, true);
+      }
+      throw new ApiError(response.status, body.message || 'Forbidden', body);
     }
 
     const body = await response.json().catch(() => ({ message: response.statusText }));
