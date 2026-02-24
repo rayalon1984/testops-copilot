@@ -3,7 +3,7 @@
  * HTTP handlers for predictive failure analysis endpoints
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { PredictionAnalysisService } from '../services/prediction-analysis.service';
 
@@ -30,39 +30,51 @@ export class PredictionController {
   /**
    * GET /api/v1/failure-archive/trends
    */
-  static async getTrends(req: Request, res: Response): Promise<void> {
-    const params = trendsSchema.parse(req.query);
+  static async getTrends(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const params = trendsSchema.parse(req.query);
 
-    const timeSeries = await PredictionAnalysisService.getFailureTimeSeries(params);
-    const trend = PredictionAnalysisService.calculateTrend(timeSeries);
+      const timeSeries = await PredictionAnalysisService.getFailureTimeSeries(params);
+      const trend = PredictionAnalysisService.calculateTrend(timeSeries);
 
-    res.json({ success: true, data: trend });
+      res.json({ success: true, data: trend });
+    } catch (error) {
+      next(error);
+    }
   }
 
   /**
    * GET /api/v1/failure-archive/predictions
    */
-  static async getPredictions(req: Request, res: Response): Promise<void> {
-    const params = predictionsSchema.parse(req.query);
+  static async getPredictions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const params = predictionsSchema.parse(req.query);
 
-    const scores = await PredictionAnalysisService.calculateRiskScores(params);
+      const scores = await PredictionAnalysisService.calculateRiskScores(params);
 
-    res.json({ success: true, data: scores });
+      res.json({ success: true, data: scores });
+    } catch (error) {
+      next(error);
+    }
   }
 
   /**
    * GET /api/v1/failure-archive/anomalies
    */
-  static async getAnomalies(req: Request, res: Response): Promise<void> {
-    const params = anomaliesSchema.parse(req.query);
+  static async getAnomalies(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const params = anomaliesSchema.parse(req.query);
 
-    const timeSeries = await PredictionAnalysisService.getFailureTimeSeries({
-      days: params.days,
-      testName: params.testName,
-      category: params.category,
-    });
-    const anomalies = PredictionAnalysisService.detectAnomalies(timeSeries, params.sensitivity);
+      const timeSeries = await PredictionAnalysisService.getFailureTimeSeries({
+        days: params.days,
+        testName: params.testName,
+        category: params.category,
+      });
+      const anomalies = PredictionAnalysisService.detectAnomalies(timeSeries, params.sensitivity);
 
-    res.json({ success: true, data: anomalies });
+      res.json({ success: true, data: anomalies });
+    } catch (error) {
+      next(error);
+    }
   }
 }

@@ -4,26 +4,8 @@ import { validateNotificationPreferences, validateChannelVerification, validateB
 import { NotificationController } from '../controllers/notification.controller';
 import { UserRole } from '../constants';
 import { notificationRouter as router } from './routers';
-import { prisma } from '../lib/prisma';
 
 const notificationController = new NotificationController();
-
-/**
- * Map Prisma Notification to frontend contract.
- * DB uses `read`; frontend expects `delivered` + `timestamp`.
- */
-function toNotificationDTO(n: { id: string; type: string; title: string; message: string; read: boolean; testRunId: string | null; createdAt: Date }) {
-  return {
-    id: n.id,
-    testRunId: n.testRunId || '',
-    pipelineName: n.title,
-    type: n.type,
-    status: n.type.toUpperCase(),
-    message: n.message,
-    timestamp: n.createdAt.toISOString(),
-    delivered: n.read,
-  };
-}
 
 // @route   GET /api/v1/notifications
 // @desc    Get all notifications for user
@@ -32,12 +14,8 @@ router.get(
   '/',
   authenticate,
   asyncHandler(async (req, res) => {
-    const notifications = await prisma.notification.findMany({
-      where: { userId: req.user!.id },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-    res.status(200).json(notifications.map(toNotificationDTO));
+    const notifications = await notificationController.getUserNotifications(req.user!.id);
+    res.status(200).json(notifications);
   })
 );
 
@@ -48,12 +26,8 @@ router.get(
   '/undelivered',
   authenticate,
   asyncHandler(async (req, res) => {
-    const notifications = await prisma.notification.findMany({
-      where: { userId: req.user!.id, read: false },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-    res.status(200).json(notifications.map(toNotificationDTO));
+    const notifications = await notificationController.getUndeliveredNotifications(req.user!.id);
+    res.status(200).json(notifications);
   })
 );
 
@@ -64,12 +38,7 @@ router.patch(
   '/:id/delivered',
   authenticate,
   asyncHandler(async (req, res) => {
-    const notificationId = String(req.params.id);
-    const userId = String(req.user!.id);
-    await prisma.notification.updateMany({
-      where: { id: notificationId, userId },
-      data: { read: true },
-    });
+    await notificationController.markAsDelivered(String(req.params.id), String(req.user!.id));
     res.status(200).json({ success: true, message: 'Notification marked as delivered' });
   })
 );
@@ -81,11 +50,7 @@ router.delete(
   '/:id',
   authenticate,
   asyncHandler(async (req, res) => {
-    const notificationId = String(req.params.id);
-    const userId = String(req.user!.id);
-    await prisma.notification.deleteMany({
-      where: { id: notificationId, userId },
-    });
+    await notificationController.deleteNotification(String(req.params.id), String(req.user!.id));
     res.status(200).json({ success: true, message: 'Notification deleted' });
   })
 );
@@ -97,7 +62,7 @@ router.delete(
   '/',
   authenticate,
   asyncHandler(async (req, res) => {
-    await prisma.notification.deleteMany({ where: { userId: req.user!.id } });
+    await notificationController.deleteAllNotifications(req.user!.id);
     res.status(200).json({ success: true, message: 'All notifications cleared' });
   })
 );

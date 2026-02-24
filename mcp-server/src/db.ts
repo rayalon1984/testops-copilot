@@ -18,7 +18,7 @@ export function getPool(): Pool {
     pool = new Pool(config);
 
     pool.on('error', (err) => {
-      console.error('Unexpected database error:', err);
+      process.stderr.write(`[db] Unexpected database error: ${err instanceof Error ? err.message : String(err)}\n`);
     });
   }
 
@@ -31,7 +31,7 @@ export async function healthCheck(): Promise<boolean> {
     const result = await client.query('SELECT 1');
     return result.rows.length === 1;
   } catch (error) {
-    console.error('Database health check failed:', error);
+    process.stderr.write(`[db] Database health check failed: ${error instanceof Error ? error.message : String(error)}\n`);
     return false;
   }
 }
@@ -46,9 +46,9 @@ export async function closePool(): Promise<void> {
 /**
  * Safe query wrapper with error handling
  */
-export async function query<T = any>(
+export async function query<T = Record<string, unknown>>(
   text: string,
-  params?: any[]
+  params?: Array<string | number | boolean | null | Date>
 ): Promise<T[]> {
   const client = getPool();
   const result = await client.query(text, params);
@@ -59,7 +59,7 @@ export async function query<T = any>(
  * Transaction helper
  */
 export async function transaction<T>(
-  callback: (client: any) => Promise<T>
+  callback: (client: import('pg').PoolClient) => Promise<T>
 ): Promise<T> {
   const pool = getPool();
   const client = await pool.connect();

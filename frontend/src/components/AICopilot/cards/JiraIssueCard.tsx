@@ -28,8 +28,20 @@ interface JiraIssueCardProps {
     cardState?: CardState;
 }
 
+function toJiraIssueData(data: Record<string, unknown>): JiraIssueData {
+    return {
+        key: typeof data.key === 'string' ? data.key : '',
+        summary: typeof data.summary === 'string' ? data.summary : '',
+        status: typeof data.status === 'string' ? data.status : 'Unknown',
+        type: typeof data.type === 'string' ? data.type : 'Task',
+        labels: Array.isArray(data.labels) ? data.labels.filter((l): l is string => typeof l === 'string') : undefined,
+        assignee: typeof data.assignee === 'string' ? data.assignee : undefined,
+        description: typeof data.description === 'string' ? data.description : undefined,
+    };
+}
+
 export default function JiraIssueCard({ data, userRole, onAction, cardState }: JiraIssueCardProps) {
-    const issue = data as unknown as JiraIssueData;
+    const issue = toJiraIssueData(data);
     const [showComment, setShowComment] = useState(false);
     const [commentText, setCommentText] = useState('');
 

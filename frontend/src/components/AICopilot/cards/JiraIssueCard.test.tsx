@@ -82,4 +82,24 @@ describe('JiraIssueCard', () => {
         render(<JiraIssueCard data={defaultData} userRole="EDITOR" cardState="action_pending" />);
         expect(screen.getByText('\u25CC Moving...')).toBeInTheDocument();
     });
+
+    it('handles malformed data gracefully with type guard', () => {
+        const malformedData = {
+            key: 123,         // wrong type - number instead of string
+            summary: null,    // wrong type - null instead of string
+            labels: 'not-an-array',
+        };
+        // Should render without crashing, using safe defaults
+        const { container } = render(
+            <JiraIssueCard data={malformedData as Record<string, unknown>} userRole="VIEWER" />
+        );
+        expect(container).toBeTruthy();
+    });
+
+    it('handles completely empty data object', () => {
+        const { container } = render(
+            <JiraIssueCard data={{}} userRole="VIEWER" />
+        );
+        expect(container).toBeTruthy();
+    });
 });

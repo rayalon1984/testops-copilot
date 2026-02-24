@@ -24,7 +24,82 @@ export interface TestRunFilters {
     tags?: string[];
 }
 
+const STATUS_MAP: Record<string, string> = {
+    'PASSED': 'success',
+    'FAILED': 'failed',
+    'RUNNING': 'running',
+    'PENDING': 'pending',
+    'SKIPPED': 'skipped',
+    'FLAKY': 'flaky'
+};
+
+export interface FormattedTestRun {
+    id: string;
+    pipelineId: string;
+    pipelineName: string;
+    status: string;
+    startTime: string;
+    endTime: string;
+    duration: number;
+    errorCount: number;
+    errorLogs?: string[];
+    screenshots: string[];
+}
+
 export class TestRunService {
+
+    async getFormattedTestRuns(userId: string): Promise<FormattedTestRun[]> {
+        const testRuns = await prisma.testRun.findMany({
+            where: { userId },
+            include: { pipeline: true, results: true },
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+        });
+
+        return testRuns.map(run => {
+            const failed = run.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
+            return {
+                id: run.id,
+                pipelineId: run.pipelineId,
+                pipelineName: run.pipeline?.name || 'Unknown Pipeline',
+                status: STATUS_MAP[run.status] || 'pending',
+                startTime: run.startedAt?.toISOString() || run.createdAt.toISOString(),
+                endTime: run.completedAt?.toISOString() || run.createdAt.toISOString(),
+                duration: run.duration || 0,
+                errorCount: failed,
+                screenshots: [],
+            };
+        });
+    }
+
+    async getFormattedTestRunById(id: string, userId: string): Promise<FormattedTestRun> {
+        const testRun = await prisma.testRun.findFirst({
+            where: { id, userId },
+            include: { pipeline: true, results: true },
+        });
+
+        if (!testRun) {
+            throw new NotFoundError('Test run not found');
+        }
+
+        const failed = testRun.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
+        const errorLogs = testRun.results
+            ?.filter((r: { status: string; error?: string | null }) => r.status === 'FAILED' && r.error)
+            .map((r: { error?: string | null }) => r.error!) || [];
+
+        return {
+            id: testRun.id,
+            pipelineId: testRun.pipelineId,
+            pipelineName: testRun.pipeline?.name || 'Unknown Pipeline',
+            status: STATUS_MAP[testRun.status] || 'pending',
+            startTime: testRun.startedAt?.toISOString() || testRun.createdAt.toISOString(),
+            endTime: testRun.completedAt?.toISOString() || testRun.createdAt.toISOString(),
+            duration: testRun.duration || 0,
+            errorCount: failed,
+            errorLogs,
+            screenshots: [],
+        };
+    }
 
     async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<TestRun[]> {
         const where: Prisma.TestRunWhereInput = { userId };
@@ -45,7 +120,7 @@ export class TestRunService {
         if (filters.tags && filters.tags.length > 0) {
             // Simple implementation for comma-separated string tags
             // This is a limitation of the current schema design for SQLite
-            // @ts-expect-error - OR usage matches Prisma generic types but strict TS might complain
+            // @ts-expect-error - Prisma StringFilter on `tags` field is valid but strict TS rejects the OR shape
             where.OR = filters.tags.map(tag => ({
                 tags: { contains: tag }
             }));

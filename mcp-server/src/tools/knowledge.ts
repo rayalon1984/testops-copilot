@@ -6,6 +6,17 @@ import { z } from 'zod';
 import { query } from '../db.js';
 import type { KnowledgeEntry } from '../types.js';
 
+interface KnowledgeRow {
+  id: string;
+  testName: string;
+  errorMessage: string;
+  category: string;
+  resolution: string;
+  resolvedBy: string;
+  ticketUrl: string | null;
+  createdAt: Date;
+}
+
 // Search Knowledge Schema
 const SearchKnowledgeInputSchema = z.object({
   query: z.string().describe('Search query (test name, error message, or description)'),
@@ -25,7 +36,7 @@ export type SearchKnowledgeInput = z.infer<typeof SearchKnowledgeInputSchema>;
  * Cost: ~$0.001 per search (embedding generation only)
  */
 export async function searchKnowledgeTool(input: SearchKnowledgeInput): Promise<KnowledgeEntry[]> {
-  console.log(`Searching knowledge base: "${input.query}"`);
+  process.stderr.write(`[knowledge] Searching knowledge base: "${input.query}"\n`);
 
   const validatedInput = SearchKnowledgeInputSchema.parse(input);
 
@@ -46,7 +57,7 @@ export async function searchKnowledgeTool(input: SearchKnowledgeInput): Promise<
       WHERE 1=1
     `;
 
-    const params: any[] = [];
+    const params: Array<string | number | boolean> = [];
     let paramIndex = 1;
 
     // Only resolved failures
@@ -77,7 +88,7 @@ export async function searchKnowledgeTool(input: SearchKnowledgeInput): Promise<
     sql += ` LIMIT $${paramIndex}`;
     params.push(validatedInput.limit);
 
-    const results = await query<any>(sql, params);
+    const results = await query<KnowledgeRow>(sql, params);
 
     return results.map(row => ({
       id: row.id,
@@ -86,11 +97,11 @@ export async function searchKnowledgeTool(input: SearchKnowledgeInput): Promise<
       category: row.category,
       resolution: row.resolution,
       resolvedBy: row.resolvedBy,
-      ticketUrl: row.ticketUrl,
+      ticketUrl: row.ticketUrl ?? undefined,
       createdAt: row.createdAt,
     }));
   } catch (error) {
-    console.error('Knowledge search failed:', error);
+    process.stderr.write(`[knowledge] Knowledge search failed: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to search knowledge base: ${error}`);
   }
 }
@@ -119,7 +130,7 @@ export type AddKnowledgeInput = z.infer<typeof AddKnowledgeInputSchema>;
  * Cost: ~$0.001 (embedding generation)
  */
 export async function addKnowledgeTool(input: AddKnowledgeInput): Promise<{ id: string; message: string }> {
-  console.log(`Adding knowledge entry: ${input.testName}`);
+  process.stderr.write(`[knowledge] Adding knowledge entry: ${input.testName}\n`);
 
   const validatedInput = AddKnowledgeInputSchema.parse(input);
 
@@ -166,7 +177,7 @@ export async function addKnowledgeTool(input: AddKnowledgeInput): Promise<{ id: 
       message: `Successfully added knowledge entry for "${validatedInput.testName}"`,
     };
   } catch (error) {
-    console.error('Failed to add knowledge:', error);
+    process.stderr.write(`[knowledge] Failed to add knowledge: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to add knowledge entry: ${error}`);
   }
 }
@@ -211,7 +222,7 @@ export async function getKnowledgeStatsTool(): Promise<{
     }));
 
     // Recent additions
-    const recentResult = await query<any>(`
+    const recentResult = await query<KnowledgeRow>(`
       SELECT
         id,
         test_name as "testName",
@@ -232,7 +243,7 @@ export async function getKnowledgeStatsTool(): Promise<{
       category: row.category,
       resolution: row.resolution,
       resolvedBy: row.resolvedBy,
-      ticketUrl: row.ticketUrl,
+      ticketUrl: row.ticketUrl ?? undefined,
       createdAt: row.createdAt,
     }));
 
@@ -243,7 +254,7 @@ export async function getKnowledgeStatsTool(): Promise<{
       recentAdditions,
     };
   } catch (error) {
-    console.error('Failed to get knowledge stats:', error);
+    process.stderr.write(`[knowledge] Failed to get knowledge stats: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to get knowledge stats: ${error}`);
   }
 }

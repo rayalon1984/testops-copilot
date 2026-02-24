@@ -23,10 +23,12 @@ dotenv.config();
 import {
   analyzeTool,
   analyzeToolDefinition,
+  type AnalyzeInput,
 } from './tools/analyze.js';
 import {
   batchAnalyzeTool,
   batchAnalyzeToolDefinition,
+  type BatchAnalyzeInput,
 } from './tools/batch.js';
 import {
   searchKnowledgeTool,
@@ -35,6 +37,8 @@ import {
   addKnowledgeToolDefinition,
   getKnowledgeStatsTool,
   getKnowledgeStatsToolDefinition,
+  type SearchKnowledgeInput,
+  type AddKnowledgeInput,
 } from './tools/knowledge.js';
 import {
   getPipelineStatsTool,
@@ -45,6 +49,9 @@ import {
   getCostStatsToolDefinition,
   healthCheckTool,
   healthCheckToolDefinition,
+  type GetPipelineStatsInput,
+  type GetTestHistoryInput,
+  type GetCostStatsInput,
 } from './tools/stats.js';
 
 // Server configuration
@@ -94,25 +101,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
-    let result: any;
+    let result: unknown;
 
     switch (name) {
       // Analysis tools
       case 'testops_analyze_failure':
-        result = await analyzeTool((args || {}) as any);
+        result = await analyzeTool((args || {}) as AnalyzeInput);
         break;
 
       case 'testops_batch_analyze':
-        result = await batchAnalyzeTool((args || {}) as any);
+        result = await batchAnalyzeTool((args || {}) as BatchAnalyzeInput);
         break;
 
       // Knowledge base tools
       case 'testops_search_knowledge':
-        result = await searchKnowledgeTool((args || {}) as any);
+        result = await searchKnowledgeTool((args || {}) as SearchKnowledgeInput);
         break;
 
       case 'testops_add_knowledge':
-        result = await addKnowledgeTool((args || {}) as any);
+        result = await addKnowledgeTool((args || {}) as AddKnowledgeInput);
         break;
 
       case 'testops_get_knowledge_stats':
@@ -121,15 +128,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // Statistics tools
       case 'testops_get_pipeline_stats':
-        result = await getPipelineStatsTool((args || {}) as any);
+        result = await getPipelineStatsTool((args || {}) as GetPipelineStatsInput);
         break;
 
       case 'testops_get_test_history':
-        result = await getTestHistoryTool((args || {}) as any);
+        result = await getTestHistoryTool((args || {}) as GetTestHistoryInput);
         break;
 
       case 'testops_get_cost_stats':
-        result = await getCostStatsTool((args || {}) as any);
+        result = await getCostStatsTool((args || {}) as GetCostStatsInput);
         break;
 
       case 'testops_health_check':
@@ -150,7 +157,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Error executing tool ${name}:`, error);
+    process.stderr.write(`[mcp] Error executing tool ${name}: ${error instanceof Error ? error.message : String(error)}\n`);
 
     return {
       content: [
@@ -169,17 +176,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start server
 async function main() {
-  console.error('🚀 TestOps Companion MCP Server starting...');
-  console.error(`📦 Version: ${SERVER_VERSION}`);
-  console.error(`🔧 Tools: ${tools.length}`);
+  process.stderr.write('[mcp] TestOps Companion MCP Server starting...\n');
+  process.stderr.write(`[mcp] Version: ${SERVER_VERSION}\n`);
+  process.stderr.write(`[mcp] Tools: ${tools.length}\n`);
 
   // Validate environment
   if (!process.env.DATABASE_URL) {
-    console.error('⚠️  WARNING: DATABASE_URL not set');
+    process.stderr.write('[mcp] WARNING: DATABASE_URL not set\n');
   }
 
   if (!process.env.AI_ENABLED || process.env.AI_ENABLED !== 'true') {
-    console.error('⚠️  WARNING: AI features are disabled');
+    process.stderr.write('[mcp] WARNING: AI features are disabled\n');
   }
 
   // Create transport
@@ -188,23 +195,23 @@ async function main() {
   // Connect server to transport
   await server.connect(transport);
 
-  console.error('✅ Server ready');
-  console.error('📡 Listening for requests...');
+  process.stderr.write('[mcp] Server ready\n');
+  process.stderr.write('[mcp] Listening for requests...\n');
 }
 
 // Error handling
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+  process.stderr.write(`[mcp] Uncaught exception: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason, _promise) => {
+  process.stderr.write(`[mcp] Unhandled rejection: ${reason instanceof Error ? reason.message : String(reason)}\n`);
   process.exit(1);
 });
 
 // Start the server
 main().catch((error) => {
-  console.error('❌ Failed to start server:', error);
+  process.stderr.write(`[mcp] Failed to start server: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exit(1);
 });

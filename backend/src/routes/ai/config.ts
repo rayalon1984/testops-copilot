@@ -11,7 +11,7 @@ import { validateAIConfigUpdate, validateAIAutonomy } from '../../middleware/val
 import { UserRole } from '../../constants';
 import * as providerConfig from '../../services/ai/provider-config.service';
 import { getAvailablePersonas } from '../../services/ai/PersonaRouter';
-import { prisma } from '../../lib/prisma';
+import { getUserAutonomyLevel, setUserAutonomyLevel } from '../../services/ai/autonomy.service';
 import { logger } from '../../utils/logger';
 
 const router = Router();
@@ -46,11 +46,8 @@ router.get('/autonomy', async (req: Request, res: Response): Promise<void> => {
     const user = req.user;
     if (!user?.id) { res.status(401).json({ error: 'Authentication required' }); return; }
 
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { autonomyLevel: true },
-    });
-    res.json({ data: { autonomyLevel: dbUser?.autonomyLevel || 'balanced' } });
+    const autonomyLevel = await getUserAutonomyLevel(user.id);
+    res.json({ data: { autonomyLevel } });
   } catch (error) {
     logger.error('[AI Autonomy] Failed to get preference:', error);
     res.status(500).json({ error: 'Failed to get autonomy preference' });
@@ -68,7 +65,7 @@ router.put('/autonomy', validateAIAutonomy, async (req: Request, res: Response):
       return;
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { autonomyLevel } });
+    await setUserAutonomyLevel(user.id, autonomyLevel);
     logger.info(`[AI Autonomy] User ${user.id} set autonomy to ${autonomyLevel}`);
     res.json({ data: { autonomyLevel } });
   } catch (error) {

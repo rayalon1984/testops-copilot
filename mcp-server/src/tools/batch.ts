@@ -34,7 +34,7 @@ export type BatchAnalyzeInput = z.infer<typeof BatchAnalyzeInputSchema>;
  * Cost: ~$0.05-0.30 depending on number and complexity of failures
  */
 export async function batchAnalyzeTool(input: BatchAnalyzeInput): Promise<BatchAnalysisResult> {
-  console.log('Starting batch analysis...');
+  process.stderr.write('[batch] Starting batch analysis...\n');
 
   const validatedInput = BatchAnalyzeInputSchema.parse(input);
 
@@ -56,12 +56,12 @@ export async function batchAnalyzeTool(input: BatchAnalyzeInput): Promise<BatchA
 
   // Limit number of failures
   if (failures.length > validatedInput.maxFailures!) {
-    console.log(`Limiting analysis to ${validatedInput.maxFailures} failures (out of ${failures.length})`);
+    process.stderr.write(`[batch] Limiting analysis to ${validatedInput.maxFailures} failures (out of ${failures.length})\n`);
     failures = failures.slice(0, validatedInput.maxFailures);
   }
 
   // Analyze each failure
-  console.log(`Analyzing ${failures.length} failures...`);
+  process.stderr.write(`[batch] Analyzing ${failures.length} failures...\n`);
 
   const analyses = [];
   let totalCost = 0;
@@ -84,7 +84,7 @@ export async function batchAnalyzeTool(input: BatchAnalyzeInput): Promise<BatchA
 
       totalCost += analysis.estimatedCostUSD;
     } catch (error) {
-      console.error(`Failed to analyze ${failure.testName}:`, error);
+      process.stderr.write(`[batch] Failed to analyze ${failure.testName}: ${error instanceof Error ? error.message : String(error)}\n`);
     }
   }
 
@@ -112,7 +112,16 @@ export async function batchAnalyzeTool(input: BatchAnalyzeInput): Promise<BatchA
  */
 async function loadFailuresFromTestRun(testRunId: string): Promise<TestFailure[]> {
   try {
-    const results = await query<any>(`
+    interface TestRunFailureRow {
+      testName: string;
+      errorMessage: string;
+      stackTrace: string | null;
+      logs: string | null;
+      branch: string;
+      pipeline: string;
+    }
+
+    const results = await query<TestRunFailureRow>(`
       SELECT
         tr.name as "testName",
         tr.error_message as "errorMessage",
@@ -131,14 +140,14 @@ async function loadFailuresFromTestRun(testRunId: string): Promise<TestFailure[]
     return results.map(row => ({
       testName: row.testName,
       errorMessage: row.errorMessage,
-      stackTrace: row.stackTrace,
-      logs: row.logs,
+      stackTrace: row.stackTrace ?? undefined,
+      logs: row.logs ?? undefined,
       pipeline: row.pipeline,
       branch: row.branch,
       timestamp: new Date(),
     }));
   } catch (error) {
-    console.error('Failed to load test run:', error);
+    process.stderr.write(`[batch] Failed to load test run: ${error instanceof Error ? error.message : String(error)}\n`);
     throw new Error(`Failed to load test run ${testRunId}: ${error}`);
   }
 }
@@ -146,7 +155,12 @@ async function loadFailuresFromTestRun(testRunId: string): Promise<TestFailure[]
 /**
  * Detect common patterns across failures
  */
-function detectPatterns(analyses: any[]) {
+interface AnalysisEntry {
+  failure: TestFailure;
+  analysis: import('../types.js').AnalysisResult;
+}
+
+function detectPatterns(analyses: AnalysisEntry[]) {
   const categoryMap = new Map<string, { count: number; examples: string[] }>();
 
   for (const { failure, analysis } of analyses) {
@@ -176,7 +190,7 @@ function detectPatterns(analyses: any[]) {
 /**
  * Prioritize failures based on severity and patterns
  */
-function prioritizeFailures(analyses: any[], threshold: number) {
+function prioritizeFailures(analyses: AnalysisEntry[], threshold: number) {
   const high: TestFailure[] = [];
   const medium: TestFailure[] = [];
   const low: TestFailure[] = [];
@@ -209,7 +223,7 @@ function prioritizeFailures(analyses: any[], threshold: number) {
 /**
  * Generate human-readable summary
  */
-function generateSummary(analyses: any[], patterns: any[]): string {
+function generateSummary(analyses: AnalysisEntry[], patterns: { category: string; count: number; examples: string[] }[]): string {
   const total = analyses.length;
 
   if (total === 0) {

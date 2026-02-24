@@ -6,8 +6,7 @@ const testRunService = new TestRunService();
 export class TestRunController {
   async getAllTestRuns(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-expect-error - User attached by auth middleware
-      const userId = req.user.id;
+      const userId = req.user!.id;
       const filters = {
         pipelineId: req.query.pipelineId as string,
         status: req.query.status as string,
@@ -26,8 +25,7 @@ export class TestRunController {
 
   async getTestRunById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-expect-error - User attached by auth middleware
-      const userId = req.user.id;
+      const userId = req.user!.id;
       const id = req.params.id as string;
 
       const testRun = await testRunService.getTestRunById(id, userId);
@@ -39,8 +37,7 @@ export class TestRunController {
 
   async createTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-expect-error - User attached by auth middleware
-      const userId = req.user.id;
+      const userId = req.user!.id;
       const data: CreateTestRunDTO = req.body;
 
       const testRun = await testRunService.createTestRun(data, userId);
@@ -52,8 +49,7 @@ export class TestRunController {
 
   async cancelTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-expect-error - User attached by auth middleware
-      const userId = req.user.id;
+      const userId = req.user!.id;
       const id = req.params.id as string;
 
       const testRun = await testRunService.cancelTestRun(id, userId);
@@ -65,8 +61,7 @@ export class TestRunController {
 
   async retryTestRun(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // @ts-expect-error - User attached by auth middleware
-      const userId = req.user.id;
+      const userId = req.user!.id;
       const id = req.params.id as string;
 
       const testRun = await testRunService.retryTestRun(id, userId);

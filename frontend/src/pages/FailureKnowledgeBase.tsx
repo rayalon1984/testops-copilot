@@ -66,8 +66,8 @@ export const FailureKnowledgeBase: React.FC = () => {
 
       setInsights(insightsData);
       setFailures(failuresData.failures);
-    } catch (error) {
-      console.error('Failed to load data:', error);
+    } catch {
+      // Network errors are surfaced via empty state UI
     } finally {
       setLoading(false);
     }
@@ -84,8 +84,8 @@ export const FailureKnowledgeBase: React.FC = () => {
 
       const data = await api.get<{ failures: Failure[]; total: number }>(`/failure-archive/search?${params.toString()}`);
       setFailures(data.failures);
-    } catch (error) {
-      console.error('Search failed:', error);
+    } catch {
+      // Search errors are surfaced via empty state UI
     } finally {
       setLoading(false);
     }
