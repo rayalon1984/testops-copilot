@@ -6,9 +6,11 @@
  */
 
 import { prisma } from '../../lib/prisma';
+import { AutonomyLevel } from '@prisma/client';
 
-const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as const;
-type AutonomyLevel = typeof VALID_AUTONOMY_LEVELS[number];
+const VALID_AUTONOMY_LEVELS: readonly AutonomyLevel[] = ['conservative', 'balanced', 'autonomous'] as const;
+
+export type { AutonomyLevel };
 
 export async function getUserAutonomyLevel(userId: string): Promise<AutonomyLevel> {
   const dbUser = await prisma.user.findUnique({
@@ -17,13 +19,13 @@ export async function getUserAutonomyLevel(userId: string): Promise<AutonomyLeve
   });
 
   const level = dbUser?.autonomyLevel;
-  if (level && VALID_AUTONOMY_LEVELS.includes(level as AutonomyLevel)) {
-    return level as AutonomyLevel;
+  if (level && VALID_AUTONOMY_LEVELS.includes(level)) {
+    return level;
   }
-  return 'balanced';
+  return AutonomyLevel.balanced;
 }
 
-export async function setUserAutonomyLevel(userId: string, autonomyLevel: string): Promise<void> {
+export async function setUserAutonomyLevel(userId: string, autonomyLevel: AutonomyLevel): Promise<void> {
   await prisma.user.update({
     where: { id: userId },
     data: { autonomyLevel },
