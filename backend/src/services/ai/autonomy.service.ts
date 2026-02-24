@@ -3,14 +3,20 @@
  *
  * Encapsulates DB access for user autonomy level so routes
  * never import prisma directly.
+ *
+ * Note: autonomyLevel is a String in the SQLite dev schema but an enum
+ * in the PostgreSQL production schema.  We keep a local union type and
+ * use a targeted cast so the code typechecks against both generated clients.
  */
 
 import { prisma } from '../../lib/prisma';
-import { AutonomyLevel } from '@prisma/client';
 
-const VALID_AUTONOMY_LEVELS: readonly AutonomyLevel[] = ['conservative', 'balanced', 'autonomous'] as const;
+const VALID_AUTONOMY_LEVELS = ['conservative', 'balanced', 'autonomous'] as const;
+export type AutonomyLevel = typeof VALID_AUTONOMY_LEVELS[number];
 
-export type { AutonomyLevel };
+export function isValidAutonomyLevel(value: unknown): value is AutonomyLevel {
+  return typeof value === 'string' && VALID_AUTONOMY_LEVELS.includes(value as AutonomyLevel);
+}
 
 export async function getUserAutonomyLevel(userId: string): Promise<AutonomyLevel> {
   const dbUser = await prisma.user.findUnique({
@@ -19,15 +25,16 @@ export async function getUserAutonomyLevel(userId: string): Promise<AutonomyLeve
   });
 
   const level = dbUser?.autonomyLevel;
-  if (level && VALID_AUTONOMY_LEVELS.includes(level)) {
+  if (isValidAutonomyLevel(level)) {
     return level;
   }
-  return AutonomyLevel.balanced;
+  return 'balanced';
 }
 
 export async function setUserAutonomyLevel(userId: string, autonomyLevel: AutonomyLevel): Promise<void> {
   await prisma.user.update({
     where: { id: userId },
-    data: { autonomyLevel },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dual-schema compat (String in SQLite, enum in PostgreSQL)
+    data: { autonomyLevel: autonomyLevel as any },
   });
 }
