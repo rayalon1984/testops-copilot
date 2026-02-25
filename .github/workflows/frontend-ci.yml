@@ -30,6 +30,10 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Code health check
+      working-directory: .
+      run: npm run check:health
+
     - name: Lint
       run: npm run lint
 

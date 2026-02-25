@@ -50,6 +50,8 @@
     "test:e2e:headed": "npx playwright test --config tests/e2e/playwright.config.ts --headed",
     "test:all": "npm run test && npm run test:e2e",
     "check:architecture": "node scripts/check-architecture.js",
+    "check:health": "node scripts/check-health.js",
+    "check:health:baseline": "node scripts/check-health.js --baseline",
     "validate:specs": "npx tsx scripts/scan-feature-specs.ts",
     "validate:specs:json": "npx tsx scripts/scan-feature-specs.ts --json",
     "report:specs": "npx tsx scripts/feature-health-report.ts --pr",

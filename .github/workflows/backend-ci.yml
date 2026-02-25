@@ -44,6 +44,10 @@ jobs:
       working-directory: .
       run: npm run check:architecture
 
+    - name: Code health check
+      working-directory: .
+      run: npm run check:health
+
     - name: Lint
       run: npm run lint
 

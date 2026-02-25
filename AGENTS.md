@@ -256,8 +256,10 @@ Before completing ANY task, run this checklist:
 2. **Build succeeds** — `npm run build` (backend + frontend + mcp)
 3. **Typecheck clean** — `npm run typecheck` (no TypeScript errors)
 4. **Lint clean** — `npm run lint` (ESLint passing)
-5. **Specs updated** — If behavior changed, update relevant `specs/` documents
-6. **Self-review** — Read the diff. Check edge cases. Verify error handling.
+5. **Architecture clean** — `npm run check:architecture` (no layer violations)
+6. **Code health** — `npm run check:health` (no file/function size violations)
+7. **Specs updated** — If behavior changed, update relevant `specs/` documents
+8. **Self-review** — Read the diff. Check edge cases. Verify error handling.
 
 **If any check fails**: Fix and retry (max 3 attempts). If still failing, simplify scope or ask.
 
