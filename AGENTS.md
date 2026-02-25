@@ -119,6 +119,18 @@ Before ANY implementation, route to the right expert.
 
 Full routing rubric: `specs/team/TEAM_SELECTION.md`
 
+### Fast Path (Trivial Changes)
+
+Skip persona routing when **all** of these are true:
+- Single-file change, under ~30 lines
+- Does not touch auth, AI, database schema, or API contracts
+- Has an obvious owner (almost always `SENIOR_ENGINEER`)
+- Is a bug fix, typo, style tweak, or config update
+
+On the fast path: apply AGENTS.md rules directly → implement → run the verification loop (Section 5) → commit. No persona file read required.
+
+**When in doubt, take the full path.** The fast path exists to reduce overhead on trivial work, not to bypass safety.
+
 ### The Workflow
 ```
 1. Read AGENTS.md (this file)
