@@ -182,6 +182,53 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Vector search | Use Weaviate for semantic similarity. Not keyword matching. |
 | ReAct loop | Max 5 tool calls, max 8 iterations. Safety limits enforced. |
 
+### AI Guardrails (Extended)
+
+These rules supplement the patterns above. Any AI subsystem change **must** satisfy these constraints.
+
+#### Provider Failover & Resilience
+
+| Rule | Detail |
+|------|--------|
+| Failover chain | Configure a primary → secondary → tertiary provider. If primary returns 5xx or times out, fall through automatically. Log every failover event. |
+| Timeout enforcement | The `timeoutMs` from `config.ts` (default 60s) **must** be enforced via `AbortController` or equivalent. No open-ended waits. |
+| Retry policy | Transient failures (429, 503, network timeout) get up to 2 retries with exponential backoff (1s, 3s). Non-retryable errors (400, 401, 403) fail immediately. |
+| Circuit breaker | Wrap provider calls with the same `withResilience()` pattern used for Jira/GitHub. Open after 5 consecutive failures, half-open after 30s. |
+| Health checks | `AIManager.healthCheck()` must be called on startup and exposed via `/api/health`. If primary provider is down, surface it — don't hide it behind cache. |
+
+#### Budget & Cost Controls
+
+| Rule | Detail |
+|------|--------|
+| Hard budget cutoff | When monthly spend reaches 100% of budget, **reject new AI requests** with a clear user-facing error. Soft alert at 80% (existing). |
+| Per-feature caps | Each AI feature (RCA, categorization, log summary, enrichment) should have an individual budget ceiling, not just a monthly total. |
+| Accurate cost tracking | Replace rough cost estimates ($0.001, $0.002) with actual token-based pricing from provider responses. Log input tokens and output tokens separately. |
+| Cost anomaly alerting | If a single request costs >5x the feature's average, log a warning. If daily spend exceeds 2x the projected daily average, alert. |
+
+#### Tool Execution Safety
+
+| Rule | Detail |
+|------|--------|
+| Tool conflict resolution | If the ReAct loop produces conflicting tool calls (e.g., retry + cancel), the **more conservative action wins**. Destructive actions never auto-resolve conflicts. |
+| Partial failure handling | If tool N of M fails mid-loop, return partial results with a clear indicator of what succeeded and what failed. Never silently drop tool results. |
+| Autonomy enforcement | User autonomy preference (Conservative / Balanced / Autonomous) **must** be checked at runtime before executing any tool. A Conservative user must never see Tier 2 auto-execution. |
+
+#### Cache & Data
+
+| Rule | Detail |
+|------|--------|
+| Cache invalidation | TTL-based (7 days) is the baseline. Additionally: invalidate on schema changes, on manual user action ("re-analyze"), and when the underlying data (test run, failure) is updated. |
+| Stale-while-revalidate | For non-critical reads (dashboard summaries), serve stale cache and refresh in the background. For analysis (RCA, categorization), always serve fresh on cache miss. |
+| Privacy boundary | Cache keys **must** include the `organizationId`. A cached result for Org A must never be served to Org B, even if the input hash matches. |
+
+#### Token Management
+
+| Rule | Detail |
+|------|--------|
+| Budget overflow | If system prompt + history alone exceed the model's context budget, **truncate history first** (oldest messages), never truncate the system prompt. |
+| Tool result priority | When total tool result budget is exceeded, truncate results in reverse chronological order (keep the most recent tool output intact). |
+| Token counting | The 3.8 chars/token heuristic is acceptable for budgeting, but log actual token counts from provider responses and alert if estimates drift >20% from actuals. |
+
 ---
 
 ## 5) Verification Loop
