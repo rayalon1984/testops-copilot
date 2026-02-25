@@ -159,6 +159,11 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Components | Reuse from `frontend/src/components/`. Check before creating new ones. |
 | Styling | Material-UI theme system. CSS only in `*.css` files, not inline. |
 | Types | Shared types in `frontend/src/types/`. Mirror backend DTOs. |
+| Error boundaries | Wrap each route-level page in an `<ErrorBoundary>`. A component crash must never take down the whole app. Reuse `frontend/src/components/ErrorBoundary/`. |
+| Component splitting | If a component exceeds ~200 lines, split it. Extract hooks for logic, keep the render function lean. One file = one responsibility. |
+| Forms | Use React Hook Form + Zod for validation. Mirror backend Zod schemas where possible to avoid divergence. |
+| Code splitting | Lazy-load route-level pages with `React.lazy`. Heavy components (charts, editors, modals with rich content) get their own chunk. |
+| Loading states | Every async operation needs a loading indicator. Use React Query's `isLoading`/`isFetching` — never manual boolean flags. |
 
 ### Dependency Governance
 
