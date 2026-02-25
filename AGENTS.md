@@ -160,6 +160,17 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Styling | Material-UI theme system. CSS only in `*.css` files, not inline. |
 | Types | Shared types in `frontend/src/types/`. Mirror backend DTOs. |
 
+### Dependency Governance
+
+| Rule | Detail |
+|------|--------|
+| Justify additions | Every new npm package must include a *why* in the PR description. What problem does it solve? Why not use an existing dep? |
+| Check for overlap | Before adding a package, verify no existing dependency already covers the use case. |
+| Minimum viability | No packages with fewer than 1,000 weekly npm downloads unless approved by a security review. |
+| Audit in CI | `npm audit --audit-level=high` runs in CI. High/critical vulnerabilities fail the build. |
+| Bundle awareness | For frontend deps, check the bundle size impact (`npx bundlephobia <pkg>`). Flag anything > 50 KB gzipped. |
+| Lock files | Always commit `package-lock.json` changes. Never delete or regenerate without cause. |
+
 ### AI Subsystem Patterns
 
 | Pattern | Rule |
