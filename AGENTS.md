@@ -345,14 +345,34 @@ TestOps Companion integrates with these external systems:
 
 ---
 
-## 10) When Stuck
+## 10) When Stuck — Escalation Path
 
-1. **Stop** — Re-read the original requirements
-2. **Simplify** — Break into smaller sub-tasks
-3. **Ask** — Pose specific clarifying questions
-4. **Reset** — Consider a completely different approach
+### Step 1: Retry (max 3 attempts on the same approach)
+- Re-read the original requirements
+- Check if assumptions are wrong
+- Try a different implementation of the *same* approach
 
-**Max 3 retry loops on the same error** before escalating or simplifying scope.
+### Step 2: Simplify
+- Break the task into smaller sub-tasks
+- Reduce scope — solve the core problem first, defer edge cases
+- Remove the newest change and see if the problem disappears
+
+### Step 3: Document
+- Create `plans/stuck-YYYY-MM-DD-<topic>.md` with:
+  - What was attempted (with code snippets or error output)
+  - Why each attempt failed
+  - What's still unclear
+- This creates institutional knowledge. Stuck-states that aren't documented get repeated.
+
+### Step 4: Ask
+- Surface the blocker with a **specific question**, not "I'm stuck"
+- Include: what you tried, what you expected, what happened instead
+- Tag the relevant persona owner if cross-domain
+
+### Step 5: Reset
+- Consider a completely different approach
+- Check if the requirement itself is wrong or over-scoped
+- Propose an alternative that solves 80% of the problem with 20% of the complexity
 
 ---
 
