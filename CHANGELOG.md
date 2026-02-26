@@ -8,81 +8,120 @@ Beta releases are pre-release builds on the path to production GA.
 
 ## [3.0.0] - 2026-02-26
 
-> **TestOps Companion v3.0.0 — General Availability**
+> **TestOps Companion v3 — Your Test Failures Now Have a Detective on Payroll**
 
-### The Release
+### Highlights
 
-Four release candidates. 760 tests. 16 spec'd features with 229 assertions. A full security audit. And now: GA.
+Your CI pipeline breaks at 2 AM. By the time you open your laptop, the AI copilot has already searched Jira for similar failures, pulled the relevant Confluence runbook, identified the root cause from your failure knowledge base, and is waiting with a one-click fix. You review it, hit approve, and move on with your coffee.
 
-TestOps Companion v3 is an AI-powered test operations platform where an agentic copilot — backed by a virtual team of 9 specialist personas — investigates failures, searches Jira, queries Confluence, creates branches, opens PRs, and files issues. All through natural language, all with graduated human oversight.
+That's TestOps Companion v3. Four betas, four release candidates, and a full security audit later — it's ready.
 
-### What's in v3.0.0
+### Your AI Team, Not Just a Chatbot
 
-**Agentic AI Copilot**
-- ReAct reasoning loop (Reason → Act → Observe → Answer) with real-time SSE streaming
-- 22 AI tools: 8 read-only (auto-execute), 11 write (tiered approval), 3 housekeeping
-- Virtual team of 9 specialist personas with two-tier routing (keyword → LLM fallback)
-- Graduated autonomy: Conservative / Balanced / Autonomous — user controls how much the AI does
-- Proactive suggestions after every tool result
-- In-chat provider picker: Anthropic, OpenAI, Google Gemini, Azure OpenAI, AWS Bedrock, OpenRouter
+Every query is routed to the right specialist before a single token is generated. Ask about flaky tests? **Test Engineer** handles it. Pipeline broken? **DevOps Engineer**. Security concern? **Security Engineer**. Nine personas, each with domain expertise baked into their system prompts.
 
-**Test Intelligence**
-- Predictive failure analysis with trend aggregation, risk scoring, z-score anomaly detection
-- Flaky test detection via statistical scoring
-- Smart test selection based on code change impact analysis
-- Failure Knowledge Base with fingerprinting, historical trending, and category analytics
+The routing is two-tier: keyword matching fires in under 1ms at zero cost. When that misses, a lightweight LLM micro-classification kicks in (~200 tokens). You see who's handling your query in real time: *"Test Engineer is on it."*
 
-**Security & Production Readiness**
-- SQL injection prevention (Prisma.sql tagged templates)
-- CSRF protection (double-submit cookie)
-- Redis session store with MemoryStore dev fallback
-- Structured logging (winston), request correlation (X-Request-ID)
-- Deep health checks (`/health/ready`, `/health/live`, `/health/full`)
-- `npm audit` clean at high severity (8 moderate in ESLint devDeps only)
+### Graduated Autonomy — You Set the Dial
 
-**CI & Quality Enforcement**
-- Commitlint + lint-staged enforce conventional commits on every commit
-- Architectural lint blocks layer violations
-- Code health check flags oversized files/functions
-- Schema parity CI gate with `--strict-fields`
-- Bug tracker workflow auto-labels fix PRs and links open issues
-- Living Feature Specs: 16 features, 229 assertions, 100% scanner pass
+Not everyone wants the same level of AI independence. v3 gives you three modes:
 
-**6 AI Providers**
-- Anthropic Claude (direct API)
-- OpenAI (GPT-4o, o1)
-- Google Gemini
-- Azure OpenAI
-- AWS Bedrock (Claude via IAM role or explicit credentials)
-- OpenRouter (multi-model gateway)
+- **Conservative** — AI investigates and recommends. You approve everything.
+- **Balanced** — Low-risk actions (searches, reads, labels) execute automatically. Team-visible actions show a one-click approval card.
+- **Autonomous** — The AI handles what it can, escalates what it should. Destructive actions always require your sign-off.
+
+22 tools. 8 auto-execute. 11 with tiered approval. 3 housekeeping. Every write operation goes through a human-in-the-loop confirmation gate with a 5-minute TTL.
+
+### Bring Your Own Provider
+
+Hot-swap AI providers mid-conversation from the in-chat picker:
+
+| Provider | What You Get |
+|----------|-------------|
+| **Anthropic Claude** | Direct API — Opus, Sonnet, Haiku |
+| **AWS Bedrock** | Claude models via IAM role auth — no API keys needed in AWS environments |
+| **OpenAI** | GPT-4o, o1 |
+| **Google Gemini** | Gemini Pro, Flash |
+| **Azure OpenAI** | Enterprise Azure deployments |
+| **OpenRouter** | 100+ models through a single gateway |
+
+New in this release: **AWS Bedrock** with full chat, tool calling, and health check support. IAM role authentication means zero credential management when running in AWS.
+
+### Test Intelligence That Learns
+
+Your failure knowledge base gets smarter with every test run:
+
+- **Predictive Failure Analysis** — Risk scores per test, trend aggregation, z-score anomaly detection that catches problems before they become patterns
+- **Flaky Test Detection** — Statistical scoring across historical pass/fail data surfaces the tests you can't trust
+- **Smart Test Selection** — Changed 3 files? The platform tells you which 12 of your 400 tests actually need to run
+- **Failure Fingerprinting** — Same root cause, different stack trace? The knowledge base links them automatically
+
+### Production-Hardened
+
+This isn't a prototype. v3 went through a dedicated security audit in rc.3:
+
+- SQL injection prevention (Prisma.sql tagged templates — no more raw queries)
+- CSRF protection (double-submit cookie pattern)
+- Redis-backed sessions with automatic token blacklisting
+- Structured logging with request correlation (every request gets an `X-Request-ID` you can trace end-to-end)
+- Deep health checks: `/health/ready` (DB + Redis), `/health/live` (liveness), `/health/full` (all services including AI providers)
+- Clean `npm audit` at high severity — the 8 remaining moderates are ESLint devDeps with zero production exposure
+
+### CI That Catches What Humans Miss
+
+- **Commitlint + lint-staged** enforce conventional commits — no more "fix stuff" messages
+- **Architectural lint** blocks layer violations before they reach code review
+- **Code health check** flags oversized files and functions with baseline tracking
+- **Schema parity gate** catches drift between dev and production Prisma schemas
+- **Bug tracker workflow** auto-labels `fix(` PRs and links them to open issues
+- **Living Feature Specs** — 16 features, 229 machine-readable assertions, 100% scanner pass. Your specs aren't documentation — they're tests.
+
+### Get Running in 2 Minutes
+
+```bash
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion && npm install && npm run dev:simple
+```
+
+No PostgreSQL. No Redis. No API keys. SQLite + mock AI provider. Login with `engineer@testops.ai` / `demo123` and start talking to the copilot.
+
+For production deployments with real AI providers: **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)**
 
 ### Known Limitations
 
-- **Demo mode login** requires no external services. Production mode requires Redis for CSRF session validation — this is by design (session security demands a persistent store). See [Production Quickstart](docs/PRODUCTION_QUICKSTART.md).
-- **Bedrock embedding** not yet supported — `embed()` throws with guidance to use Amazon Titan Embeddings directly. Chat and tool calling work fully.
+- **Production mode requires Redis** for CSRF session validation — this is by design. Session security demands a persistent store. Demo mode works without it.
+- **Bedrock embedding** is not yet supported — `embed()` throws with guidance to use Amazon Titan Embeddings directly. Chat and tool calling work fully.
 - **E2E tests** (Playwright) are available but not part of the default CI gate — run with `npm run test:e2e`.
 
-### Quality Gates
+### The Numbers
 
 | Gate | Status |
 |------|--------|
-| Tests | **760 passing** (38 backend suites + 13 frontend suites) |
+| Tests | **760 passing** (40 backend suites + 13 frontend suites) |
 | TypeScript | Zero errors |
 | Build | All 3 packages compile |
 | Lint | Clean |
 | Architecture | No layer violations |
 | Health | All functions within limits |
 | Spec Scanner | 229/229 assertions (100%) |
-| Security Audit | 0 high/critical (8 moderate in devDeps) |
+| Security Audit | 0 high/critical |
 
-### RC History
+### The Road Here
 
-| RC | Date | Focus |
-|----|------|-------|
-| rc.1 | 2026-02-21 | Specs complete, CI release workflow |
-| rc.2 | 2026-02-21 | Full beta coverage (16 features, 229 assertions) |
+| Milestone | Date | What Changed |
+|-----------|------|-------------|
+| beta.1 | 2026-02-20 | Agentic copilot, ReAct loop, 22 tools, persona routing, graduated autonomy |
+| beta.2 | 2026-02-20 | 10 Playwright E2E smoke tests |
+| beta.3 | 2026-02-20 | Onboarding wizard, budget indicator, smart error recovery |
+| beta.4 | 2026-02-21 | Living Feature Specs — machine-readable acceptance criteria |
+| rc.1 | 2026-02-21 | Specs complete, CI release workflow stabilized |
+| rc.2 | 2026-02-21 | Full beta coverage — 16 features, 229 assertions |
 | rc.3 | 2026-02-23 | Security hardening & production readiness audit |
-| rc.4 | 2026-02-26 | AWS Bedrock integration, CI quality gates |
+| rc.4 | 2026-02-26 | AWS Bedrock integration, CI quality gates, bug tracking |
+
+### Breaking Changes
+
+None. All new features are additive. Existing API contracts are fully backward compatible with v2.x.
 
 ---
 
