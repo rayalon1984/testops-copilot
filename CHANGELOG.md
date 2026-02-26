@@ -6,6 +6,86 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.0.0] - 2026-02-26
+
+> **TestOps Companion v3.0.0 — General Availability**
+
+### The Release
+
+Four release candidates. 760 tests. 16 spec'd features with 229 assertions. A full security audit. And now: GA.
+
+TestOps Companion v3 is an AI-powered test operations platform where an agentic copilot — backed by a virtual team of 9 specialist personas — investigates failures, searches Jira, queries Confluence, creates branches, opens PRs, and files issues. All through natural language, all with graduated human oversight.
+
+### What's in v3.0.0
+
+**Agentic AI Copilot**
+- ReAct reasoning loop (Reason → Act → Observe → Answer) with real-time SSE streaming
+- 22 AI tools: 8 read-only (auto-execute), 11 write (tiered approval), 3 housekeeping
+- Virtual team of 9 specialist personas with two-tier routing (keyword → LLM fallback)
+- Graduated autonomy: Conservative / Balanced / Autonomous — user controls how much the AI does
+- Proactive suggestions after every tool result
+- In-chat provider picker: Anthropic, OpenAI, Google Gemini, Azure OpenAI, AWS Bedrock, OpenRouter
+
+**Test Intelligence**
+- Predictive failure analysis with trend aggregation, risk scoring, z-score anomaly detection
+- Flaky test detection via statistical scoring
+- Smart test selection based on code change impact analysis
+- Failure Knowledge Base with fingerprinting, historical trending, and category analytics
+
+**Security & Production Readiness**
+- SQL injection prevention (Prisma.sql tagged templates)
+- CSRF protection (double-submit cookie)
+- Redis session store with MemoryStore dev fallback
+- Structured logging (winston), request correlation (X-Request-ID)
+- Deep health checks (`/health/ready`, `/health/live`, `/health/full`)
+- `npm audit` clean at high severity (8 moderate in ESLint devDeps only)
+
+**CI & Quality Enforcement**
+- Commitlint + lint-staged enforce conventional commits on every commit
+- Architectural lint blocks layer violations
+- Code health check flags oversized files/functions
+- Schema parity CI gate with `--strict-fields`
+- Bug tracker workflow auto-labels fix PRs and links open issues
+- Living Feature Specs: 16 features, 229 assertions, 100% scanner pass
+
+**6 AI Providers**
+- Anthropic Claude (direct API)
+- OpenAI (GPT-4o, o1)
+- Google Gemini
+- Azure OpenAI
+- AWS Bedrock (Claude via IAM role or explicit credentials)
+- OpenRouter (multi-model gateway)
+
+### Known Limitations
+
+- **Demo mode login** requires no external services. Production mode requires Redis for CSRF session validation — this is by design (session security demands a persistent store). See [Production Quickstart](docs/PRODUCTION_QUICKSTART.md).
+- **Bedrock embedding** not yet supported — `embed()` throws with guidance to use Amazon Titan Embeddings directly. Chat and tool calling work fully.
+- **E2E tests** (Playwright) are available but not part of the default CI gate — run with `npm run test:e2e`.
+
+### Quality Gates
+
+| Gate | Status |
+|------|--------|
+| Tests | **760 passing** (38 backend suites + 13 frontend suites) |
+| TypeScript | Zero errors |
+| Build | All 3 packages compile |
+| Lint | Clean |
+| Architecture | No layer violations |
+| Health | All functions within limits |
+| Spec Scanner | 229/229 assertions (100%) |
+| Security Audit | 0 high/critical (8 moderate in devDeps) |
+
+### RC History
+
+| RC | Date | Focus |
+|----|------|-------|
+| rc.1 | 2026-02-21 | Specs complete, CI release workflow |
+| rc.2 | 2026-02-21 | Full beta coverage (16 features, 229 assertions) |
+| rc.3 | 2026-02-23 | Security hardening & production readiness audit |
+| rc.4 | 2026-02-26 | AWS Bedrock integration, CI quality gates |
+
+---
+
 ## [3.0.0-rc.4] - 2026-02-26
 
 > **AWS Bedrock Integration, CI Quality Gates & Bug Tracking**
