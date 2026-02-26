@@ -1,19 +1,167 @@
-# TestOps Companion
+<p align="center">
+  <h1 align="center">TestOps Companion</h1>
+  <p align="center">
+    <strong>Your test failures now have a detective on payroll.</strong>
+  </p>
+  <p align="center">
+    An AI-powered test operations platform with an agentic copilot, a virtual team of 9 specialist personas, and graduated autonomy that lets you control how much the AI does on its own.
+  </p>
+</p>
 
-> The AI-powered test operations platform. Manage pipelines, track failures, and let the virtual team of AI specialists handle the detective work.
+<p align="center">
+  <a href="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.0.0-blue" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-760%20passing-brightgreen" alt="Tests"></a>
+  <a href="specs/features/"><img src="https://img.shields.io/badge/spec%20assertions-229%2F229-brightgreen" alt="Spec Coverage"></a>
+</p>
+
+<p align="center">
+  <a href="docs/quickstart.md"><strong>Quick Start</strong></a> ·
+  <a href="docs/DEMO.md"><strong>Demo Guide</strong></a> ·
+  <a href="docs/HOW_DOES_IT_WORK.md"><strong>How It Works</strong></a> ·
+  <a href="docs/MCP_INTEGRATION.md"><strong>MCP Server</strong></a> ·
+  <a href="CHANGELOG.md"><strong>Changelog</strong></a>
+</p>
 
 ---
 
-[![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
+## The Pitch
 
-> **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/MCP_INTEGRATION.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
+Your CI pipeline breaks at 2 AM. By the time you open your laptop, the AI copilot has already searched Jira for similar failures, pulled the relevant Confluence runbook, identified the root cause from your failure knowledge base, and is waiting with a one-click fix.
 
-### Default Login Credentials
+You review it, hit approve, and move on with your coffee.
 
-All demo accounts use password `demo123`:
+![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
+*3-column Mission Control: navigation | main content | AI Copilot panel with persona routing*
+
+---
+
+## Get Running in 2 Minutes
+
+```bash
+git clone https://github.com/rayalon1984/testops-companion.git
+cd testops-companion && npm install && npm run dev:simple
+```
+
+No PostgreSQL. No Redis. No API keys. Login with `engineer@testops.ai` / `demo123`.
+
+That's it. You're talking to the copilot.
+
+> **Want production mode?** See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for Docker + PostgreSQL + real AI providers.
+
+---
+
+## What Makes v3 Different
+
+### Your AI Team, Not Just a Chatbot
+
+Every query is routed to the right specialist *before* a single token is generated:
+
+| You Ask | Routed To | Why |
+|---------|-----------|-----|
+| "Why are my tests flaky?" | **Test Engineer** | Flaky test analysis, coverage, CI quality |
+| "Pipeline is broken" | **DevOps Engineer** | Pipelines, deployments, CI/CD infra |
+| "Is there a security vulnerability?" | **Security Engineer** | Auth, secrets, vulnerabilities |
+| "Schema migration failed" | **Data Engineer** | Database, schema, migrations |
+| "Page loads too slowly" | **Performance Engineer** | Latency, throughput, profiling |
+| "What can this tool do?" | **Product Manager** | Feature discovery, onboarding |
+
+**9 personas** in total. Routing is two-tier: keyword rules fire in <1ms at zero cost. When that misses, a lightweight LLM micro-classification kicks in (~200 tokens). You see who's handling your query in real time: *"Test Engineer is on it."*
+
+### Graduated Autonomy — You Set the Dial
+
+Not everyone wants the same level of AI independence:
+
+| Mode | What Happens |
+|------|-------------|
+| **Conservative** | AI investigates and recommends. You approve everything. |
+| **Balanced** | Low-risk actions (searches, reads, labels) auto-execute. Team-visible actions show one-click approval cards. |
+| **Autonomous** | The AI handles what it can, escalates what it should. Destructive actions always need your sign-off. |
+
+22 tools. 8 auto-execute. 11 with tiered approval. 3 housekeeping. Every write operation goes through a human-in-the-loop confirmation gate with a 5-minute TTL.
+
+### Bring Your Own Provider
+
+Hot-swap AI providers mid-conversation from the in-chat picker:
+
+| Provider | What You Get |
+|----------|-------------|
+| **Anthropic Claude** | Direct API — Opus, Sonnet, Haiku |
+| **AWS Bedrock** | Claude via IAM role — zero credential management in AWS |
+| **OpenAI** | GPT-4o, o1 |
+| **Google Gemini** | Gemini Pro, Flash |
+| **Azure OpenAI** | Enterprise Azure deployments |
+| **OpenRouter** | 100+ models through a single gateway |
+
+### Test Intelligence That Learns
+
+Your failure knowledge base gets smarter with every test run:
+
+- **Predictive Failure Analysis** — Risk scores per test, trend aggregation, z-score anomaly detection that catches problems before they become patterns
+- **Flaky Test Detection** — Statistical scoring across historical pass/fail data surfaces the tests you can't trust
+- **Smart Test Selection** — Changed 3 files? The platform tells you which 12 of your 400 tests actually need to run
+- **Failure Fingerprinting** — Same root cause, different stack trace? The knowledge base links them automatically
+- **Context Enrichment** — Pulls context from Jira, Confluence, and GitHub simultaneously so the AI has the full picture
+
+### The Full Platform
+
+| Area | What You Get |
+|------|-------------|
+| **Multi-Pipeline Dashboard** | Unified view for Jenkins, GitHub Actions, and custom CI |
+| **3-Column Mission Control** | Real-time dashboard with integrated AI copilot panel |
+| **Team Workspaces** | Teams, members (OWNER/ADMIN/MEMBER/VIEWER), scoped pipelines |
+| **Collaborative RCA** | Comments on failures, version-tracked RCA revisions with optimistic locking |
+| **Failure Knowledge Base** | Smart fingerprinting, historical trending, category analytics |
+| **Auto-Fix Workflow** | Analyzes failure, creates branch, commits fix, opens PR |
+| **Chat Session Persistence** | Full message history stored and retrievable across sessions |
+| **Cost Tracking** | Per-session cost breakdown by tool and provider with budget alerts |
+
+---
+
+## Integrations
+
+TestOps Companion plugs into your existing stack:
+
+| Service | What It Does | Setup |
+|---------|-------------|-------|
+| **Jira** | Issue creation, bi-directional sync, similar issue search (JQL) | `JIRA_BASE_URL` + `JIRA_API_TOKEN` |
+| **GitHub** | Commit diffs, PR lookup, branch/file ops, workflow triggering | `GITHUB_TOKEN` |
+| **Confluence** | Knowledge reader (CQL), RCA doc publishing, runbook lookup | `CONFLUENCE_BASE_URL` + `CONFLUENCE_API_TOKEN` |
+| **Slack** | Push notifications on failures and pipeline status changes | `SLACK_WEBHOOK_URL` |
+| **Monday.com** | Work OS integration for task management | `MONDAY_API_TOKEN` |
+| **TestRail** | Test case management sync | `TESTRAIL_HOST` + `TESTRAIL_API_KEY` |
+| **Grafana/Prometheus** | Metrics at `/metrics`, pre-built dashboards | Built-in |
+
+---
+
+## Production-Hardened
+
+This isn't a prototype. v3 went through a dedicated security audit:
+
+- **SQL injection prevention** — Prisma.sql tagged templates, no raw queries
+- **CSRF protection** — Double-submit cookie pattern
+- **Redis-backed sessions** — Automatic token blacklisting
+- **Structured logging** — Every request gets an `X-Request-ID` you can trace end-to-end
+- **Deep health checks** — `/health/ready` (DB + Redis), `/health/live` (liveness), `/health/full` (all services)
+- **Enterprise auth** — SSO/SAML 2.0 (Okta, Azure AD), RBAC with 5 roles, audit logging with PII redaction
+- **Clean audit** — 0 high/critical vulnerabilities
+
+---
+
+## Demo Mode vs Production Mode
+
+| | Demo Mode | Production Mode |
+|---|---|---|
+| **Database** | SQLite (file-based) | PostgreSQL 14+ |
+| **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure / Bedrock |
+| **Integrations** | Simulated responses | Real Jira, Slack, GitHub, Confluence |
+| **Setup time** | ~2 minutes | ~15 minutes |
+| **Docker required** | No | Yes |
+| **Best for** | Evaluation, demos, training | Production deployments |
+
+**Demo credentials** (all use password `demo123`):
 
 | Email | Role |
 |-------|------|
@@ -22,307 +170,57 @@ All demo accounts use password `demo123`:
 | `engineer@testops.ai` | QA Engineer |
 | `viewer@testops.ai` | Stakeholder |
 
-Production accounts are defined during setup.
+**Production setup:**
 
----
-
-## What Is TestOps Companion?
-
-TestOps Companion is a platform that connects to your CI/CD pipelines (Jenkins, GitHub Actions), collects test results, and uses AI to figure out **why** things failed. It builds a knowledge base so the **same failure never wastes your time twice**.
-
-**What makes v3.0 different:** An agentic AI copilot that doesn't just analyze failures — it autonomously searches Jira, queries Confluence, checks pipelines, creates branches, opens PRs, and files issues. All through natural language conversation with a [virtual team of 9 AI specialists](#-virtual-team-persona-routing) and [graduated autonomy](#graduated-autonomy) that lets you control how much the AI does on its own.
-
-![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
-*3-column Mission Control: navigation | main content | AI Copilot panel with persona routing*
-
----
-
-## Table of Contents
-
-- [Features](#features)
-- [Virtual Team Persona Routing](#-virtual-team-persona-routing)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Demo Mode vs Production Mode](#demo-mode-vs-production-mode)
-- [Development](#development)
-- [Testing](#testing)
-- [Integrations](#integrations)
-- [API Reference](#api-reference)
-- [Project Structure](#project-structure)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Features
-
-### AI Copilot (Agentic)
-- **ReAct Reasoning Loop**: Reason - Act - Observe - Answer cycle with real-time SSE streaming
-- **22 AI Tools**: 8 read-only (auto-execute) + 11 write (tiered approval) + 3 housekeeping
-- **Virtual Team Routing**: Queries classified to specialist personas (Test Engineer, DevOps, Security, etc.)
-- **In-Chat Provider Picker**: Hot-swap between Anthropic, OpenAI, Google, Azure, AWS Bedrock, OpenRouter, or mock
-- **Human-in-the-Loop Confirmation**: Write operations (create PR, file Jira issue) require explicit approval with 5-min TTL
-- **Auto-Fix Workflow**: Analyzes failure → Creates branch → Commits fix → Opens PR
-- **Chat Session Persistence**: Full message history stored and retrievable across sessions
-- **Cost Tracking**: Per-session cost breakdown by tool and provider with budget alerts
-
-### Test Intelligence
-- **Predictive Failure Analysis**: Trend aggregation, risk scoring per test, z-score anomaly detection
-- **Flaky Test Detection**: Statistical scoring identifies intermittently failing tests
-- **Test Impact Analysis**: Maps code changes to potentially affected test suites
-- **Smart Test Selection**: Recommends which tests to run based on changed files
-- **Context Enrichment**: Gathers context from Jira, Confluence, and GitHub simultaneously
-
-### TestOps Platform
-- **Multi-Pipeline Dashboard**: Unified view for Jenkins, GitHub Actions, and custom CI
-- **3-Column Mission Control**: Real-time dashboard with integrated AI copilot panel
-- **Team Workspaces**: Create teams, manage members (OWNER/ADMIN/MEMBER/VIEWER), scope pipelines and dashboards
-- **Collaborative RCA**: Comments on failures, version-tracked RCA revisions with optimistic locking
-- **Failure Knowledge Base**: Smart fingerprinting, historical trending, category analytics
-
-### Enterprise & Integrations
-- **Integrations**: Jira, GitHub, Slack, Confluence, Monday.com, TestRail, Grafana/Prometheus
-- **Enterprise Auth**: SSO/SAML 2.0 (Okta, Azure AD), RBAC, audit logging with PII redaction
-- **Security**: API key encryption (AES-256-GCM), SSRF protection, Redis token blacklist
-- **Observability**: Prometheus metrics (20+), HTTP latency percentiles (p50/p95/p99), OpenTelemetry
-
-> See **[docs/features.md](docs/features.md)** for the complete feature list.
-
----
-
-## Virtual Team Persona Routing
-
-Every query to the AI copilot is classified and routed to the right specialist before fulfillment:
-
-| Query | Routed To | Why |
-|-------|-----------|-----|
-| "Why are my tests flaky?" | **Test Engineer** | Flaky test analysis, coverage, CI quality |
-| "Pipeline is broken" | **DevOps Engineer** | Pipelines, deployments, CI/CD infrastructure |
-| "What can this tool do for me?" | **Product Manager** | Feature discovery, capabilities, onboarding |
-| "Is there a security vulnerability?" | **Security Engineer** | Auth, secrets, vulnerabilities |
-| "Schema migration failed" | **Data Engineer** | Database, schema, migrations |
-| "Page loads too slowly" | **Performance Engineer** | Latency, throughput, profiling |
-
-**How it works:**
-1. **Tier 1 — Keyword rules** (zero cost, <1ms): Pattern matching against domain vocabulary
-2. **Tier 2 — LLM micro-classification** (fallback, ~200 tokens): When no keyword match, a lightweight LLM call classifies the query
-3. **Persona instructions injected** into the system prompt, shaping the AI's expertise and tool preferences
-4. **SSE event** (`persona_selected`) tells the frontend which specialist is handling the query
-
-The persona badge appears in the chat: *"Test Engineer is handling this"*
-
-**9 personas** available, matching the team specs in `specs/team/`:
-`SECURITY_ENGINEER` | `AI_ARCHITECT` | `DATA_ENGINEER` | `UX_DESIGNER` | `PERFORMANCE_ENGINEER` | `TEST_ENGINEER` | `DEVOPS_ENGINEER` | `AI_PRODUCT_MANAGER` | `SENIOR_ENGINEER` (default)
-
-**API**: `GET /api/v1/ai/personas` returns all available personas with metadata.
+```bash
+cp .env.production.example .env.production   # Edit secrets!
+docker compose -f docker-compose.ghcr.yml up -d
+```
 
 ---
 
 ## Tech Stack
 
-### Backend
-- **Runtime**: Node.js 18+ with TypeScript
-- **Framework**: Express.js with Helmet security
-- **Database**: PostgreSQL 14+ (production) / SQLite (demo) with Prisma ORM
-- **Authentication**: JWT with refresh tokens, SAML 2.0 SSO
-- **Validation**: Zod schema validation
-- **Testing**: Jest with supertest
-- **AI Providers**: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI, AWS Bedrock, OpenRouter
-- **Vector DB**: Weaviate for semantic failure matching
-- **Caching**: Redis with ioredis
-
-### Frontend
-- **Framework**: React 18 with TypeScript
-- **UI Library**: Material-UI (MUI) v5
-- **State Management**: Zustand
-- **Data Fetching**: TanStack Query (React Query)
-- **Charts**: Chart.js with react-chartjs-2
-- **Build Tool**: Vite
-
-### DevOps
-- **Containerization**: Docker with multi-stage Alpine builds
-- **CI/CD**: GitHub Actions (lint, typecheck, test, build, schema parity)
-- **Monitoring**: Prometheus metrics, Grafana dashboards, OpenTelemetry
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js**: v18.0.0 or higher
-- **npm**: v9.0.0 or higher
-- **PostgreSQL**: v14.0 or higher (production only — demo uses SQLite)
-- **Redis** (optional): For caching and session management
-- **AI Provider API Key** (optional): For AI features (runs in mock mode without one)
-
-### Quick Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
-
-# Run the validated setup script
-bash scripts/setup-validated.sh
-```
-
-The script validates prerequisites, installs dependencies, generates JWT secrets, creates `.env` files, and runs migrations.
-
-**See [docs/quickstart.md](docs/quickstart.md) for detailed instructions.**
-
----
-
-## Demo Mode vs Production Mode
-
-### Demo Mode (Quick Start — Recommended for Evaluation)
-
-No PostgreSQL, no Redis, no API keys. Just Node.js.
-
-```bash
-npm install && npm run dev:simple
-```
-
-**What happens:**
-1. Backend starts with SQLite on port 3000, seeds 1,600+ failures, 150 test runs, 15 pipelines
-2. Frontend opens automatically at http://localhost:5173
-3. Login with any demo account (e.g. `engineer@testops.ai` / `demo123`)
-4. AI copilot works in mock mode — all 22 tools return realistic demo data
-5. Persona routing works — queries are classified to specialists
-
-| | Demo Mode | Production Mode (Docker) |
-|---|---|---|
-| **Database** | SQLite (file-based) | PostgreSQL 14+ |
-| **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure / Bedrock |
-| **Integrations** | Simulated responses | Real Jira, Slack, GitHub, etc. |
-| **Setup time** | ~2 minutes | ~15 minutes |
-| **Docker required** | No | Yes |
-| **Best for** | Evaluation, demos, training | Production deployments |
-
-**Demo URLs:**
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api/v1
-
-### Production Mode (Docker)
-
-```bash
-# Option A: Pre-built images (fastest)
-cp .env.production.example .env.production   # Edit secrets!
-docker compose -f docker-compose.ghcr.yml up -d
-
-# Option B: Build from source
-docker compose -f docker-compose.prod.yml up -d
-```
-
-See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for full deployment instructions.
+| Layer | Technologies |
+|-------|-------------|
+| **Backend** | Node.js 18+ · TypeScript · Express.js · Prisma ORM · PostgreSQL · Redis |
+| **Frontend** | React 18 · TypeScript · Material-UI v5 · Zustand · React Query · Vite |
+| **AI** | Anthropic Claude · OpenAI · Google Gemini · Azure OpenAI · AWS Bedrock · OpenRouter |
+| **Vector DB** | Weaviate for semantic failure matching |
+| **Infra** | Docker · GitHub Actions · Prometheus · Grafana · OpenTelemetry · Playwright E2E |
 
 ---
 
 ## Development
 
-### Starting Development Servers
-
 ```bash
-# Demo mode (SQLite, mock AI, auto-open browser)
-# Backend: http://localhost:3000 | Frontend: http://localhost:5173
+# Demo mode — SQLite, mock AI, auto-open browser
 npm run dev:simple
 
-# Development mode (PostgreSQL + Redis + Weaviate via Docker)
-# Backend: http://localhost:3000 | Frontend: http://localhost:5173
-npm run local:start   # Start Docker services
-npm run dev           # Start app servers
+# Full stack — PostgreSQL + Redis + Weaviate via Docker
+npm run local:start && npm run dev
 ```
 
-### Common Commands
-
-```bash
-# Quality
-npm run lint              # Lint both projects
-npm run typecheck         # Type check both projects
-npm run test              # Run all tests
-
-# Build
-npm run build             # Build both projects
-
-# Database (from backend/)
-npx prisma generate       # Generate Prisma client
-npx prisma migrate deploy # Run migrations
-npx prisma db seed        # Seed database
-npx prisma studio         # Open Prisma Studio
-```
-
----
-
-## Testing
-
-```bash
-# All tests
-npm run test
-
-# Backend (Jest)
-npm run test:backend
-npm run test:backend -- --watch
-npm run test:backend -- --coverage
-
-# Frontend (Vitest)
-npm run test:frontend
-npm run test:frontend -- --watch
-```
-
-- **Backend**: Jest with ts-jest — `backend/src/**/*.test.ts`
-- **Frontend**: Vitest with jsdom — `frontend/src/**/*.test.{ts,tsx}`
-
----
-
-## Integrations
-
-### Jira
-Automatic issue creation, bi-directional status sync, similar issue search (JQL).
-```env
-JIRA_BASE_URL=https://your-domain.atlassian.net
-JIRA_EMAIL=your-email@example.com
-JIRA_API_TOKEN=your-api-token
-```
-
-### GitHub
-Commit diffs, PR lookup, workflow triggering, branch/file operations via AI copilot.
-```env
-GITHUB_TOKEN=ghp_your_personal_access_token
-```
-
-### Confluence
-Knowledge reader (CQL search), RCA doc publishing, runbook lookup.
-```env
-CONFLUENCE_BASE_URL=https://your-domain.atlassian.net
-CONFLUENCE_API_TOKEN=your-api-token
-```
-
-### Slack
-Push notifications on test failures, pipeline status changes.
-```env
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-```
-
-### Other Integrations
-- **Monday.com** — Work OS integration for task management
-- **TestRail** — Test case management sync
-- **Grafana/Prometheus** — Metrics at `/metrics`, pre-built dashboards
-
-See integration guides in [docs/integrations/](docs/integrations/).
+| Command | What It Does |
+|---------|-------------|
+| `npm run test` | Run all 760 tests (Jest + Vitest) |
+| `npm run typecheck` | Type check backend + frontend |
+| `npm run lint` | ESLint both projects |
+| `npm run build` | Build all packages |
+| `npm run check:architecture` | Verify no layer violations |
+| `npm run check:health` | Flag oversized files/functions |
 
 ---
 
 ## API Reference
 
-### Core Endpoints
+### Core
 
 ```
 POST /api/auth/login                          # Login
 POST /api/auth/register                       # Register
 GET  /api/pipelines                           # List pipelines
 GET  /api/test-runs                           # List test runs
-GET  /api/notifications                       # List notifications
 ```
 
 ### AI Copilot
@@ -333,7 +231,6 @@ GET  /api/v1/ai/personas                      # List virtual team personas
 GET  /api/v1/ai/config                        # Current provider config
 PUT  /api/v1/ai/config                        # Update provider (admin)
 POST /api/v1/ai/config/test                   # Test provider connection
-GET  /api/v1/ai/sessions                      # List chat sessions
 POST /api/v1/ai/confirm                       # Approve/deny pending action
 GET  /api/v1/ai/health                        # AI services health
 GET  /api/v1/ai/costs                         # Cost summary
@@ -349,15 +246,6 @@ GET  /api/v1/failure-archive/predictions      # Risk scores per test
 GET  /api/v1/failure-archive/anomalies        # Anomaly detection
 ```
 
-### Teams
-
-```
-POST /api/v1/teams                            # Create team
-GET  /api/v1/teams                            # List user's teams
-POST /api/v1/teams/:id/members               # Add member
-PUT  /api/v1/teams/:id/members/:uid/role     # Update role
-```
-
 Full API reference: **[docs/api.md](docs/api.md)**
 
 ---
@@ -367,37 +255,29 @@ Full API reference: **[docs/api.md](docs/api.md)**
 ```
 testops-companion/
 ├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma              # SQLite dev schema
-│   │   ├── schema.production.prisma   # PostgreSQL production schema
-│   │   └── schema.dev.prisma          # Checked-in dev template
+│   ├── prisma/                          # Schema (dev + production) & migrations
 │   └── src/
-│       ├── routes/ai/                 # AI & copilot REST routes
+│       ├── routes/ai/                   # AI & copilot REST routes
 │       ├── services/ai/
-│       │   ├── AIChatService.ts       # ReAct loop + SSE streaming
-│       │   ├── PersonaRouter.ts       # Two-tier query classifier
-│       │   ├── PersonaInstructions.ts # Persona system prompt addons
-│       │   ├── ChatSessionService.ts  # Chat persistence CRUD
-│       │   ├── ConfirmationService.ts # Human-in-the-loop gates
-│       │   ├── tools/                 # 22 agentic tool wrappers
-│       │   ├── providers/             # AI provider adapters
-│       │   └── features/              # RCA, categorization, enrichment
-│       ├── middleware/                # Auth, validation, error handling
-│       └── utils/                     # Logger, validators, helpers
+│       │   ├── AIChatService.ts         # ReAct loop + SSE streaming
+│       │   ├── PersonaRouter.ts         # Two-tier query classifier
+│       │   ├── tools/                   # 22 agentic tool wrappers
+│       │   ├── providers/               # 6 AI provider adapters
+│       │   └── features/               # RCA, categorization, enrichment
+│       ├── middleware/                   # Auth, validation, error handling
+│       └── utils/                       # Logger, validators, helpers
 ├── frontend/
 │   └── src/
-│       ├── components/AICopilot/      # Copilot panel + cards + persona badge
-│       ├── hooks/useAICopilot.ts      # SSE chat hook with persona support
-│       ├── pages/                     # Dashboard, KB, Teams, Settings
-│       └── services/                  # API clients
-├── specs/
-│   ├── ROADMAP.md                     # Canonical roadmap
-│   └── team/                          # 9 persona specs + routing rubric
-├── scripts/
-│   ├── validate-schema.js            # Schema parity CI check
-│   └── setup-validated.sh            # Automated setup
-├── docs/                              # User & developer documentation
-└── .github/workflows/                 # CI/CD pipelines
+│       ├── components/AICopilot/        # Copilot panel + cards + persona badge
+│       ├── hooks/useAICopilot.ts        # SSE chat hook with persona support
+│       ├── pages/                       # Dashboard, KB, Teams, Settings
+│       └── services/                    # API clients
+├── mcp-server/                          # Model Context Protocol server (8 tools)
+├── specs/                               # Living specification documents
+│   ├── features/                        # 16 YAML feature manifests (229 assertions)
+│   └── team/                            # 9 persona specs + routing rubric
+├── docs/                                # User & developer documentation
+└── .github/workflows/                   # CI/CD pipelines
 ```
 
 ---
@@ -406,24 +286,24 @@ testops-companion/
 
 | Document | Description |
 |----------|-------------|
-| **[How Does It Work?](docs/HOW_DOES_IT_WORK.md)** | Plain-English guide to the platform |
 | **[Quick Start](docs/quickstart.md)** | Get running in 5 minutes |
+| **[How Does It Work?](docs/HOW_DOES_IT_WORK.md)** | Plain-English guide to the platform |
 | **[Demo Guide](docs/DEMO.md)** | Visual guide with workflow diagrams |
+| **[UI Tour](docs/UI_TOUR.md)** | Visual walkthrough with annotated screenshots |
 | **[API Reference](docs/api.md)** | Full REST API documentation |
 | **[Architecture](docs/architecture.md)** | System design and components |
+| **[MCP Server](docs/MCP_INTEGRATION.md)** | Model Context Protocol integration |
 | **[Development Guide](docs/development.md)** | Coding standards, testing, git workflow |
 | **[Roadmap](specs/ROADMAP.md)** | What's shipped and what's next |
-| **[Changelog](CHANGELOG.md)** | Version history |
-| **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry and prevention checklist |
-| **[MCP Server](docs/MCP_INTEGRATION.md)** | Model Context Protocol integration |
-| **[UI Tour](docs/UI_TOUR.md)** | Visual walkthrough with annotated screenshots |
+| **[Changelog](CHANGELOG.md)** | Full version history |
+| **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry |
 
 ---
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Create a feature branch: `git checkout -b feat/amazing-feature`
 3. Make changes, write tests, update docs
 4. Commit: `git commit -m 'feat: add amazing feature'` ([Conventional Commits](https://www.conventionalcommits.org/))
 5. Push and open a Pull Request
@@ -439,12 +319,17 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 Apache License 2.0 — see [LICENSE](LICENSE).
 
-## Author
-
-**Rotem Ayalon** — [@rayalon1984](https://github.com/rayalon1984)
-
 ---
 
-**If you find this project useful, please consider giving it a star!**
+<p align="center">
+  Built by <a href="https://github.com/rayalon1984"><strong>Rotem Ayalon</strong></a>
+</p>
 
-For questions or issues: [open an issue](https://github.com/rayalon1984/testops-companion/issues)
+<p align="center">
+  <a href="https://github.com/rayalon1984/testops-companion/issues">Report a Bug</a> ·
+  <a href="https://github.com/rayalon1984/testops-companion/issues">Request a Feature</a>
+</p>
+
+<p align="center">
+  If you find this project useful, give it a <a href="https://github.com/rayalon1984/testops-companion">star</a>!
+</p>
