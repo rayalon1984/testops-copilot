@@ -1,0 +1,141 @@
+name: Bug Tracker
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+    branches: [main]
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Auto-label fix PRs
+      if: >-
+        contains(github.event.pull_request.title, 'fix(') ||
+        contains(github.event.pull_request.title, 'fix:')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.issues.addLabels({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            labels: ['bug']
+          });
+
+    - name: Link open issues to touched files
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          // 1. Get changed files in this PR
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+            per_page: 300,
+          });
+          const changedPaths = files.map(f => f.filename);
+
+          // 2. Extract file paths from .health-baseline.json
+          let baselineFiles = [];
+          try {
+            const baseline = JSON.parse(fs.readFileSync('.health-baseline.json', 'utf8'));
+            baselineFiles = [...new Set(baseline.map(key => key.split('::')[0]))];
+          } catch (e) {
+            // Baseline file may not exist — that's fine
+          }
+
+          // 3. Get open issues with tracking labels
+          const labelQueries = ['type:tech-debt', 'type:regression-risk'];
+          const allIssues = [];
+          const seen = new Set();
+
+          for (const label of labelQueries) {
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+            for (const issue of issues) {
+              if (!seen.has(issue.number)) {
+                seen.add(issue.number);
+                allIssues.push(issue);
+              }
+            }
+          }
+
+          if (allIssues.length === 0) return;
+
+          // 4. Match changed files against issue bodies and baseline
+          const matches = [];
+
+          for (const issue of allIssues) {
+            const body = issue.body || '';
+            let matched = false;
+
+            for (const changedPath of changedPaths) {
+              const basename = changedPath.split('/').pop();
+              if (body.includes(changedPath) || body.includes(basename)) {
+                matches.push({ issue, file: changedPath });
+                matched = true;
+                break;
+              }
+            }
+
+            // Also check if changed files overlap with baseline entries
+            if (!matched) {
+              for (const bFile of baselineFiles) {
+                if (changedPaths.includes(bFile)) {
+                  matches.push({ issue, file: bFile });
+                  break;
+                }
+              }
+            }
+          }
+
+          if (matches.length === 0) return;
+
+          // 5. Build comment
+          let comment = '## Related Open Issues\n\n';
+          comment += 'This PR touches files tracked by the following open issues:\n\n';
+          for (const { issue, file } of matches) {
+            comment += `- #${issue.number} — **${issue.title}** (touches \`${file}\`)\n`;
+          }
+          comment += '\nPlease check if this PR addresses or impacts these issues.\n';
+          comment += 'If this is a bug fix, ensure the **Break Once** section in the PR description is filled out.\n';
+
+          // 6. Upsert comment (same pattern as feature-specs.yml)
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const marker = '## Related Open Issues';
+          const existing = comments.find(c => c.body && c.body.startsWith(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body: comment,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment,
+            });
+          }

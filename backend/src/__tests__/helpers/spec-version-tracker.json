@@ -6,7 +6,7 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-02-23T21:25:45.794Z"
+    "lastRun": "2026-02-26T14:55:12.528Z"
   },
   "giphy-integration": {
     "lastTestedVersion": "1.0.0",
@@ -16,7 +16,7 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:36.711Z"
+    "lastRun": "2026-02-26T14:55:14.201Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -45,7 +45,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:43.877Z"
+    "lastRun": "2026-02-26T14:55:16.951Z"
   },
   "jira-housekeeping": {
     "lastTestedVersion": "1.0.0",
@@ -56,7 +56,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:40.383Z"
+    "lastRun": "2026-02-26T14:55:15.307Z"
   },
   "proactive-suggestions": {
     "lastTestedVersion": "1.0.0",
@@ -66,7 +66,7 @@
       "proactive.frontend": "1.0.0",
       "proactive.sse": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:35.619Z"
+    "lastRun": "2026-02-26T14:55:13.457Z"
   },
   "context-enrichment": {
     "lastTestedVersion": "1.0.0",
@@ -85,7 +85,7 @@
       "react.streaming": "1.0.0",
       "react.tools-registry": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:45.120Z"
+    "lastRun": "2026-02-26T14:55:16.355Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -96,7 +96,7 @@
       "auth.blacklist": "1.0.0",
       "auth.audit": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:39.557Z"
+    "lastRun": "2026-02-26T14:55:15.035Z"
   },
   "pipeline-management": {
     "lastTestedVersion": "1.0.0",
@@ -105,7 +105,7 @@
       "pipeline.runs": "1.0.0",
       "pipeline.scheduling": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:50.014Z"
+    "lastRun": "2026-02-26T14:55:15.687Z"
   },
   "autonomy-preferences": {
     "lastTestedVersion": "1.0.0",
@@ -117,7 +117,7 @@
       "autonomy.frontend": "1.0.0",
       "autonomy.api": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:35.162Z"
+    "lastRun": "2026-02-26T14:55:09.876Z"
   },
   "smart-retry": {
     "lastTestedVersion": "1.0.0",
@@ -137,7 +137,7 @@
       "mcp.knowledge": "1.0.0",
       "mcp.stats": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:38.493Z"
+    "lastRun": "2026-02-26T14:55:16.383Z"
   },
   "ai-cost-management": {
     "lastTestedVersion": "1.0.0",
@@ -145,7 +145,7 @@
       "cost.tracking": "1.0.0",
       "cost.cache": "1.0.0"
     },
-    "lastRun": "2026-02-26T14:18:46.324Z"
+    "lastRun": "2026-02-26T14:55:16.235Z"
   },
   "notifications-alerting": {
     "lastTestedVersion": "1.0.0",
