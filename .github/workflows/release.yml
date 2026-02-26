@@ -61,7 +61,21 @@ jobs:
           echo "${delimiter}"
         } >> $GITHUB_OUTPUT
 
+    - name: Check if release already exists
+      id: check_release
+      run: |
+        EXISTING=$(gh release view "v${{ steps.get_version.outputs.version }}" --json body --jq '.body' 2>/dev/null || echo "")
+        if [ -n "$EXISTING" ] && ! echo "$EXISTING" | grep -q "Changes in this release"; then
+          echo "skip=true" >> $GITHUB_OUTPUT
+          echo "Release already exists with custom notes — skipping overwrite"
+        else
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Create Release
+      if: steps.check_release.outputs.skip != 'true'
       uses: softprops/action-gh-release@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,7 +104,7 @@ jobs:
 
           ### 📖 Documentation
 
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/docs/project/CHANGELOG.md) for complete details.
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/CHANGELOG.md) for complete details.
         draft: false
         prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
 
