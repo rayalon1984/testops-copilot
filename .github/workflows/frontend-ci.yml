@@ -5,10 +5,16 @@ on:
     branches: [ "main" ]
     paths:
       - 'frontend/**'
+      - 'scripts/check-health.js'
+      - '.health-baseline.json'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'frontend/**'
+      - 'scripts/check-health.js'
+      - '.health-baseline.json'
+      - '.github/workflows/frontend-ci.yml'
 
 jobs:
   quality:
@@ -29,6 +35,10 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
+
+    - name: Code health check
+      working-directory: .
+      run: npm run check:health
 
     - name: Lint
       run: npm run lint

@@ -5,12 +5,16 @@ on:
     branches: [ "main" ]
     paths:
       - 'backend/**'
-      - 'scripts/validate-schema.js'
+      - 'scripts/**'
+      - '.health-baseline.json'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'backend/**'
-      - 'scripts/validate-schema.js'
+      - 'scripts/**'
+      - '.health-baseline.json'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   quality:
@@ -39,6 +43,14 @@ jobs:
 
     - name: Generate Prisma Client
       run: npx prisma generate
+
+    - name: Architecture check
+      working-directory: .
+      run: npm run check:architecture
+
+    - name: Code health check
+      working-directory: .
+      run: npm run check:health
 
     - name: Lint
       run: npm run lint

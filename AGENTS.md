@@ -119,6 +119,18 @@ Before ANY implementation, route to the right expert.
 
 Full routing rubric: `specs/team/TEAM_SELECTION.md`
 
+### Fast Path (Trivial Changes)
+
+Skip persona routing when **all** of these are true:
+- Single-file change, under ~30 lines
+- Does not touch auth, AI, database schema, or API contracts
+- Has an obvious owner (almost always `SENIOR_ENGINEER`)
+- Is a bug fix, typo, style tweak, or config update
+
+On the fast path: apply AGENTS.md rules directly → implement → run the verification loop (Section 5) → commit. No persona file read required.
+
+**When in doubt, take the full path.** The fast path exists to reduce overhead on trivial work, not to bypass safety.
+
 ### The Workflow
 ```
 1. Read AGENTS.md (this file)
@@ -159,6 +171,22 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Components | Reuse from `frontend/src/components/`. Check before creating new ones. |
 | Styling | Material-UI theme system. CSS only in `*.css` files, not inline. |
 | Types | Shared types in `frontend/src/types/`. Mirror backend DTOs. |
+| Error boundaries | Wrap each route-level page in an `<ErrorBoundary>`. A component crash must never take down the whole app. Reuse `frontend/src/components/ErrorBoundary/`. |
+| Component splitting | If a component exceeds ~200 lines, split it. Extract hooks for logic, keep the render function lean. One file = one responsibility. |
+| Forms | Use React Hook Form + Zod for validation. Mirror backend Zod schemas where possible to avoid divergence. |
+| Code splitting | Lazy-load route-level pages with `React.lazy`. Heavy components (charts, editors, modals with rich content) get their own chunk. |
+| Loading states | Every async operation needs a loading indicator. Use React Query's `isLoading`/`isFetching` — never manual boolean flags. |
+
+### Dependency Governance
+
+| Rule | Detail |
+|------|--------|
+| Justify additions | Every new npm package must include a *why* in the PR description. What problem does it solve? Why not use an existing dep? |
+| Check for overlap | Before adding a package, verify no existing dependency already covers the use case. |
+| Minimum viability | No packages with fewer than 1,000 weekly npm downloads unless approved by a security review. |
+| Audit in CI | `npm audit --audit-level=high` runs in CI. High/critical vulnerabilities fail the build. |
+| Bundle awareness | For frontend deps, check the bundle size impact (`npx bundlephobia <pkg>`). Flag anything > 50 KB gzipped. |
+| Lock files | Always commit `package-lock.json` changes. Never delete or regenerate without cause. |
 
 ### AI Subsystem Patterns
 
@@ -171,6 +199,53 @@ Full routing rubric: `specs/team/TEAM_SELECTION.md`
 | Vector search | Use Weaviate for semantic similarity. Not keyword matching. |
 | ReAct loop | Max 5 tool calls, max 8 iterations. Safety limits enforced. |
 
+### AI Guardrails (Extended)
+
+These rules supplement the patterns above. Any AI subsystem change **must** satisfy these constraints.
+
+#### Provider Failover & Resilience
+
+| Rule | Detail |
+|------|--------|
+| Failover chain | Configure a primary → secondary → tertiary provider. If primary returns 5xx or times out, fall through automatically. Log every failover event. |
+| Timeout enforcement | The `timeoutMs` from `config.ts` (default 60s) **must** be enforced via `AbortController` or equivalent. No open-ended waits. |
+| Retry policy | Transient failures (429, 503, network timeout) get up to 2 retries with exponential backoff (1s, 3s). Non-retryable errors (400, 401, 403) fail immediately. |
+| Circuit breaker | Wrap provider calls with the same `withResilience()` pattern used for Jira/GitHub. Open after 5 consecutive failures, half-open after 30s. |
+| Health checks | `AIManager.healthCheck()` must be called on startup and exposed via `/api/health`. If primary provider is down, surface it — don't hide it behind cache. |
+
+#### Budget & Cost Controls
+
+| Rule | Detail |
+|------|--------|
+| Hard budget cutoff | When monthly spend reaches 100% of budget, **reject new AI requests** with a clear user-facing error. Soft alert at 80% (existing). |
+| Per-feature caps | Each AI feature (RCA, categorization, log summary, enrichment) should have an individual budget ceiling, not just a monthly total. |
+| Accurate cost tracking | Replace rough cost estimates ($0.001, $0.002) with actual token-based pricing from provider responses. Log input tokens and output tokens separately. |
+| Cost anomaly alerting | If a single request costs >5x the feature's average, log a warning. If daily spend exceeds 2x the projected daily average, alert. |
+
+#### Tool Execution Safety
+
+| Rule | Detail |
+|------|--------|
+| Tool conflict resolution | If the ReAct loop produces conflicting tool calls (e.g., retry + cancel), the **more conservative action wins**. Destructive actions never auto-resolve conflicts. |
+| Partial failure handling | If tool N of M fails mid-loop, return partial results with a clear indicator of what succeeded and what failed. Never silently drop tool results. |
+| Autonomy enforcement | User autonomy preference (Conservative / Balanced / Autonomous) **must** be checked at runtime before executing any tool. A Conservative user must never see Tier 2 auto-execution. |
+
+#### Cache & Data
+
+| Rule | Detail |
+|------|--------|
+| Cache invalidation | TTL-based (7 days) is the baseline. Additionally: invalidate on schema changes, on manual user action ("re-analyze"), and when the underlying data (test run, failure) is updated. |
+| Stale-while-revalidate | For non-critical reads (dashboard summaries), serve stale cache and refresh in the background. For analysis (RCA, categorization), always serve fresh on cache miss. |
+| Privacy boundary | Cache keys **must** include the `organizationId`. A cached result for Org A must never be served to Org B, even if the input hash matches. |
+
+#### Token Management
+
+| Rule | Detail |
+|------|--------|
+| Budget overflow | If system prompt + history alone exceed the model's context budget, **truncate history first** (oldest messages), never truncate the system prompt. |
+| Tool result priority | When total tool result budget is exceeded, truncate results in reverse chronological order (keep the most recent tool output intact). |
+| Token counting | The 3.8 chars/token heuristic is acceptable for budgeting, but log actual token counts from provider responses and alert if estimates drift >20% from actuals. |
+
 ---
 
 ## 5) Verification Loop
@@ -181,8 +256,10 @@ Before completing ANY task, run this checklist:
 2. **Build succeeds** — `npm run build` (backend + frontend + mcp)
 3. **Typecheck clean** — `npm run typecheck` (no TypeScript errors)
 4. **Lint clean** — `npm run lint` (ESLint passing)
-5. **Specs updated** — If behavior changed, update relevant `specs/` documents
-6. **Self-review** — Read the diff. Check edge cases. Verify error handling.
+5. **Architecture clean** — `npm run check:architecture` (no layer violations)
+6. **Code health** — `npm run check:health` (no file/function size violations)
+7. **Specs updated** — If behavior changed, update relevant `specs/` documents
+8. **Self-review** — Read the diff. Check edge cases. Verify error handling.
 
 **If any check fails**: Fix and retry (max 3 attempts). If still failing, simplify scope or ask.
 
@@ -270,14 +347,34 @@ TestOps Companion integrates with these external systems:
 
 ---
 
-## 10) When Stuck
+## 10) When Stuck — Escalation Path
 
-1. **Stop** — Re-read the original requirements
-2. **Simplify** — Break into smaller sub-tasks
-3. **Ask** — Pose specific clarifying questions
-4. **Reset** — Consider a completely different approach
+### Step 1: Retry (max 3 attempts on the same approach)
+- Re-read the original requirements
+- Check if assumptions are wrong
+- Try a different implementation of the *same* approach
 
-**Max 3 retry loops on the same error** before escalating or simplifying scope.
+### Step 2: Simplify
+- Break the task into smaller sub-tasks
+- Reduce scope — solve the core problem first, defer edge cases
+- Remove the newest change and see if the problem disappears
+
+### Step 3: Document
+- Create `plans/stuck-YYYY-MM-DD-<topic>.md` with:
+  - What was attempted (with code snippets or error output)
+  - Why each attempt failed
+  - What's still unclear
+- This creates institutional knowledge. Stuck-states that aren't documented get repeated.
+
+### Step 4: Ask
+- Surface the blocker with a **specific question**, not "I'm stuck"
+- Include: what you tried, what you expected, what happened instead
+- Tag the relevant persona owner if cross-domain
+
+### Step 5: Reset
+- Consider a completely different approach
+- Check if the requirement itself is wrong or over-scoped
+- Propose an alternative that solves 80% of the problem with 20% of the complexity
 
 ---
 
