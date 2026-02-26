@@ -61,10 +61,10 @@
   },
   "lint-staged": {
     "backend/src/**/*.ts": [
-      "eslint --fix"
+      "bash -c 'cd backend && node_modules/.bin/eslint --fix \"$@\"' _"
     ],
     "frontend/src/**/*.{ts,tsx}": [
-      "eslint --fix"
+      "bash -c 'cd frontend && node_modules/.bin/eslint --fix \"$@\"' _"
     ]
   },
   "keywords": [

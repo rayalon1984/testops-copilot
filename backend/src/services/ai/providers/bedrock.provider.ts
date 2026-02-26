@@ -21,6 +21,12 @@ export interface BedrockProviderConfig extends ProviderConfig {
   secretAccessKey?: string;
 }
 
+/** Bedrock message in Anthropic Messages API format */
+interface BedrockMessage {
+  role: string;
+  content: unknown;
+}
+
 export class BedrockProvider extends BaseProvider {
   private client: BedrockRuntimeClient;
   private region: string;
@@ -51,31 +57,16 @@ export class BedrockProvider extends BaseProvider {
   }
 
   getPricing(): ProviderPricing {
-    // Bedrock pricing for Anthropic Claude models (February 2026)
-    // Slightly higher than direct Anthropic API due to Bedrock margin
     const modelPricing: Record<string, ProviderPricing> = {
-      'claude-opus': {
-        inputTokenCostPer1k: 0.018,
-        outputTokenCostPer1k: 0.09,
-      },
-      'claude-sonnet': {
-        inputTokenCostPer1k: 0.003,
-        outputTokenCostPer1k: 0.015,
-      },
-      'claude-haiku': {
-        inputTokenCostPer1k: 0.0008,
-        outputTokenCostPer1k: 0.004,
-      },
+      'claude-opus': { inputTokenCostPer1k: 0.018, outputTokenCostPer1k: 0.09 },
+      'claude-sonnet': { inputTokenCostPer1k: 0.003, outputTokenCostPer1k: 0.015 },
+      'claude-haiku': { inputTokenCostPer1k: 0.0008, outputTokenCostPer1k: 0.004 },
     };
 
     const model = this.config.model.toLowerCase();
     for (const [key, pricing] of Object.entries(modelPricing)) {
-      if (model.includes(key)) {
-        return pricing;
-      }
+      if (model.includes(key)) return pricing;
     }
-
-    // Default to Sonnet pricing
     return modelPricing['claude-sonnet'];
   }
 
@@ -83,7 +74,7 @@ export class BedrockProvider extends BaseProvider {
     return {
       maxInputTokens: 200000,
       maxOutputTokens: 8192,
-      requestsPerMinute: 50,   // Bedrock default — varies by provisioned throughput
+      requestsPerMinute: 50,
       tokensPerMinute: 80000,
     };
   }
@@ -92,79 +83,19 @@ export class BedrockProvider extends BaseProvider {
     const startTime = Date.now();
 
     try {
-      // Extract system message
       const systemMessage = messages.find(m => m.role === 'system')?.content || options?.systemPrompt;
       const chatMessages = messages.filter(m => m.role !== 'system');
 
-      // Convert to Anthropic Messages API format (Bedrock uses this natively for Claude)
-      const anthropicMessages: Array<{ role: string; content: unknown }> = chatMessages.map(msg => {
-        if (msg.role === 'user') {
-          return { role: 'user', content: msg.content };
-        }
-
-        if (msg.role === 'assistant') {
-          const content: Array<Record<string, unknown>> = [];
-          if (msg.content) content.push({ type: 'text', text: msg.content });
-          if (msg.toolCalls) {
-            msg.toolCalls.forEach(tc => {
-              content.push({
-                type: 'tool_use',
-                id: tc.id,
-                name: tc.name,
-                input: tc.arguments,
-              });
-            });
-          }
-          return { role: 'assistant', content };
-        }
-
-        if (msg.role === 'tool') {
-          return {
-            role: 'user',
-            content: [{
-              type: 'tool_result',
-              tool_use_id: msg.toolCallId,
-              content: msg.content,
-            }],
-          };
-        }
-
-        return { role: 'user', content: msg.content };
-      });
-
-      // Build Bedrock request body (Anthropic Messages API format)
       const body: Record<string, unknown> = {
         anthropic_version: 'bedrock-2023-05-31',
         max_tokens: options?.maxTokens || this.config.maxTokens || 4096,
         temperature: options?.temperature ?? this.config.temperature ?? 1.0,
-        messages: anthropicMessages,
+        messages: this.convertMessages(chatMessages),
         stop_sequences: options?.stopSequences,
         top_p: options?.topP,
       };
-
-      if (systemMessage) {
-        body.system = systemMessage;
-      }
-
-      // Add tools if provided
-      if (options?.tools && options.tools.length > 0) {
-        body.tools = options.tools.map(t => ({
-          name: t.name,
-          description: t.description,
-          input_schema: {
-            type: 'object',
-            properties: t.parameters.reduce((acc: Record<string, unknown>, p: ToolParameter) => {
-              acc[p.name] = {
-                type: p.type,
-                description: p.description,
-                enum: p.enum,
-              };
-              return acc;
-            }, {}),
-            required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name),
-          },
-        }));
-      }
+      if (systemMessage) body.system = systemMessage;
+      if (options?.tools?.length) body.tools = this.buildToolSchemas(options.tools);
 
       const command = new InvokeModelCommand({
         modelId: this.config.model,
@@ -175,40 +106,18 @@ export class BedrockProvider extends BaseProvider {
 
       const response = await this.client.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
-      // Parse response (same structure as Anthropic Messages API)
-      let content = '';
-      const toolCalls: ToolCall[] = [];
-
-      if (Array.isArray(responseBody.content)) {
-        responseBody.content.forEach((block: Record<string, unknown>) => {
-          if (block.type === 'text') {
-            content += block.text as string;
-          } else if (block.type === 'tool_use') {
-            toolCalls.push({
-              id: block.id as string,
-              name: block.name as string,
-              arguments: block.input as Record<string, unknown>,
-            });
-          }
-        });
-      }
+      const { content, toolCalls } = this.parseResponseContent(responseBody);
 
       const inputTokens = responseBody.usage?.input_tokens || 0;
       const outputTokens = responseBody.usage?.output_tokens || 0;
-      const cost = this.calculateCost(inputTokens, outputTokens);
 
       return {
         content,
         toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         provider: this.getName(),
         model: this.config.model,
-        usage: {
-          inputTokens,
-          outputTokens,
-          totalTokens: inputTokens + outputTokens,
-        },
-        cost,
+        usage: { inputTokens, outputTokens, totalTokens: inputTokens + outputTokens },
+        cost: this.calculateCost(inputTokens, outputTokens),
         cached: false,
         responseTimeMs: Date.now() - startTime,
       };
@@ -218,8 +127,6 @@ export class BedrockProvider extends BaseProvider {
   }
 
   async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
-    // Bedrock supports embedding models (e.g. Amazon Titan Embeddings)
-    // but our Bedrock integration focuses on Claude chat models
     throw new Error(
       'Bedrock embedding requires a separate embedding model deployment. Use Amazon Titan Embeddings or Cohere Embed via Bedrock directly.',
     );
@@ -245,5 +152,68 @@ export class BedrockProvider extends BaseProvider {
       logger.error('[BedrockProvider] Health check failed:', error);
       return false;
     }
+  }
+
+  // ── Private helpers ──
+
+  private convertMessages(messages: ChatMessage[]): BedrockMessage[] {
+    return messages.map(msg => {
+      if (msg.role === 'user') {
+        return { role: 'user', content: msg.content };
+      }
+      if (msg.role === 'assistant') {
+        const content: Array<Record<string, unknown>> = [];
+        if (msg.content) content.push({ type: 'text', text: msg.content });
+        if (msg.toolCalls) {
+          msg.toolCalls.forEach(tc => {
+            content.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.arguments });
+          });
+        }
+        return { role: 'assistant', content };
+      }
+      if (msg.role === 'tool') {
+        return {
+          role: 'user',
+          content: [{ type: 'tool_result', tool_use_id: msg.toolCallId, content: msg.content }],
+        };
+      }
+      return { role: 'user', content: msg.content };
+    });
+  }
+
+  private buildToolSchemas(tools: CompletionOptions['tools'] & object) {
+    return tools.map(t => ({
+      name: t.name,
+      description: t.description,
+      input_schema: {
+        type: 'object',
+        properties: t.parameters.reduce((acc: Record<string, unknown>, p: ToolParameter) => {
+          acc[p.name] = { type: p.type, description: p.description, enum: p.enum };
+          return acc;
+        }, {}),
+        required: t.parameters.filter((p: ToolParameter) => p.required).map((p: ToolParameter) => p.name),
+      },
+    }));
+  }
+
+  private parseResponseContent(responseBody: Record<string, unknown>): { content: string; toolCalls: ToolCall[] } {
+    let content = '';
+    const toolCalls: ToolCall[] = [];
+
+    const blocks = responseBody.content as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(blocks)) {
+      blocks.forEach(block => {
+        if (block.type === 'text') {
+          content += block.text as string;
+        } else if (block.type === 'tool_use') {
+          toolCalls.push({
+            id: block.id as string,
+            name: block.name as string,
+            arguments: block.input as Record<string, unknown>,
+          });
+        }
+      });
+    }
+    return { content, toolCalls };
   }
 }
