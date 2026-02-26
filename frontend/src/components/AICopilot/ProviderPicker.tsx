@@ -67,6 +67,14 @@ const PROVIDER_CATALOG: Record<string, ProviderEntry> = {
             { id: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick' },
         ],
     },
+    bedrock: {
+        label: 'AWS Bedrock',
+        models: [
+            { id: 'us.anthropic.claude-opus-4-20250514-v1:0', label: 'Claude Opus 4 (Bedrock)' },
+            { id: 'anthropic.claude-sonnet-4-5-20250514-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
+            { id: 'anthropic.claude-haiku-4-5-20250514-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
+        ],
+    },
 };
 
 const PROVIDER_ICONS: Record<string, string> = {
@@ -76,6 +84,7 @@ const PROVIDER_ICONS: Record<string, string> = {
     google: '\u25C6',       // diamond
     azure: '\u2601',        // cloud
     openrouter: '\u21C4',   // arrows
+    bedrock: '\u2B22',      // hexagon (AWS)
 };
 
 // ─── Types ───

@@ -181,6 +181,7 @@ FOR iteration = 0 TO 7 (max 8 iterations):
 | Google | Gemini 3.0 Flash | Varies | Varies | 1M | `GOOGLE_API_KEY` |
 | Azure OpenAI | GPT-4.1 | Varies | Varies | 128k | `AZURE_OPENAI_KEY` |
 | OpenRouter | Claude Sonnet 4.5 | Varies | Varies | 200k | `OPENROUTER_API_KEY` |
+| AWS Bedrock | Claude Sonnet 4.5 | $3/1M | $15/1M | 200k | `AWS_BEDROCK_REGION` + IAM or explicit keys |
 | Mock | — | $0 | $0 | — | None |
 
 **Selection**: `AI_PROVIDER` env var. Factory via `ProviderRegistry.createFromEnv()`.
