@@ -7,7 +7,7 @@
 [![CI](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](package.json)
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0--rc.4-blue)](CHANGELOG.md)
 
 > **New here?** Start in 5 minutes: **[Quick Start Guide](docs/quickstart.md)** | [MCP Quick Start](docs/MCP_INTEGRATION.md) | [How Does It Work?](docs/HOW_DOES_IT_WORK.md)
 
@@ -61,7 +61,7 @@ TestOps Companion is a platform that connects to your CI/CD pipelines (Jenkins, 
 - **ReAct Reasoning Loop**: Reason - Act - Observe - Answer cycle with real-time SSE streaming
 - **22 AI Tools**: 8 read-only (auto-execute) + 11 write (tiered approval) + 3 housekeeping
 - **Virtual Team Routing**: Queries classified to specialist personas (Test Engineer, DevOps, Security, etc.)
-- **In-Chat Provider Picker**: Hot-swap between Anthropic, OpenAI, Google, Azure, OpenRouter, or mock
+- **In-Chat Provider Picker**: Hot-swap between Anthropic, OpenAI, Google, Azure, AWS Bedrock, OpenRouter, or mock
 - **Human-in-the-Loop Confirmation**: Write operations (create PR, file Jira issue) require explicit approval with 5-min TTL
 - **Auto-Fix Workflow**: Analyzes failure → Creates branch → Commits fix → Opens PR
 - **Chat Session Persistence**: Full message history stored and retrievable across sessions
@@ -128,7 +128,7 @@ The persona badge appears in the chat: *"Test Engineer is handling this"*
 - **Authentication**: JWT with refresh tokens, SAML 2.0 SSO
 - **Validation**: Zod schema validation
 - **Testing**: Jest with supertest
-- **AI Providers**: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI, OpenRouter
+- **AI Providers**: Anthropic Claude, OpenAI, Google Gemini, Azure OpenAI, AWS Bedrock, OpenRouter
 - **Vector DB**: Weaviate for semantic failure matching
 - **Caching**: Redis with ioredis
 
@@ -194,7 +194,7 @@ npm install && npm run dev:simple
 | | Demo Mode | Production Mode (Docker) |
 |---|---|---|
 | **Database** | SQLite (file-based) | PostgreSQL 14+ |
-| **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure |
+| **AI Provider** | Mock (realistic demo data) | Anthropic / OpenAI / Google / Azure / Bedrock |
 | **Integrations** | Simulated responses | Real Jira, Slack, GitHub, etc. |
 | **Setup time** | ~2 minutes | ~15 minutes |
 | **Docker required** | No | Yes |
