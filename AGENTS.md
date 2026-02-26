@@ -3,7 +3,7 @@
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 3.0.0 | **Updated**: 2026-02-20
+> **Version**: 3.0.0-rc.4 | **Updated**: 2026-02-26
 
 ---
 
@@ -14,7 +14,7 @@
 - **Architecture**:
   - **Backend**: Node.js 18+ | TypeScript | Express.js | Prisma ORM | PostgreSQL | Redis
   - **Frontend**: React 18 | TypeScript | Material-UI | Zustand | React Query | Vite
-  - **AI**: Anthropic Claude | OpenAI | Google Gemini | Azure OpenAI | Weaviate Vector DB
+  - **AI**: Anthropic Claude | OpenAI | Google Gemini | Azure OpenAI | AWS Bedrock | Weaviate Vector DB
   - **Infra**: Docker | GitHub Actions | Grafana | Prometheus | Playwright E2E
 - **Auth**: JWT access + refresh tokens | Token blacklist (Redis) | SAML SSO | RBAC (Admin > Editor > User > Billing > Viewer)
 
@@ -341,7 +341,7 @@ TestOps Companion integrates with these external systems:
 | Jenkins | `backend/src/services/jenkins.service.ts` | Build status, logs, triggering |
 | Slack | `backend/src/services/notification.service.ts` | Alerts, notifications |
 | Weaviate | `backend/src/services/ai/vector/` | Vector embeddings, semantic search |
-| AI Providers | `backend/src/services/ai/providers/` | Anthropic, OpenAI, Google, Azure |
+| AI Providers | `backend/src/services/ai/providers/` | Anthropic, OpenAI, Google, Azure, AWS Bedrock |
 
 **Cross-platform enrichment** (v2.8): `POST /api/ai/enrich` synthesizes Jira + Confluence + GitHub context for failure analysis.
 

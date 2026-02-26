@@ -6,6 +6,48 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.0.0-rc.4] - 2026-02-26
+
+> **AWS Bedrock Integration, CI Quality Gates & Bug Tracking**
+
+### Highlights
+
+AWS Bedrock joins the provider fleet — full chat, tool calling, and health check support with IAM role-based auth. CI gets commitlint + lint-staged enforcement, automated bug labeling, and retroactive issue tracking for institutional memory.
+
+### AI Provider: AWS Bedrock
+
+- **BedrockProvider** — Full implementation extending `BaseProvider` with `chat()`, `embed()` (throws with guidance), and `healthCheck()`
+- **IAM + explicit auth** — Falls back to IAM role when no explicit credentials provided; supports `AWS_BEDROCK_ACCESS_KEY_ID` / `AWS_BEDROCK_SECRET_ACCESS_KEY` for local dev
+- **Refactored for health compliance** — `chat()` extracted into 3 focused helpers (`convertMessages`, `buildToolSchemas`, `parseResponseContent`) to stay under 80-line function limit
+- **Frontend ProviderPicker** — Bedrock added with Claude Opus 4, Sonnet 4.5, and Haiku 4.5 model options
+- **22 unit tests** — Constructor variants, pricing tiers, chat flow, tool calling, health check, error handling
+- **Docs updated** — `AI_TOOLS.md` provider registry, `.env.example` with Bedrock env vars
+
+### CI & Quality Gates
+
+- **Bug Tracker workflow** — Auto-labels `fix(` PRs with `bug` label; comments on PRs touching files with open issues
+- **Commitlint + lint-staged** — Conventional commit enforcement via husky pre-commit and commit-msg hooks
+- **lint-staged monorepo fix** — eslint runs from subdirectory context so tsconfig resolves correctly
+- **Bug report template** — Enhanced with Break Once prevention fields (root cause, prevention guard)
+- **PR template** — Added "Break Once, Never Again" section for bug fix PRs
+
+### Security
+
+- **Rollup CVE remediation** — Frontend high-severity vulnerability patched
+
+### Quality Gates
+
+| Gate | Status |
+|------|--------|
+| Tests | **760 passing** (38 backend suites + 13 frontend suites) |
+| TypeScript | Zero errors |
+| Build | All packages compile |
+| Lint | Clean |
+| Architecture | No violations |
+| Health | All functions within limits |
+
+---
+
 ## [3.0.0-rc.3] - 2026-02-23
 
 > **Security Hardening & Production Readiness Audit**
