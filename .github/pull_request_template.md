@@ -17,6 +17,18 @@
 ## Related Issues
 <!-- Link any related issues here using #issue-number -->
 
+## Break Once, Never Again
+<!-- Required for bug fixes (type: fix). Skip for non-fix PRs by checking N/A. -->
+
+**Root Cause**: <!-- What was the underlying cause? Not the symptom. -->
+
+**Prevention Guard**: <!-- What automated guard prevents this class of bug from recurring? -->
+- [ ] Regression test added
+- [ ] Lint rule / CI check added
+- [ ] Type constraint tightened
+- [ ] Validation added
+- [ ] N/A — not a bug fix
+
 ## Testing
 <!-- Describe the tests you've added or modified -->
 

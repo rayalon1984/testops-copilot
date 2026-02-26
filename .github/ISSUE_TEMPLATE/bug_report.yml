@@ -8,12 +8,15 @@ body:
         Thanks for taking the time to fill out this bug report!
         Please provide as much information as possible to help us resolve the issue.
 
+        **Break Once, Never Again** — Every bug fix must include a prevention step
+        (test case, lint rule, CI check, type constraint, or validation).
+
   - type: input
     id: version
     attributes:
       label: Version
       description: What version of TestOps Companion are you running?
-      placeholder: e.g., v1.0.0
+      placeholder: e.g., v3.0.0
     validations:
       required: true
 
@@ -25,10 +28,25 @@ body:
       options:
         - Frontend
         - Backend
+        - AI Subsystem
+        - MCP Server
         - CI/CD Integration
         - Database
-        - Documentation
+        - Infrastructure
         - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - "Critical — System down or data loss"
+        - "High — Major feature broken, no workaround"
+        - "Medium — Feature degraded, workaround exists"
+        - "Low — Minor issue, cosmetic or edge case"
     validations:
       required: true
 
@@ -70,6 +88,28 @@ body:
       render: shell
 
   - type: textarea
+    id: root-cause
+    attributes:
+      label: Root Cause (if known)
+      description: |
+        What is the underlying cause of this bug? Not just the symptom.
+        (Fill this in during investigation, not necessarily at filing time.)
+      placeholder: "The bug occurs because..."
+
+  - type: textarea
+    id: prevention
+    attributes:
+      label: Prevention Plan (Break Once, Never Again)
+      description: |
+        What guard will prevent this class of bug from recurring?
+        Must be at least one of: test case, lint rule, CI check, type constraint, or validation.
+        A fix without a prevention step is incomplete.
+      placeholder: |
+        - [ ] Add regression test in `backend/src/__tests__/...`
+        - [ ] Add CI check for ...
+        - [ ] Add Zod validation for ...
+
+  - type: textarea
     id: environment
     attributes:
       label: Environment
@@ -79,29 +119,14 @@ body:
         - Browser: [e.g., Chrome 112]
         - Node.js version: [e.g., 18.16.0]
         - Docker version: [e.g., 20.10.21]
-    validations:
-      required: true
-
-  - type: dropdown
-    id: impact
-    attributes:
-      label: Impact
-      description: How severe is this bug?
-      options:
-        - Critical (System unusable)
-        - High (Major functionality broken)
-        - Medium (Some functionality affected)
-        - Low (Minor inconvenience)
-    validations:
-      required: true
 
   - type: checkboxes
     id: terms
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our Code of Conduct
+      label: Checklist
+      description: Please confirm the following
       options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
         - label: I have searched for similar issues before creating this one
+          required: true
+        - label: I understand the fix must include a prevention step (test, lint rule, CI check, etc.)
           required: true

@@ -56,7 +56,16 @@
     "validate:specs": "npx tsx scripts/scan-feature-specs.ts",
     "validate:specs:json": "npx tsx scripts/scan-feature-specs.ts --json",
     "report:specs": "npx tsx scripts/feature-health-report.ts --pr",
-    "report:specs:dashboard": "npx tsx scripts/feature-health-report.ts --dashboard"
+    "report:specs:dashboard": "npx tsx scripts/feature-health-report.ts --dashboard",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "backend/src/**/*.ts": [
+      "eslint --fix"
+    ],
+    "frontend/src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "keywords": [
     "test",
@@ -87,6 +96,8 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/material-icons": "^5.2.7",
     "@fontsource/roboto": "^5.2.9",
