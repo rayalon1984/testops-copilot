@@ -16,3 +16,5 @@ export { useAutonomyPreference, useUpdateAutonomy, useCostMetrics, useAIQuota } 
 export { useDashboardMetrics } from './useDashboard';
 export { useFlakyTests } from './useFlakyTests';
 export { useFailureInsights, useFailureSearch, useFailureComments, useAddFailureComment, useDeleteFailureComment } from './useFailureArchive';
+export { useTeams, useTeamDetail, useCreateTeam, useAddTeamMember, useRemoveTeamMember, useUpdateTeamMemberRole } from './useTeams';
+export { useProviderConfig, useTestProviderConnection, useSaveProviderConfig, type ProviderConfig } from './useProviderConfig';

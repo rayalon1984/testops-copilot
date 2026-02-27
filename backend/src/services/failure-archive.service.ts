@@ -32,7 +32,11 @@ export {
 
 // Re-export collaboration functions so the controller import stays unchanged
 import * as collaboration from './failure-collaboration.service';
-import { generateFailureSignature } from './failure-fingerprint';
+import {
+  generateFailureSignature,
+  normalizeErrorMessage,
+  calculateSimilarity,
+} from './failure-fingerprint';
 
 export class FailureArchiveService {
   // ─── Fingerprinting (delegated) ──────────────────────────────
@@ -156,8 +160,39 @@ export class FailureArchiveService {
       matchReason: 'Exact error match'
     })));
 
-    // 2. Fuzzy match (same test, similar error) not fully implemented
-    // to keep it simple and type-safe for now.
+    // 2. Fuzzy match — same test name, similar normalized error message
+    if (results.length < limit) {
+      const exactIds = new Set(exactMatches.map(f => f.id));
+      const candidates = await prisma.failureArchive.findMany({
+        where: {
+          testName,
+          rcaDocumented: true,
+          id: { notIn: [...exactIds] },
+        },
+        orderBy: { lastOccurrence: 'desc' },
+        take: limit * 3, // Fetch extra to score and filter
+      });
+
+      const normalizedInput = normalizeErrorMessage(errorMessage);
+      const fuzzy: SimilarFailure[] = [];
+
+      for (const candidate of candidates) {
+        const normalizedCandidate = normalizeErrorMessage(candidate.errorMessage);
+        const similarity = calculateSimilarity(normalizedInput, normalizedCandidate);
+        if (similarity >= 0.6) {
+          fuzzy.push({
+            failure: candidate as unknown as FailureArchive,
+            similarity,
+            matchType: 'fuzzy' as const,
+            matchReason: `Normalized error similarity: ${(similarity * 100).toFixed(0)}%`,
+          });
+        }
+      }
+
+      // Sort by similarity descending, take remaining slots
+      fuzzy.sort((a, b) => b.similarity - a.similarity);
+      results.push(...fuzzy.slice(0, limit - results.length));
+    }
 
     return results;
   }

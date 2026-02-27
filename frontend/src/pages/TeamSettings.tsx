@@ -3,7 +3,7 @@
  * Manage team details, members, and pipelines.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -36,112 +36,81 @@ import {
   Groups as GroupsIcon,
 } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader/PageHeader';
-import { api, ApiError } from '../api';
-import type { ApiSchemas } from '../api';
-
-type Team = ApiSchemas['Team'];
-type TeamListItem = ApiSchemas['TeamListItem'];
+import { ApiError } from '../api';
+import {
+  useTeams,
+  useTeamDetail,
+  useCreateTeam,
+  useAddTeamMember,
+  useRemoveTeamMember,
+  useUpdateTeamMemberRole,
+} from '../hooks/api';
 
 const TeamSettings: React.FC = () => {
-  const [teams, setTeams] = useState<TeamListItem[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
 
   // Create team dialog
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', slug: '', description: '' });
-  const [creating, setCreating] = useState(false);
 
   // Add member dialog
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [addMemberForm, setAddMemberForm] = useState({ userId: '', role: 'MEMBER' });
 
-  useEffect(() => {
-    fetchTeams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ─── Queries ──────────────────────────────────────────────
+  const { data: teams = [], isLoading } = useTeams();
 
-  const fetchTeams = async () => {
-    try {
-      const json = await api.get<{ success: boolean; data: TeamListItem[] }>('/teams');
-      if (json.success) {
-        setTeams(json.data);
-        if (json.data.length > 0 && !selectedTeam) {
-          await fetchTeamDetails(json.data[0].id);
-        }
-      }
-    } catch {
-      setError('Failed to load teams');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Auto-select first team when teams load
+  const activeTeamId = selectedTeamId ?? teams[0]?.id;
+  const { data: selectedTeam } = useTeamDetail(activeTeamId);
 
-  const fetchTeamDetails = async (teamId: string) => {
-    try {
-      const json = await api.get<{ success: boolean; data: Team }>(`/teams/${teamId}`);
-      if (json.success) {
-        setSelectedTeam(json.data);
-      }
-    } catch {
-      setError('Failed to load team details');
-    }
-  };
+  // ─── Mutations ────────────────────────────────────────────
+  const createTeamMutation = useCreateTeam();
+  const addMemberMutation = useAddTeamMember(activeTeamId);
+  const removeMemberMutation = useRemoveTeamMember(activeTeamId);
+  const updateRoleMutation = useUpdateTeamMemberRole(activeTeamId);
 
-  const handleCreateTeam = async () => {
+  const handleCreateTeam = () => {
     if (!createForm.name.trim() || !createForm.slug.trim()) return;
-    setCreating(true);
-    try {
-      const json = await api.post<{ success: boolean; data: Team }>('/teams', createForm);
-      if (json.success) {
+    createTeamMutation.mutate(createForm, {
+      onSuccess: (newTeam) => {
         setCreateOpen(false);
         setCreateForm({ name: '', slug: '', description: '' });
-        await fetchTeams();
-        await fetchTeamDetails(json.data.id);
-      }
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to create team');
-    } finally {
-      setCreating(false);
-    }
+        setSelectedTeamId(newTeam.id);
+      },
+      onError: (err) => {
+        setError(err instanceof ApiError ? err.message : 'Failed to create team');
+      },
+    });
   };
 
-  const handleAddMember = async () => {
-    if (!selectedTeam || !addMemberForm.userId.trim()) return;
-    try {
-      const json = await api.post<{ success: boolean }>(`/teams/${selectedTeam.id}/members`, addMemberForm);
-      if (json.success) {
+  const handleAddMember = () => {
+    if (!activeTeamId || !addMemberForm.userId.trim()) return;
+    addMemberMutation.mutate(addMemberForm, {
+      onSuccess: () => {
         setAddMemberOpen(false);
         setAddMemberForm({ userId: '', role: 'MEMBER' });
-        await fetchTeamDetails(selectedTeam.id);
-      }
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Failed to add member');
-    }
+      },
+      onError: (err) => {
+        setError(err instanceof ApiError ? err.message : 'Failed to add member');
+      },
+    });
   };
 
-  const handleRemoveMember = async (userId: string) => {
-    if (!selectedTeam) return;
-    try {
-      await api.delete(`/teams/${selectedTeam.id}/members/${userId}`);
-      await fetchTeamDetails(selectedTeam.id);
-    } catch {
-      setError('Failed to remove member');
-    }
+  const handleRemoveMember = (userId: string) => {
+    removeMemberMutation.mutate(userId, {
+      onError: () => setError('Failed to remove member'),
+    });
   };
 
-  const handleRoleChange = async (userId: string, role: string) => {
-    if (!selectedTeam) return;
-    try {
-      await api.put(`/teams/${selectedTeam.id}/members/${userId}/role`, { role });
-      await fetchTeamDetails(selectedTeam.id);
-    } catch {
-      setError('Failed to update role');
-    }
+  const handleRoleChange = (userId: string, role: string) => {
+    updateRoleMutation.mutate({ userId, role }, {
+      onError: () => setError('Failed to update role'),
+    });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />
@@ -185,9 +154,9 @@ const TeamSettings: React.FC = () => {
               <Chip
                 key={team.id}
                 label={`${team.name} (${team.role.toLowerCase()})`}
-                onClick={() => fetchTeamDetails(team.id)}
-                color={selectedTeam?.id === team.id ? 'primary' : 'default'}
-                variant={selectedTeam?.id === team.id ? 'filled' : 'outlined'}
+                onClick={() => setSelectedTeamId(team.id)}
+                color={activeTeamId === team.id ? 'primary' : 'default'}
+                variant={activeTeamId === team.id ? 'filled' : 'outlined'}
               />
             ))}
           </Box>
@@ -321,9 +290,9 @@ const TeamSettings: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleCreateTeam}
-            disabled={creating || !createForm.name.trim() || !createForm.slug.trim()}
+            disabled={createTeamMutation.isPending || !createForm.name.trim() || !createForm.slug.trim()}
           >
-            {creating ? <CircularProgress size={20} /> : 'Create'}
+            {createTeamMutation.isPending ? <CircularProgress size={20} /> : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

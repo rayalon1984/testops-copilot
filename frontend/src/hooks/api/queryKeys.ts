@@ -53,4 +53,13 @@ export const queryKeys = {
     me: () => ['auth', 'me'] as const,
     all: () => ['auth'] as const,
   },
+
+  teams: {
+    all: () => ['teams'] as const,
+    detail: (id: string | undefined) => ['team', id] as const,
+  },
+
+  aiConfig: {
+    current: () => ['ai-config'] as const,
+  },
 } as const;

@@ -6,7 +6,7 @@
  * Supports test-connection and live hot-swap without page reload.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box, Typography, Popover, Chip, Button, TextField,
     Select, MenuItem, InputLabel, FormControl, CircularProgress,
@@ -18,7 +18,12 @@ import {
     ErrorOutline as ErrorIcon,
     SwapHoriz as SwapIcon,
 } from '@mui/icons-material';
-import { api } from '../../api';
+import {
+    useProviderConfig,
+    useTestProviderConnection,
+    useSaveProviderConfig,
+} from '../../hooks/api';
+import type { ProviderConfig } from '../../hooks/api';
 
 // ─── Provider catalog (mirrors backend PROVIDER_MODELS) ───
 
@@ -89,15 +94,13 @@ const PROVIDER_ICONS: Record<string, string> = {
 
 // ─── Types ───
 
-interface ProviderConfig {
-    provider: string;
-    model: string;
-    providerLabel: string;
-    modelLabel: string;
-    hasApiKey: boolean;
-}
-
 type TestStatus = 'idle' | 'testing' | 'success' | 'error';
+
+const DEFAULT_CONFIG: ProviderConfig = {
+    provider: 'mock', model: 'mock-model',
+    providerLabel: 'Demo Mode', modelLabel: 'Mock',
+    hasApiKey: false,
+};
 
 // ─── Sub-components ───
 
@@ -192,39 +195,31 @@ export default function ProviderPicker() {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
 
-    // Current active config (from backend)
-    const [activeConfig, setActiveConfig] = useState<ProviderConfig>({
-        provider: 'mock', model: 'mock-model',
-        providerLabel: 'Demo Mode', modelLabel: 'Mock',
-        hasApiKey: false,
-    });
+    // Server state via React Query
+    const { data: activeConfig = DEFAULT_CONFIG } = useProviderConfig();
+    const testMutation = useTestProviderConnection();
+    const saveMutation = useSaveProviderConfig();
 
-    // Form state
+    // Form state (local UI)
     const [provider, setProvider] = useState('mock');
     const [model, setModel] = useState('mock-model');
     const [apiKey, setApiKey] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [testStatus, setTestStatus] = useState<TestStatus>('idle');
     const [testError, setTestError] = useState('');
-    const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
 
     // Popover anchor
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
 
-    const fetchConfig = useCallback(async () => {
-        try {
-            const json = await api.get<{ data: ProviderConfig }>('/ai/config');
-            setActiveConfig(json.data);
-            setProvider(json.data.provider);
-            setModel(json.data.model);
-        } catch {
-            // Silently fail — will show default
+    // Sync form when server config changes
+    useEffect(() => {
+        if (activeConfig) {
+            setProvider(activeConfig.provider);
+            setModel(activeConfig.model);
         }
-    }, []);
-
-    useEffect(() => { fetchConfig(); }, [fetchConfig]);
+    }, [activeConfig]);
 
     // Reset model when provider changes
     useEffect(() => {
@@ -234,37 +229,37 @@ export default function ProviderPicker() {
         }
     }, [provider, model]);
 
-    const handleTest = async () => {
+    const handleTest = () => {
         setTestStatus('testing');
         setTestError('');
-        try {
-            const json = await api.post<{ data: { success: boolean; error?: string } }>('/ai/config/test', { provider, model, apiKey });
-            if (json.data?.success) {
-                setTestStatus('success');
-            } else {
+        testMutation.mutate({ provider, model, apiKey }, {
+            onSuccess: (data) => {
+                if (data?.success) {
+                    setTestStatus('success');
+                } else {
+                    setTestStatus('error');
+                    setTestError(data?.error || 'Connection failed');
+                }
+            },
+            onError: (err) => {
                 setTestStatus('error');
-                setTestError(json.data?.error || 'Connection failed');
-            }
-        } catch (err) {
-            setTestStatus('error');
-            setTestError(err instanceof Error ? err.message : 'Network error');
-        }
+                setTestError(err instanceof Error ? err.message : 'Network error');
+            },
+        });
     };
 
-    const handleSave = async () => {
-        setSaving(true);
+    const handleSave = () => {
         setSaveError('');
-        try {
-            const json = await api.put<{ data: ProviderConfig }>('/ai/config', { provider, model, apiKey: apiKey || undefined });
-            setActiveConfig(json.data);
-            setApiKey('');
-            setTestStatus('idle');
-            setAnchorEl(null);
-        } catch (err) {
-            setSaveError(err instanceof Error ? err.message : 'Save failed');
-        } finally {
-            setSaving(false);
-        }
+        saveMutation.mutate({ provider, model, apiKey: apiKey || undefined }, {
+            onSuccess: () => {
+                setApiKey('');
+                setTestStatus('idle');
+                setAnchorEl(null);
+            },
+            onError: (err) => {
+                setSaveError(err instanceof Error ? err.message : 'Save failed');
+            },
+        });
     };
 
     const catalog = PROVIDER_CATALOG[provider] || PROVIDER_CATALOG.mock;
@@ -313,7 +308,7 @@ export default function ProviderPicker() {
                     catalog={catalog} needsKey={needsKey} apiKey={apiKey} setApiKey={setApiKey}
                     showKey={showKey} setShowKey={setShowKey} activeConfig={activeConfig}
                     testStatus={testStatus} setTestStatus={setTestStatus} testError={testError} saveError={saveError}
-                    handleTest={handleTest} handleSave={handleSave} saving={saving} canSave={canSave} isChanged={isChanged}
+                    handleTest={handleTest} handleSave={handleSave} saving={saveMutation.isPending} canSave={canSave} isChanged={isChanged}
                 />
             </Popover>
         </>
