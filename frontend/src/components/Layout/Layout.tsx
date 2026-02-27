@@ -33,6 +33,7 @@ import {
   BugReport as BugReportIcon,
   AttachMoney as CostIcon,
   Groups as TeamsIcon,
+  Healing as HealingIcon,
 } from '@mui/icons-material';
 import { useDesignMode } from '../../contexts/DesignModeContext';
 import AICopilot from '../AICopilot/AICopilot';
@@ -65,6 +66,7 @@ const navSections: NavSection[] = [
       { text: 'Pipelines', icon: <PipelineIcon />, path: '/pipelines' },
       { text: 'Test Runs', icon: <TestRunIcon />, path: '/test-runs' },
       { text: 'Failure Knowledge Base', icon: <BugReportIcon />, path: '/failure-knowledge-base' },
+      { text: 'Self-Healing', icon: <HealingIcon />, path: '/self-healing' },
     ],
   },
   {
@@ -201,7 +203,7 @@ function SidebarContent({
 
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
-          label="v3.0.0"
+          label="v3.1.0"
           size="small"
           variant="outlined"
           sx={{
