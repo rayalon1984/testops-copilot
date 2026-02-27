@@ -6,7 +6,7 @@
 
 ## 🎉 Major New Feature: Model Context Protocol Integration
 
-We're excited to announce **TestOps Companion v2.6.0**, featuring a comprehensive MCP server that revolutionizes how teams handle test failures!
+We're excited to announce **TestOps Copilot v2.6.0**, featuring a comprehensive MCP server that revolutionizes how teams handle test failures!
 
 ## 🚀 What's New
 
@@ -236,6 +236,6 @@ Thank you to the community for your continued support! This release represents m
 
 ---
 
-**Built with ❤️ for the TestOps Companion community**
+**Built with ❤️ for the TestOps Copilot community**
 
 🚀 Ready to revolutionize your test failure analysis? Get started today!

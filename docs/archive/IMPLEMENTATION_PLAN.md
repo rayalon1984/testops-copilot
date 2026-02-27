@@ -10,7 +10,7 @@
 
 ## 📋 Overview
 
-This document provides a detailed, step-by-step implementation plan for integrating AI capabilities into TestOps Companion. Each phase includes specific tasks, file structure, dependencies, and acceptance criteria.
+This document provides a detailed, step-by-step implementation plan for integrating AI capabilities into TestOps Copilot. Each phase includes specific tasks, file structure, dependencies, and acceptance criteria.
 
 ---
 

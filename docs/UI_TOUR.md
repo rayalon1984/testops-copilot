@@ -1,6 +1,6 @@
-# TestOps Companion — Visual UI Tour
+# TestOps Copilot — Visual UI Tour
 
-> A guided walkthrough of the TestOps Companion interface.
+> A guided walkthrough of the TestOps Copilot interface.
 > All screenshots captured in light theme at 1440x900 viewport.
 
 ---

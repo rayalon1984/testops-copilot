@@ -1,12 +1,12 @@
 # MCP Server Integration Guide
 
-> **Integrate TestOps Companion with Claude Code and other AI assistants**
+> **Integrate TestOps Copilot with Claude Code and other AI assistants**
 
 ---
 
 ## Overview
 
-The TestOps Companion MCP Server enables AI assistants to intelligently analyze test failures, manage knowledge bases, and provide actionable insights. This guide covers setup, configuration, and best practices.
+The TestOps Copilot MCP Server enables AI assistants to intelligently analyze test failures, manage knowledge bases, and provide actionable insights. This guide covers setup, configuration, and best practices.
 
 ## What is MCP?
 
@@ -42,7 +42,7 @@ The TestOps Companion MCP Server enables AI assistants to intelligently analyze 
 
 ## Prerequisites
 
-- TestOps Companion backend installed and running
+- TestOps Copilot backend installed and running
 - PostgreSQL database with migrations applied
 - Node.js 18+ installed
 - Claude Code or compatible MCP client

@@ -23,7 +23,7 @@
 
 ## Overview
 
-TestOps Companion exposes metrics in Prometheus format, allowing you to:
+TestOps Copilot exposes metrics in Prometheus format, allowing you to:
 - Visualize test trends and patterns in Grafana
 - Monitor test health in real-time
 - Set up alerts for failure rate spikes
@@ -33,7 +33,7 @@ TestOps Companion exposes metrics in Prometheus format, allowing you to:
 ### Architecture
 
 ```
-TestOps Companion → /metrics endpoint (Prometheus format)
+TestOps Copilot → /metrics endpoint (Prometheus format)
                           ↓
                     Prometheus (scrapes metrics)
                           ↓
@@ -79,7 +79,7 @@ TestOps Companion → /metrics endpoint (Prometheus format)
 
 ### Required Software
 
-1. **TestOps Companion**
+1. **TestOps Copilot**
    - Running instance with metrics endpoint enabled
    - Version 1.0.0 or higher
 
@@ -97,7 +97,7 @@ TestOps Companion → /metrics endpoint (Prometheus format)
 
 ### 1. Verify Metrics Endpoint
 
-Check that TestOps Companion is exposing metrics:
+Check that TestOps Copilot is exposing metrics:
 
 ```bash
 curl http://localhost:3000/metrics
@@ -117,7 +117,7 @@ testops_pass_rate_percent 94.2
 
 ### 2. Configure Prometheus
 
-Add TestOps Companion to your `prometheus.yml`:
+Add TestOps Copilot to your `prometheus.yml`:
 
 ```yaml
 global:
@@ -196,7 +196,7 @@ global:
     cluster: 'testops-cluster'
     environment: 'production'
 
-# Scrape TestOps Companion metrics
+# Scrape TestOps Copilot metrics
 scrape_configs:
   - job_name: 'testops-companion'
     static_configs:

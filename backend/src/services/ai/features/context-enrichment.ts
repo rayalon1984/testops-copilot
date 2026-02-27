@@ -5,7 +5,7 @@
  * Pulls data from Jira, Confluence, GitHub, and the internal failure archive,
  * then uses AI to synthesize actionable insights.
  *
- * This is the "knowledge layer" that makes TestOps Companion code-aware
+ * This is the "knowledge layer" that makes TestOps Copilot code-aware
  * and project-aware — not just a test log analyzer.
  */
 

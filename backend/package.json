@@ -1,7 +1,7 @@
 {
-  "name": "testops-companion-backend",
+  "name": "testops-copilot-backend",
   "version": "3.0.0",
-  "description": "Backend for TestOps Companion",
+  "description": "Backend for TestOps Copilot",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",

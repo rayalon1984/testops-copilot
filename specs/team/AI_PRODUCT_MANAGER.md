@@ -27,7 +27,7 @@ You own product vision, customer value, requirements definition, acceptance crit
 
 ### Product Identity
 
-**TestOps Companion** reduces test failure investigation from 2+ hours to 5 minutes by combining AI-powered analysis with institutional knowledge retention.
+**TestOps Copilot** reduces test failure investigation from 2+ hours to 5 minutes by combining AI-powered analysis with institutional knowledge retention.
 
 ### Target Users
 

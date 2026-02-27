@@ -1,4 +1,4 @@
-# TestOps Companion API Documentation
+# TestOps Copilot API Documentation
 
 > Updated for v3.0.0 | **Canonical spec**: [`specs/API_CONTRACT.md`](../specs/API_CONTRACT.md) (99 endpoints, Zod schemas) | **AI tools**: [`specs/AI_TOOLS.md`](../specs/AI_TOOLS.md)
 

@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${GREEN}Setting up TestOps Companion development environment...${NC}"
+echo -e "${GREEN}Setting up TestOps Copilot development environment...${NC}"
 
 # Check for required tools
 command -v docker >/dev/null 2>&1 || { echo "Docker is required but not installed. Aborting." >&2; exit 1; }

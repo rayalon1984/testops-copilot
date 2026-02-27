@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get started with TestOps Companion in minutes. Choose the path that fits your needs.
+Get started with TestOps Copilot in minutes. Choose the path that fits your needs.
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers performance optimization strategies for both frontend and backend components of TestOps Companion.
+This guide covers performance optimization strategies for both frontend and backend components of TestOps Copilot.
 
 ## Frontend Performance
 

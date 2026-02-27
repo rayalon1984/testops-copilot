@@ -107,6 +107,7 @@ class ProviderRegistry {
         extendedConfig.region = secrets.bedrockRegion || 'us-east-1';
         extendedConfig.accessKeyId = secrets.bedrockAccessKeyId;
         extendedConfig.secretAccessKey = secrets.bedrockSecretAccessKey;
+        extendedConfig.embeddingModel = secrets.bedrockEmbeddingModel;
         break;
     }
 

@@ -1,8 +1,8 @@
-# 🚀 TestOps Companion - Early Access Beta Program
+# 🚀 TestOps Copilot - Early Access Beta Program
 
-Welcome to the TestOps Companion Early Access Beta Program! We're excited to have you join us in shaping the future of test operations management.
+Welcome to the TestOps Copilot Early Access Beta Program! We're excited to have you join us in shaping the future of test operations management.
 
-## 🎬 See TestOps Companion in Action
+## 🎬 See TestOps Copilot in Action
 
 https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/37410572-26b2-48a0-94f1-42ecf857c694
 
 ## 📋 What is This Program?
 
-TestOps Companion is in **active beta development**, and we're looking for **QA Managers and Test Automation teams** to test the platform in real-world scenarios and provide valuable feedback.
+TestOps Copilot is in **active beta development**, and we're looking for **QA Managers and Test Automation teams** to test the platform in real-world scenarios and provide valuable feedback.
 
 ### Why Join the Beta?
 
@@ -49,13 +49,13 @@ We're seeking **5-10 teams** that:
    - Private Discord/Slack channel invite
    - Configuration templates
    - 1-on-1 onboarding call (optional)
-4. **Start Testing** - Begin using TestOps Companion with your team
+4. **Start Testing** - Begin using TestOps Copilot with your team
 
 ## 🛠️ What You'll Get
 
 ### Immediate Access To:
 
-- ✅ Full TestOps Companion platform
+- ✅ Full TestOps Copilot platform
 - ✅ **Enterprise Readiness** *(NEW in v2.8.5)*:
   - 🔐 SSO/SAML Integration (Okta/Azure AD)
   - 📜 Audit Logging with PII redaction
@@ -86,7 +86,7 @@ We're seeking **5-10 teams** that:
 
 ### Minimum Commitment:
 
-- **Use it** - Run TestOps Companion with your real pipelines for 2-4 weeks
+- **Use it** - Run TestOps Copilot with your real pipelines for 2-4 weeks
 - **Break it** - Find bugs, edge cases, and issues
 - **Share feedback** - 15-30 minutes per week
   - What works well?
@@ -158,7 +158,7 @@ You keep using the platform with lifetime premium access. No changes to your set
 Of course! No commitments. Just let us know.
 
 ### Will this cost money later?
-TestOps Companion is **open source** and **free**. Premium features (if we add them) will be free for beta participants.
+TestOps Copilot is **open source** and **free**. Premium features (if we add them) will be free for beta participants.
 
 ## 📧 Contact & Questions
 

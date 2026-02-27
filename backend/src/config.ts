@@ -82,7 +82,7 @@ const envSchema = z.object({
 
   // OpenTelemetry
   OTEL_ENABLED: z.string().transform(val => val === 'true').default('false'),
-  OTEL_SERVICE_NAME: z.string().default('testops-companion-backend'),
+  OTEL_SERVICE_NAME: z.string().default('testops-copilot-backend'),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().default('http://localhost:4318/v1/traces'),
 
   // SSO

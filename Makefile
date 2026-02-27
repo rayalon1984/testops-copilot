@@ -13,7 +13,7 @@ NC = \033[0m
 .PHONY: help setup dev down clean test lint build deploy
 
 help: ## Display this help message
-	@echo "TestOps Companion Development Commands"
+	@echo "TestOps Copilot Development Commands"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "$(YELLOW)%-30s$(NC) %s\n", $$1, $$2}'
 

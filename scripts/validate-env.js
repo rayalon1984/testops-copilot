@@ -199,7 +199,7 @@ const frontendOptional = {
 // Main validation
 function main() {
   log('='.repeat(60), colors.blue);
-  log('TestOps Companion - Environment Validation', colors.blue);
+  log('TestOps Copilot - Environment Validation', colors.blue);
   log('='.repeat(60), colors.blue);
 
   const backendEnvPath = path.join(__dirname, '../backend/.env');

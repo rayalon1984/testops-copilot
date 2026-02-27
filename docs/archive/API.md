@@ -931,7 +931,7 @@ Show AI service status
 ```bash
 $ testops ai status
 
-🤖 TestOps Companion - AI Service Status
+🤖 TestOps Copilot - AI Service Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Status: ✅ Operational

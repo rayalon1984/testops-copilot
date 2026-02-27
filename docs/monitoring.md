@@ -2,11 +2,11 @@
 
 ## Overview
 
-This guide covers monitoring, logging, and observability practices for TestOps Companion.
+This guide covers monitoring, logging, and observability practices for TestOps Copilot.
 
 ## Grafana & Prometheus Integration
 
-TestOps Companion includes a **built-in Grafana and Prometheus integration** for comprehensive test metrics visualization and monitoring.
+TestOps Copilot includes a **built-in Grafana and Prometheus integration** for comprehensive test metrics visualization and monitoring.
 
 ### Quick Start
 
@@ -21,7 +21,7 @@ For complete setup instructions, see the [Grafana Integration Guide](integration
 
 ### Metrics Endpoint
 
-TestOps Companion exposes test metrics in Prometheus format:
+TestOps Copilot exposes test metrics in Prometheus format:
 
 ```bash
 # Prometheus metrics endpoint
@@ -42,7 +42,7 @@ curl http://localhost:3000/metrics
 
 ### JSON API Endpoints
 
-In addition to Prometheus format, TestOps Companion provides JSON endpoints:
+In addition to Prometheus format, TestOps Copilot provides JSON endpoints:
 
 ```bash
 # Get metrics summary
@@ -86,7 +86,7 @@ Beyond the built-in Grafana integration, you can enhance monitoring with:
 
 ### Built-in Test Metrics
 
-TestOps Companion automatically collects and exposes test-related metrics via the **MetricsService** (`backend/src/services/metrics.service.ts`):
+TestOps Copilot automatically collects and exposes test-related metrics via the **MetricsService** (`backend/src/services/metrics.service.ts`):
 
 ```typescript
 // Automatically collected metrics
@@ -289,7 +289,7 @@ newrelic.recordMetric('Custom/Tests/FlakyCount', flakyTests.length);
 
 ### Pre-configured Alert Examples
 
-TestOps Companion documentation includes alert examples for common scenarios. See [Grafana integration guide - Alerting](integrations/grafana.md#alerting-configuration).
+TestOps Copilot documentation includes alert examples for common scenarios. See [Grafana integration guide - Alerting](integrations/grafana.md#alerting-configuration).
 
 **Example Alerts:**
 
@@ -368,7 +368,7 @@ const sendEmailAlert = async (alert: Alert) => {
 
 ### Pre-built Grafana Dashboard
 
-TestOps Companion includes a **pre-built Grafana dashboard** at `grafana-dashboards/testops-overview.json`.
+TestOps Copilot includes a **pre-built Grafana dashboard** at `grafana-dashboards/testops-overview.json`.
 
 **Import Instructions:**
 1. Open Grafana

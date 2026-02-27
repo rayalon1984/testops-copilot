@@ -17,10 +17,12 @@ import { logger } from '@/utils/logger';
 // ─── Encryption ───
 
 const ALGORITHM = 'aes-256-gcm';
-const ENCRYPTION_SECRET = process.env.AI_CONFIG_ENCRYPTION_KEY || 'testops-companion-default-enc-key';
+const ENCRYPTION_SECRET = process.env.AI_CONFIG_ENCRYPTION_KEY || 'testops-copilot-default-enc-key';
+// Legacy fallback for data encrypted before the v3.0.1 rebrand
+const LEGACY_ENCRYPTION_SECRET = 'testops-companion-default-enc-key';
 
-function deriveKey(): Buffer {
-    return crypto.scryptSync(ENCRYPTION_SECRET, 'testops-ai-salt', 32);
+function deriveKey(secret: string = ENCRYPTION_SECRET): Buffer {
+    return crypto.scryptSync(secret, 'testops-ai-salt', 32);
 }
 
 export function encryptApiKey(plaintext: string): string {
@@ -33,19 +35,33 @@ export function encryptApiKey(plaintext: string): string {
     return `${iv.toString('hex')}:${authTag}:${encrypted}`;
 }
 
-export function decryptApiKey(ciphertext: string): string {
+function decryptWithKey(ciphertext: string, secret: string): string {
     const [ivHex, authTagHex, encrypted] = ciphertext.split(':');
     if (!ivHex || !authTagHex || !encrypted) {
         throw new Error('Invalid encrypted key format');
     }
     const iv = Buffer.from(ivHex, 'hex');
     const authTag = Buffer.from(authTagHex, 'hex');
-    const key = deriveKey();
+    const key = deriveKey(secret);
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+}
+
+export function decryptApiKey(ciphertext: string): string {
+    // Try current key first, fall back to legacy key for pre-v3.0.1 data
+    try {
+        return decryptWithKey(ciphertext, ENCRYPTION_SECRET);
+    } catch {
+        // If using a custom env key (not the default), no legacy fallback
+        if (process.env.AI_CONFIG_ENCRYPTION_KEY) {
+            throw new Error('Decryption failed — check AI_CONFIG_ENCRYPTION_KEY');
+        }
+        logger.info('[ProviderConfig] Decrypting with legacy key (pre-v3.0.1 data)');
+        return decryptWithKey(ciphertext, LEGACY_ENCRYPTION_SECRET);
+    }
 }
 
 // ─── Provider model catalogs (shared with frontend) ───
@@ -226,7 +242,7 @@ export async function testProviderConnection(
         }
         if (provider === 'openrouter') {
             config.siteUrl = extraConfig?.siteUrl || '';
-            config.appName = extraConfig?.appName || 'TestOps Companion';
+            config.appName = extraConfig?.appName || 'TestOps Copilot';
         }
         if (provider === 'bedrock') {
             config.region = extraConfig?.region || 'us-east-1';
@@ -304,6 +320,7 @@ async function applyProviderConfig(
         if (extraConfig.region) secretsOverride.bedrockRegion = extraConfig.region;
         if (extraConfig.accessKeyId) secretsOverride.bedrockAccessKeyId = extraConfig.accessKeyId;
         if (extraConfig.secretAccessKey) secretsOverride.bedrockSecretAccessKey = extraConfig.secretAccessKey;
+        if (extraConfig.embeddingModel) secretsOverride.bedrockEmbeddingModel = extraConfig.embeddingModel;
     }
 
     // Apply runtime override to config manager

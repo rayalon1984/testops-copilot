@@ -2,7 +2,7 @@
 
 ## Overview
 
-TestOps Companion follows a monorepo structure with separate frontend and backend applications.
+TestOps Copilot follows a monorepo structure with separate frontend and backend applications.
 
 ```
 testops-companion/

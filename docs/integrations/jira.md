@@ -2,12 +2,12 @@
 
 ## Overview
 
-TestOps Companion integrates with Jira to provide seamless issue tracking and test result management. This integration allows you to:
+TestOps Copilot integrates with Jira to provide seamless issue tracking and test result management. This integration allows you to:
 
 - Create Jira issues from failed test runs
 - Link test runs to existing Jira issues
 - Synchronize test status with Jira
-- View Jira issue details within TestOps Companion
+- View Jira issue details within TestOps Copilot
 - **Search for similar existing issues** *(v2.8.0)* before creating duplicates
 
 ## Setup

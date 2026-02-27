@@ -1,4 +1,4 @@
-# How Does TestOps Companion Actually Work?
+# How Does TestOps Copilot Actually Work?
 
 > A plain-English guide for anyone who wants to understand what happens under the hood.
 > Updated for v3.0.0 — Graduated Autonomy, Proactive Suggestions, Global AI Context.
@@ -7,7 +7,7 @@
 
 ## The 30-Second Version
 
-You connect TestOps Companion to your CI/CD pipeline (Jenkins, GitHub Actions).
+You connect TestOps Copilot to your CI/CD pipeline (Jenkins, GitHub Actions).
 Every time your tests run, it automatically collects the results, uses AI to figure out **why** things failed, and builds a knowledge base so the **same failure never wastes your time twice**.
 
 **v3.0 AI Copilot:** An agentic AI copilot you talk to in natural language. It searches Jira, checks pipelines, queries your wiki, and even creates PRs — all through a chat interface. Queries are routed to a virtual team of 9 specialists (Test Engineer, DevOps Engineer, Security Engineer, etc.) with graduated autonomy that lets you control how much the AI does on its own.
@@ -18,20 +18,20 @@ Every time your tests run, it automatically collects the results, uses AI to fig
 
 ### 1. You Connect Your Pipeline
 
-TestOps Companion plugs into the tools you already use:
+TestOps Copilot plugs into the tools you already use:
 
 ```
 Your Code Repo (GitHub)  --->  CI/CD (Jenkins / GitHub Actions)
                                         |
                                         v
-                              TestOps Companion
+                              TestOps Copilot
 ```
 
 You provide the URL of your Jenkins server or GitHub repo, plus an API token so we can talk to it. That's it. No agents to install, no code changes, no SDK. We use the same APIs your CI/CD tools already expose.
 
 ### 2. Tests Run, We Listen
 
-When a test run kicks off --- whether you triggered it manually, on a schedule, or from a code push --- TestOps Companion starts watching:
+When a test run kicks off --- whether you triggered it manually, on a schedule, or from a code push --- TestOps Copilot starts watching:
 
 - **Starts tracking** the run (pipeline name, branch, commit, start time)
 - **Polls for progress** every few seconds until the run finishes
@@ -203,7 +203,7 @@ You configure which events trigger which channels. Only care about failures? Onl
 
 ### 7. Issues Flow to Your Tools
 
-TestOps Companion doesn't replace your existing workflow --- it feeds into it:
+TestOps Copilot doesn't replace your existing workflow --- it feeds into it:
 
 - **Jira**: Automatically creates a bug ticket when a critical failure is detected
 - **Monday.com**: Creates a board item with all the failure details
@@ -278,7 +278,7 @@ Here's the complete picture of what talks to what:
 
 ## The Cycle That Makes It Smarter
 
-This is the key insight. TestOps Companion creates a **feedback loop**:
+This is the key insight. TestOps Copilot creates a **feedback loop**:
 
 ```
   1. Tests fail

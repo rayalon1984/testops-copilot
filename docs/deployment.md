@@ -2,7 +2,7 @@
 
 > Updated for v3.0.0 | **Quick start**: [`docs/PRODUCTION_QUICKSTART.md`](PRODUCTION_QUICKSTART.md) | **Dev modes**: [`docs/DEV_MODE.md`](DEV_MODE.md) | **DevOps spec**: [`specs/team/DEVOPS_ENGINEER.md`](../specs/team/DEVOPS_ENGINEER.md)
 
-This guide covers different deployment options for TestOps Companion, from development to production environments.
+This guide covers different deployment options for TestOps Copilot, from development to production environments.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)

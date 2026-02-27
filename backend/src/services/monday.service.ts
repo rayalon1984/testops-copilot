@@ -328,7 +328,7 @@ export class MondayService {
     }
 
     body += `---\n`;
-    body += `Created automatically by TestOps Companion`;
+    body += `Created automatically by TestOps Copilot`;
 
     return body;
   }

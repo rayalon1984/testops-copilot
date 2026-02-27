@@ -2,10 +2,10 @@
 
 ## General Questions
 
-### What is TestOps Companion?
-TestOps Companion is a comprehensive test automation management platform that helps QA teams and developers manage their test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
+### What is TestOps Copilot?
+TestOps Copilot is a comprehensive test automation management platform that helps QA teams and developers manage their test pipelines, monitor results, and maintain quality metrics across their development lifecycle.
 
-### Who should use TestOps Companion?
+### Who should use TestOps Copilot?
 - QA Engineers
 - Test Automation Engineers
 - DevOps Engineers
@@ -13,14 +13,14 @@ TestOps Companion is a comprehensive test automation management platform that he
 - QA Managers
 - Technical Leaders
 
-### Is TestOps Companion free?
-Yes, TestOps Companion is open source and free to use. We also offer enterprise features and support through paid plans.
+### Is TestOps Copilot free?
+Yes, TestOps Copilot is open source and free to use. We also offer enterprise features and support through paid plans.
 
 ## Technical Questions
 
 ### Installation & Setup
 
-#### How do I install TestOps Companion?
+#### How do I install TestOps Copilot?
 ```bash
 # Clone the repository
 git clone https://github.com/rayalon1984/testops-companion.git

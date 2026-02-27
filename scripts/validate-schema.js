@@ -345,7 +345,7 @@ function checkDocFreshness() {
 // Main validation
 function main() {
   log('='.repeat(70), colors.blue);
-  log('TestOps Companion - Prisma Schema Validation', colors.blue);
+  log('TestOps Copilot - Prisma Schema Validation', colors.blue);
   log('='.repeat(70), colors.blue);
 
   const productionSchema = path.join(__dirname, '../backend/prisma/schema.production.prisma');

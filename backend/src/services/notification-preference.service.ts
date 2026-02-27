@@ -84,7 +84,7 @@ class NotificationPreferenceServiceImpl {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError('User not found');
 
-    const message = 'This is a test notification from TestOps Companion';
+    const message = 'This is a test notification from TestOps Copilot';
 
     await this.notificationService.sendNotifications({
       enabled: true,

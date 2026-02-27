@@ -3,7 +3,7 @@
 > **Date**: 2026-02-19
 > **Author**: AI + Rotem
 > **Status**: IN_PROGRESS — Phases 1-2 complete (AGENTS.md, specs/team/, living feature specs). Phase 3 (skills) deferred to post-beta. Phase 4 wiring complete.
-> **Goal**: Transform TestOps Companion into an AI-native, spec-driven codebase by adopting EMHub's Smart Coding Architecture — fully adapted for our TestOps domain.
+> **Goal**: Transform TestOps Copilot into an AI-native, spec-driven codebase by adopting EMHub's Smart Coding Architecture — fully adapted for our TestOps domain.
 
 ---
 
@@ -43,7 +43,7 @@ We're adopting a **spec-driven development workflow** inspired by EMHub's archit
 
 Content structure:
 ```
-# TestOps Companion — AI Agent Instructions
+# TestOps Copilot — AI Agent Instructions
 ## 0) Project Snapshot (product, stack, purpose)
 ## 1) Repo Map (where everything lives)
 ## 2) Core Principles (think before coding, AI-first, design compliance)
@@ -68,7 +68,7 @@ Content structure:
 
 New CLAUDE.md structure:
 ```
-# CLAUDE.md — TestOps Companion
+# CLAUDE.md — TestOps Copilot
 > Read AGENTS.md first. This file adds Claude Code-specific overrides.
 ## Persona Routing (kept — quick reference)
 ## Quality Standards (kept — checklist)
@@ -113,7 +113,7 @@ plans/
 
 ### 2.1 Create `specs/SPEC.md` — Product Specification
 
-**What**: Authoritative product spec for TestOps Companion.
+**What**: Authoritative product spec for TestOps Copilot.
 **Why**: The tempo version is a generic placeholder. We need the real thing.
 
 Content derived from:
@@ -124,7 +124,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — Product Specification
+# TestOps Copilot — Product Specification
 ## Vision & Mission
 ## Core Capabilities
   - Pipeline Management (Jenkins, GitHub Actions)
@@ -152,7 +152,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — System Architecture
+# TestOps Copilot — System Architecture
 ## System Overview (mermaid diagram from docs/architecture.md)
 ## Tech Stack
   - Backend: Node.js 18+ / TypeScript / Express / Prisma / PostgreSQL / Redis
@@ -171,7 +171,7 @@ Sections:
 
 ### 2.3 Create `specs/DESIGN_LANG_V2.md` — UI Design Language
 
-**What**: Comprehensive design system document for TestOps Companion's UI.
+**What**: Comprehensive design system document for TestOps Copilot's UI.
 **Why**: Design decisions currently live only in `theme.ts` code. Need a spec that AI and humans can reference.
 
 Content derived from:
@@ -181,7 +181,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — Design Language v2
+# TestOps Copilot — Design Language v2
 ## Design Philosophy
   - Command-center aesthetic (dark mode, data-dense, scannable)
   - Density with breathability (operational dashboards, not marketing pages)
@@ -226,7 +226,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — AI Tools Registry
+# TestOps Copilot — AI Tools Registry
 ## Tool Architecture
   - Tool definition schema (name, description, parameters, handler)
   - Read vs Write tool classification
@@ -266,7 +266,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — API Contract
+# TestOps Copilot — API Contract
 ## Base URL: /api/v1
 ## Authentication (JWT Bearer, refresh tokens, token blacklist)
 ## Endpoints
@@ -297,7 +297,7 @@ Content derived from:
 
 Sections:
 ```
-# TestOps Companion — Security Architecture
+# TestOps Copilot — Security Architecture
 ## Authentication
   - JWT access + refresh tokens
   - Token blacklist (Redis-backed)

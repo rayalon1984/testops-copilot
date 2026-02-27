@@ -306,9 +306,70 @@ describe('BedrockProvider', () => {
     // ── Embed ──
 
     describe('embed', () => {
-        it('throws with helpful message', async () => {
+        function mockEmbeddingResponse(embedding: number[], tokenCount = 5) {
+            mockSend.mockResolvedValueOnce({
+                body: new TextEncoder().encode(JSON.stringify({
+                    embedding,
+                    inputTextTokenCount: tokenCount,
+                })),
+            });
+        }
+
+        it('returns embedding vector from Titan V2', async () => {
             const provider = new BedrockProvider(makeConfig());
-            await expect(provider.embed('test text')).rejects.toThrow('Bedrock embedding requires');
+            const fakeEmbedding = [0.1, 0.2, 0.3, 0.4];
+            mockEmbeddingResponse(fakeEmbedding);
+
+            const result = await provider.embed('test text');
+
+            expect(result).toEqual(fakeEmbedding);
+
+            // Verify the request body format
+            const { InvokeModelCommand } = jest.requireMock('@aws-sdk/client-bedrock-runtime');
+            const callArgs = InvokeModelCommand.mock.calls[0][0];
+            expect(callArgs.modelId).toBe('amazon.titan-embed-text-v2:0');
+            const body = JSON.parse(new TextDecoder().decode(callArgs.body));
+            expect(body.inputText).toBe('test text');
+            expect(body.dimensions).toBe(1024);
+            expect(body.normalize).toBe(true);
+        });
+
+        it('uses custom model from options.model override', async () => {
+            const provider = new BedrockProvider(makeConfig());
+            mockEmbeddingResponse([0.5, 0.6]);
+
+            await provider.embed('text', { model: 'cohere.embed-english-v3' });
+
+            const { InvokeModelCommand } = jest.requireMock('@aws-sdk/client-bedrock-runtime');
+            expect(InvokeModelCommand.mock.calls[0][0].modelId).toBe('cohere.embed-english-v3');
+        });
+
+        it('uses embeddingModel from config when no options override', async () => {
+            const provider = new BedrockProvider(makeConfig({ embeddingModel: 'amazon.titan-embed-text-v1' }));
+            mockEmbeddingResponse([0.7, 0.8]);
+
+            await provider.embed('text');
+
+            const { InvokeModelCommand } = jest.requireMock('@aws-sdk/client-bedrock-runtime');
+            expect(InvokeModelCommand.mock.calls[0][0].modelId).toBe('amazon.titan-embed-text-v1');
+        });
+
+        it('throws descriptive error on SDK failure', async () => {
+            const provider = new BedrockProvider(makeConfig());
+            mockSend.mockRejectedValueOnce(new Error('AccessDeniedException'));
+
+            await expect(provider.embed('text')).rejects.toThrow(
+                'Bedrock embedding failed (model: amazon.titan-embed-text-v2:0): AccessDeniedException',
+            );
+        });
+
+        it('throws when response lacks embedding array', async () => {
+            const provider = new BedrockProvider(makeConfig());
+            mockSend.mockResolvedValueOnce({
+                body: new TextEncoder().encode(JSON.stringify({ inputTextTokenCount: 3 })),
+            });
+
+            await expect(provider.embed('text')).rejects.toThrow('missing embedding array');
         });
     });
 

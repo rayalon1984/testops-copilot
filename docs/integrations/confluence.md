@@ -1,6 +1,6 @@
 # Confluence Integration
 
-TestOps Companion integrates with Atlassian Confluence to automatically publish test documentation, Root Cause Analysis (RCA) documents, and test execution reports to your Confluence workspace.
+TestOps Copilot integrates with Atlassian Confluence to automatically publish test documentation, Root Cause Analysis (RCA) documents, and test execution reports to your Confluence workspace.
 
 ## Table of Contents
 
@@ -107,7 +107,7 @@ Before setting up the Confluence integration, you need:
 
 1. Log in to https://id.atlassian.com/manage-profile/security/api-tokens
 2. Click **Create API token**
-3. Give it a name (e.g., "TestOps Companion")
+3. Give it a name (e.g., "TestOps Copilot")
 4. Copy the token (you won't be able to see it again)
 5. Store it securely in your environment variables
 

@@ -1,4 +1,4 @@
-# Product Specification — TestOps Companion
+# Product Specification — TestOps Copilot
 
 > **Status**: Living document · **Owner**: AI Product Manager
 > **Last synced**: 2026-02-20 · **Version**: 3.0.0

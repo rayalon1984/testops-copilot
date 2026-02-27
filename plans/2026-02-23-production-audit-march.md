@@ -1,4 +1,4 @@
-# Production Audit Report — TestOps Companion v3.0.0
+# Production Audit Report — TestOps Copilot v3.0.0
 
 > **Audit Date**: 2026-02-23
 > **Target Release Date**: 2026-03-01

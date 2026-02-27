@@ -80,9 +80,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: TestOps Companion v${{ steps.get_version.outputs.version }}
+        name: TestOps Copilot v${{ steps.get_version.outputs.version }}
         body: |
-          ## 🎉 TestOps Companion v${{ steps.get_version.outputs.version }}
+          ## 🎉 TestOps Copilot v${{ steps.get_version.outputs.version }}
 
           ${{ steps.changelog.outputs.RELEASE_NOTES }}
 

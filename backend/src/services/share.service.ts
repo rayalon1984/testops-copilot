@@ -135,7 +135,7 @@ export async function shareViaEmail(
         const secure = process.env.EMAIL_SECURE === 'true';
         const user = process.env.EMAIL_USER;
         const pass = process.env.EMAIL_PASSWORD;
-        const from = process.env.EMAIL_FROM || 'TestOps Companion <noreply@testops.local>';
+        const from = process.env.EMAIL_FROM || 'TestOps Copilot <noreply@testops.local>';
 
         if (!host) {
             logger.warn('[Share] Email not configured (EMAIL_HOST missing)');

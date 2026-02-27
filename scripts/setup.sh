@@ -122,7 +122,7 @@ get_credentials() {
 
 # Main setup process
 main() {
-  echo "🚀 Setting up TestOps Companion..."
+  echo "🚀 Setting up TestOps Copilot..."
   echo
   
   check_requirements

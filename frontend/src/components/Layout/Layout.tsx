@@ -365,7 +365,7 @@ export default function Layout() {
             >
               {navSections
                 .flatMap((s) => s.items)
-                .find((item) => isActive(item.path))?.text || 'TestOps Companion'}
+                .find((item) => isActive(item.path))?.text || 'TestOps Copilot'}
             </Typography>
           </Toolbar>
         </AppBar>

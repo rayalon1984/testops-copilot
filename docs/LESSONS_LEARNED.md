@@ -3,7 +3,7 @@
 > **Owner**: Release QA Engineer + all personas
 > **Status**: Living document — updated every sprint
 > **Purpose**: Track recurring error patterns, root causes, and preventive measures so we never repeat the same class of failure twice.
-> **Current Version**: 3.0.0
+> **Current Version**: 3.0.1
 
 ---
 
@@ -26,6 +26,9 @@ These are the distilled "never again" rules from every incident below. **Read th
 | Never use `ts-node` for seed/script execution on Node 23+ | `ts-node` v10 misresolves Prisma re-exported types; use `tsx` | EPR-011 |
 | Never register a Playwright catch-all route after specific routes | LIFO order means catch-all evaluates first, hijacking all requests | EPR-012 |
 | Never ship demo mode with core features disabled in generated .env | `AI_ENABLED=false` in deploy-demo.sh disables the entire AI copilot | EPR-013 |
+| Never fall back to MemoryStore silently in production | Missing Redis causes session loss on restart with no log warning | EPR-014 |
+| Never let CI workflows unconditionally overwrite release content | Custom release notes get clobbered on every tag push | EPR-015 |
+| Never run monorepo sub-project tools from the root without `cd` | eslint/tsc can't find tsconfig.json when invoked from repo root | EPR-016 |
 
 ---
 
@@ -234,6 +237,49 @@ JWT_SECRET=<any value for tests>
 | **CI guard** | Deploy-demo smoke test should verify copilot functionality (not just server start) |
 | **Status** | **Mitigated** (Sprint 7) |
 
+### EPR-014: Silent Session Store Fallback
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Infrastructure dependency falls back silently without any warning, leaving operators unaware their sessions are ephemeral |
+| **First seen** | Sprint 8 (2026-02-26) |
+| **Impact** | P2 — Production users lose sessions on backend restart; no log evidence of why |
+| **Root cause** | `app.ts` session config checked `redis.status` and used MemoryStore fallback, but the `else` branch had no logging. CSRF was mischaracterized as Redis-dependent in release notes, but it actually uses stateless double-submit cookie pattern |
+| **Fix** | Added `logger.warn()` in the `else` branch clarifying MemoryStore is active and CSRF is unaffected |
+| **Prevention** | Every infrastructure fallback must log at `warn` level with impact description |
+| **CI guard** | Code review convention — fallback branches must include logging |
+| **Status** | **Mitigated** (Sprint 8) — startup warning added, docs corrected |
+
+---
+
+### EPR-015: CI Release Notes Overwrite
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | GitHub Actions release workflow unconditionally creates/overwrites release body, destroying manually curated release notes |
+| **First seen** | Sprint 8 (2026-02-26) |
+| **Impact** | P1 — v3.0.0 GA release notes were overwritten twice by auto-generated commit lists |
+| **Root cause** | `release.yml` used `softprops/action-gh-release` without checking if a release with custom content already existed. Every `git tag` push triggered a fresh overwrite |
+| **Fix** | Added a guard step that queries the existing release body via `gh release view`. If custom notes exist (not auto-generated "Changes in this release" text), the workflow skips creation |
+| **Prevention** | Release workflows must be idempotent — check before write. Custom content takes precedence over auto-generated content |
+| **CI guard** | `release.yml` step "Check if release already exists" |
+| **Status** | **Mitigated** (Sprint 8) — guard step prevents overwrite of custom release notes |
+
+---
+
+### EPR-016: Monorepo lint-staged Path Resolution
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Pre-commit hook runs linter from repo root, but the linter needs `tsconfig.json` from the sub-project directory |
+| **First seen** | Sprint 8 (2026-02-26) |
+| **Impact** | P2 — Pre-commit hook fails with ENOENT or tsconfig errors, blocking all commits |
+| **Root cause** | `lint-staged` invokes eslint from the repo root. The backend/frontend eslint configs reference `tsconfig.json` via relative path, which doesn't resolve from root |
+| **Fix** | Changed lint-staged to use `bash -c 'cd backend && node_modules/.bin/eslint --fix "$@"' _` pattern, which changes to the sub-project directory before running eslint |
+| **Prevention** | In monorepo lint-staged configs, always `cd` into the sub-project before invoking tools that depend on local config files |
+| **CI guard** | Pre-commit hook itself — if it fails, commits are blocked |
+| **Status** | **Mitigated** (Sprint 8) — lint-staged config uses `cd` pattern |
+
 ---
 
 ## Automated Guards Summary
@@ -249,6 +295,8 @@ JWT_SECRET=<any value for tests>
 | `jest` / `vitest` | backend-ci, frontend-ci | Functional regressions | Sprint 3 |
 | Weekly dependency scan | dependencies.yml | Outdated deps, new CVEs, license issues | Sprint 4 |
 | Docker production build | installation-test | Dockerfile errors, missing deps, env var gaps | Sprint 7 |
+| Playwright E2E | e2e | Frontend integration regressions, auth flow, copilot UI | Sprint 8 |
+| Release notes guard | release | Custom release notes not overwritten by CI | Sprint 8 |
 
 ---
 
@@ -269,6 +317,9 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] E2E Playwright catch-all routes are registered BEFORE specific routes (EPR-012)
 - [ ] `deploy-demo.sh` generates `.env` with `AI_ENABLED=true` and `AI_PROVIDER=mock` (EPR-013)
 - [ ] Tech debt tracker in `ROADMAP.md` is current
+- [ ] Infrastructure fallback branches include `logger.warn()` with impact description (EPR-014)
+- [ ] Release workflow has guard step to protect custom release notes (EPR-015)
+- [ ] lint-staged config uses `cd` pattern for monorepo sub-projects (EPR-016)
 - [ ] This document has been reviewed for new patterns from the previous sprint
 
 ---
@@ -289,5 +340,5 @@ Per semver and the `RELEASE_QA_ENGINEER.md` version strategy:
 
 ---
 
-*Last updated: 2026-02-22 (Sprint 7)*
-*Next review: Start of Sprint 8*
+*Last updated: 2026-02-26 (Sprint 8)*
+*Next review: Start of Sprint 9*

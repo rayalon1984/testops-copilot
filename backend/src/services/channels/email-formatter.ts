@@ -58,7 +58,7 @@ export function formatShareEmail(
           <!-- Footer -->
           <tr>
             <td style="padding:16px 32px; border-top:1px solid #f0f0f0; font-size:12px; color:#999;">
-              Sent by TestOps Companion. This link expires in 7 days.
+              Sent by TestOps Copilot. This link expires in 7 days.
             </td>
           </tr>
         </table>

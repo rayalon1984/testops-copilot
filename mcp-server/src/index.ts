@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * TestOps Companion MCP Server
+ * TestOps Copilot MCP Server
  *
  * Model Context Protocol server for AI-powered test failure analysis.
  * Provides tools for failure analysis, knowledge base management, and statistics.
@@ -176,7 +176,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start server
 async function main() {
-  process.stderr.write('[mcp] TestOps Companion MCP Server starting...\n');
+  process.stderr.write('[mcp] TestOps Copilot MCP Server starting...\n');
   process.stderr.write(`[mcp] Version: ${SERVER_VERSION}\n`);
   process.stderr.write(`[mcp] Tools: ${tools.length}\n`);
 

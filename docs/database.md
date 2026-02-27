@@ -4,7 +4,7 @@
 
 ## Overview
 
-TestOps Companion uses PostgreSQL as its primary database. The schema is managed using Prisma ORM with TypeScript.
+TestOps Copilot uses PostgreSQL as its primary database. The schema is managed using Prisma ORM with TypeScript.
 
 ## Entity Relationship Diagram
 

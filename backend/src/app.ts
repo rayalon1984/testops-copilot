@@ -7,6 +7,7 @@ import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import passport from 'passport';
 import { config } from './config';
+import { logger } from './utils/logger';
 import './services/passport.service'; // Initialize passport
 import { errorHandler } from './middleware/errorHandler';
 import { doubleCsrfProtection, csrfTokenHandler } from './middleware/csrf';
@@ -102,6 +103,8 @@ const sessionConfig: session.SessionOptions = {
 // Use RedisStore when Redis is available (production); MemoryStore fallback for local dev
 if (redis.status === 'ready' || redis.status === 'connecting') {
   sessionConfig.store = new RedisStore({ client: redis });
+} else {
+  logger.warn('[Session] Redis unavailable — using in-memory session store. Sessions will not persist across restarts. CSRF protection is unaffected (stateless double-submit cookie).');
 }
 
 app.use(session(sessionConfig));

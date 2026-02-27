@@ -1,6 +1,6 @@
-# Contributing to TestOps Companion
+# Contributing to TestOps Copilot
 
-First off, thank you for considering contributing to TestOps Companion! It's people like you that make TestOps Companion such a great tool.
+First off, thank you for considering contributing to TestOps Copilot! It's people like you that make TestOps Copilot such a great tool.
 
 ## Code of Conduct
 
@@ -19,7 +19,7 @@ Before creating bug reports, please check the issue list as you might find out t
 * Explain which behavior you expected to see instead and why
 * Include screenshots and animated GIFs if possible
 * Include error messages and stack traces
-* Include the version of TestOps Companion you're using
+* Include the version of TestOps Copilot you're using
 
 ### Suggesting Enhancements
 
