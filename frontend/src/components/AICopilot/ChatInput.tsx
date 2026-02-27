@@ -70,7 +70,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={disabled}
-                    placeholder="Ask Copilot..."
+                    placeholder="Let's TOC... ask about a failing test"
                     rows={1}
                     sx={{
                         flex: 1,

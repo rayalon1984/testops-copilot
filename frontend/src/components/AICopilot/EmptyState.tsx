@@ -50,10 +50,10 @@ export default function EmptyState({ onSend }: EmptyStateProps) {
             </Box>
 
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
-                TestOps Copilot
+                Let&apos;s TOC
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 3 }}>
-                Ask about failures, pipelines, or issues
+                Your TestOps Copilot &mdash; ask about failures, pipelines, or issues
             </Typography>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, width: '100%', maxWidth: 280 }}>

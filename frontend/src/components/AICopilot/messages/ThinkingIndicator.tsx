@@ -8,7 +8,7 @@ interface ThinkingIndicatorProps {
     text?: string;
 }
 
-export default function ThinkingIndicator({ text = 'Thinking' }: ThinkingIndicatorProps) {
+export default function ThinkingIndicator({ text = 'TOCing' }: ThinkingIndicatorProps) {
     return (
         <Box sx={{ alignSelf: 'flex-start', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>

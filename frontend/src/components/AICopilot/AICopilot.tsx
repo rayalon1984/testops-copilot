@@ -89,7 +89,7 @@ function StreamingIndicator({ activePersona }: { activePersona: { displayName: s
                     sx={{ fontSize: '0.65rem', height: 20, mb: 0.5, color: 'text.secondary', borderColor: 'divider' }}
                 />
             )}
-            <ThinkingIndicator text="typing" />
+            <ThinkingIndicator text="TOCing" />
         </Box>
     );
 }
