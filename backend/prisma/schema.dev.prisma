@@ -445,3 +445,67 @@ model AuditLog {
   @@index([entityType])
   @@index([createdAt])
 }
+
+// ─── Self-Healing Pipelines ───
+
+model HealingRule {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String
+  pattern             String
+  patternType         String   @default("regex")   // regex | keyword | signature
+  category            String   @default("transient") // transient | infrastructure | flaky | custom
+  action              String   @default("retry")    // retry | quarantine | fix_pr | notify
+  maxRetries          Int      @default(2)
+  cooldownMinutes     Int      @default(60)
+  confidenceThreshold Float    @default(0.9)
+  enabled             Boolean  @default(true)
+  isBuiltIn           Boolean  @default(false)
+  priority            Int      @default(50)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  events HealingEvent[]
+
+  @@index([enabled, action])
+  @@index([priority])
+}
+
+model HealingEvent {
+  id              String    @id @default(uuid())
+  ruleId          String?
+  testRunId       String
+  pipelineId      String
+  action          String
+  status          String    @default("pending") // pending | executing | success | failed | skipped
+  matchConfidence Float
+  matchReason     String
+  errorMessage    String?
+  retriedRunId    String?
+  metadata        String?   // JSON string (SQLite)
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  rule HealingRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([testRunId])
+  @@index([pipelineId, createdAt])
+  @@index([status])
+}
+
+model QuarantinedTest {
+  id              String   @id @default(uuid())
+  testName        String   @unique
+  reason          String
+  severity        String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  quarantinedBy   String   @default("auto")
+  healingEventId  String?
+  flakinessScore  Float    @default(0)
+  occurrenceCount Int      @default(1)
+  status          String   @default("quarantined") // quarantined | reinstated
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([testName])
+}

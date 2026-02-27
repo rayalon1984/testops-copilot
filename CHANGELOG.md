@@ -6,6 +6,41 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.1.0] - 2026-02-27
+
+> **Self-Healing Pipelines + "Let's TOC" Branding**
+
+### Self-Healing Pipelines (3-Phase Architecture)
+
+TestOps Copilot now detects and recovers from transient CI failures automatically:
+
+- **Phase 1 — Auto-Retry**: 8 built-in transient patterns (network timeout, Docker rate limit, npm registry, Selenium stale element, DNS failure, OOM, disk space, flaky timeout) with circuit breaker (max 2 retries/pipeline/hour) and autonomy-aware execution
+- **Phase 2 — Flaky Test Quarantine**: Auto-quarantine flaky tests with severity scoring, occurrence tracking, and reinstate/delete operations
+- **Phase 3 — AI-Suggested Fix PRs**: Match failures against documented RCAs using fuzzy similarity, surface fix suggestions with repository context
+
+New Prisma models: `HealingRule`, `HealingEvent`, `QuarantinedTest`. 17 REST endpoints at `/api/v1/healing`. Self-Healing dashboard page with 3 tabs (Rules & Events | Quarantine | Fix Suggestions). 24 unit tests for pattern matching and built-in rules.
+
+### "Let's TOC" Branding
+
+The AI copilot chat now uses the "Let's TOC" catchphrase (TOC = TestOps Copilot, pronounced "talk"):
+- Chat input placeholder: "Let's TOC... ask about a failing test"
+- Empty state greeting: "Let's TOC"
+- Thinking indicator: "TOCing" instead of "Thinking"
+
+### Codebase Quality Refactoring
+
+- Dead dependency removal (axios, react-toastify)
+- Missing FK indexes on JiraIssue
+- N+1 query guards (bounded includes)
+- CI parallelization
+- Component splits (Settings, useAICopilot)
+- God-service splits (validation.ts, AI routes)
+- React Query migration (zero raw-fetch holdouts)
+- Fuzzy matching wired end-to-end
+- 812 tests passing (675 backend + 137 frontend), zero lint warnings
+
+---
+
 ## [3.0.1] - 2026-02-26
 
 > **TestOps Copilot — The Rebrand Release**

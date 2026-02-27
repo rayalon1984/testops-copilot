@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { SelfHealingService } from '../services/self-healing.service';
+import type { HealingAction, HealingEventStatus } from '../types/healing';
 
 const createRuleSchema = z.object({
   name: z.string().min(1).max(100),
@@ -56,7 +57,8 @@ export class HealingController {
 
   static async getRule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const rule = await SelfHealingService.getRuleById(req.params.ruleId);
+      const ruleId = req.params.ruleId as string;
+      const rule = await SelfHealingService.getRuleById(ruleId);
       res.json({ success: true, data: rule });
     } catch (error) {
       next(error);
@@ -79,8 +81,9 @@ export class HealingController {
 
   static async updateRule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const ruleId = req.params.ruleId as string;
       const data = updateRuleSchema.parse(req.body);
-      const rule = await SelfHealingService.updateRule(req.params.ruleId, data);
+      const rule = await SelfHealingService.updateRule(ruleId, data);
       res.json({ success: true, data: rule });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -93,8 +96,9 @@ export class HealingController {
 
   static async toggleRule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const ruleId = req.params.ruleId as string;
       const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
-      const rule = await SelfHealingService.toggleRule(req.params.ruleId, enabled);
+      const rule = await SelfHealingService.toggleRule(ruleId, enabled);
       res.json({ success: true, data: rule });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -107,7 +111,8 @@ export class HealingController {
 
   static async deleteRule(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await SelfHealingService.deleteRule(req.params.ruleId);
+      const ruleId = req.params.ruleId as string;
+      await SelfHealingService.deleteRule(ruleId);
       res.json({ success: true, message: 'Rule deleted' });
     } catch (error) {
       next(error);
@@ -159,8 +164,8 @@ export class HealingController {
       const filters = {
         pipelineId: req.query.pipelineId as string | undefined,
         testRunId: req.query.testRunId as string | undefined,
-        action: req.query.action as string | undefined,
-        status: req.query.status as string | undefined,
+        action: req.query.action as HealingAction | undefined,
+        status: req.query.status as HealingEventStatus | undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
       };
       const events = await SelfHealingService.getEvents(filters);
@@ -215,7 +220,8 @@ export class HealingController {
 
   static async reinstateTest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const test = await SelfHealingService.reinstateTest(req.params.testId);
+      const testId = req.params.testId as string;
+      const test = await SelfHealingService.reinstateTest(testId);
       res.json({ success: true, data: test });
     } catch (error) {
       next(error);
@@ -224,7 +230,8 @@ export class HealingController {
 
   static async deleteQuarantinedTest(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await SelfHealingService.deleteQuarantinedTest(req.params.testId);
+      const testId = req.params.testId as string;
+      await SelfHealingService.deleteQuarantinedTest(testId);
       res.json({ success: true, message: 'Quarantined test removed' });
     } catch (error) {
       next(error);
