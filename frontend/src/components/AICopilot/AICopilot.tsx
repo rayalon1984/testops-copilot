@@ -54,6 +54,123 @@ function useUserRole(): string {
     return user?.role?.toUpperCase() || 'VIEWER';
 }
 
+function CopilotHeader({ messages, clearMessages }: { messages: ChatMessage[]; clearMessages: () => void }) {
+    return (
+        <Box sx={{
+            px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            bgcolor: 'background.default', minHeight: 56,
+        }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SparkleIcon color="primary" fontSize="small" />
+                <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <QuotaIndicator />
+                <ProviderPicker />
+                {messages.length > 0 && (
+                    <IconButton size="small" onClick={clearMessages} title="Clear chat">
+                        <ClearIcon fontSize="small" />
+                    </IconButton>
+                )}
+            </Box>
+        </Box>
+    );
+}
+
+function StreamingIndicator({ activePersona }: { activePersona: { displayName: string } | null }) {
+    return (
+        <Box sx={{ mt: 1 }}>
+            {activePersona && (
+                <Chip
+                    label={activePersona.displayName}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.65rem', height: 20, mb: 0.5, color: 'text.secondary', borderColor: 'divider' }}
+                />
+            )}
+            <ThinkingIndicator text="typing" />
+        </Box>
+    );
+}
+
+function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPrompt, confirmAction, sendWithContext, handleSuggestionAccept, handleSuggestionDismiss }: {
+    msg: ChatMessage; activePersona: { persona: string; displayName: string } | null; userRole: string;
+    messages: ChatMessage[]; sendActionPrompt: (prompt: string, sourceMessageId: string) => void;
+    confirmAction: (id: string, approved: boolean) => void; sendWithContext: (msg: string) => void;
+    handleSuggestionAccept: (suggestion: ProactiveSuggestionData, messageId: string) => void;
+    handleSuggestionDismiss: (messageId: string) => void;
+}) {
+    switch (msg.role) {
+        case 'user':
+            return <UserMessage key={msg.id} content={msg.content} />;
+        case 'assistant':
+            return (
+                <Box key={msg.id} sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%' }}>
+                    {activePersona && activePersona.persona !== 'SENIOR_ENGINEER' && (
+                        <Chip label={activePersona.displayName} size="small" variant="outlined"
+                            sx={{ fontSize: '0.6rem', height: 18, mb: 0.5, color: 'text.secondary', borderColor: 'divider', fontWeight: 500 }}
+                        />
+                    )}
+                    <AssistantMessage content={msg.content} id={msg.id} />
+                    <MessageActions content={msg.content} timestamp={msg.timestamp} persona={activePersona?.displayName} />
+                </Box>
+            );
+        case 'thinking':
+            return <ThinkingIndicator key={msg.id} text={msg.content || 'Thinking'} />;
+        case 'tool_start':
+            return (
+                <Box key={msg.id} sx={{ alignSelf: 'center', mb: 1 }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
+                        Action: {msg.toolName}
+                    </Typography>
+                </Box>
+            );
+        case 'tool_result':
+            return (
+                <Box key={msg.id}>
+                    <ToolResultCard message={msg} userRole={userRole} onAction={sendActionPrompt} />
+                </Box>
+            );
+        case 'confirmation_request':
+            return (
+                <Box key={msg.id}>
+                    <ConfirmationPreview
+                        msg={msg} userRole={userRole}
+                        onConfirm={() => msg.actionId && confirmAction(msg.actionId, true)}
+                        onDeny={() => msg.actionId && confirmAction(msg.actionId, false)}
+                    />
+                </Box>
+            );
+        case 'proactive_suggestion':
+            return (
+                <Box key={msg.id}>
+                    <ProactiveSuggestionCard
+                        suggestion={msg.suggestionData as unknown as ProactiveSuggestionData}
+                        onAccept={(s) => handleSuggestionAccept(s, msg.id)}
+                        onDismiss={() => handleSuggestionDismiss(msg.id)}
+                        accepted={msg.suggestionStatus === 'accepted'}
+                        dismissed={msg.suggestionStatus === 'dismissed'}
+                    />
+                </Box>
+            );
+        case 'autonomous_action':
+            return (
+                <Box key={msg.id}>
+                    <ToolResultCard message={{ ...msg, role: 'tool_result' }} userRole={userRole} onAction={sendActionPrompt} />
+                </Box>
+            );
+        case 'error': {
+            const lastUserMsg = messages.filter(m => m.role === 'user').pop();
+            return (
+                <ErrorMessage key={msg.id} content={msg.content} onRetry={lastUserMsg ? () => sendWithContext(lastUserMsg.content) : undefined} />
+            );
+        }
+        default:
+            return null;
+    }
+}
+
 function ConfirmationPreview({ msg, onConfirm, onDeny, userRole }: {
     msg: ChatMessage;
     onConfirm: () => void;
@@ -127,184 +244,26 @@ export default function AICopilot() {
         updateMessage(messageId, { suggestionStatus: 'dismissed' });
     };
 
-    const renderMessage = (msg: ChatMessage) => {
-        switch (msg.role) {
-            case 'user':
-                return <UserMessage key={msg.id} content={msg.content} />;
-
-            case 'assistant':
-                return (
-                    <Box key={msg.id} sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%' }}>
-                        {activePersona && activePersona.persona !== 'SENIOR_ENGINEER' && (
-                            <Chip
-                                label={activePersona.displayName}
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                    fontSize: '0.6rem',
-                                    height: 18,
-                                    mb: 0.5,
-                                    color: 'text.secondary',
-                                    borderColor: 'divider',
-                                    fontWeight: 500,
-                                }}
-                            />
-                        )}
-                        <AssistantMessage content={msg.content} id={msg.id} />
-                        <MessageActions content={msg.content} timestamp={msg.timestamp} persona={activePersona?.displayName} />
-                    </Box>
-                );
-
-            case 'thinking':
-                return <ThinkingIndicator key={msg.id} text={msg.content || 'Thinking'} />;
-
-            case 'tool_start':
-                return (
-                    <Box key={msg.id} sx={{ alignSelf: 'center', mb: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
-                            Action: {msg.toolName}
-                        </Typography>
-                    </Box>
-                );
-
-            case 'tool_result':
-                return (
-                    <Box key={msg.id}>
-                        <ToolResultCard
-                            message={msg}
-                            userRole={userRole}
-                            onAction={sendActionPrompt}
-                        />
-                    </Box>
-                );
-
-            case 'confirmation_request':
-                return (
-                    <Box key={msg.id}>
-                        <ConfirmationPreview
-                            msg={msg}
-                            userRole={userRole}
-                            onConfirm={() => msg.actionId && confirmAction(msg.actionId, true)}
-                            onDeny={() => msg.actionId && confirmAction(msg.actionId, false)}
-                        />
-                    </Box>
-                );
-
-            case 'proactive_suggestion':
-                return (
-                    <Box key={msg.id}>
-                        <ProactiveSuggestionCard
-                            suggestion={msg.suggestionData as unknown as ProactiveSuggestionData}
-                            onAccept={(s) => handleSuggestionAccept(s, msg.id)}
-                            onDismiss={() => handleSuggestionDismiss(msg.id)}
-                            accepted={msg.suggestionStatus === 'accepted'}
-                            dismissed={msg.suggestionStatus === 'dismissed'}
-                        />
-                    </Box>
-                );
-
-            case 'autonomous_action':
-                return (
-                    <Box key={msg.id}>
-                        <ToolResultCard
-                            message={{ ...msg, role: 'tool_result' }}
-                            userRole={userRole}
-                            onAction={sendActionPrompt}
-                        />
-                    </Box>
-                );
-
-            case 'error': {
-                // Find the last user message for retry context
-                const lastUserMsg = messages.filter(m => m.role === 'user').pop();
-                return (
-                    <ErrorMessage
-                        key={msg.id}
-                        content={msg.content}
-                        onRetry={lastUserMsg ? () => sendWithContext(lastUserMsg.content) : undefined}
-                    />
-                );
-            }
-
-            default:
-                return null;
-        }
-    };
-
     return (
-        <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            borderLeft: 1,
-            borderColor: 'divider',
-            bgcolor: 'background.paper',
-        }}>
-            {/* Header */}
-            <Box sx={{
-                px: 2,
-                py: 1.5,
-                borderBottom: 1,
-                borderColor: 'divider',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                bgcolor: 'background.default',
-                minHeight: 56,
-            }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <SparkleIcon color="primary" fontSize="small" />
-                    <Typography variant="subtitle2" fontWeight={600}>TestOps Copilot</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <QuotaIndicator />
-                    <ProviderPicker />
-                    {messages.length > 0 && (
-                        <IconButton size="small" onClick={clearMessages} title="Clear chat">
-                            <ClearIcon fontSize="small" />
-                        </IconButton>
-                    )}
-                </Box>
-            </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+            <CopilotHeader messages={messages} clearMessages={clearMessages} />
 
-            {/* Chat Area */}
-            <Box sx={{
-                flex: 1,
-                overflowY: 'auto',
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-            }}>
-                {messages.length === 0 && (
-                    <EmptyState onSend={sendWithContext} />
-                )}
+            <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
+                {messages.length === 0 && <EmptyState onSend={sendWithContext} />}
 
-                {messages.map(renderMessage)}
+                {messages.map((msg) => (
+                    <MessageRenderer
+                        key={msg.id} msg={msg} activePersona={activePersona} userRole={userRole}
+                        messages={messages} sendActionPrompt={sendActionPrompt} confirmAction={confirmAction}
+                        sendWithContext={sendWithContext}
+                        handleSuggestionAccept={handleSuggestionAccept} handleSuggestionDismiss={handleSuggestionDismiss}
+                    />
+                ))}
 
-                {/* Streaming indicator — below all messages */}
-                {isStreaming && (
-                    <Box sx={{ mt: 1 }}>
-                        {activePersona && (
-                            <Chip
-                                label={activePersona.displayName}
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                    fontSize: '0.65rem',
-                                    height: 20,
-                                    mb: 0.5,
-                                    color: 'text.secondary',
-                                    borderColor: 'divider',
-                                }}
-                            />
-                        )}
-                        <ThinkingIndicator text="typing" />
-                    </Box>
-                )}
+                {isStreaming && <StreamingIndicator activePersona={activePersona} />}
                 <div ref={bottomRef} />
             </Box>
 
-            {/* Input Area */}
             <ChatInput onSend={sendWithContext} disabled={isStreaming} />
         </Box>
     );

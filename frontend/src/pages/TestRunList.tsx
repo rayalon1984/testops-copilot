@@ -39,32 +39,7 @@ type TestRun = ApiSchemas['TestRun'];
 import { useDebounce } from '../hooks/useDebounce';
 import { keepPreviousData } from '@tanstack/react-query';
 
-export default function TestRunList() {
-  usePageContext('testrun-list');
-  const navigate = useNavigate();
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Debounce search query to prevent jitter (500ms delay)
-  const debouncedSearch = useDebounce(searchQuery, 500);
-
-  // Fetch test runs
-  const { data, isLoading, isFetching } = useQuery<TestRun[]>({
-    queryKey: ['test-runs', page, rowsPerPage, statusFilter, debouncedSearch],
-    queryFn: () => {
-      const params = new URLSearchParams({
-        page: String(page + 1),
-        limit: String(rowsPerPage),
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(debouncedSearch && { search: debouncedSearch }),
-      });
-      return api.get<TestRun[]>(`/test-runs?${params}`);
-    },
-    placeholderData: keepPreviousData, // Keep table data visible while fetching new results
-  });
-
+function TestRunTable({ data, navigate }: { data: TestRun[] | undefined; navigate: ReturnType<typeof useNavigate> }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
@@ -95,6 +70,80 @@ export default function TestRunList() {
       />
     );
   };
+
+  return (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell>Pipeline</TableCell>
+          <TableCell>Status</TableCell>
+          <TableCell>Start Time</TableCell>
+          <TableCell>Duration</TableCell>
+          <TableCell>Errors</TableCell>
+          <TableCell align="right">Actions</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {data?.map((testRun) => (
+          <TableRow
+            key={testRun.id}
+            hover
+            onClick={() => navigate(`/test-runs/${testRun.id}`)}
+            sx={{
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              }
+            }}
+          >
+            <TableCell>{testRun.pipelineName}</TableCell>
+            <TableCell>{getStatusChip(testRun.status)}</TableCell>
+            <TableCell>{new Date(testRun.startTime).toLocaleString()}</TableCell>
+            <TableCell>{testRun.duration}s</TableCell>
+            <TableCell>{testRun.errorCount}</TableCell>
+            <TableCell align="right">
+              <IconButton
+                color="primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/test-runs/${testRun.id}`);
+                }}
+              >
+                <ViewIcon />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+export default function TestRunList() {
+  usePageContext('testrun-list');
+  const navigate = useNavigate();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Debounce search query to prevent jitter (500ms delay)
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Fetch test runs
+  const { data, isLoading, isFetching } = useQuery<TestRun[]>({
+    queryKey: ['test-runs', page, rowsPerPage, statusFilter, debouncedSearch],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: String(page + 1),
+        limit: String(rowsPerPage),
+        ...(statusFilter !== 'all' && { status: statusFilter }),
+        ...(debouncedSearch && { search: debouncedSearch }),
+      });
+      return api.get<TestRun[]>(`/test-runs?${params}`);
+    },
+    placeholderData: keepPreviousData, // Keep table data visible while fetching new results
+  });
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -156,50 +205,7 @@ export default function TestRunList() {
       </Box>
 
       <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Pipeline</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Start Time</TableCell>
-              <TableCell>Duration</TableCell>
-              <TableCell>Errors</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data?.map((testRun) => (
-              <TableRow
-                key={testRun.id}
-                hover
-                onClick={() => navigate(`/test-runs/${testRun.id}`)}
-                sx={{
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  }
-                }}
-              >
-                <TableCell>{testRun.pipelineName}</TableCell>
-                <TableCell>{getStatusChip(testRun.status)}</TableCell>
-                <TableCell>{new Date(testRun.startTime).toLocaleString()}</TableCell>
-                <TableCell>{testRun.duration}s</TableCell>
-                <TableCell>{testRun.errorCount}</TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    color="primary"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/test-runs/${testRun.id}`);
-                    }}
-                  >
-                    <ViewIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TestRunTable data={data} navigate={navigate} />
         <TablePagination
           component="div"
           count={-1}

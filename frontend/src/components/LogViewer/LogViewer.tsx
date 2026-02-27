@@ -11,6 +11,7 @@ import {
   useTheme,
   Stack,
   Button,
+  Theme,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,6 +32,93 @@ interface LogViewerProps {
   title?: string;
   maxHeight?: string | number;
   downloadFileName?: string;
+}
+
+function LogToolbar({ title, searchTerm, setSearchTerm, isRegex, setIsRegex, collapsePassed, setCollapsePassed, showOnlyErrors, setShowOnlyErrors, autoScroll, setAutoScroll, handleCopy, handleDownload }: {
+  title: string; searchTerm: string; setSearchTerm: (v: string) => void;
+  isRegex: boolean; setIsRegex: (v: boolean) => void;
+  collapsePassed: boolean; setCollapsePassed: (v: boolean) => void;
+  showOnlyErrors: boolean; setShowOnlyErrors: (v: boolean) => void;
+  autoScroll: boolean; setAutoScroll: (v: boolean) => void;
+  handleCopy: () => void; handleDownload: () => void;
+}) {
+  return (
+    <Toolbar variant="dense" sx={{ justifyContent: 'space-between', borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', minHeight: '48px !important' }}>
+      <Stack direction="row" alignItems="center" spacing={2}>
+        <Typography variant="subtitle2" fontWeight="bold" color="primary">{title}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'background.default', borderRadius: 1, px: 1 }}>
+          <SearchIcon fontSize="small" color="disabled" sx={{ mr: 1 }} />
+          <TextField variant="standard" placeholder={isRegex ? "Regex search..." : "Search logs..."} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} InputProps={{ disableUnderline: true }} sx={{ width: 180, '& input': { fontSize: '0.875rem' } }} />
+          <Tooltip title="Toggle Regex Mode">
+            <IconButton size="small" color={isRegex ? "primary" : "default"} onClick={() => setIsRegex(!isRegex)}>
+              <RegexIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Stack>
+      <Stack direction="row" spacing={0.5}>
+        <Tooltip title={collapsePassed ? "Show All Tests" : "Collapse Passed Tests"}>
+          <IconButton size="small" color={collapsePassed ? "primary" : "default"} onClick={() => setCollapsePassed(!collapsePassed)}>
+            {collapsePassed ? <UnfoldIcon fontSize="small" /> : <FoldIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Show only errors">
+          <IconButton size="small" color={showOnlyErrors ? "error" : "default"} onClick={() => setShowOnlyErrors(!showOnlyErrors)}>
+            <FilterIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Follow Tail">
+          <IconButton size="small" color={autoScroll ? "secondary" : "default"} onClick={() => setAutoScroll(!autoScroll)}>
+            <ScrollDownIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Box sx={{ width: 1, height: 24, bgcolor: 'divider', mx: 1 }} />
+        <Tooltip title="Copy to clipboard">
+          <IconButton size="small" onClick={handleCopy}><CopyIcon fontSize="small" /></IconButton>
+        </Tooltip>
+        <Tooltip title="Download logs">
+          <IconButton size="small" onClick={handleDownload}><DownloadIcon fontSize="small" /></IconButton>
+        </Tooltip>
+      </Stack>
+    </Toolbar>
+  );
+}
+
+function LogContent({ processedLogs, setSearchTerm, setShowOnlyErrors, setCollapsePassed, scrollRef, logsEndRef, theme }: {
+  processedLogs: string[]; setSearchTerm: (v: string) => void;
+  setShowOnlyErrors: (v: boolean) => void; setCollapsePassed: (v: boolean) => void;
+  scrollRef: React.RefObject<HTMLDivElement>; logsEndRef: React.RefObject<HTMLDivElement>;
+  theme: Theme;
+}) {
+  return (
+    <Box ref={scrollRef} sx={{ flexGrow: 1, overflow: 'auto', bgcolor: '#0d0d0d', p: 0 }}>
+      {processedLogs.length === 0 ? (
+        <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
+          <Typography variant="body2">No logs found matching your filters.</Typography>
+          <Button size="small" onClick={() => { setSearchTerm(''); setShowOnlyErrors(false); setCollapsePassed(false); }}>Clear Filters</Button>
+        </Box>
+      ) : (
+        <SyntaxHighlighter
+          language="log" style={vscDarkPlus} showLineNumbers
+          customStyle={{ margin: 0, padding: '16px', fontSize: '13px', fontFamily: '"JetBrains Mono", "Fira Code", monospace', lineHeight: '1.5', background: 'transparent' }}
+          lineNumberStyle={{ minWidth: '3em', paddingRight: '1em', color: theme.palette.text.disabled }}
+        >
+          {processedLogs.join('\n')}
+        </SyntaxHighlighter>
+      )}
+      <div ref={logsEndRef} />
+    </Box>
+  );
+}
+
+function LogMinimap({ minimapData, logs }: { minimapData: number[]; logs: string[] }) {
+  return (
+    <Box sx={{ width: 12, bgcolor: 'background.paper', borderLeft: 1, borderColor: 'divider', position: 'relative', overflow: 'hidden' }}>
+      {minimapData.map((errorIndex) => (
+        <Box key={errorIndex} sx={{ position: 'absolute', top: `${(errorIndex / logs.length) * 100}%`, left: 0, right: 0, height: 2, bgcolor: 'error.main', opacity: 0.8 }} />
+      ))}
+    </Box>
+  );
 }
 
 export default function LogViewer({
@@ -150,158 +238,12 @@ export default function LogViewer({
         overflow: 'hidden' // Contain child scrolls
       }}
     >
-      {/* Toolbar */}
-      <Toolbar
-        variant="dense"
-        sx={{
-          justifyContent: 'space-between',
-          borderBottom: 1,
-          borderColor: 'divider',
-          bgcolor: theme.palette.background.paper,
-          minHeight: '48px !important'
-        }}
-      >
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Typography variant="subtitle2" fontWeight="bold" color="primary">
-            {title}
-          </Typography>
+      <LogToolbar title={title} searchTerm={searchTerm} setSearchTerm={setSearchTerm} isRegex={isRegex} setIsRegex={setIsRegex} collapsePassed={collapsePassed} setCollapsePassed={setCollapsePassed} showOnlyErrors={showOnlyErrors} setShowOnlyErrors={setShowOnlyErrors} autoScroll={autoScroll} setAutoScroll={setAutoScroll} handleCopy={handleCopy} handleDownload={handleDownload} />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'background.default', borderRadius: 1, px: 1 }}>
-            <SearchIcon fontSize="small" color="disabled" sx={{ mr: 1 }} />
-            <TextField
-              variant="standard"
-              placeholder={isRegex ? "Regex search..." : "Search logs..."}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{ disableUnderline: true }}
-              sx={{ width: 180, '& input': { fontSize: '0.875rem' } }}
-            />
-            <Tooltip title="Toggle Regex Mode">
-              <IconButton
-                size="small"
-                color={isRegex ? "primary" : "default"}
-                onClick={() => setIsRegex(!isRegex)}
-              >
-                <RegexIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Stack>
-
-        <Stack direction="row" spacing={0.5}>
-          <Tooltip title={collapsePassed ? "Show All Tests" : "Collapse Passed Tests"}>
-            <IconButton
-              size="small"
-              color={collapsePassed ? "primary" : "default"}
-              onClick={() => setCollapsePassed(!collapsePassed)}
-            >
-              {collapsePassed ? <UnfoldIcon fontSize="small" /> : <FoldIcon fontSize="small" />}
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Show only errors">
-            <IconButton
-              size="small"
-              color={showOnlyErrors ? "error" : "default"}
-              onClick={() => setShowOnlyErrors(!showOnlyErrors)}
-            >
-              <FilterIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Follow Tail">
-            <IconButton
-              size="small"
-              color={autoScroll ? "secondary" : "default"}
-              onClick={() => setAutoScroll(!autoScroll)}
-            >
-              <ScrollDownIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Box sx={{ width: 1, height: 24, bgcolor: 'divider', mx: 1 }} />
-
-          <Tooltip title="Copy to clipboard">
-            <IconButton size="small" onClick={handleCopy}>
-              <CopyIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Download logs">
-            <IconButton size="small" onClick={handleDownload}>
-              <DownloadIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Toolbar>
-
-      {/* Main Content Area: Logs + Minimap */}
       <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden', position: 'relative' }}>
-
-        {/* Log Lines */}
-        <Box
-          ref={scrollRef}
-          sx={{
-            flexGrow: 1,
-            overflow: 'auto',
-            bgcolor: '#0d0d0d', // Deep editor black
-            p: 0,
-          }}
-        >
-          {processedLogs.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>
-              <Typography variant="body2">No logs found matching your filters.</Typography>
-              <Button size="small" onClick={() => { setSearchTerm(''); setShowOnlyErrors(false); setCollapsePassed(false); }}>
-                Clear Filters
-              </Button>
-            </Box>
-          ) : (
-            <SyntaxHighlighter
-              language="log"
-              style={vscDarkPlus}
-              showLineNumbers
-              customStyle={{
-                margin: 0,
-                padding: '16px',
-                fontSize: '13px',
-                fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-                lineHeight: '1.5',
-                background: 'transparent'
-              }}
-              lineNumberStyle={{ minWidth: '3em', paddingRight: '1em', color: theme.palette.text.disabled }}
-            >
-              {processedLogs.join('\n')}
-            </SyntaxHighlighter>
-          )}
-          <div ref={logsEndRef} />
-        </Box>
-
-        {/* Minimap Sidebar (Only show if not filtered, for context matching) */}
+        <LogContent processedLogs={processedLogs} setSearchTerm={setSearchTerm} setShowOnlyErrors={setShowOnlyErrors} setCollapsePassed={setCollapsePassed} scrollRef={scrollRef} logsEndRef={logsEndRef} theme={theme} />
         {!searchTerm && !showOnlyErrors && !collapsePassed && logs.length > 0 && (
-          <Box
-            sx={{
-              width: 12,
-              bgcolor: 'background.paper',
-              borderLeft: 1,
-              borderColor: 'divider',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            {minimapData.map((errorIndex) => (
-              <Box
-                key={errorIndex}
-                sx={{
-                  position: 'absolute',
-                  top: `${(errorIndex / logs.length) * 100}%`,
-                  left: 0,
-                  right: 0,
-                  height: 2,
-                  bgcolor: 'error.main',
-                  opacity: 0.8,
-                }}
-              />
-            ))}
-          </Box>
+          <LogMinimap minimapData={minimapData} logs={logs} />
         )}
       </Box>
 

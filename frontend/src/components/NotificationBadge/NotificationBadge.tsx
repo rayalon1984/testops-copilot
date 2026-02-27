@@ -103,28 +103,14 @@ export default function NotificationBadge() {
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          sx: { width: 360, maxHeight: 480 },
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        PaperProps={{ sx: { width: 360, maxHeight: 480 } }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6" sx={{ flex: 1 }}>
-            Notifications
-          </Typography>
+          <Typography variant="h6" sx={{ flex: 1 }}>Notifications</Typography>
           {unreadCount > 0 && (
-            <Button
-              size="small"
-              startIcon={<DoneIcon />}
-              onClick={() => markAllAsRead.mutate()}
-            >
+            <Button size="small" startIcon={<DoneIcon />} onClick={() => markAllAsRead.mutate()}>
               Mark all as read
             </Button>
           )}
@@ -135,10 +121,7 @@ export default function NotificationBadge() {
         <List sx={{ p: 0 }}>
           {notifications.length === 0 ? (
             <ListItem>
-              <ListItemText
-                primary="No new notifications"
-                sx={{ textAlign: 'center', color: 'text.secondary' }}
-              />
+              <ListItemText primary="No new notifications" sx={{ textAlign: 'center', color: 'text.secondary' }} />
             </ListItem>
           ) : (
             notifications.map((notification) => (
@@ -146,20 +129,13 @@ export default function NotificationBadge() {
                 key={notification.id}
                 button
                 onClick={() => handleNotificationClick(notification)}
-                sx={{
-                  bgcolor: notification.read
-                    ? 'transparent'
-                    : theme.palette.action.hover,
-                }}
+                sx={{ bgcolor: notification.read ? 'transparent' : theme.palette.action.hover }}
               >
                 <ListItemIcon>{getNotificationIcon(notification.type)}</ListItemIcon>
                 <ListItemText
                   primary={notification.message}
                   secondary={new Date(notification.timestamp).toLocaleString()}
-                  primaryTypographyProps={{
-                    variant: 'body2',
-                    color: notification.read ? 'text.secondary' : 'text.primary',
-                  }}
+                  primaryTypographyProps={{ variant: 'body2', color: notification.read ? 'text.secondary' : 'text.primary' }}
                 />
               </ListItem>
             ))
@@ -169,14 +145,7 @@ export default function NotificationBadge() {
         <Divider />
 
         <Box sx={{ p: 1 }}>
-          <Button
-            fullWidth
-            size="small"
-            onClick={() => {
-              handleClose();
-              navigate('/notifications');
-            }}
-          >
+          <Button fullWidth size="small" onClick={() => { handleClose(); navigate('/notifications'); }}>
             View All Notifications
           </Button>
         </Box>

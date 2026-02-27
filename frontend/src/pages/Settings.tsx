@@ -81,6 +81,232 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+function NotificationsTab({
+  settings,
+  updateSettings,
+  onSubmit,
+}: {
+  settings: Settings;
+  updateSettings: ReturnType<typeof useMutation<Settings, Error, Partial<Settings>>>;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <form onSubmit={onSubmit}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Slack Integration" />
+            <CardContent>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.slack.enabled}
+                    onChange={(e) => {
+                      settings.notifications.slack.enabled = e.target.checked;
+                      updateSettings.mutate({ notifications: settings.notifications });
+                    }}
+                  />
+                }
+                label="Enable Slack Notifications"
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Webhook URL"
+                value={settings.notifications.slack.webhookUrl}
+                onChange={(e) => {
+                  settings.notifications.slack.webhookUrl = e.target.value;
+                }}
+                disabled={!settings.notifications.slack.enabled}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Email Notifications" />
+            <CardContent>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.notifications.email.enabled}
+                    onChange={(e) => {
+                      settings.notifications.email.enabled = e.target.checked;
+                      updateSettings.mutate({ notifications: settings.notifications });
+                    }}
+                  />
+                }
+                label="Enable Email Notifications"
+              />
+              {/* Email recipients list */}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
+          Save Notification Settings
+        </Button>
+      </Box>
+    </form>
+  );
+}
+
+function CICDTab({
+  settings,
+  updateSettings,
+  onSubmit,
+}: {
+  settings: Settings;
+  updateSettings: ReturnType<typeof useMutation<Settings, Error, Partial<Settings>>>;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <form onSubmit={onSubmit}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Jenkins Integration" />
+            <CardContent>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.cicd.jenkins.enabled}
+                    onChange={(e) => {
+                      settings.cicd.jenkins.enabled = e.target.checked;
+                      updateSettings.mutate({ cicd: settings.cicd });
+                    }}
+                  />
+                }
+                label="Enable Jenkins Integration"
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Jenkins URL"
+                value={settings.cicd.jenkins.url}
+                onChange={(e) => {
+                  settings.cicd.jenkins.url = e.target.value;
+                }}
+                disabled={!settings.cicd.jenkins.enabled}
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Username"
+                value={settings.cicd.jenkins.username}
+                onChange={(e) => {
+                  settings.cicd.jenkins.username = e.target.value;
+                }}
+                disabled={!settings.cicd.jenkins.enabled}
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="API Token"
+                type="password"
+                value={settings.cicd.jenkins.apiToken}
+                onChange={(e) => {
+                  settings.cicd.jenkins.apiToken = e.target.value;
+                }}
+                disabled={!settings.cicd.jenkins.enabled}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="GitHub Integration" />
+            <CardContent>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.cicd.github.enabled}
+                    onChange={(e) => {
+                      settings.cicd.github.enabled = e.target.checked;
+                      updateSettings.mutate({ cicd: settings.cicd });
+                    }}
+                  />
+                }
+                label="Enable GitHub Integration"
+              />
+              <TextField
+                margin="normal"
+                fullWidth
+                label="API Token"
+                type="password"
+                value={settings.cicd.github.apiToken}
+                onChange={(e) => {
+                  settings.cicd.github.apiToken = e.target.value;
+                }}
+                disabled={!settings.cicd.github.enabled}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
+          Save CI/CD Settings
+        </Button>
+      </Box>
+    </form>
+  );
+}
+
+function GeneralTab({
+  settings,
+  updateSettings,
+  onSubmit,
+}: {
+  settings: Settings;
+  updateSettings: ReturnType<typeof useMutation<Settings, Error, Partial<Settings>>>;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <form onSubmit={onSubmit}>
+      <Card>
+        <CardHeader title="Application Settings" />
+        <CardContent>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={settings.general.autoRefresh}
+                onChange={(e) => {
+                  settings.general.autoRefresh = e.target.checked;
+                  updateSettings.mutate({ general: settings.general });
+                }}
+              />
+            }
+            label="Enable Auto Refresh"
+          />
+          <TextField
+            margin="normal"
+            fullWidth
+            type="number"
+            label="Refresh Interval (seconds)"
+            value={settings.general.refreshInterval}
+            onChange={(e) => {
+              settings.general.refreshInterval = parseInt(e.target.value, 10);
+            }}
+            disabled={!settings.general.autoRefresh}
+          />
+        </CardContent>
+      </Card>
+
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
+          Save General Settings
+        </Button>
+      </Box>
+    </form>
+  );
+}
+
 export default function Settings() {
   const [tabValue, setTabValue] = useState(0);
   const [error, setError] = useState('');
@@ -180,203 +406,16 @@ export default function Settings() {
           </Alert>
         )}
 
-        {/* Notifications Settings */}
         <TabPanel value={tabValue} index={0}>
-          <form onSubmit={handleSaveNotifications}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Card>
-                  <CardHeader title="Slack Integration" />
-                  <CardContent>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={settings.notifications.slack.enabled}
-                          onChange={(e) => {
-                            settings.notifications.slack.enabled = e.target.checked;
-                            updateSettings.mutate({ notifications: settings.notifications });
-                          }}
-                        />
-                      }
-                      label="Enable Slack Notifications"
-                    />
-                    <TextField
-                      margin="normal"
-                      fullWidth
-                      label="Webhook URL"
-                      value={settings.notifications.slack.webhookUrl}
-                      onChange={(e) => {
-                        settings.notifications.slack.webhookUrl = e.target.value;
-                      }}
-                      disabled={!settings.notifications.slack.enabled}
-                    />
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Card>
-                  <CardHeader title="Email Notifications" />
-                  <CardContent>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={settings.notifications.email.enabled}
-                          onChange={(e) => {
-                            settings.notifications.email.enabled = e.target.checked;
-                            updateSettings.mutate({ notifications: settings.notifications });
-                          }}
-                        />
-                      }
-                      label="Enable Email Notifications"
-                    />
-                    {/* Email recipients list */}
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
-                Save Notification Settings
-              </Button>
-            </Box>
-          </form>
+          <NotificationsTab settings={settings} updateSettings={updateSettings} onSubmit={handleSaveNotifications} />
         </TabPanel>
 
-        {/* CI/CD Integration Settings */}
         <TabPanel value={tabValue} index={1}>
-          <form onSubmit={handleSaveCICD}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Card>
-                  <CardHeader title="Jenkins Integration" />
-                  <CardContent>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={settings.cicd.jenkins.enabled}
-                          onChange={(e) => {
-                            settings.cicd.jenkins.enabled = e.target.checked;
-                            updateSettings.mutate({ cicd: settings.cicd });
-                          }}
-                        />
-                      }
-                      label="Enable Jenkins Integration"
-                    />
-                    <TextField
-                      margin="normal"
-                      fullWidth
-                      label="Jenkins URL"
-                      value={settings.cicd.jenkins.url}
-                      onChange={(e) => {
-                        settings.cicd.jenkins.url = e.target.value;
-                      }}
-                      disabled={!settings.cicd.jenkins.enabled}
-                    />
-                    <TextField
-                      margin="normal"
-                      fullWidth
-                      label="Username"
-                      value={settings.cicd.jenkins.username}
-                      onChange={(e) => {
-                        settings.cicd.jenkins.username = e.target.value;
-                      }}
-                      disabled={!settings.cicd.jenkins.enabled}
-                    />
-                    <TextField
-                      margin="normal"
-                      fullWidth
-                      label="API Token"
-                      type="password"
-                      value={settings.cicd.jenkins.apiToken}
-                      onChange={(e) => {
-                        settings.cicd.jenkins.apiToken = e.target.value;
-                      }}
-                      disabled={!settings.cicd.jenkins.enabled}
-                    />
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Card>
-                  <CardHeader title="GitHub Integration" />
-                  <CardContent>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={settings.cicd.github.enabled}
-                          onChange={(e) => {
-                            settings.cicd.github.enabled = e.target.checked;
-                            updateSettings.mutate({ cicd: settings.cicd });
-                          }}
-                        />
-                      }
-                      label="Enable GitHub Integration"
-                    />
-                    <TextField
-                      margin="normal"
-                      fullWidth
-                      label="API Token"
-                      type="password"
-                      value={settings.cicd.github.apiToken}
-                      onChange={(e) => {
-                        settings.cicd.github.apiToken = e.target.value;
-                      }}
-                      disabled={!settings.cicd.github.enabled}
-                    />
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
-                Save CI/CD Settings
-              </Button>
-            </Box>
-          </form>
+          <CICDTab settings={settings} updateSettings={updateSettings} onSubmit={handleSaveCICD} />
         </TabPanel>
 
-        {/* General Settings */}
         <TabPanel value={tabValue} index={2}>
-          <form onSubmit={handleSaveGeneral}>
-            <Card>
-              <CardHeader title="Application Settings" />
-              <CardContent>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={settings.general.autoRefresh}
-                      onChange={(e) => {
-                        settings.general.autoRefresh = e.target.checked;
-                        updateSettings.mutate({ general: settings.general });
-                      }}
-                    />
-                  }
-                  label="Enable Auto Refresh"
-                />
-                <TextField
-                  margin="normal"
-                  fullWidth
-                  type="number"
-                  label="Refresh Interval (seconds)"
-                  value={settings.general.refreshInterval}
-                  onChange={(e) => {
-                    settings.general.refreshInterval = parseInt(e.target.value, 10);
-                  }}
-                  disabled={!settings.general.autoRefresh}
-                />
-              </CardContent>
-            </Card>
-
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button type="submit" variant="contained" startIcon={<SaveIcon />}>
-                Save General Settings
-              </Button>
-            </Box>
-          </form>
+          <GeneralTab settings={settings} updateSettings={updateSettings} onSubmit={handleSaveGeneral} />
         </TabPanel>
 
         {/* AI Copilot Settings */}

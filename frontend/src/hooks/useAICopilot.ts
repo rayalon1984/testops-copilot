@@ -68,6 +68,199 @@ function generateSessionId(): string {
     return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
 }
 
+function parseToolPayload(data: string): { content: string; toolData?: Record<string, unknown> } {
+    try {
+        const parsed = JSON.parse(data);
+        if (parsed.summary !== undefined) return { content: parsed.summary, toolData: parsed.data as Record<string, unknown> };
+    } catch { /* Legacy string format */ }
+    return { content: data };
+}
+
+function processSSEEvent(
+    event: { type: string; data: string; tool?: string },
+    state: {
+        currentAssistantId: string | null;
+        streamingContent: string;
+    },
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+    setActivePersona: React.Dispatch<React.SetStateAction<PersonaInfo | null>>,
+): { currentAssistantId: string | null; streamingContent: string } {
+    switch (event.type) {
+        case 'persona_selected': {
+            const personaData = JSON.parse(event.data);
+            setActivePersona({
+                persona: personaData.persona,
+                displayName: personaData.displayName,
+                confidence: personaData.confidence,
+                reasoning: personaData.reasoning,
+            });
+            break;
+        }
+
+        case 'thinking':
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'thinking',
+                content: event.data,
+                timestamp: new Date(),
+            }]);
+            break;
+
+        case 'tool_start':
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'tool_start',
+                content: event.data,
+                toolName: event.tool,
+                timestamp: new Date(),
+            }]);
+            break;
+
+        case 'tool_result': {
+            const { content, toolData } = parseToolPayload(event.data);
+            setMessages(prev => [...prev, { id: generateId(), role: 'tool_result', content, toolName: event.tool, toolData, cardState: 'idle', timestamp: new Date() }]);
+            break;
+        }
+
+        case 'confirmation_request': {
+            const { actionId, tool, args, summary } = JSON.parse(event.data);
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'confirmation_request',
+                content: summary,
+                toolName: tool,
+                actionId: actionId,
+                toolArgs: args,
+                confirmationStatus: 'pending',
+                timestamp: new Date(),
+            }]);
+            break;
+        }
+
+        case 'proactive_suggestion': {
+            const suggestion = JSON.parse(event.data);
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'proactive_suggestion',
+                content: suggestion.reason || 'AI has a suggestion',
+                toolName: suggestion.tool,
+                suggestionData: suggestion,
+                suggestionStatus: 'pending',
+                timestamp: new Date(),
+            }]);
+            break;
+        }
+
+        case 'autonomous_action': {
+            const { content, toolData } = parseToolPayload(event.data);
+            setMessages(prev => [...prev, { id: generateId(), role: 'autonomous_action', content, toolName: event.tool, toolData, timestamp: new Date() }]);
+            break;
+        }
+
+        case 'answer_chunk': {
+            state.streamingContent += event.data;
+            if (!state.currentAssistantId) {
+                state.currentAssistantId = generateId();
+                const id = state.currentAssistantId;
+                setMessages(prev => [...prev, {
+                    id,
+                    role: 'assistant',
+                    content: state.streamingContent,
+                    timestamp: new Date(),
+                }]);
+            } else {
+                const id = state.currentAssistantId;
+                const content = state.streamingContent;
+                setMessages(prev => prev.map(msg =>
+                    msg.id === id ? { ...msg, content } : msg
+                ));
+            }
+            break;
+        }
+
+        case 'answer':
+            if (state.currentAssistantId) {
+                const id = state.currentAssistantId;
+                setMessages(prev => prev.map(msg =>
+                    msg.id === id ? { ...msg, content: event.data } : msg
+                ));
+            } else {
+                state.currentAssistantId = generateId();
+                setMessages(prev => [...prev, {
+                    id: state.currentAssistantId!,
+                    role: 'assistant',
+                    content: event.data,
+                    timestamp: new Date(),
+                }]);
+            }
+            state.streamingContent = '';
+            state.currentAssistantId = null;
+            break;
+
+        case 'error':
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'error',
+                content: event.data,
+                timestamp: new Date(),
+            }]);
+            break;
+
+        case 'done':
+            break;
+    }
+    return state;
+}
+
+async function handleConfirmAction(
+    actionId: string,
+    approved: boolean,
+    setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>,
+    sendMessage: (message: string) => void,
+): Promise<void> {
+    setMessages(prev => prev.map(msg =>
+        msg.actionId === actionId
+            ? { ...msg, confirmationStatus: approved ? 'approved' : 'denied' }
+            : msg
+    ));
+
+    try {
+        const result = await api.post<{ data?: { toolName?: string }; toolResult?: { summary?: string; data?: unknown } }>('/ai/confirm', { actionId, approved });
+
+        const toolResult = result.toolResult;
+        if (approved && toolResult) {
+            const toolName = result.data?.toolName;
+            setMessages(prev => [...prev, {
+                id: generateId(),
+                role: 'tool_result',
+                content: toolResult.summary || JSON.stringify(toolResult),
+                toolName,
+                toolData: toolResult.data as Record<string, unknown> | undefined,
+                cardState: 'idle',
+                timestamp: new Date(),
+            }]);
+
+            setTimeout(() => {
+                sendMessage(
+                    `The tool ${toolName || 'action'} was executed successfully. ` +
+                    `Please summarize the result and suggest any follow-up actions.`
+                );
+            }, 500);
+        }
+
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Confirmation failed';
+        setError(msg);
+        setMessages(prev => [...prev, {
+            id: generateId(),
+            role: 'error',
+            content: `Confirmation failed: ${msg}`,
+            timestamp: new Date(),
+        }]);
+    }
+}
+
 export function useAICopilot(): UseAICopilotReturn {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -140,8 +333,7 @@ export function useAICopilot(): UseAICopilotReturn {
 
             const decoder = new TextDecoder();
             let buffer = '';
-            let currentAssistantId: string | null = null;
-            let streamingContent = ''; // Accumulates answer_chunk data
+            const sseState = { currentAssistantId: null as string | null, streamingContent: '' };
 
             // eslint-disable-next-line
             while (true) {
@@ -150,7 +342,7 @@ export function useAICopilot(): UseAICopilotReturn {
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep incomplete line
+                buffer = lines.pop() || '';
 
                 for (const line of lines) {
                     if (!line.startsWith('data: ')) continue;
@@ -159,174 +351,7 @@ export function useAICopilot(): UseAICopilotReturn {
 
                     try {
                         const event = JSON.parse(jsonStr);
-
-                        switch (event.type) {
-                            case 'persona_selected': {
-                                const personaData = JSON.parse(event.data);
-                                setActivePersona({
-                                    persona: personaData.persona,
-                                    displayName: personaData.displayName,
-                                    confidence: personaData.confidence,
-                                    reasoning: personaData.reasoning,
-                                });
-                                break;
-                            }
-
-                            case 'thinking':
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'thinking',
-                                    content: event.data,
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-
-                            case 'tool_start':
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'tool_start',
-                                    content: event.data,
-                                    toolName: event.tool,
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-
-                            case 'tool_result': {
-                                // v3: parse { summary, data } JSON format with legacy fallback
-                                let content = event.data;
-                                let toolData: Record<string, unknown> | undefined;
-                                try {
-                                    const parsed = JSON.parse(event.data);
-                                    if (parsed.summary !== undefined) {
-                                        content = parsed.summary;
-                                        toolData = parsed.data as Record<string, unknown>;
-                                    }
-                                } catch {
-                                    // Legacy string format — content is already the summary
-                                }
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'tool_result',
-                                    content,
-                                    toolName: event.tool,
-                                    toolData,
-                                    cardState: 'idle',
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-                            }
-
-                            case 'confirmation_request': {
-                                // event.data is a JSON string with details
-                                const { actionId, tool, args, summary } = JSON.parse(event.data);
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'confirmation_request',
-                                    content: summary,
-                                    toolName: tool,
-                                    actionId: actionId,
-                                    toolArgs: args,
-                                    confirmationStatus: 'pending',
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-                            }
-
-                            case 'proactive_suggestion': {
-                                // AI-in-the-Loop: show a suggestion card with accept/dismiss
-                                const suggestion = JSON.parse(event.data);
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'proactive_suggestion',
-                                    content: suggestion.reason || 'AI has a suggestion',
-                                    toolName: suggestion.tool,
-                                    suggestionData: suggestion,
-                                    suggestionStatus: 'pending',
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-                            }
-
-                            case 'autonomous_action': {
-                                // Tier 1: AI auto-executed — show notification card
-                                let content = event.data;
-                                let toolData: Record<string, unknown> | undefined;
-                                try {
-                                    const parsed = JSON.parse(event.data);
-                                    if (parsed.summary !== undefined) {
-                                        content = parsed.summary;
-                                        toolData = parsed.data as Record<string, unknown>;
-                                    }
-                                } catch {
-                                    // String format fallback
-                                }
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'autonomous_action',
-                                    content,
-                                    toolName: event.tool,
-                                    toolData,
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-                            }
-
-                            case 'answer_chunk': {
-                                // Typewriter streaming: append chunk to current assistant message
-                                streamingContent += event.data;
-                                if (!currentAssistantId) {
-                                    currentAssistantId = generateId();
-                                    const id = currentAssistantId;
-                                    setMessages(prev => [...prev, {
-                                        id,
-                                        role: 'assistant',
-                                        content: streamingContent,
-                                        timestamp: new Date(),
-                                    }]);
-                                } else {
-                                    const id = currentAssistantId;
-                                    const content = streamingContent;
-                                    setMessages(prev => prev.map(msg =>
-                                        msg.id === id ? { ...msg, content } : msg
-                                    ));
-                                }
-                                break;
-                            }
-
-                            case 'answer':
-                                // Final complete answer — update or create the message
-                                if (currentAssistantId) {
-                                    const id = currentAssistantId;
-                                    setMessages(prev => prev.map(msg =>
-                                        msg.id === id ? { ...msg, content: event.data } : msg
-                                    ));
-                                } else {
-                                    currentAssistantId = generateId();
-                                    setMessages(prev => [...prev, {
-                                        id: currentAssistantId!,
-                                        role: 'assistant',
-                                        content: event.data,
-                                        timestamp: new Date(),
-                                    }]);
-                                }
-                                // Reset streaming state for next answer
-                                streamingContent = '';
-                                currentAssistantId = null;
-                                break;
-
-                            case 'error':
-                                setMessages(prev => [...prev, {
-                                    id: generateId(),
-                                    role: 'error',
-                                    content: event.data,
-                                    timestamp: new Date(),
-                                }]);
-                                break;
-
-                            case 'done':
-                                // Stream complete
-                                break;
-                        }
+                        processSSEEvent(event, sseState, setMessages, setActivePersona);
                     } catch {
                         // Skip malformed JSON lines from SSE stream
                     }
@@ -357,50 +382,7 @@ export function useAICopilot(): UseAICopilotReturn {
     }, [sendMessage]);
 
     const confirmAction = useCallback(async (actionId: string, approved: boolean) => {
-        // Optimistic update
-        setMessages(prev => prev.map(msg =>
-            msg.actionId === actionId
-                ? { ...msg, confirmationStatus: approved ? 'approved' : 'denied' }
-                : msg
-        ));
-
-        try {
-            const result = await api.post<{ data?: { toolName?: string }; toolResult?: { summary?: string; data?: unknown } }>('/ai/confirm', { actionId, approved });
-
-            // If approved and tool executed successfully, append the result card
-            const toolResult = result.toolResult;
-            if (approved && toolResult) {
-                const toolName = result.data?.toolName;
-                setMessages(prev => [...prev, {
-                    id: generateId(),
-                    role: 'tool_result',
-                    content: toolResult.summary || JSON.stringify(toolResult),
-                    toolName,
-                    toolData: toolResult.data as Record<string, unknown> | undefined,
-                    cardState: 'idle',
-                    timestamp: new Date(),
-                }]);
-
-                // Auto-resume: send a continuation message so the AI can finish
-                // its reasoning with the tool result. Short delay to let the card render.
-                setTimeout(() => {
-                    sendMessage(
-                        `The tool ${toolName || 'action'} was executed successfully. ` +
-                        `Please summarize the result and suggest any follow-up actions.`
-                    );
-                }, 500);
-            }
-
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Confirmation failed';
-            setError(msg);
-            setMessages(prev => [...prev, {
-                id: generateId(),
-                role: 'error',
-                content: `Confirmation failed: ${msg}`,
-                timestamp: new Date(),
-            }]);
-        }
+        await handleConfirmAction(actionId, approved, setMessages, setError, sendMessage);
     }, [sendMessage]);
 
     const clearMessages = useCallback(() => {

@@ -1,26 +1,3 @@
 [
-  "backend/src/services/ai/AIChatService.ts::file-length::AIChatService.ts",
-  "backend/src/services/ai/AIChatService.ts::function-length::handleChatBuffered",
-  "backend/src/services/ai/AIChatService.ts::function-length::handleChatStream",
-  "backend/src/services/confluence.service.ts::file-length::confluence.service.ts",
-  "frontend/src/api/generated.ts::file-length::generated.ts",
-  "frontend/src/components/AICopilot/AICopilot.tsx::function-length::AICopilot",
-  "frontend/src/components/AICopilot/MessageActions.tsx::function-length::MessageActions",
-  "frontend/src/components/AICopilot/ProviderPicker.tsx::function-length::ProviderPicker",
-  "frontend/src/components/AICopilot/cards/HousekeepingCard.tsx::function-length::HousekeepingCard",
-  "frontend/src/components/AICopilot/cards/RetryCard.tsx::function-length::RetryCard",
-  "frontend/src/components/AICopilot/cards/shared/ConfirmationShell.tsx::function-length::ConfirmationShell",
-  "frontend/src/components/Layout/Layout.tsx::function-length::Layout",
-  "frontend/src/components/LogViewer/LogViewer.tsx::function-length::LogViewer",
-  "frontend/src/components/NotificationBadge/NotificationBadge.tsx::function-length::NotificationBadge",
-  "frontend/src/components/ScreenshotGallery/ScreenshotGallery.tsx::function-length::ScreenshotGallery",
-  "frontend/src/hooks/useAICopilot.ts::function-length::useAICopilot",
-  "frontend/src/pages/CostTracker.tsx::function-length::CostTracker",
-  "frontend/src/pages/Dashboard.tsx::file-length::Dashboard.tsx",
-  "frontend/src/pages/Dashboard.tsx::function-length::Dashboard",
-  "frontend/src/pages/PipelineDetail.tsx::function-length::PipelineDetail",
-  "frontend/src/pages/PipelineList.tsx::function-length::PipelineList",
-  "frontend/src/pages/Settings.tsx::function-length::Settings",
-  "frontend/src/pages/TestRunDetail.tsx::function-length::TestRunDetail",
-  "frontend/src/pages/TestRunList.tsx::function-length::TestRunList"
+  "frontend/src/api/generated.ts::file-length::generated.ts"
 ]

@@ -34,6 +34,13 @@ interface HousekeepingCardProps {
     cardState?: CardState;
 }
 
+const housekeepingPaperSx = {
+    mb: 2, borderRadius: 2, overflow: 'hidden',
+    border: 1, borderColor: 'divider', borderLeft: 3, borderLeftColor: getServiceAccent('jira'),
+} as const;
+
+const autoChipSx = { fontSize: '0.5rem', height: 16, bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 600 } as const;
+
 export default function HousekeepingCard({ data, toolName, userRole, onAction, cardState }: HousekeepingCardProps) {
     const isPending = cardState === 'action_pending';
 
@@ -41,15 +48,7 @@ export default function HousekeepingCard({ data, toolName, userRole, onAction, c
     if (toolName === 'jira_link_issues') {
         const linkData = data as unknown as LinkData;
         return (
-            <Paper sx={{
-                mb: 2,
-                borderRadius: 2,
-                overflow: 'hidden',
-                border: 1,
-                borderColor: 'divider',
-                borderLeft: 3,
-                borderLeftColor: getServiceAccent('jira'),
-            }}>
+            <Paper sx={housekeepingPaperSx}>
                 <Box sx={{ p: 1.5 }}>
                     {/* Header */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
@@ -59,17 +58,7 @@ export default function HousekeepingCard({ data, toolName, userRole, onAction, c
                         <Typography variant="caption" fontWeight={600} sx={{ color: getServiceAccent('jira') }}>
                             Jira Housekeeping
                         </Typography>
-                        <Chip
-                            label="Auto"
-                            size="small"
-                            sx={{
-                                fontSize: '0.5rem',
-                                height: 16,
-                                bgcolor: '#e8f5e9',
-                                color: '#2e7d32',
-                                fontWeight: 600,
-                            }}
-                        />
+                        <Chip label="Auto" size="small" sx={autoChipSx} />
                     </Box>
 
                     {/* Linked issues */}
@@ -114,15 +103,7 @@ export default function HousekeepingCard({ data, toolName, userRole, onAction, c
     if (toolName === 'jira_add_label') {
         const labelData = data as unknown as LabelData;
         return (
-            <Paper sx={{
-                mb: 2,
-                borderRadius: 2,
-                overflow: 'hidden',
-                border: 1,
-                borderColor: 'divider',
-                borderLeft: 3,
-                borderLeftColor: getServiceAccent('jira'),
-            }}>
+            <Paper sx={housekeepingPaperSx}>
                 <Box sx={{ p: 1.5 }}>
                     {/* Header */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
@@ -132,17 +113,7 @@ export default function HousekeepingCard({ data, toolName, userRole, onAction, c
                         <Typography variant="caption" fontWeight={600} sx={{ color: getServiceAccent('jira') }}>
                             Jira Housekeeping
                         </Typography>
-                        <Chip
-                            label="Auto"
-                            size="small"
-                            sx={{
-                                fontSize: '0.5rem',
-                                height: 16,
-                                bgcolor: '#e8f5e9',
-                                color: '#2e7d32',
-                                fontWeight: 600,
-                            }}
-                        />
+                        <Chip label="Auto" size="small" sx={autoChipSx} />
                     </Box>
 
                     {/* Label actions */}

@@ -40,6 +40,120 @@ import { usePageContext } from '../hooks/usePageContext';
 type Pipeline = ApiSchemas['Pipeline'];
 type TestRun = ApiSchemas['TestRun'];
 
+function PipelineOverview({
+  pipeline,
+  testRuns,
+  getStatusIcon,
+}: {
+  pipeline: Pipeline;
+  testRuns: TestRun[] | undefined;
+  getStatusIcon: (status: string) => React.ReactNode;
+}) {
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={4}>
+        <Card>
+          <CardHeader title="Overview" />
+          <CardContent>
+            <List>
+              <ListItem>
+                <ListItemIcon>{getStatusIcon(pipeline.status)}</ListItemIcon>
+                <ListItemText
+                  primary="Status"
+                  secondary={pipeline.status.toUpperCase()}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><HistoryIcon /></ListItemIcon>
+                <ListItemText
+                  primary="Last Run"
+                  secondary={new Date(pipeline.lastRun).toLocaleString()}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><SettingsIcon /></ListItemIcon>
+                <ListItemText
+                  primary="Type"
+                  secondary={pipeline.type}
+                />
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} md={8}>
+        <Card>
+          <CardHeader title="Recent Test Runs" />
+          <CardContent>
+            <List>
+              {testRuns?.map((run) => (
+                <ListItem key={run.id}>
+                  <ListItemIcon>{getStatusIcon(run.status)}</ListItemIcon>
+                  <ListItemText
+                    primary={new Date(run.startTime).toLocaleString()}
+                    secondary={`Duration: ${run.duration}s | Errors: ${run.errorCount}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+}
+
+function EditPipelineDialog({
+  open,
+  onClose,
+  pipeline,
+  error,
+  editFormData,
+  setEditFormData,
+  onSubmit,
+}: {
+  open: boolean;
+  onClose: () => void;
+  pipeline: Pipeline;
+  error: string;
+  editFormData: Partial<Pipeline>;
+  setEditFormData: (data: Partial<Pipeline>) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <form onSubmit={onSubmit}>
+        <DialogTitle>Edit Pipeline</DialogTitle>
+        <DialogContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Pipeline Name"
+            fullWidth
+            required
+            defaultValue={pipeline.name}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, name: e.target.value })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="contained">
+            Save Changes
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
+}
+
 export default function PipelineDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -143,90 +257,17 @@ export default function PipelineDetail() {
         </IconButton>
       </Box>
 
-      <Grid container spacing={3}>
-        {/* Pipeline Overview */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title="Overview" />
-            <CardContent>
-              <List>
-                <ListItem>
-                  <ListItemIcon>{getStatusIcon(pipeline.status)}</ListItemIcon>
-                  <ListItemText
-                    primary="Status"
-                    secondary={pipeline.status.toUpperCase()}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><HistoryIcon /></ListItemIcon>
-                  <ListItemText
-                    primary="Last Run"
-                    secondary={new Date(pipeline.lastRun).toLocaleString()}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><SettingsIcon /></ListItemIcon>
-                  <ListItemText
-                    primary="Type"
-                    secondary={pipeline.type}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+      <PipelineOverview pipeline={pipeline} testRuns={testRuns} getStatusIcon={getStatusIcon} />
 
-        {/* Recent Test Runs */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardHeader title="Recent Test Runs" />
-            <CardContent>
-              <List>
-                {testRuns?.map((run) => (
-                  <ListItem key={run.id}>
-                    <ListItemIcon>{getStatusIcon(run.status)}</ListItemIcon>
-                    <ListItemText
-                      primary={new Date(run.startTime).toLocaleString()}
-                      secondary={`Duration: ${run.duration}s | Errors: ${run.errorCount}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Edit Pipeline Dialog */}
-      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>Edit Pipeline</DialogTitle>
-          <DialogContent>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Pipeline Name"
-              fullWidth
-              required
-              defaultValue={pipeline.name}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, name: e.target.value })
-              }
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              Save Changes
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+      <EditPipelineDialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        pipeline={pipeline}
+        error={error}
+        editFormData={editFormData}
+        setEditFormData={setEditFormData}
+        onSubmit={handleSubmit}
+      />
     </Container>
   );
 }

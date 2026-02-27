@@ -12,6 +12,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  Theme,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -31,6 +32,42 @@ interface ScreenshotGalleryProps {
   isLoading?: boolean;
   title?: string;
   maxHeight?: string | number;
+}
+
+function ScreenshotPreviewDialog({ selectedIndex, screenshots, isMobile, handleClose, handlePrev, handleNext, handleDownload, theme }: {
+  selectedIndex: number | null; screenshots: Screenshot[]; isMobile: boolean;
+  handleClose: () => void; handlePrev: () => void; handleNext: () => void;
+  handleDownload: (s: Screenshot) => void; theme: Theme;
+}) {
+  return (
+    <Dialog open={selectedIndex !== null} onClose={handleClose} maxWidth="lg" fullWidth fullScreen={isMobile}>
+      {selectedIndex !== null && (
+        <>
+          <DialogContent sx={{ p: 0, position: 'relative' }}>
+            <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, display: 'flex', gap: 1, bgcolor: 'rgba(0, 0, 0, 0.5)', borderRadius: 1, p: 0.5 }}>
+              <IconButton size="small" onClick={() => handleDownload(screenshots[selectedIndex])} sx={{ color: 'white' }}>
+                <DownloadIcon />
+              </IconButton>
+              <IconButton size="small" onClick={handleClose} sx={{ color: 'white' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: isMobile ? '100vh' : '70vh', bgcolor: theme.palette.background.default }}>
+              <IconButton onClick={handlePrev} sx={{ position: 'absolute', left: 8 }}><PrevIcon /></IconButton>
+              <img src={screenshots[selectedIndex].url} alt={screenshots[selectedIndex].title} style={{ maxWidth: '100%', maxHeight: isMobile ? '100vh' : '70vh', objectFit: 'contain' }} />
+              <IconButton onClick={handleNext} sx={{ position: 'absolute', right: 8 }}><NextIcon /></IconButton>
+            </Box>
+            <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, bgcolor: 'rgba(0, 0, 0, 0.5)', color: 'white', p: 1 }}>
+              <Typography variant="caption">
+                {screenshots[selectedIndex].title} -{' '}
+                {new Date(screenshots[selectedIndex].timestamp).toLocaleString()}
+              </Typography>
+            </Box>
+          </DialogContent>
+        </>
+      )}
+    </Dialog>
+  );
 }
 
 export default function ScreenshotGallery({
@@ -125,100 +162,7 @@ export default function ScreenshotGallery({
         </ImageList>
       </Box>
 
-      {/* Screenshot Preview Dialog */}
-      <Dialog
-        open={selectedIndex !== null}
-        onClose={handleClose}
-        maxWidth="lg"
-        fullWidth
-        fullScreen={isMobile}
-      >
-        {selectedIndex !== null && (
-          <>
-            <DialogContent sx={{ p: 0, position: 'relative' }}>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  zIndex: 1,
-                  display: 'flex',
-                  gap: 1,
-                  bgcolor: 'rgba(0, 0, 0, 0.5)',
-                  borderRadius: 1,
-                  p: 0.5,
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => handleDownload(screenshots[selectedIndex])}
-                  sx={{ color: 'white' }}
-                >
-                  <DownloadIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={handleClose}
-                  sx={{ color: 'white' }}
-                >
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: isMobile ? '100vh' : '70vh',
-                  bgcolor: theme.palette.background.default,
-                }}
-              >
-                <IconButton
-                  onClick={handlePrev}
-                  sx={{ position: 'absolute', left: 8 }}
-                >
-                  <PrevIcon />
-                </IconButton>
-
-                <img
-                  src={screenshots[selectedIndex].url}
-                  alt={screenshots[selectedIndex].title}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: isMobile ? '100vh' : '70vh',
-                    objectFit: 'contain',
-                  }}
-                />
-
-                <IconButton
-                  onClick={handleNext}
-                  sx={{ position: 'absolute', right: 8 }}
-                >
-                  <NextIcon />
-                </IconButton>
-              </Box>
-
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  bgcolor: 'rgba(0, 0, 0, 0.5)',
-                  color: 'white',
-                  p: 1,
-                }}
-              >
-                <Typography variant="caption">
-                  {screenshots[selectedIndex].title} -{' '}
-                  {new Date(screenshots[selectedIndex].timestamp).toLocaleString()}
-                </Typography>
-              </Box>
-            </DialogContent>
-          </>
-        )}
-      </Dialog>
+      <ScreenshotPreviewDialog selectedIndex={selectedIndex} screenshots={screenshots} isMobile={isMobile} handleClose={handleClose} handlePrev={handlePrev} handleNext={handleNext} handleDownload={handleDownload} theme={theme} />
     </Paper>
   );
 }

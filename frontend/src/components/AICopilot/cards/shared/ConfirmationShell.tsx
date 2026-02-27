@@ -54,6 +54,51 @@ function getActionLabel(tool: string): string {
     return labels[tool] || 'Execute';
 }
 
+function ConfirmationFooter({ progress, timeStr, progressColor, isDark, userCanApprove, actionLabel, onConfirm, onDeny }: {
+    progress: number; timeStr: string; progressColor: string; isDark: boolean;
+    userCanApprove: boolean; actionLabel: string; onConfirm: () => void; onDeny: () => void;
+}) {
+    return (
+        <Box sx={{ px: 1.5, pb: 1.5 }}>
+            <Box sx={{ mb: 1 }}>
+                <LinearProgress
+                    variant="determinate"
+                    value={progress}
+                    aria-label={`${timeStr} remaining to respond`}
+                    aria-valuenow={Math.round(progress)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    sx={{
+                        height: 4, borderRadius: 2,
+                        bgcolor: isDark ? '#334155' : '#E2E8F0',
+                        '& .MuiLinearProgress-bar': { bgcolor: progressColor, borderRadius: 2 },
+                    }}
+                />
+                <Typography variant="caption" color="text.disabled" sx={{ mt: 0.25, display: 'block', textAlign: 'right' }}>
+                    {timeStr} remaining
+                </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1.5 }} role="group" aria-label="Confirmation actions">
+                <Button fullWidth variant="outlined" color="inherit" onClick={onDeny} aria-label="Deny action (Escape)" sx={{ borderRadius: 2, textTransform: 'none', color: 'text.secondary' }}>
+                    Deny <Typography component="span" variant="caption" aria-hidden="true" sx={{ ml: 0.5, opacity: 0.6 }}>{'\u238B'}</Typography>
+                </Button>
+                {userCanApprove ? (
+                    <Button fullWidth variant="contained" onClick={onConfirm} aria-label={`${actionLabel} (Enter)`}
+                        sx={{ borderRadius: 2, textTransform: 'none', bgcolor: isDark ? '#16A34A' : '#2E7D32', '&:hover': { bgcolor: isDark ? '#15803D' : '#1B5E20' } }}
+                        startIcon={<CheckIcon />}
+                    >
+                        {actionLabel} <Typography component="span" variant="caption" aria-hidden="true" sx={{ ml: 0.5, opacity: 0.7 }}>{'\u23CE'}</Typography>
+                    </Button>
+                ) : (
+                    <Typography variant="caption" color="text.disabled" sx={{ alignSelf: 'center' }}>
+                        Requires Editor role
+                    </Typography>
+                )}
+            </Box>
+        </Box>
+    );
+}
+
 export default function ConfirmationShell({
     tool, actionId: _actionId, status, createdAt, userRole, onConfirm, onDeny, children
 }: ConfirmationShellProps) {
@@ -163,62 +208,7 @@ export default function ConfirmationShell({
 
             {/* Footer: timer + buttons */}
             {isPending && (
-                <Box sx={{ px: 1.5, pb: 1.5 }}>
-                    {/* Countdown bar */}
-                    <Box sx={{ mb: 1 }}>
-                        <LinearProgress
-                            variant="determinate"
-                            value={progress}
-                            aria-label={`${timeStr} remaining to respond`}
-                            aria-valuenow={Math.round(progress)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            sx={{
-                                height: 4,
-                                borderRadius: 2,
-                                bgcolor: isDark ? '#334155' : '#E2E8F0',
-                                '& .MuiLinearProgress-bar': { bgcolor: progressColor, borderRadius: 2 },
-                            }}
-                        />
-                        <Typography variant="caption" color="text.disabled" sx={{ mt: 0.25, display: 'block', textAlign: 'right' }}>
-                            {timeStr} remaining
-                        </Typography>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 1.5 }} role="group" aria-label="Confirmation actions">
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            color="inherit"
-                            onClick={onDeny}
-                            aria-label="Deny action (Escape)"
-                            sx={{ borderRadius: 2, textTransform: 'none', color: 'text.secondary' }}
-                        >
-                            Deny <Typography component="span" variant="caption" aria-hidden="true" sx={{ ml: 0.5, opacity: 0.6 }}>{'\u238B'}</Typography>
-                        </Button>
-                        {userCanApprove ? (
-                            <Button
-                                fullWidth
-                                variant="contained"
-                                onClick={onConfirm}
-                                aria-label={`${actionLabel} (Enter)`}
-                                sx={{
-                                    borderRadius: 2,
-                                    textTransform: 'none',
-                                    bgcolor: isDark ? '#16A34A' : '#2E7D32',
-                                    '&:hover': { bgcolor: isDark ? '#15803D' : '#1B5E20' },
-                                }}
-                                startIcon={<CheckIcon />}
-                            >
-                                {actionLabel} <Typography component="span" variant="caption" aria-hidden="true" sx={{ ml: 0.5, opacity: 0.7 }}>{'\u23CE'}</Typography>
-                            </Button>
-                        ) : (
-                            <Typography variant="caption" color="text.disabled" sx={{ alignSelf: 'center' }}>
-                                Requires Editor role
-                            </Typography>
-                        )}
-                    </Box>
-                </Box>
+                <ConfirmationFooter progress={progress} timeStr={timeStr} progressColor={progressColor} isDark={isDark} userCanApprove={userCanApprove} actionLabel={actionLabel} onConfirm={onConfirm} onDeny={onDeny} />
             )}
         </Paper>
     );

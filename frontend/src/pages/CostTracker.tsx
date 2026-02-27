@@ -56,6 +56,164 @@ interface UsageEntry {
   cacheHits: number;
 }
 
+function CostSummaryCards({ metrics, budgetUsedPercent }: { metrics: CostMetrics; budgetUsedPercent: number }) {
+  return (
+    <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid item xs={12} sm={6} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Total Cost
+              </Typography>
+              <MoneyIcon color="primary" />
+            </Box>
+            <Typography variant="h3" fontWeight="bold" color="primary.main" sx={{ my: 1 }}>
+              ${metrics.totalCost.toFixed(2)}
+            </Typography>
+            <Typography variant="body2" color="success.main">
+              <TrendingDownIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
+              18% lower than last month
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Monthly Budget
+              </Typography>
+              <MoneyIcon color={budgetUsedPercent > 80 ? 'error' : 'success'} />
+            </Box>
+            <Typography variant="h3" fontWeight="bold" color="text.primary" sx={{ my: 1 }}>
+              ${metrics.monthlySpent.toFixed(2)}
+            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <LinearProgress
+                variant="determinate"
+                value={budgetUsedPercent}
+                sx={{
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: '#e0e0e0',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: budgetUsedPercent > 80 ? '#ef4444' : '#10b981',
+                  },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                {budgetUsedPercent.toFixed(1)}% of ${metrics.monthlyBudget} budget
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Cache Savings
+              </Typography>
+              <SavingsIcon color="success" />
+            </Box>
+            <Typography variant="h3" fontWeight="bold" color="success.main" sx={{ my: 1 }}>
+              ${metrics.cacheSavings.toFixed(2)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {metrics.cacheHitRate}% cache hit rate
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} sm={6} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Avg Cost/Analysis
+              </Typography>
+              <SpeedIcon color="info" />
+            </Box>
+            <Typography variant="h3" fontWeight="bold" color="info.main" sx={{ my: 1 }}>
+              ${metrics.averageCostPerAnalysis.toFixed(4)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {metrics.totalAnalyses} total analyses
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+}
+
+function UsageBreakdownTable({ usageData }: { usageData: UsageEntry[] }) {
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Daily Usage Breakdown
+        </Typography>
+        <TableContainer component={Paper} elevation={0}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Date</strong></TableCell>
+                <TableCell><strong>Provider</strong></TableCell>
+                <TableCell><strong>Model</strong></TableCell>
+                <TableCell align="right"><strong>Requests</strong></TableCell>
+                <TableCell align="right"><strong>Tokens</strong></TableCell>
+                <TableCell align="right"><strong>Cache Hits</strong></TableCell>
+                <TableCell align="right"><strong>Cost</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {usageData.map((row, index) => (
+                <TableRow key={index} hover>
+                  <TableCell>{row.date}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={row.provider}
+                      size="small"
+                      color={
+                        row.provider === 'Anthropic' ? 'primary' :
+                          row.provider === 'OpenAI' ? 'secondary' :
+                            row.provider === 'OpenRouter' ? 'warning' : 'success'
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{row.model}</TableCell>
+                  <TableCell align="right">{row.requests}</TableCell>
+                  <TableCell align="right">{row.tokens.toLocaleString()}</TableCell>
+                  <TableCell align="right">
+                    <Chip
+                      label={row.cacheHits}
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" fontWeight="bold" color="primary">
+                      ${row.cost.toFixed(3)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function CostTracker() {
   usePageContext('cost-tracker');
   const [timeRange, setTimeRange] = useState('30d');
@@ -127,161 +285,9 @@ export default function CostTracker() {
         </FormControl>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Total Cost */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Total Cost
-                </Typography>
-                <MoneyIcon color="primary" />
-              </Box>
-              <Typography variant="h3" fontWeight="bold" color="primary.main" sx={{ my: 1 }}>
-                ${metrics.totalCost.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" color="success.main">
-                <TrendingDownIcon sx={{ fontSize: 14, verticalAlign: 'middle', mr: 0.5 }} />
-                18% lower than last month
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      <CostSummaryCards metrics={metrics} budgetUsedPercent={budgetUsedPercent} />
 
-        {/* Monthly Budget */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Monthly Budget
-                </Typography>
-                <MoneyIcon color={budgetUsedPercent > 80 ? 'error' : 'success'} />
-              </Box>
-              <Typography variant="h3" fontWeight="bold" color="text.primary" sx={{ my: 1 }}>
-                ${metrics.monthlySpent.toFixed(2)}
-              </Typography>
-              <Box sx={{ mt: 1 }}>
-                <LinearProgress
-                  variant="determinate"
-                  value={budgetUsedPercent}
-                  sx={{
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: '#e0e0e0',
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: budgetUsedPercent > 80 ? '#ef4444' : '#10b981',
-                    },
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                  {budgetUsedPercent.toFixed(1)}% of ${metrics.monthlyBudget} budget
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Cache Savings */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Cache Savings
-                </Typography>
-                <SavingsIcon color="success" />
-              </Box>
-              <Typography variant="h3" fontWeight="bold" color="success.main" sx={{ my: 1 }}>
-                ${metrics.cacheSavings.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {metrics.cacheHitRate}% cache hit rate
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Average Cost */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Avg Cost/Analysis
-                </Typography>
-                <SpeedIcon color="info" />
-              </Box>
-              <Typography variant="h3" fontWeight="bold" color="info.main" sx={{ my: 1 }}>
-                ${metrics.averageCostPerAnalysis.toFixed(4)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {metrics.totalAnalyses} total analyses
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Usage Breakdown Table */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Daily Usage Breakdown
-          </Typography>
-          <TableContainer component={Paper} elevation={0}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>Date</strong></TableCell>
-                  <TableCell><strong>Provider</strong></TableCell>
-                  <TableCell><strong>Model</strong></TableCell>
-                  <TableCell align="right"><strong>Requests</strong></TableCell>
-                  <TableCell align="right"><strong>Tokens</strong></TableCell>
-                  <TableCell align="right"><strong>Cache Hits</strong></TableCell>
-                  <TableCell align="right"><strong>Cost</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {usageData.map((row, index) => (
-                  <TableRow key={index} hover>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={row.provider}
-                        size="small"
-                        color={
-                          row.provider === 'Anthropic' ? 'primary' :
-                            row.provider === 'OpenAI' ? 'secondary' :
-                              row.provider === 'OpenRouter' ? 'warning' : 'success'
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>{row.model}</TableCell>
-                    <TableCell align="right">{row.requests}</TableCell>
-                    <TableCell align="right">{row.tokens.toLocaleString()}</TableCell>
-                    <TableCell align="right">
-                      <Chip
-                        label={row.cacheHits}
-                        size="small"
-                        color="success"
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" fontWeight="bold" color="primary">
-                        ${row.cost.toFixed(3)}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+      <UsageBreakdownTable usageData={usageData} />
     </Container>
   );
 }
