@@ -217,7 +217,7 @@ Configuration file: `~/.claude/config.json`
   "mcpServers": {
     "testops": {
       "command": "node",
-      "args": ["/path/to/testops-companion/mcp-server/dist/index.js"],
+      "args": ["/path/to/testops-copilot/mcp-server/dist/index.js"],
       "env": {
         "DATABASE_URL": "postgresql://testops:testops@localhost:5432/testops"
       }

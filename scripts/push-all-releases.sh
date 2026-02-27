@@ -20,7 +20,7 @@ if [ ! -t 0 ]; then
   exit $_rc
 fi
 
-REPO="rayalon1984/testops-companion"
+REPO="rayalon1984/testops-copilot"
 
 echo "==> Pushing all tags to origin..."
 git push origin --tags
@@ -313,8 +313,8 @@ Circuit breakers, automatic retries, and timeout management on every external se
 ## Get Started
 
 ```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 git checkout v3.0.0-beta.1
 npm run setup
 ```
@@ -322,7 +322,7 @@ npm run setup
 ---
 
 > **This is a beta release.** We're actively collecting feedback before GA.
-> Found an issue? [Open a bug report →](https://github.com/rayalon1984/testops-companion/issues)
+> Found an issue? [Open a bug report →](https://github.com/rayalon1984/testops-copilot/issues)
 NOTES
 upsert_release "v3.0.0-beta.1" \
   "TestOps Copilot v3.0.0-beta.1 — AI That Thinks, Acts, and Learns" \
@@ -343,7 +343,7 @@ The full agentic copilot flow is now covered by Playwright smoke tests.
 - **CI-ready** with auto-start, retries, and trace capture on failure
 - **Scenarios covered:** ReAct loop, confirmation flow, proactive suggestions, autonomous actions, persona routing, session persistence
 
-> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
+> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-copilot/issues)
 NOTES
 upsert_release "v3.0.1-beta.1" \
   "TestOps Copilot v3.0.1-beta.1 — End-to-End Test Coverage" \
@@ -363,7 +363,7 @@ New users get a guided onboarding flow. Existing users get smarter error handlin
 - **Budget Indicator** — live spend badge with 80% warning threshold
 - **Smart Error Recovery** — auto-retry for network errors, budget links for rate limits, visual error classification
 
-> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
+> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-copilot/issues)
 NOTES
 upsert_release "v3.0.2-beta.1" \
   "TestOps Copilot v3.0.2-beta.1 — First-Run Experience & Error Recovery" \
@@ -390,7 +390,7 @@ Specs are no longer passive documentation. This release connects product specifi
 - 323 tests passing, build/typecheck/lint all clean
 - Spec scanner: 3 features, 43 assertions valid
 
-> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
+> This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-copilot/issues)
 NOTES
 upsert_release "v3.0.3-beta.1" \
   "TestOps Copilot v3.0.3-beta.1 — Living Feature Specs" \

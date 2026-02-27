@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.0.1-blue" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js Version"></a>
@@ -41,8 +41,8 @@ You review it, hit approve, and move on with your coffee.
 ## Get Running in 2 Minutes
 
 ```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion && npm install && npm run dev:simple
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot && npm install && npm run dev:simple
 ```
 
 No PostgreSQL. No Redis. No API keys. Login with `engineer@testops.ai` / `demo123`.
@@ -253,7 +253,7 @@ Full API reference: **[docs/api.md](docs/api.md)**
 ## Project Structure
 
 ```
-testops-companion/
+testops-copilot/
 ├── backend/
 │   ├── prisma/                          # Schema (dev + production) & migrations
 │   └── src/
@@ -326,10 +326,10 @@ Apache License 2.0 — see [LICENSE](LICENSE).
 </p>
 
 <p align="center">
-  <a href="https://github.com/rayalon1984/testops-companion/issues">Report a Bug</a> ·
-  <a href="https://github.com/rayalon1984/testops-companion/issues">Request a Feature</a>
+  <a href="https://github.com/rayalon1984/testops-copilot/issues">Report a Bug</a> ·
+  <a href="https://github.com/rayalon1984/testops-copilot/issues">Request a Feature</a>
 </p>
 
 <p align="center">
-  If you find this project useful, give it a <a href="https://github.com/rayalon1984/testops-companion">star</a>!
+  If you find this project useful, give it a <a href="https://github.com/rayalon1984/testops-copilot">star</a>!
 </p>

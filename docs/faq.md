@@ -23,8 +23,8 @@ Yes, TestOps Copilot is open source and free to use. We also offer enterprise fe
 #### How do I install TestOps Copilot?
 ```bash
 # Clone the repository
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 
 # Quick demo (no Docker needed)
 npm install && npm run dev:simple
@@ -178,7 +178,7 @@ npm run test:coverage
 ### Enterprise Features
 
 #### How do I enable enterprise features?
-Contact our sales team at sales@testops-companion.com for enterprise licensing.
+Contact our sales team at sales@testops-copilot.com for enterprise licensing.
 
 #### What's included in enterprise features?
 - SAML/SSO integration
@@ -209,8 +209,8 @@ Contact our sales team at sales@testops-companion.com for enterprise licensing.
 #### Where can I get help?
 - [Quick Start Guide](quickstart.md)
 - [Troubleshooting Guide](troubleshooting.md)
-- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues)
-- [GitHub Discussions](https://github.com/rayalon1984/testops-companion/discussions)
+- [GitHub Issues](https://github.com/rayalon1984/testops-copilot/issues)
+- [GitHub Discussions](https://github.com/rayalon1984/testops-copilot/discussions)
 
 #### How do I report a bug?
 1. Check existing issues

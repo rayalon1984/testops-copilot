@@ -72,8 +72,8 @@ backup_database() {
 check_ssl_certificates() {
     echo -e "${YELLOW}Checking SSL certificates...${NC}"
     
-    local cert_path="./nginx/ssl/testops-companion.crt"
-    local key_path="./nginx/ssl/testops-companion.key"
+    local cert_path="./nginx/ssl/testops-copilot.crt"
+    local key_path="./nginx/ssl/testops-copilot.key"
     
     if [ ! -f "$cert_path" ] || [ ! -f "$key_path" ]; then
         echo -e "${RED}Error: SSL certificates not found${NC}"

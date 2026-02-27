@@ -94,7 +94,7 @@ TestOps Copilot follows [Semantic Versioning](https://semver.org/):
 ### 3. Post-Release Tasks
 
 - [ ] **Verify Release Artifacts**
-  - Check Docker images are available: `docker pull ghcr.io/rayalon1984/testops-companion/backend:1.1.0`
+  - Check Docker images are available: `docker pull ghcr.io/rayalon1984/testops-copilot/backend:1.1.0`
   - Verify release page displays correctly
   - Test documentation links
 
@@ -167,8 +167,8 @@ Brief summary of the most important changes in this release.
 
 ```bash
 # Clone the repository
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 
 # Checkout this version
 git checkout v1.1.0
@@ -180,8 +180,8 @@ npm run setup
 ### 🐳 Docker Images
 
 ```bash
-docker pull ghcr.io/rayalon1984/testops-companion/backend:1.1.0
-docker pull ghcr.io/rayalon1984/testops-companion/frontend:1.1.0
+docker pull ghcr.io/rayalon1984/testops-copilot/backend:1.1.0
+docker pull ghcr.io/rayalon1984/testops-copilot/frontend:1.1.0
 ```
 
 ### 📖 Full Changelog
@@ -194,7 +194,7 @@ Thanks to everyone who contributed to this release!
 
 ---
 
-**Previous Release:** [v1.0.0](https://github.com/rayalon1984/testops-companion/releases/tag/v1.0.0)
+**Previous Release:** [v1.0.0](https://github.com/rayalon1984/testops-copilot/releases/tag/v1.0.0)
 **Next Release:** [v1.2.0 Roadmap](ROADMAP.md)
 ```
 

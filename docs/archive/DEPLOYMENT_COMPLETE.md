@@ -328,7 +328,7 @@ Large Team (2000 runs):  $173/year (vs $240 conservative)
 
 1. **Visit PR URL:**
    ```
-   https://github.com/rayalon1984/testops-companion/pull/new/claude/optimize-mcp-testops-jpKj5
+   https://github.com/rayalon1984/testops-copilot/pull/new/claude/optimize-mcp-testops-jpKj5
    ```
 
 2. **Use This Title:**
@@ -338,7 +338,7 @@ Large Team (2000 runs):  $173/year (vs $240 conservative)
 
 3. **Paste Description From:**
    ```
-   /home/user/testops-companion/PR_DESCRIPTION.md
+   /home/user/testops-copilot/PR_DESCRIPTION.md
    ```
 
 4. **Add Labels:**
@@ -436,8 +436,8 @@ Restart Claude Code and ask:
 - **Changelog:** `CHANGELOG.md`
 
 ### Get Help
-- **Issues:** https://github.com/rayalon1984/testops-companion/issues
-- **Discussions:** https://github.com/rayalon1984/testops-companion/discussions
+- **Issues:** https://github.com/rayalon1984/testops-copilot/issues
+- **Discussions:** https://github.com/rayalon1984/testops-copilot/discussions
 
 ---
 

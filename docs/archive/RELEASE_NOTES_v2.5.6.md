@@ -122,8 +122,8 @@ Three new documentation files:
 ### For Fresh Installations:
 
 ```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 bash scripts/setup-validated.sh
 npm run dev
 ```
@@ -131,7 +131,7 @@ npm run dev
 ### For Existing Broken Installations:
 
 ```bash
-cd testops-companion
+cd testops-copilot
 git pull origin main
 npm run setup:clean
 rm -f backend/.env frontend/.env
@@ -209,7 +209,7 @@ If you encounter any issues:
 
 1. Review [QUICKSTART.md](quickstart.md) for installation steps
 2. Check [INSTALLATION_ISSUES_REPORT.md](INSTALLATION_ISSUES_REPORT.md) for troubleshooting
-3. Open an issue: https://github.com/rayalon1984/testops-companion/issues
+3. Open an issue: https://github.com/rayalon1984/testops-copilot/issues
 
 Include:
 - Operating system and version
@@ -236,9 +236,9 @@ Include:
 
 ---
 
-**Full Changelog**: https://github.com/rayalon1984/testops-companion/compare/v2.5.5...v2.5.6
+**Full Changelog**: https://github.com/rayalon1984/testops-copilot/compare/v2.5.5...v2.5.6
 
-**Download**: https://github.com/rayalon1984/testops-companion/archive/refs/tags/v2.5.6.zip
+**Download**: https://github.com/rayalon1984/testops-copilot/archive/refs/tags/v2.5.6.zip
 
 ---
 

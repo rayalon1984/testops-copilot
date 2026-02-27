@@ -1,9 +1,9 @@
 # Repository settings managed by probot-settings (https://probot.github.io/apps/settings/)
 
 repository:
-  name: testops-companion
+  name: testops-copilot
   description: A comprehensive test automation management platform
-  homepage: https://docs.testops-companion.com
+  homepage: https://docs.testops-copilot.com
   private: true
   has_issues: true
   has_projects: true

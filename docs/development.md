@@ -19,7 +19,7 @@ For installation and setup instructions, see the **[Quick Start Guide](quickstar
 ## Project Structure
 
 ```
-testops-companion/
+testops-copilot/
 ├── backend/                 # Backend application
 │   ├── src/
 │   │   ├── config/         # Configuration files

@@ -12,8 +12,8 @@ Get started with TestOps Copilot in minutes. Choose the path that fits your need
 
 ```bash
 # Clone and start
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 npm install
 npm run dev:simple
 ```
@@ -42,8 +42,8 @@ npm run dev:simple
 **Prerequisites**: Node.js 18+, npm 9+, Docker Desktop
 
 ```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 npm install
 
 # Start infrastructure (PostgreSQL, Redis, Weaviate)
@@ -265,4 +265,4 @@ npm run build            # Build for production
 - [API Reference](api.md) — Full REST API documentation
 - [Architecture](architecture.md) — System design overview
 - [Lessons Learned](LESSONS_LEARNED.md) — Known pitfalls and prevention
-- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues) — Report bugs or request features
+- [GitHub Issues](https://github.com/rayalon1984/testops-copilot/issues) — Report bugs or request features

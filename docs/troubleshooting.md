@@ -194,5 +194,5 @@ docker compose exec redis redis-cli FLUSHALL
 
 1. Check the [Quick Start Guide](quickstart.md) for setup instructions
 2. Review [Lessons Learned](LESSONS_LEARNED.md) for known pitfalls
-3. Search [existing issues](https://github.com/rayalon1984/testops-companion/issues)
-4. Open a [new issue](https://github.com/rayalon1984/testops-companion/issues/new/choose)
+3. Search [existing issues](https://github.com/rayalon1984/testops-copilot/issues)
+4. Open a [new issue](https://github.com/rayalon1984/testops-copilot/issues/new/choose)

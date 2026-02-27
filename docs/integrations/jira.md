@@ -200,5 +200,5 @@ JIRA_DEBUG=true
 For issues with the Jira integration:
 
 1. Check the [troubleshooting guide](#troubleshooting)
-2. Review [GitHub issues](https://github.com/rayalon1984/testops-companion/issues)
-3. Join our [Discord community](https://discord.gg/testops-companion)
+2. Review [GitHub issues](https://github.com/rayalon1984/testops-copilot/issues)
+3. Join our [Discord community](https://discord.gg/testops-copilot)

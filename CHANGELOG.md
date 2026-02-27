@@ -109,8 +109,8 @@ This isn't a prototype. v3 went through a dedicated security audit in rc.3:
 ### Get Running in 2 Minutes
 
 ```bash
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion && npm install && npm run dev:simple
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot && npm install && npm run dev:simple
 ```
 
 No PostgreSQL. No Redis. No API keys. SQLite + mock AI provider. Login with `engineer@testops.ai` / `demo123` and start talking to the copilot.

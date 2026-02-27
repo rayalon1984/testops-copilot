@@ -12,7 +12,7 @@
 
 services:
   frontend:
-    image: ghcr.io/rayalon1984/testops-companion/frontend:latest
+    image: ghcr.io/rayalon1984/testops-copilot/frontend:latest
     ports:
       - "80:80"
     restart: always
@@ -25,7 +25,7 @@ services:
       - testops-network
 
   backend:
-    image: ghcr.io/rayalon1984/testops-companion/backend:latest
+    image: ghcr.io/rayalon1984/testops-copilot/backend:latest
     ports:
       - "3000:3000"
     restart: always

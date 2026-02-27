@@ -515,8 +515,8 @@ TestRail API has the following limits:
 ## Need Help?
 
 - 📖 [TestOps Copilot Documentation](../README.md)
-- 🐛 [Report an Issue](https://github.com/rayalon1984/testops-companion/issues)
-- 💬 [Discussions](https://github.com/rayalon1984/testops-companion/discussions)
+- 🐛 [Report an Issue](https://github.com/rayalon1984/testops-copilot/issues)
+- 💬 [Discussions](https://github.com/rayalon1984/testops-copilot/discussions)
 
 ---
 

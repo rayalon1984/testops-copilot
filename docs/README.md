@@ -92,4 +92,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](../LIC
 
 ## Support
 
-- [GitHub Issues](https://github.com/rayalon1984/testops-companion/issues) - Report bugs or request features
+- [GitHub Issues](https://github.com/rayalon1984/testops-copilot/issues) - Report bugs or request features

@@ -4,7 +4,7 @@
 
 Visit this URL in your browser:
 ```
-https://github.com/rayalon1984/testops-companion/pull/new/claude/optimize-mcp-testops-jpKj5
+https://github.com/rayalon1984/testops-copilot/pull/new/claude/optimize-mcp-testops-jpKj5
 ```
 
 ## PR Details
@@ -34,7 +34,7 @@ failures with 98% token reduction and 90% cost savings.
 
 ### Full Description (paste PR_DESCRIPTION.md content)
 
-See the complete PR description in: `/home/user/testops-companion/PR_DESCRIPTION.md`
+See the complete PR description in: `/home/user/testops-copilot/PR_DESCRIPTION.md`
 
 Copy the entire contents of that file into the PR description field on GitHub.
 

@@ -93,7 +93,7 @@ Edit your Claude Code MCP configuration:
     "testops": {
       "command": "node",
       "args": [
-        "/absolute/path/to/testops-companion/mcp-server/dist/index.js"
+        "/absolute/path/to/testops-copilot/mcp-server/dist/index.js"
       ],
       "env": {
         "DATABASE_URL": "postgresql://testops:testops@localhost:5432/testops",
@@ -606,8 +606,8 @@ Quarterly: Audit knowledge base quality
 
 ### Getting Help
 
-- GitHub Issues: https://github.com/rayalon1984/testops-companion/issues
-- Discussions: https://github.com/rayalon1984/testops-companion/discussions
+- GitHub Issues: https://github.com/rayalon1984/testops-copilot/issues
+- Discussions: https://github.com/rayalon1984/testops-copilot/discussions
 
 ### Contributing
 

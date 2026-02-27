@@ -282,7 +282,7 @@ describe('Autonomy Flow Integration', () => {
         state: 'open',
         mergeable: true,
         number: 402,
-        repo: 'testops-companion',
+        repo: 'testops-copilot',
       });
 
       const suggestion = evaluateSuggestion({

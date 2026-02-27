@@ -95,7 +95,7 @@ Edit `~/.claude/config.json`:
   "mcpServers": {
     "testops": {
       "command": "node",
-      "args": ["/path/to/testops-companion/mcp-server/dist/index.js"],
+      "args": ["/path/to/testops-copilot/mcp-server/dist/index.js"],
       "env": {
         "DATABASE_URL": "postgresql://testops:testops@localhost:5432/testops"
       }
@@ -217,8 +217,8 @@ Thank you to the community for your continued support! This release represents m
 ## 📞 Support
 
 - **Documentation:** [docs/MCP_INTEGRATION.md](MCP_INTEGRATION.md)
-- **Issues:** https://github.com/rayalon1984/testops-companion/issues
-- **Discussions:** https://github.com/rayalon1984/testops-companion/discussions
+- **Issues:** https://github.com/rayalon1984/testops-copilot/issues
+- **Discussions:** https://github.com/rayalon1984/testops-copilot/discussions
 
 ## 📈 Stats
 
@@ -230,9 +230,9 @@ Thank you to the community for your continued support! This release represents m
 
 ---
 
-**Download:** [v2.6.0](https://github.com/rayalon1984/testops-companion/releases/tag/v2.6.0)
+**Download:** [v2.6.0](https://github.com/rayalon1984/testops-copilot/releases/tag/v2.6.0)
 
-**Previous Release:** [v2.5.6](https://github.com/rayalon1984/testops-companion/releases/tag/v2.5.6)
+**Previous Release:** [v2.5.6](https://github.com/rayalon1984/testops-copilot/releases/tag/v2.5.6)
 
 ---
 

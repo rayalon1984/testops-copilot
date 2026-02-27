@@ -13,8 +13,8 @@ Deploy TestOps Copilot to production in under 5 minutes.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 
 # 2. Copy production env template
 cp .env.production.example .env.production
@@ -61,7 +61,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 ## 🔄 Updating to New Version
 
 ```bash
-cd testops-companion
+cd testops-copilot
 docker compose -f docker-compose.ghcr.yml pull
 docker compose -f docker-compose.ghcr.yml up -d
 ```
