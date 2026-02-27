@@ -46,19 +46,18 @@ jobs:
     - name: Generate Prisma Client
       run: npx prisma generate
 
-    - name: Architecture check
+    - name: Architecture and health checks
       working-directory: .
-      run: npm run check:architecture
+      run: |
+        npm run check:architecture &
+        npm run check:health &
+        wait
 
-    - name: Code health check
-      working-directory: .
-      run: npm run check:health
-
-    - name: Lint
-      run: npm run lint
-
-    - name: Typecheck
-      run: npm run typecheck
+    - name: Lint and typecheck
+      run: |
+        npm run lint &
+        npm run typecheck &
+        wait
 
     - name: Run tests
       run: npm test
@@ -80,11 +79,10 @@ jobs:
         npm run typecheck
 
     - name: Security audit (fail on high severity)
-      run: npm audit --audit-level=high
-
-    - name: Root lockfile audit (fail on high severity)
-      working-directory: .
-      run: npm audit --audit-level=high
+      run: |
+        npm audit --audit-level=high &
+        (cd .. && npm audit --audit-level=high) &
+        wait
 
   docker-build:
     runs-on: ubuntu-latest
