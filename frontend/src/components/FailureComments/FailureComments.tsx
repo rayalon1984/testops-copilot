@@ -3,7 +3,7 @@
  * Comments list + add form for collaborative RCA discussion
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -18,62 +18,27 @@ import {
   Delete as DeleteIcon,
   Send as SendIcon,
 } from '@mui/icons-material';
-import { api } from '../../api';
-import type { ApiSchemas } from '../../api';
-
-type Comment = ApiSchemas['FailureComment'];
+import { useFailureComments, useAddFailureComment, useDeleteFailureComment } from '../../hooks/api';
 
 interface FailureCommentsProps {
   failureId: string;
 }
 
 const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
-  const fetchComments = useCallback(async () => {
-    try {
-      const json = await api.get<{ success: boolean; data: { comments: Comment[]; total: number } }>(`/failure-archive/${failureId}/comments`);
-      if (json.success) {
-        setComments(json.data.comments);
-      }
-    } catch {
-      // Silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, [failureId]);
+  const { data: comments = [], isLoading } = useFailureComments(failureId);
+  const addComment = useAddFailureComment(failureId);
+  const deleteComment = useDeleteFailureComment(failureId);
 
-  useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
-
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!newComment.trim()) return;
-    setSubmitting(true);
-    try {
-      await api.post(`/failure-archive/${failureId}/comments`, { content: newComment.trim() });
-      setNewComment('');
-      await fetchComments();
-    } catch {
-      // Silently fail
-    } finally {
-      setSubmitting(false);
-    }
+    addComment.mutate(newComment.trim(), {
+      onSuccess: () => setNewComment(''),
+    });
   };
 
-  const handleDelete = async (commentId: string) => {
-    try {
-      await api.delete(`/failure-archive/${failureId}/comments/${commentId}`);
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
-    } catch {
-      // Silently fail
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Box sx={{ textAlign: 'center', py: 2 }}>
         <CircularProgress size={20} />
@@ -98,16 +63,16 @@ const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
           multiline
           maxRows={3}
-          disabled={submitting}
+          disabled={addComment.isPending}
         />
         <Button
           variant="contained"
           size="small"
           onClick={handleSubmit}
-          disabled={submitting || !newComment.trim()}
+          disabled={addComment.isPending || !newComment.trim()}
           sx={{ minWidth: 40, px: 1 }}
         >
-          {submitting ? <CircularProgress size={18} /> : <SendIcon fontSize="small" />}
+          {addComment.isPending ? <CircularProgress size={18} /> : <SendIcon fontSize="small" />}
         </Button>
       </Box>
 
@@ -141,7 +106,7 @@ const FailureComments: React.FC<FailureCommentsProps> = ({ failureId }) => {
                   {comment.content}
                 </Typography>
               </Box>
-              <IconButton size="small" onClick={() => handleDelete(comment.id)}>
+              <IconButton size="small" onClick={() => deleteComment.mutate(comment.id)}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
             </Box>

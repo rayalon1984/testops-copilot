@@ -3,7 +3,7 @@
  * Browse, search, and analyze past failures and their RCAs
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePageContext } from '../hooks/usePageContext';
 import {
   Box,
@@ -36,60 +36,30 @@ import {
 import PageHeader from '../components/PageHeader/PageHeader';
 import FailureTrendChart from '../components/FailureTrendChart/FailureTrendChart';
 import RiskScoreTable from '../components/RiskScoreTable/RiskScoreTable';
-import { api } from '../api';
-import type { ApiSchemas } from '../api';
-
-type FailureInsights = ApiSchemas['FailureInsights'];
-type Failure = ApiSchemas['FailureSearchResult'];
+import { useFailureInsights, useFailureSearch } from '../hooks/api';
 
 export const FailureKnowledgeBase: React.FC = () => {
   usePageContext('failure-knowledge-base');
-  const [insights, setInsights] = useState<FailureInsights | null>(null);
-  const [failures, setFailures] = useState<Failure[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
   const [showRecurringOnly, _setShowRecurringOnly] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Build search params — React Query auto-refetches when these change
+  const searchParams = useMemo(() => {
+    const params: Record<string, string> = { limit: '50' };
+    if (searchTerm) params.testName = searchTerm;
+    if (statusFilter) params.status = statusFilter;
+    if (severityFilter) params.severity = severityFilter;
+    if (showRecurringOnly) params.isRecurring = 'true';
+    return params;
+  }, [searchTerm, statusFilter, severityFilter, showRecurringOnly]);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [insightsData, failuresData] = await Promise.all([
-        api.get<FailureInsights>('/failure-archive/insights?days=30'),
-        api.get<{ failures: Failure[]; total: number }>('/failure-archive/search?limit=50'),
-      ]);
+  const { data: insights, isLoading: insightsLoading } = useFailureInsights(30);
+  const { data: failuresData, isLoading: failuresLoading } = useFailureSearch(searchParams);
 
-      setInsights(insightsData);
-      setFailures(failuresData.failures);
-    } catch {
-      // Network errors are surfaced via empty state UI
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('testName', searchTerm);
-      if (statusFilter) params.append('status', statusFilter);
-      if (severityFilter) params.append('severity', severityFilter);
-      if (showRecurringOnly) params.append('isRecurring', 'true');
-
-      const data = await api.get<{ failures: Failure[]; total: number }>(`/failure-archive/search?${params.toString()}`);
-      setFailures(data.failures);
-    } catch {
-      // Search errors are surfaced via empty state UI
-    } finally {
-      setLoading(false);
-    }
-  };
+  const failures = failuresData?.failures ?? [];
+  const loading = insightsLoading || failuresLoading;
 
   if (loading && !insights) {
     return (
@@ -159,7 +129,7 @@ export const FailureKnowledgeBase: React.FC = () => {
       {insights && insights.mostCommonFailures && insights.mostCommonFailures.length > 0 && (
         <Paper sx={{ p: 3, mb: 4 }}>
           <Typography variant="h6" gutterBottom>
-            🔥 Most Common Failures (Last 30 Days)
+            Most Common Failures (Last 30 Days)
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Stack spacing={1}>
@@ -200,7 +170,6 @@ export const FailureKnowledgeBase: React.FC = () => {
               placeholder="Search by test name or error message..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               InputProps={{
                 startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
               }}
@@ -242,20 +211,13 @@ export const FailureKnowledgeBase: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} sm={4} md={2}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleSearch}
-              sx={{ height: '56px' }}
-            >
-              Search
-            </Button>
+            <Box sx={{ height: '56px' }} />
           </Grid>
         </Grid>
       </Paper>
 
       {/* Failures List */}
-      {loading ? (
+      {failuresLoading ? (
         <Box display="flex" justifyContent="center" p={4}>
           <CircularProgress />
         </Box>
@@ -310,7 +272,7 @@ export const FailureKnowledgeBase: React.FC = () => {
                   {failure.rootCause && (
                     <Box sx={{ bgcolor: 'success.light', p: 2, borderRadius: 1, mb: 2, color: 'success.contrastText' }}>
                       <Typography variant="subtitle2" gutterBottom>
-                        ✅ Root Cause Documented:
+                        Root Cause Documented:
                       </Typography>
                       <Typography variant="body2">
                         {failure.rootCause.substring(0, 300)}
@@ -322,7 +284,7 @@ export const FailureKnowledgeBase: React.FC = () => {
                   {failure.solution && (
                     <Box sx={{ bgcolor: 'info.light', p: 2, borderRadius: 1, mb: 2, color: 'info.contrastText' }}>
                       <Typography variant="subtitle2" gutterBottom>
-                        💡 Solution:
+                        Solution:
                       </Typography>
                       <Typography variant="body2">
                         {failure.solution.substring(0, 200)}
@@ -339,7 +301,7 @@ export const FailureKnowledgeBase: React.FC = () => {
 
                   <Typography variant="caption" color="text.secondary">
                     Occurred: {new Date(failure.lastOccurrence ?? '').toLocaleString()}
-                    {failure.relatedJiraIssue && ` • Jira: ${failure.relatedJiraIssue}`}
+                    {failure.relatedJiraIssue && ` \u2022 Jira: ${failure.relatedJiraIssue}`}
                   </Typography>
                 </CardContent>
 

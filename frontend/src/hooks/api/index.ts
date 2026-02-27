@@ -15,3 +15,4 @@ export { useUnreadNotifications, useNotifications, useMarkNotificationAsRead, us
 export { useAutonomyPreference, useUpdateAutonomy, useCostMetrics, useAIQuota } from './useAIConfig';
 export { useDashboardMetrics } from './useDashboard';
 export { useFlakyTests } from './useFlakyTests';
+export { useFailureInsights, useFailureSearch, useFailureComments, useAddFailureComment, useDeleteFailureComment } from './useFailureArchive';
