@@ -6,7 +6,7 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:41.793Z"
+    "lastRun": "2026-02-27T21:54:07.003Z"
   },
   "giphy-integration": {
     "lastTestedVersion": "1.0.0",
@@ -16,7 +16,7 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.016Z"
+    "lastRun": "2026-02-27T21:47:41.499Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -26,7 +26,7 @@
       "kb.rca-docs": "1.0.0",
       "kb.insights": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:13:34.700Z"
+    "lastRun": "2026-02-27T21:54:06.452Z"
   },
   "inline-diff": {
     "lastTestedVersion": "1.0.0",
@@ -35,7 +35,7 @@
       "diff.pr-card": "1.0.0",
       "diff.merge-tool": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:45.795Z"
+    "lastRun": "2026-02-27T21:54:06.765Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -45,7 +45,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:13:29.542Z"
+    "lastRun": "2026-02-27T21:54:06.314Z"
   },
   "jira-housekeeping": {
     "lastTestedVersion": "1.0.0",
@@ -56,7 +56,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:44.728Z"
+    "lastRun": "2026-02-27T21:54:06.415Z"
   },
   "proactive-suggestions": {
     "lastTestedVersion": "1.0.0",
@@ -66,7 +66,7 @@
       "proactive.frontend": "1.0.0",
       "proactive.sse": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:43.221Z"
+    "lastRun": "2026-02-27T21:42:22.538Z"
   },
   "context-enrichment": {
     "lastTestedVersion": "1.0.0",
@@ -75,7 +75,7 @@
       "enrichment.confidence": "1.0.0",
       "enrichment.synthesis": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.047Z"
+    "lastRun": "2026-02-27T21:54:07.011Z"
   },
   "react-loop": {
     "lastTestedVersion": "1.0.0",
@@ -85,7 +85,7 @@
       "react.streaming": "1.0.0",
       "react.tools-registry": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:13:32.346Z"
+    "lastRun": "2026-02-27T21:47:41.624Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -96,7 +96,7 @@
       "auth.blacklist": "1.0.0",
       "auth.audit": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:44.019Z"
+    "lastRun": "2026-02-27T21:47:40.128Z"
   },
   "pipeline-management": {
     "lastTestedVersion": "1.0.0",
@@ -105,7 +105,7 @@
       "pipeline.runs": "1.0.0",
       "pipeline.scheduling": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:13:33.782Z"
+    "lastRun": "2026-02-27T21:54:06.931Z"
   },
   "autonomy-preferences": {
     "lastTestedVersion": "1.0.0",
@@ -117,7 +117,7 @@
       "autonomy.frontend": "1.0.0",
       "autonomy.api": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:42.432Z"
+    "lastRun": "2026-02-27T21:54:04.818Z"
   },
   "smart-retry": {
     "lastTestedVersion": "1.0.0",
@@ -127,7 +127,7 @@
       "retry.execution": "1.0.0",
       "retry.frontend": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.075Z"
+    "lastRun": "2026-02-27T21:47:41.423Z"
   },
   "mcp-server": {
     "lastTestedVersion": "1.0.0",
@@ -137,7 +137,7 @@
       "mcp.knowledge": "1.0.0",
       "mcp.stats": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.956Z"
+    "lastRun": "2026-02-27T21:54:06.517Z"
   },
   "ai-cost-management": {
     "lastTestedVersion": "1.0.0",
@@ -145,7 +145,7 @@
       "cost.tracking": "1.0.0",
       "cost.cache": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.776Z"
+    "lastRun": "2026-02-27T21:54:06.942Z"
   },
   "notifications-alerting": {
     "lastTestedVersion": "1.0.0",
@@ -154,6 +154,6 @@
       "notify.slack": "1.0.0",
       "notify.urls": "1.0.0"
     },
-    "lastRun": "2026-02-27T09:49:47.309Z"
+    "lastRun": "2026-02-27T21:54:06.622Z"
   }
 }

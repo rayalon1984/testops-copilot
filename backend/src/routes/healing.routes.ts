@@ -37,6 +37,9 @@ router.patch('/quarantine/:testId/reinstate', authorize(UserRole.EDITOR), asMidd
 router.delete('/quarantine/:testId', authorize(UserRole.ADMIN), asMiddleware(HealingController.deleteQuarantinedTest));
 router.get('/quarantine/stats', asMiddleware(HealingController.getQuarantineStats));
 
+// Fix suggestions (Phase 3)
+router.get('/fix-suggestions', asMiddleware(HealingController.getFixSuggestions));
+
 // Seed built-in rules
 router.post('/seed', authorize(UserRole.ADMIN), asMiddleware(HealingController.seedRules));
 

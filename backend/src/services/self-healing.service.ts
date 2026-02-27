@@ -301,8 +301,7 @@ export class SelfHealingService {
           return await SelfHealingService.executeQuarantine(event.id, evaluation, userId);
 
         case 'fix_pr':
-          // Phase 3 — placeholder
-          return { eventId: event.id, executed: false, reason: 'Fix PR not yet implemented' };
+          return await SelfHealingService.executeFixPR(event.id, evaluation, userId);
 
         default:
           return { eventId: event.id, executed: false, reason: `Unknown action: ${evaluation.action}` };
@@ -479,6 +478,127 @@ export class SelfHealingService {
       executed: true,
       reason: `Test "${testName}" quarantined: ${evaluation.matchReason}`,
     };
+  }
+
+  /**
+   * Execute a fix_pr action: look up known RCA, generate a suggested fix,
+   * and create a record for the user to review / open a PR.
+   *
+   * Phase 3 — AI-Suggested Fix PRs
+   * The actual PR creation is deferred to user approval (Tier 2).
+   * This method prepares the fix suggestion with RCA context.
+   */
+  private static async executeFixPR(
+    eventId: string,
+    evaluation: HealingEvaluation,
+    _userId: string,
+  ): Promise<{ eventId: string; executed: boolean; reason: string }> {
+    // Look up similar failures with documented RCA
+    const similarFailures = await prisma.failureArchive.findMany({
+      where: {
+        rcaDocumented: true,
+        resolved: true,
+        solution: { not: null },
+      },
+      take: 20,
+      orderBy: { lastOccurrence: 'desc' },
+    });
+
+    // Find the best matching RCA by comparing normalized error messages
+    let bestMatch: { id: string; testName: string; rootCause: string | null; solution: string | null; prevention: string | null; similarity: number } | null = null;
+    const normalizedError = normalizeErrorMessage(evaluation.errorMessage);
+
+    for (const failure of similarFailures) {
+      const normalizedCandidate = normalizeErrorMessage(failure.errorMessage);
+      const similarity = calculateSimilarity(normalizedError, normalizedCandidate);
+
+      if (similarity >= 0.5 && (!bestMatch || similarity > bestMatch.similarity)) {
+        bestMatch = {
+          id: failure.id,
+          testName: failure.testName,
+          rootCause: failure.rootCause,
+          solution: failure.solution,
+          prevention: failure.prevention,
+          similarity,
+        };
+      }
+    }
+
+    // Also check the test run for the pipeline's repository info
+    const testRun = await prisma.testRun.findUnique({
+      where: { id: evaluation.testRunId },
+      include: { pipeline: true },
+    });
+
+    const repository = testRun?.pipeline?.repository;
+
+    const fixSuggestion = {
+      rcaMatch: bestMatch ? {
+        failureArchiveId: bestMatch.id,
+        testName: bestMatch.testName,
+        rootCause: bestMatch.rootCause,
+        solution: bestMatch.solution,
+        prevention: bestMatch.prevention,
+        similarity: bestMatch.similarity,
+      } : null,
+      errorMessage: evaluation.errorMessage,
+      matchReason: evaluation.matchReason,
+      repository,
+      branch: testRun?.branch,
+      commit: testRun?.commit,
+      suggestedAction: bestMatch?.solution
+        ? `Apply known fix: ${bestMatch.solution.substring(0, 200)}`
+        : 'No documented fix found — manual investigation recommended',
+      canAutoFix: !!bestMatch?.solution && !!repository,
+    };
+
+    await prisma.healingEvent.update({
+      where: { id: eventId },
+      data: {
+        status: bestMatch ? 'succeeded' : 'failed',
+        completedAt: new Date(),
+        metadata: JSON.stringify(fixSuggestion),
+      },
+    });
+
+    if (bestMatch) {
+      logger.info(`Self-healing fix suggestion: RCA match ${(bestMatch.similarity * 100).toFixed(0)}%`, {
+        rule: evaluation.ruleName,
+        failureArchiveId: bestMatch.id,
+        repository,
+      });
+
+      return {
+        eventId,
+        executed: true,
+        reason: `Fix suggested (${(bestMatch.similarity * 100).toFixed(0)}% RCA match): ${bestMatch.solution?.substring(0, 100) || 'See RCA'}`,
+      };
+    }
+
+    logger.info(`Self-healing fix: no matching RCA found for error`, {
+      rule: evaluation.ruleName,
+      pipeline: evaluation.pipelineId,
+    });
+
+    return {
+      eventId,
+      executed: false,
+      reason: 'No documented RCA match found — manual investigation recommended',
+    };
+  }
+
+  // ── Fix PR Suggestions ──────────────────────────────────
+
+  static async getFixSuggestions(limit = 20): Promise<unknown[]> {
+    return prisma.healingEvent.findMany({
+      where: {
+        action: 'fix_pr',
+        status: { in: ['succeeded', 'failed'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { rule: { select: { name: true, category: true } } },
+    });
   }
 
   // ── Quarantine CRUD ─────────────────────────────────────

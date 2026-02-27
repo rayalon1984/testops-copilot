@@ -240,6 +240,18 @@ export class HealingController {
     }
   }
 
+  // ─── Fix Suggestions ───────────────────────────────────
+
+  static async getFixSuggestions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+      const suggestions = await SelfHealingService.getFixSuggestions(limit);
+      res.json({ success: true, data: suggestions });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ─── Seed ──────────────────────────────────────────────
 
   static async seedRules(_req: Request, res: Response, next: NextFunction): Promise<void> {

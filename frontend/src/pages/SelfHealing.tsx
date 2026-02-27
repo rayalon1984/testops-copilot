@@ -26,8 +26,8 @@ import {
   useHealingRules, useHealingEvents, useHealingStats,
   useCreateHealingRule, useToggleHealingRule, useDeleteHealingRule,
   useSeedHealingRules, useQuarantinedTests, useReinstateTest,
-  useDeleteQuarantinedTest,
-  type HealingRule, type QuarantinedTest,
+  useDeleteQuarantinedTest, useFixSuggestions,
+  type HealingRule, type QuarantinedTest, type FixSuggestion,
 } from '../hooks/api';
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -64,6 +64,7 @@ const SelfHealing: React.FC = () => {
   const { data: events = [] } = useHealingEvents({ limit: 20 });
   const { data: stats } = useHealingStats();
   const { data: quarantinedTests = [] } = useQuarantinedTests();
+  const { data: fixSuggestions = [] } = useFixSuggestions();
 
   // ─── Mutations ───────────────────────────────────────
   const createMutation = useCreateHealingRule();
@@ -117,6 +118,7 @@ const SelfHealing: React.FC = () => {
         <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
           <Tab label="Rules & Events" />
           <Tab label={`Quarantine (${(quarantinedTests as QuarantinedTest[]).length})`} />
+          <Tab label={`Fix Suggestions (${(fixSuggestions as FixSuggestion[]).length})`} />
         </Tabs>
       </Paper>
 
@@ -335,6 +337,64 @@ const SelfHealing: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+      )}
+
+      {/* Fix Suggestions Tab (Phase 3) */}
+      {tabIndex === 2 && (
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom>AI Fix Suggestions</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            When failures match documented RCAs, the system suggests fixes that can be applied via pull request.
+          </Typography>
+
+          {(fixSuggestions as FixSuggestion[]).length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No fix suggestions yet. Suggestions appear when &quot;fix_pr&quot; rules match failures with documented RCAs.
+            </Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Time</TableCell>
+                    <TableCell>Rule</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Confidence</TableCell>
+                    <TableCell>Suggestion</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(fixSuggestions as FixSuggestion[]).map((suggestion) => {
+                    const meta = suggestion.metadata ? JSON.parse(suggestion.metadata) : null;
+                    return (
+                      <TableRow key={suggestion.id}>
+                        <TableCell>
+                          <Typography variant="caption">{new Date(suggestion.createdAt).toLocaleString()}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{suggestion.rule?.name || 'Manual'}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={meta?.canAutoFix ? 'Can Auto-Fix' : 'Manual Review'}
+                            size="small"
+                            color={meta?.canAutoFix ? 'success' : 'warning'}
+                          />
+                        </TableCell>
+                        <TableCell>{(suggestion.matchConfidence * 100).toFixed(0)}%</TableCell>
+                        <TableCell>
+                          <Typography variant="caption" sx={{ maxWidth: 300, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {meta?.suggestedAction || suggestion.matchReason}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

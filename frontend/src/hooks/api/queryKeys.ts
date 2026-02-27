@@ -68,5 +68,6 @@ export const queryKeys = {
     events: (filters?: { pipelineId?: string; limit?: number }) => ['healing-events', filters] as const,
     stats: () => ['healing-stats'] as const,
     quarantine: () => ['healing-quarantine'] as const,
+    fixSuggestions: () => ['healing-fix-suggestions'] as const,
   },
 } as const;

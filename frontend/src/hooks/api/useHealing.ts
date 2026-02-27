@@ -240,3 +240,27 @@ export function useDeleteQuarantinedTest() {
     },
   });
 }
+
+// ─── Fix Suggestions (Phase 3) ─────────────────────────
+
+export interface FixSuggestion {
+  id: string;
+  action: string;
+  status: string;
+  matchConfidence: number;
+  matchReason: string;
+  errorMessage: string | null;
+  createdAt: string;
+  metadata: string | null;
+  rule?: { name: string; category: string } | null;
+}
+
+export function useFixSuggestions() {
+  return useQuery({
+    queryKey: queryKeys.healing.fixSuggestions(),
+    queryFn: async () => {
+      const json = await api.get<{ data: FixSuggestion[] }>('/healing/fix-suggestions');
+      return json.data;
+    },
+  });
+}
