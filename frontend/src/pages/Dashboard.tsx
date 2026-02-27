@@ -28,7 +28,6 @@ import ProvidersCard from './dashboard/ProvidersCard';
 import FailureDetailModal from './dashboard/FailureDetailModal';
 import ProviderDetailModal from './dashboard/ProviderDetailModal';
 
-type DashboardMetrics = ApiSchemas['DashboardMetrics'];
 type RecentFailure = ApiSchemas['RecentFailure'];
 type ProviderInfo = ApiSchemas['ProviderInfo'];
 
