@@ -30,6 +30,7 @@ These are the distilled "never again" rules from every incident below. **Read th
 | Never let CI workflows unconditionally overwrite release content | Custom release notes get clobbered on every tag push | EPR-015 |
 | Never run monorepo sub-project tools from the root without `cd` | eslint/tsc can't find tsconfig.json when invoked from repo root | EPR-016 |
 | Never ship a release without verifying `npm audit --audit-level=high` passes in CI | Transitive dependency CVEs (e.g. minimatch ReDoS) break the security audit gate post-merge | EPR-017 |
+| Never add a required env var without updating deploy-demo.sh | Fresh-clone users hit ZodError crash on `npm run dev:simple` | EPR-018 |
 
 ---
 
@@ -294,6 +295,19 @@ JWT_SECRET=<any value for tests>
 | **CI guard** | `npm audit --audit-level=high` step in backend-ci and frontend-ci workflows |
 | **Status** | **Mitigated** (Sprint 8) — minimatch patched; verification loop updated |
 
+### EPR-018: Deploy Script Missing Required Env Var
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | A required env var is added to the Zod config schema but not added to the `deploy-demo.sh` env generator, causing fresh-clone users to hit an immediate ZodError crash |
+| **First seen** | Sprint 8 (2026-02-27) |
+| **Impact** | P0 — `npm run dev:simple` crashes on first run for any new user; completely blocks demo |
+| **Root cause** | `SESSION_SECRET` was added as a required Zod field (`.min(32)`, no `.default()`) but `deploy-demo.sh` was not updated to generate it in `backend/.env` |
+| **Fix** | Added `SESSION_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")` to deploy-demo.sh |
+| **Prevention** | When adding any required env var to config.ts, always update: (1) deploy-demo.sh, (2) .env.example, (3) .env.production.example. Add a checklist item to PR template |
+| **CI guard** | Fresh-clone smoke test in installation-test workflow |
+| **Status** | **Mitigated** (Sprint 8) — SESSION_SECRET added to deploy-demo.sh |
+
 ---
 
 ## Automated Guards Summary
@@ -335,6 +349,7 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] Release workflow has guard step to protect custom release notes (EPR-015)
 - [ ] lint-staged config uses `cd` pattern for monorepo sub-projects (EPR-016)
 - [ ] `npm audit --audit-level=high` is included in the local verification loop before every release commit (EPR-017)
+- [ ] Every required env var in `config.ts` exists in `deploy-demo.sh`, `.env.example`, and `.env.production.example` (EPR-018)
 - [ ] This document has been reviewed for new patterns from the previous sprint
 
 ---
