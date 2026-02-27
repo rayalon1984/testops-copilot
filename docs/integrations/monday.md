@@ -591,7 +591,7 @@ Monday.com has API rate limits:
 
 For issues or questions:
 - Check the [FAQ](../faq.md)
-- Open an issue on [GitHub](https://github.com/rayalon1984/testops-companion/issues)
+- Open an issue on [GitHub](https://github.com/rayalon1984/testops-copilot/issues)
 - Review Monday.com API documentation
 
 ---

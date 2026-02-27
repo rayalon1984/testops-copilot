@@ -55,10 +55,10 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ```bash
 # Clone your fork
-git clone https://github.com/<your-username>/testops-companion.git
+git clone https://github.com/<your-username>/testops-copilot.git
 
 # Navigate to the project directory
-cd testops-companion
+cd testops-copilot
 
 # Install global dependencies
 npm install -g typescript ts-node
@@ -80,7 +80,7 @@ The setup script will:
 ### Project Structure
 
 ```
-testops-companion/
+testops-copilot/
 ├── .github/          # GitHub Actions workflows and templates
 ├── backend/          # Backend Node.js/Express application
 ├── frontend/         # Frontend React application

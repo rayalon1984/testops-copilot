@@ -55,7 +55,7 @@ import {
 } from './tools/stats.js';
 
 // Server configuration
-const SERVER_NAME = process.env.MCP_SERVER_NAME || 'testops-companion';
+const SERVER_NAME = process.env.MCP_SERVER_NAME || 'testops-copilot';
 const SERVER_VERSION = process.env.MCP_SERVER_VERSION || '1.0.0';
 
 // Create MCP server

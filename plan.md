@@ -81,7 +81,7 @@ These plans are completed and no longer actionable:
 - User Guides section: `docs/guides/pipelines.md`, `docs/guides/test-execution.md`, `docs/guides/notifications.md`, `docs/guides/dashboard.md`, `docs/guides/reports.md` — none exist
 - Reference section: `docs/reference/configuration.md`, `docs/reference/environment-variables.md`, `docs/reference/cli-commands.md`, `docs/reference/error-codes.md` — none exist
 - `docs/authentication.md` — doesn't exist
-- Remove fake external links: `docs.testops-companion.com`, `discord.gg/testops-companion`, `newsletter.testops-companion.com`, `twitter.com/testops-companion`
+- Remove fake external links: `docs.testops-copilot.com`, `discord.gg/testops-copilot`, `newsletter.testops-copilot.com`, `twitter.com/testops-copilot`
 
 ### 4b. `docs/project/RELEASE_PROCESS.md`
 - Says "Latest Release: v2.5.0 (2025-11-16)" — update to v3.0.0

@@ -164,9 +164,9 @@ TestOps Copilot is **open source** and **free**. Premium features (if we add the
 
 Have questions before applying?
 
-- 📧 **Email**: rotem@testops-companion.dev (or your email)
+- 📧 **Email**: rotem@testops-copilot.dev (or your email)
 - 💬 **LinkedIn**: [Rotem Ayalon](https://www.linkedin.com/in/YOUR_PROFILE)
-- 🐙 **GitHub Issues**: [Ask anything](https://github.com/rayalon1984/testops-companion/issues)
+- 🐙 **GitHub Issues**: [Ask anything](https://github.com/rayalon1984/testops-copilot/issues)
 
 ## 🚀 Ready to Join?
 

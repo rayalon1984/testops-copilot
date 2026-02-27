@@ -79,7 +79,7 @@ describeFeature('proactive-suggestions', () => {
   itAssertion('proactive.engine.mergeable-pr-suggest-merge', () => {
     const suggestion = evaluateSuggestion({
       toolName: 'github_get_pr',
-      toolResult: okResult({ state: 'open', mergeable: true, number: 312, repo: 'testops-companion' }),
+      toolResult: okResult({ state: 'open', mergeable: true, number: 312, repo: 'testops-copilot' }),
       previousResults: [],
       userMessage: 'Check PR #312',
     });

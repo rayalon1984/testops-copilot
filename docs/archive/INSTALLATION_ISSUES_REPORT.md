@@ -336,8 +336,8 @@ Error: Database 'testops' does not exist
 
 1. **Use new setup script**:
    ```bash
-   git clone https://github.com/rayalon1984/testops-companion.git
-   cd testops-companion
+   git clone https://github.com/rayalon1984/testops-copilot.git
+   cd testops-copilot
    bash scripts/setup-validated.sh
    ```
 

@@ -412,7 +412,7 @@ describe('ProactiveSuggestionEngine', () => {
           state: 'open',
           mergeable: true,
           number: 312,
-          repo: 'testops-companion',
+          repo: 'testops-copilot',
         }),
         previousResults: [],
         userMessage: 'Check PR #312',
@@ -424,7 +424,7 @@ describe('ProactiveSuggestionEngine', () => {
       expect(suggestion!.confidence).toBe(0.7);
       expect(suggestion!.actionLabel).toBe('Merge PR');
       expect(suggestion!.preparedArgs.prNumber).toBe(312);
-      expect(suggestion!.preparedArgs.repo).toBe('testops-companion');
+      expect(suggestion!.preparedArgs.repo).toBe('testops-copilot');
     });
 
     it('does NOT fire when PR is closed', () => {

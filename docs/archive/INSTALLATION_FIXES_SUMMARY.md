@@ -119,8 +119,8 @@ npm run dev
 
 ```bash
 # Just run the new setup script
-git clone https://github.com/rayalon1984/testops-companion.git
-cd testops-companion
+git clone https://github.com/rayalon1984/testops-copilot.git
+cd testops-copilot
 bash scripts/setup-validated.sh
 ```
 
@@ -181,7 +181,7 @@ If you encounter any issues with the updated installation:
 
 1. Check `QUICKSTART.md` for step-by-step instructions
 2. Review `INSTALLATION_ISSUES_REPORT.md` for technical details
-3. Open an issue: https://github.com/rayalon1984/testops-companion/issues
+3. Open an issue: https://github.com/rayalon1984/testops-copilot/issues
 4. Include:
    - Operating system
    - Node.js version (`node --version`)

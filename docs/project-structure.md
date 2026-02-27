@@ -5,7 +5,7 @@
 TestOps Copilot follows a monorepo structure with separate frontend and backend applications.
 
 ```
-testops-companion/
+testops-copilot/
 ├── backend/                 # Backend application
 │   ├── src/                # Source code
 │   │   ├── config/         # Configuration files

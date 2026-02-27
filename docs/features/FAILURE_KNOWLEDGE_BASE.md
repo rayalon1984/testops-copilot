@@ -445,7 +445,7 @@ Future enhancements:
 ## Support
 
 For questions or issues:
-- GitHub Issues: [testops-companion/issues](https://github.com/rayalon1984/testops-companion/issues)
+- GitHub Issues: [testops-copilot/issues](https://github.com/rayalon1984/testops-copilot/issues)
 - Documentation: [docs/](../README.md)
 
 ---

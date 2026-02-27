@@ -50,7 +50,7 @@ async function main() {
   };
 
   const githubConfig = {
-    repository: 'testops-companion',
+    repository: 'testops-copilot',
     workflow: 'test.yml',
     branch: 'main',
   };

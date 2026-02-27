@@ -31,8 +31,8 @@ This guide covers different deployment options for TestOps Copilot, from develop
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/testops-companion.git
-cd testops-companion
+git clone https://github.com/yourusername/testops-copilot.git
+cd testops-copilot
 ```
 
 2. Install dependencies:
@@ -148,7 +148,7 @@ npm run build
 
 2. Configure Nginx:
 ```nginx
-# /etc/nginx/sites-available/testops-companion
+# /etc/nginx/sites-available/testops-copilot
 server {
     listen 80;
     server_name your-domain.com;
@@ -172,7 +172,7 @@ server {
 
     # Frontend
     location / {
-        root /var/www/testops-companion;
+        root /var/www/testops-copilot;
         try_files $uri $uri/ /index.html;
         expires -1;
         add_header Cache-Control "no-store, no-cache, must-revalidate";
@@ -192,7 +192,7 @@ server {
 
 3. Deploy frontend files:
 ```bash
-sudo cp -r dist/* /var/www/testops-companion/
+sudo cp -r dist/* /var/www/testops-copilot/
 ```
 
 ## CI/CD Setup
@@ -329,7 +329,7 @@ curl -X POST "https://api.uptimerobot.com/v2/newMonitor" \
 2. Application backups:
 ```bash
 # Add to crontab
-0 0 * * * tar -czf /backups/testops_$(date +\%Y\%m\%d).tar.gz /var/www/testops-companion
+0 0 * * * tar -czf /backups/testops_$(date +\%Y\%m\%d).tar.gz /var/www/testops-copilot
 ```
 
 ## SSL Certificate Setup

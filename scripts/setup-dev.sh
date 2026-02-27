@@ -83,4 +83,4 @@ echo "2. Run 'npm run dev' in the frontend directory to start the development se
 echo "3. Run 'npm run dev' in the backend directory to start the API server"
 echo "4. Visit http://localhost:5173 to view the application"
 echo -e "\n${YELLOW}For more information, see the documentation at:${NC}"
-echo "https://github.com/rayalon1984/testops-companion/blob/main/docs/development.md"
+echo "https://github.com/rayalon1984/testops-copilot/blob/main/docs/development.md"

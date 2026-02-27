@@ -12,7 +12,7 @@ If you're running **v3.0.0 or earlier** and upgrading to v3.0.1, read below. If 
 
 ## 1. JWT Tokens (Re-login Required)
 
-**What changed**: JWT issuer/audience values changed from `testops-companion` / `testops-companion-client` to `testops-copilot` / `testops-copilot-client`.
+**What changed**: JWT issuer/audience values changed from `testops-copilot` / `testops-copilot-client` to `testops-copilot` / `testops-copilot-client`.
 
 **Impact**: All existing JWT tokens become invalid after upgrade.
 
@@ -24,7 +24,7 @@ If you're running **v3.0.0 or earlier** and upgrading to v3.0.1, read below. If 
 
 ## 2. Encrypted AI Provider Config (Automatic Fallback)
 
-**What changed**: The default encryption salt for AI provider API keys stored in the database changed from `testops-companion-default-enc-key` to `testops-copilot-default-enc-key`.
+**What changed**: The default encryption salt for AI provider API keys stored in the database changed from `testops-copilot-default-enc-key` to `testops-copilot-default-enc-key`.
 
 **Impact**: If you were using the **default encryption key** (no `AI_CONFIG_ENCRYPTION_KEY` env var set), your stored provider configs are encrypted with the old key.
 
@@ -37,10 +37,10 @@ If you're running **v3.0.0 or earlier** and upgrading to v3.0.1, read below. If 
 ## 3. Package Names
 
 **What changed**: npm package names changed:
-- `testops-companion` → `testops-copilot`
-- `testops-companion-backend` → `testops-copilot-backend`
-- `testops-companion-frontend` → `testops-copilot-frontend`
-- `@testops-companion/mcp-server` → `@testops-copilot/mcp-server`
+- `testops-copilot` → `testops-copilot`
+- `testops-copilot-backend` → `testops-copilot-backend`
+- `testops-copilot-frontend` → `testops-copilot-frontend`
+- `@testops-copilot/mcp-server` → `@testops-copilot/mcp-server`
 
 **Impact**: If you reference these packages by name in scripts, Docker builds, or CI configs, update the references.
 
@@ -62,7 +62,7 @@ If you're running **v3.0.0 or earlier** and upgrading to v3.0.1, read below. If 
 
 ## 5. OpenTelemetry Service Name
 
-**What changed**: Default OTEL service name changed from `testops-companion-backend` to `testops-copilot-backend`.
+**What changed**: Default OTEL service name changed from `testops-copilot-backend` to `testops-copilot-backend`.
 
 **Impact**: If you query traces/metrics by service name, update your Grafana/Prometheus dashboards.
 

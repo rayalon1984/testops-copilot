@@ -32,7 +32,7 @@ Add to your Claude Code MCP settings (`~/.claude/config.json`):
   "mcpServers": {
     "testops": {
       "command": "node",
-      "args": ["/path/to/testops-companion/mcp-server/dist/index.js"],
+      "args": ["/path/to/testops-copilot/mcp-server/dist/index.js"],
       "env": {
         "DATABASE_URL": "postgresql://user:pass@localhost:5432/testops"
       }
@@ -357,4 +357,4 @@ Contributions welcome! See main project [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
 
-**Need help?** Open an issue at https://github.com/rayalon1984/testops-companion/issues
+**Need help?** Open an issue at https://github.com/rayalon1984/testops-copilot/issues

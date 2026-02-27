@@ -125,7 +125,7 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'testops-companion'
+  - job_name: 'testops-copilot'
     static_configs:
       - targets: ['localhost:3000']
     metrics_path: '/metrics'
@@ -198,7 +198,7 @@ global:
 
 # Scrape TestOps Copilot metrics
 scrape_configs:
-  - job_name: 'testops-companion'
+  - job_name: 'testops-copilot'
     static_configs:
       - targets: ['localhost:3000']
         labels:
@@ -219,7 +219,7 @@ scrape_configs:
 
 1. Open Prometheus UI: `http://localhost:9090`
 2. Go to **Status** → **Targets**
-3. Verify `testops-companion` target is **UP**
+3. Verify `testops-copilot` target is **UP**
 4. Query a metric: `testops_test_runs_total`
 
 ---
@@ -543,7 +543,7 @@ curl http://localhost:3000/metrics
 
 For issues or questions:
 - Check [Troubleshooting](#troubleshooting) section
-- Open an issue on [GitHub](https://github.com/rayalon1984/testops-companion/issues)
+- Open an issue on [GitHub](https://github.com/rayalon1984/testops-copilot/issues)
 - Review Prometheus/Grafana documentation
 
 ---
