@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { usePageContext } from '../hooks/usePageContext';
 import {
@@ -34,8 +33,8 @@ import {
   Error as ErrorIcon,
   Schedule as PendingIcon,
 } from '@mui/icons-material';
-import { api } from '../api';
 import type { ApiSchemas } from '../api';
+import { usePipelines, useCreatePipeline, useDeletePipeline } from '../hooks/api';
 
 type Pipeline = ApiSchemas['Pipeline'];
 type CreatePipelineRequest = ApiSchemas['CreatePipelineRequest'];
@@ -171,7 +170,6 @@ function PipelineTableRow({
 export default function PipelineList() {
   usePageContext('pipeline-list');
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState<CreatePipelineRequest>({
     name: '',
@@ -180,37 +178,20 @@ export default function PipelineList() {
   });
   const [error, setError] = useState('');
 
-  // Fetch pipelines — typed from OpenAPI spec
-  const { data: pipelines, isLoading } = useQuery<Pipeline[]>({
-    queryKey: ['pipelines'],
-    queryFn: () => api.get<Pipeline[]>('/pipelines'),
-  });
-
-  // Create pipeline mutation
-  const createPipeline = useMutation({
-    mutationFn: (data: CreatePipelineRequest) =>
-      api.post<Pipeline>('/pipelines', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipelines'] });
-      setOpenDialog(false);
-      setFormData({ name: '', type: 'jenkins', config: {} });
-    },
-    onError: (error) => {
-      setError(error.message);
-    },
-  });
-
-  // Delete pipeline mutation
-  const deletePipeline = useMutation({
-    mutationFn: (id: string) => api.delete(`/pipelines/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipelines'] });
-    },
-  });
+  // Shared query hooks
+  const { data: pipelines, isLoading } = usePipelines();
+  const createPipeline = useCreatePipeline();
+  const deletePipeline = useDeletePipeline();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createPipeline.mutate(formData);
+    createPipeline.mutate(formData, {
+      onSuccess: () => {
+        setOpenDialog(false);
+        setFormData({ name: '', type: 'jenkins', config: {} });
+      },
+      onError: (err) => setError(err.message),
+    });
   };
 
   const getStatusIcon = (status: string) => {

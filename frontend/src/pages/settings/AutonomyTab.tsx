@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -17,7 +16,7 @@ import {
   Balance as BalanceIcon,
   AutoFixHigh as AutoIcon,
 } from '@mui/icons-material';
-import { api } from '../../api';
+import { useAutonomyPreference, useUpdateAutonomy } from '../../hooks/api';
 
 type AutonomyLevel = 'conservative' | 'balanced' | 'autonomous';
 
@@ -42,26 +41,9 @@ const AUTONOMY_DESCRIPTIONS: Record<AutonomyLevel, { label: string; description:
 export function AutonomyTab(): React.ReactElement {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [saveError, setSaveError] = useState('');
-  const queryClient = useQueryClient();
 
-  const { data: autonomyData, isLoading } = useQuery<{ data: { autonomyLevel: AutonomyLevel } }>({
-    queryKey: ['autonomy-preference'],
-    queryFn: () => api.get<{ data: { autonomyLevel: AutonomyLevel } }>('/ai/autonomy'),
-  });
-
-  const updateAutonomy = useMutation({
-    mutationFn: (level: AutonomyLevel) =>
-      api.put<{ data: { autonomyLevel: AutonomyLevel } }>('/ai/autonomy', { autonomyLevel: level }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['autonomy-preference'] });
-      setSaveSuccess('Autonomy preference updated');
-      setTimeout(() => setSaveSuccess(''), 3000);
-    },
-    onError: (err: Error) => {
-      setSaveError(err.message);
-      setTimeout(() => setSaveError(''), 5000);
-    },
-  });
+  const { data: autonomyData, isLoading } = useAutonomyPreference();
+  const updateAutonomy = useUpdateAutonomy();
 
   const currentLevel = autonomyData?.data?.autonomyLevel || 'balanced';
 
@@ -87,7 +69,16 @@ export function AutonomyTab(): React.ReactElement {
           value={currentLevel}
           exclusive
           onChange={(_, value: AutonomyLevel | null) => {
-            if (value) updateAutonomy.mutate(value);
+            if (value) updateAutonomy.mutate(value, {
+              onSuccess: () => {
+                setSaveSuccess('Autonomy preference updated');
+                setTimeout(() => setSaveSuccess(''), 3000);
+              },
+              onError: (err: Error) => {
+                setSaveError(err.message);
+                setTimeout(() => setSaveError(''), 5000);
+              },
+            });
           }}
           fullWidth
           sx={{ mb: 3 }}

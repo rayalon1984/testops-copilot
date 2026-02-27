@@ -11,28 +11,14 @@
  */
 
 import { Box, Chip, Tooltip, Typography, LinearProgress, alpha } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api';
-
-interface CostData {
-    totalCost: number;
-    monthlySpent: number;
-    monthlyBudget: number;
-    cacheSavings: number;
-    cacheHitRate: number;
-}
+import { useAIQuota } from '../../hooks/api';
 
 function formatDollars(amount: number): string {
     return `$${amount.toFixed(2)}`;
 }
 
 export default function QuotaIndicator(): React.ReactElement | null {
-    const { data } = useQuery<{ data: CostData }>({
-        queryKey: ['ai-quota'],
-        queryFn: () => api.get<{ data: CostData }>('/ai/costs'),
-        refetchInterval: 60000, // Refresh every minute
-        staleTime: 30000,
-    });
+    const { data } = useAIQuota();
 
     if (!data?.data) return null;
 

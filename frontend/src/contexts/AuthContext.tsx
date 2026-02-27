@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../api';
+import { queryKeys } from '../hooks/api';
 
 export interface User {
   id: string;
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check if user is authenticated
   const { data: userData, isLoading: isCheckingAuth } = useQuery({
-    queryKey: ['auth', 'me'],
+    queryKey: queryKeys.auth.me(),
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store access token
       localStorage.setItem('accessToken', data.data.accessToken);
       setUser(data.data.user);
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() });
       navigate('/dashboard');
     },
   });
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.setItem('accessToken', data.data.accessToken);
       }
       setUser(data.data.user);
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all() });
       navigate('/dashboard');
     },
   });

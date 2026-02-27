@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { usePageContext } from '../hooks/usePageContext';
 import {
@@ -32,12 +31,11 @@ import {
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 
-import { api } from '../api';
 import type { ApiSchemas } from '../api';
 type TestRun = ApiSchemas['TestRun'];
 
 import { useDebounce } from '../hooks/useDebounce';
-import { keepPreviousData } from '@tanstack/react-query';
+import { useTestRuns } from '../hooks/api';
 
 function TestRunTable({ data, navigate }: { data: TestRun[] | undefined; navigate: ReturnType<typeof useNavigate> }) {
   const getStatusIcon = (status: string) => {
@@ -130,20 +128,8 @@ export default function TestRunList() {
   // Debounce search query to prevent jitter (500ms delay)
   const debouncedSearch = useDebounce(searchQuery, 500);
 
-  // Fetch test runs
-  const { data, isLoading, isFetching } = useQuery<TestRun[]>({
-    queryKey: ['test-runs', page, rowsPerPage, statusFilter, debouncedSearch],
-    queryFn: () => {
-      const params = new URLSearchParams({
-        page: String(page + 1),
-        limit: String(rowsPerPage),
-        ...(statusFilter !== 'all' && { status: statusFilter }),
-        ...(debouncedSearch && { search: debouncedSearch }),
-      });
-      return api.get<TestRun[]>(`/test-runs?${params}`);
-    },
-    placeholderData: keepPreviousData, // Keep table data visible while fetching new results
-  });
+  // Fetch test runs via shared hook
+  const { data, isLoading, isFetching } = useTestRuns({ page, rowsPerPage, statusFilter, debouncedSearch });
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);

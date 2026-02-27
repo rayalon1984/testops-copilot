@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   Container,
   Paper,
@@ -31,9 +30,9 @@ import {
   AccessTime as TimeIcon,
   BugReport as ErrorsIcon,
 } from '@mui/icons-material';
-import { api } from '../api';
 import type { ApiSchemas } from '../api';
 import { usePageContext } from '../hooks/usePageContext';
+import { useTestRun } from '../hooks/api';
 
 type TestRun = ApiSchemas['TestRunDetail'];
 
@@ -196,11 +195,8 @@ export default function TestRunDetail() {
   const [tabValue, setTabValue] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Fetch test run details
-  const { data: testRun, isLoading } = useQuery<TestRun>({
-    queryKey: ['test-run', id],
-    queryFn: () => api.get<TestRun>(`/test-runs/${id}`),
-  });
+  // Fetch test run details via shared hook
+  const { data: testRun, isLoading } = useTestRun(id);
 
   usePageContext('testrun-detail', testRun ? {
     type: 'testrun', id: testRun.id, label: testRun.pipelineName || testRun.id,

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Container,
   Paper,
@@ -10,41 +9,40 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { api } from '../api';
 import type { Settings as SettingsType } from './settings/types';
 import { TabPanel } from './settings/TabPanel';
 import { NotificationsTab } from './settings/NotificationsTab';
 import { CICDTab } from './settings/CICDTab';
 import { GeneralTab } from './settings/GeneralTab';
 import { AutonomyTab } from './settings/AutonomyTab';
+import { useSettings, useUpdateSettings } from '../hooks/api';
 
 export default function Settings() {
   const [tabValue, setTabValue] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const queryClient = useQueryClient();
 
-  const { data: settings, isLoading } = useQuery<SettingsType>({
-    queryKey: ['settings'],
-    queryFn: () => api.get<SettingsType>('/settings'),
-  });
+  const { data: settings, isLoading } = useSettings();
 
-  const updateSettings = useMutation({
-    mutationFn: (newSettings: Partial<SettingsType>) => api.put<SettingsType>('/settings', newSettings),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
-      setSuccess('Settings updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
-    },
-    onError: (err: Error) => {
-      setError(err.message);
-    },
-  });
+  const updateSettings = useUpdateSettings();
+
+  // Wire up local success/error feedback on top of the shared mutation
+  const handleMutate = (newSettings: Partial<SettingsType>) => {
+    updateSettings.mutate(newSettings, {
+      onSuccess: () => {
+        setSuccess('Settings updated successfully');
+        setTimeout(() => setSuccess(''), 3000);
+      },
+      onError: (err: Error) => {
+        setError(err.message);
+      },
+    });
+  };
 
   const handleSave = (section: keyof SettingsType) => (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings) return;
-    updateSettings.mutate({ [section]: settings[section] });
+    handleMutate({ [section]: settings[section] });
   };
 
   if (isLoading) {

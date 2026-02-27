@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { usePageContext } from '../hooks/usePageContext';
 import {
@@ -17,8 +16,8 @@ import {
   Speed as SpeedIcon,
   AttachMoney as MoneyIcon,
 } from '@mui/icons-material';
-import { api } from '../api';
 import type { ApiSchemas } from '../api';
+import { useDashboardMetrics } from '../hooks/api';
 import FlakyTestsWidget from '../components/FlakyTestsWidget/FlakyTestsWidget';
 import WelcomeBanner from './dashboard/WelcomeBanner';
 import StatsCards from './dashboard/StatsCards';
@@ -69,14 +68,7 @@ export default function Dashboard() {
   const [selectedFailure, setSelectedFailure] = useState<RecentFailure | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<ProviderInfo | null>(null);
 
-  const { data: metrics, isLoading } = useQuery<DashboardMetrics>({
-    queryKey: ['dashboard', 'ai-metrics'],
-    queryFn: async () => {
-      const response = await api.get<{ data: DashboardMetrics }>('/dashboard');
-      return response.data;
-    },
-    refetchInterval: 30000,
-  });
+  const { data: metrics, isLoading } = useDashboardMetrics();
 
   const animatedTestCount = useCountUp(metrics?.totalTestsAnalyzed || 0, 1500);
   const animatedFailureCount = useCountUp(metrics?.failuresAutoCategorized || 0, 1500);

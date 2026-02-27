@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Container,
   Paper,
@@ -26,48 +25,16 @@ import {
   Done as DoneIcon,
 } from '@mui/icons-material';
 
-import { api } from '../api';
-import type { ApiSchemas } from '../api';
-type Notification = ApiSchemas['Notification'];
+import { useNotifications, useMarkNotificationAsDelivered, useDeleteNotification, useClearAllNotifications } from '../hooks/api';
 
 export default function NotificationList() {
-  const queryClient = useQueryClient();
   const [showUndeliveredOnly, setShowUndeliveredOnly] = useState(false);
 
-  // Fetch notifications
-  const { data: notifications, isLoading } = useQuery<Notification[]>({
-    queryKey: ['notifications', showUndeliveredOnly],
-    queryFn: () => {
-      const path = showUndeliveredOnly
-        ? '/notifications/undelivered'
-        : '/notifications';
-      return api.get<Notification[]>(path);
-    },
-  });
-
-  // Mark as delivered mutation
-  const markAsDelivered = useMutation({
-    mutationFn: (id: string) => api.patch(`/notifications/${id}/delivered`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  // Delete notification mutation
-  const deleteNotification = useMutation({
-    mutationFn: (id: string) => api.delete(`/notifications/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  // Clear all notifications mutation
-  const clearAllNotifications = useMutation({
-    mutationFn: () => api.delete('/notifications'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
+  // Shared query hooks
+  const { data: notifications, isLoading } = useNotifications(showUndeliveredOnly);
+  const markAsDelivered = useMarkNotificationAsDelivered();
+  const deleteNotification = useDeleteNotification();
+  const clearAllNotifications = useClearAllNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

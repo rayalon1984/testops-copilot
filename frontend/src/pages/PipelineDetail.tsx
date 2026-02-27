@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Container,
   Typography,
@@ -34,9 +33,9 @@ import {
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
 
-import { api } from '../api';
 import type { ApiSchemas } from '../api';
 import { usePageContext } from '../hooks/usePageContext';
+import { usePipeline, usePipelineTestRuns, useUpdatePipeline, useDeletePipeline } from '../hooks/api';
 type Pipeline = ApiSchemas['Pipeline'];
 type TestRun = ApiSchemas['TestRun'];
 
@@ -157,51 +156,29 @@ function EditPipelineDialog({
 export default function PipelineDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Pipeline>>({});
   const [error, setError] = useState('');
 
-  // Fetch pipeline details
-  const { data: pipeline, isLoading: isPipelineLoading } = useQuery<Pipeline>({
-    queryKey: ['pipeline', id],
-    queryFn: () => api.get<Pipeline>(`/pipelines/${id}`),
-  });
+  // Shared query hooks
+  const { data: pipeline, isLoading: isPipelineLoading } = usePipeline(id);
 
   usePageContext('pipeline-detail', pipeline ? {
     type: 'pipeline', id: pipeline.id, label: pipeline.name,
     metadata: { type: pipeline.type, status: pipeline.status },
   } : null);
 
-  // Fetch recent test runs
-  const { data: testRuns, isLoading: isTestRunsLoading} = useQuery<TestRun[]>({
-    queryKey: ['pipeline', id, 'test-runs'],
-    queryFn: () => api.get<TestRun[]>(`/pipelines/${id}/test-runs`),
-  });
+  const { data: testRuns, isLoading: isTestRunsLoading } = usePipelineTestRuns(id);
 
-  // Update pipeline mutation
-  const updatePipeline = useMutation({
-    mutationFn: (data: Partial<Pipeline>) => api.put<Pipeline>(`/pipelines/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pipeline', id] });
-      setOpenEditDialog(false);
-    },
-    onError: (error: Error) => {
-      setError(error.message);
-    },
-  });
-
-  // Delete pipeline mutation
-  const deletePipeline = useMutation({
-    mutationFn: () => api.delete(`/pipelines/${id}`),
-    onSuccess: () => {
-      navigate('/pipelines');
-    },
-  });
+  const updatePipeline = useUpdatePipeline(id);
+  const deletePipelineMutation = useDeletePipeline();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updatePipeline.mutate(editFormData);
+    updatePipeline.mutate(editFormData, {
+      onSuccess: () => setOpenEditDialog(false),
+      onError: (err: Error) => setError(err.message),
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -252,7 +229,7 @@ export default function PipelineDetail() {
         <IconButton onClick={() => setOpenEditDialog(true)} sx={{ mr: 1 }}>
           <EditIcon />
         </IconButton>
-        <IconButton color="error" onClick={() => deletePipeline.mutate()}>
+        <IconButton color="error" onClick={() => deletePipelineMutation.mutate(id!, { onSuccess: () => navigate('/pipelines') })}>
           <DeleteIcon />
         </IconButton>
       </Box>

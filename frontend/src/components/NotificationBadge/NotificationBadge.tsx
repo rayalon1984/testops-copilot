@@ -21,46 +21,17 @@ import {
   Done as DoneIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../api';
-
-interface Notification {
-  id: string;
-  type: 'success' | 'failure' | 'warning';
-  message: string;
-  timestamp: string;
-  read: boolean;
-}
+import { useUnreadNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, type AppNotification } from '../../hooks/api';
 
 export default function NotificationBadge() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-  // Fetch notifications
-  const { data: notifications = [] } = useQuery<Notification[]>({
-    queryKey: ['notifications', 'unread'],
-    queryFn: () => api.get<Notification[]>('/notifications/unread'),
-    refetchInterval: 30000, // Refetch every 30 seconds
-  });
-
-  // Mark notification as read mutation
-  const markAsRead = useMutation({
-    mutationFn: (id: string) => api.patch(`/notifications/${id}/read`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  // Mark all as read mutation
-  const markAllAsRead = useMutation({
-    mutationFn: () => api.post('/notifications/mark-all-read'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      handleClose();
-    },
-  });
+  // Shared query hooks
+  const { data: notifications = [] } = useUnreadNotifications();
+  const markAsRead = useMarkNotificationAsRead();
+  const markAllAsRead = useMarkAllNotificationsAsRead();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -70,7 +41,7 @@ export default function NotificationBadge() {
     setAnchorEl(null);
   };
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = (notification: AppNotification) => {
     markAsRead.mutate(notification.id);
     handleClose();
     navigate('/notifications');
@@ -110,7 +81,7 @@ export default function NotificationBadge() {
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h6" sx={{ flex: 1 }}>Notifications</Typography>
           {unreadCount > 0 && (
-            <Button size="small" startIcon={<DoneIcon />} onClick={() => markAllAsRead.mutate()}>
+            <Button size="small" startIcon={<DoneIcon />} onClick={() => markAllAsRead.mutate(undefined, { onSuccess: () => handleClose() })}>
               Mark all as read
             </Button>
           )}

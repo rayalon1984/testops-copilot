@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../../api/client';
+import { useFlakyTests } from '../../hooks/api';
 import {
     Card,
     CardContent,
@@ -18,26 +17,10 @@ import {
 } from '@mui/material';
 import { Warning as WarningIcon, CheckCircle as StableIcon } from '@mui/icons-material';
 
-interface FlakyTestStats {
-    testName: string;
-    totalRuns: number;
-    failureCount: number;
-    flipFlopCount: number;
-    flakinessScore: number;
-    severity: 'HIGH' | 'MEDIUM' | 'LOW' | 'STABLE';
-    lastFlakedAt?: string;
-}
-
 export default function FlakyTestsWidget() {
     const theme = useTheme();
 
-    const { data: flakyTests, isLoading, error } = useQuery<FlakyTestStats[]>({
-        queryKey: ['flakyTests'],
-        queryFn: async () => {
-            const response = await api.get<{ data: FlakyTestStats[] }>('/tests/flaky');
-            return response.data;
-        }
-    });
+    const { data: flakyTests, isLoading, error } = useFlakyTests();
 
     if (isLoading) {
         return (

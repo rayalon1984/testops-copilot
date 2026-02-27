@@ -33,8 +33,7 @@ import {
   Savings as SavingsIcon,
   Speed as SpeedIcon,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { useCostMetrics } from '../hooks/api';
 
 interface CostMetrics {
   totalCost: number;
@@ -218,19 +217,15 @@ export default function CostTracker() {
   usePageContext('cost-tracker');
   const [timeRange, setTimeRange] = useState('30d');
 
-  // Fetch cost metrics
-  const { data: metrics, isLoading } = useQuery<CostMetrics>({
-    queryKey: ['cost-metrics', timeRange],
-    queryFn: () => api.get<CostMetrics>(`/ai/costs?timeRange=${timeRange}`),
-    initialData: {
-      totalCost: 2.34,
-      monthlySpent: 47.20,
-      monthlyBudget: 100,
-      cacheSavings: 38.50,
-      cacheHitRate: 65,
-      averageCostPerAnalysis: 0.003,
-      totalAnalyses: 783,
-    },
+  // Fetch cost metrics via shared hook
+  const { data: metrics, isLoading } = useCostMetrics(timeRange, {
+    totalCost: 2.34,
+    monthlySpent: 47.20,
+    monthlyBudget: 100,
+    cacheSavings: 38.50,
+    cacheHitRate: 65,
+    averageCostPerAnalysis: 0.003,
+    totalAnalyses: 783,
   });
 
   // Mock usage data
@@ -243,15 +238,15 @@ export default function CostTracker() {
     { date: '2026-02-09', provider: 'OpenRouter', model: 'meta-llama/llama-4-maverick', requests: 30, tokens: 42000, cost: 0.018, cacheHits: 19 },
   ];
 
-  const budgetUsedPercent = (metrics.monthlySpent / metrics.monthlyBudget) * 100;
-
-  if (isLoading) {
+  if (isLoading || !metrics) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
         <CircularProgress />
       </Box>
     );
   }
+
+  const budgetUsedPercent = (metrics.monthlySpent / metrics.monthlyBudget) * 100;
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
