@@ -298,8 +298,7 @@ export class SelfHealingService {
           return await SelfHealingService.executeNotify(event.id, evaluation, userId);
 
         case 'quarantine':
-          // Phase 2 — placeholder
-          return { eventId: event.id, executed: false, reason: 'Quarantine not yet implemented' };
+          return await SelfHealingService.executeQuarantine(event.id, evaluation, userId);
 
         case 'fix_pr':
           // Phase 3 — placeholder
@@ -412,6 +411,147 @@ export class SelfHealingService {
       executed: true,
       reason: `Notification sent: ${evaluation.matchReason}`,
     };
+  }
+
+  /**
+   * Execute a quarantine action: mark a flaky test for skip.
+   */
+  private static async executeQuarantine(
+    eventId: string,
+    evaluation: HealingEvaluation,
+    userId: string,
+  ): Promise<{ eventId: string; executed: boolean; reason: string }> {
+    // Extract test name from the failed test run results
+    const testRun = await prisma.testRun.findUnique({
+      where: { id: evaluation.testRunId },
+      include: { results: { where: { status: 'FAILED' }, take: 1 } },
+    });
+
+    const testName = testRun?.results[0]?.name || testRun?.name || 'unknown-test';
+
+    // Upsert quarantine record (unique on testName)
+    const existing = await prisma.quarantinedTest.findUnique({ where: { testName } });
+
+    if (existing && existing.status === 'quarantined') {
+      // Already quarantined — increment occurrence count
+      await prisma.quarantinedTest.update({
+        where: { testName },
+        data: { occurrenceCount: { increment: 1 } },
+      });
+    } else {
+      await prisma.quarantinedTest.upsert({
+        where: { testName },
+        create: {
+          testName,
+          reason: evaluation.matchReason,
+          severity: 'MEDIUM',
+          quarantinedBy: userId === 'system' ? 'auto' : userId,
+          healingEventId: eventId,
+          flakinessScore: evaluation.confidence,
+          status: 'quarantined',
+        },
+        update: {
+          reason: evaluation.matchReason,
+          status: 'quarantined',
+          healingEventId: eventId,
+          flakinessScore: evaluation.confidence,
+          occurrenceCount: { increment: 1 },
+        },
+      });
+    }
+
+    await prisma.healingEvent.update({
+      where: { id: eventId },
+      data: {
+        status: 'succeeded',
+        completedAt: new Date(),
+        metadata: JSON.stringify({ quarantinedTest: testName }),
+      },
+    });
+
+    logger.info(`Self-healing quarantine: test="${testName}"`, {
+      rule: evaluation.ruleName,
+      confidence: evaluation.confidence,
+    });
+
+    return {
+      eventId,
+      executed: true,
+      reason: `Test "${testName}" quarantined: ${evaluation.matchReason}`,
+    };
+  }
+
+  // ── Quarantine CRUD ─────────────────────────────────────
+
+  static async getQuarantinedTests(): Promise<unknown[]> {
+    return prisma.quarantinedTest.findMany({
+      where: { status: 'quarantined' },
+      orderBy: [{ severity: 'asc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  static async getAllQuarantinedTests(): Promise<unknown[]> {
+    return prisma.quarantinedTest.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  static async quarantineTest(
+    testName: string,
+    reason: string,
+    severity: string,
+    userId: string,
+    flakinessScore?: number,
+  ): Promise<unknown> {
+    return prisma.quarantinedTest.upsert({
+      where: { testName },
+      create: {
+        testName,
+        reason,
+        severity,
+        quarantinedBy: userId,
+        flakinessScore: flakinessScore ?? 0,
+        status: 'quarantined',
+      },
+      update: {
+        reason,
+        severity,
+        status: 'quarantined',
+        flakinessScore: flakinessScore ?? undefined,
+        occurrenceCount: { increment: 1 },
+      },
+    });
+  }
+
+  static async reinstateTest(id: string): Promise<unknown> {
+    const existing = await prisma.quarantinedTest.findUnique({ where: { id } });
+    if (!existing) throw new Error('Quarantined test not found');
+
+    return prisma.quarantinedTest.update({
+      where: { id },
+      data: { status: 'reinstated' },
+    });
+  }
+
+  static async deleteQuarantinedTest(id: string): Promise<void> {
+    const existing = await prisma.quarantinedTest.findUnique({ where: { id } });
+    if (!existing) throw new Error('Quarantined test not found');
+
+    await prisma.quarantinedTest.delete({ where: { id } });
+  }
+
+  static async getQuarantineStats(): Promise<{
+    quarantined: number;
+    reinstated: number;
+    totalQuarantined: number;
+  }> {
+    const [quarantined, reinstated, totalQuarantined] = await Promise.all([
+      prisma.quarantinedTest.count({ where: { status: 'quarantined' } }),
+      prisma.quarantinedTest.count({ where: { status: 'reinstated' } }),
+      prisma.quarantinedTest.count(),
+    ]);
+
+    return { quarantined, reinstated, totalQuarantined };
   }
 
   // ── Circuit Breaker ─────────────────────────────────────

@@ -1,13 +1,13 @@
 /**
  * Self-Healing Dashboard
  *
- * View / manage healing rules, monitor auto-retry events, and see stats.
- * Phase 1: Auto-Retry for Transient Failures
+ * View / manage healing rules, quarantined tests, and healing events.
+ * Phase 1: Auto-Retry | Phase 2: Quarantine | Phase 3: AI Fix PRs
  */
 
 import React, { useState } from 'react';
 import {
-  Container, Typography, Paper, Box, Button, Chip, Switch,
+  Container, Typography, Paper, Box, Button, Chip, Switch, Tabs, Tab,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, CircularProgress, Alert, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, FormControl, InputLabel,
@@ -19,13 +19,15 @@ import {
   Replay as RetryIcon,
   Shield as ShieldIcon,
   TrendingUp as StatsIcon,
+  Restore as ReinstateIcon,
 } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader/PageHeader';
 import {
   useHealingRules, useHealingEvents, useHealingStats,
   useCreateHealingRule, useToggleHealingRule, useDeleteHealingRule,
-  useSeedHealingRules,
-  type HealingRule,
+  useSeedHealingRules, useQuarantinedTests, useReinstateTest,
+  useDeleteQuarantinedTest,
+  type HealingRule, type QuarantinedTest,
 } from '../hooks/api';
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -55,17 +57,21 @@ const SelfHealing: React.FC = () => {
     confidenceThreshold: 0.9, priority: 50,
   });
   const [error, setError] = useState<string | null>(null);
+  const [tabIndex, setTabIndex] = useState(0);
 
   // ─── Queries ─────────────────────────────────────────
   const { data: rules = [], isLoading: rulesLoading } = useHealingRules();
   const { data: events = [] } = useHealingEvents({ limit: 20 });
   const { data: stats } = useHealingStats();
+  const { data: quarantinedTests = [] } = useQuarantinedTests();
 
   // ─── Mutations ───────────────────────────────────────
   const createMutation = useCreateHealingRule();
   const toggleMutation = useToggleHealingRule();
   const deleteMutation = useDeleteHealingRule();
   const seedMutation = useSeedHealingRules();
+  const reinstateMutation = useReinstateTest();
+  const deleteQuarantineMutation = useDeleteQuarantinedTest();
 
   const handleCreate = () => {
     if (!createForm.name.trim() || !createForm.pattern.trim()) return;
@@ -106,6 +112,15 @@ const SelfHealing: React.FC = () => {
         </Alert>
       )}
 
+      {/* Tabs */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
+          <Tab label="Rules & Events" />
+          <Tab label={`Quarantine (${(quarantinedTests as QuarantinedTest[]).length})`} />
+        </Tabs>
+      </Paper>
+
+      {tabIndex === 0 && (<>
       {/* Stats Cards */}
       {stats && (
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, mb: 3 }}>
@@ -255,6 +270,77 @@ const SelfHealing: React.FC = () => {
           </TableContainer>
         )}
       </Paper>
+      </>)}
+
+      {/* Quarantine Tab */}
+      {tabIndex === 1 && (
+        <Paper sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Quarantined Tests</Typography>
+            <Chip label={`${(quarantinedTests as QuarantinedTest[]).length} quarantined`} color="warning" size="small" />
+          </Box>
+
+          {(quarantinedTests as QuarantinedTest[]).length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No tests are currently quarantined. Tests are auto-quarantined when flaky patterns are detected.
+            </Typography>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Test Name</TableCell>
+                    <TableCell>Severity</TableCell>
+                    <TableCell>Score</TableCell>
+                    <TableCell>Occurrences</TableCell>
+                    <TableCell>Quarantined</TableCell>
+                    <TableCell>Reason</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(quarantinedTests as QuarantinedTest[]).map((test) => (
+                    <TableRow key={test.id}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={500}>{test.testName}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={test.severity}
+                          size="small"
+                          color={test.severity === 'HIGH' ? 'error' : test.severity === 'MEDIUM' ? 'warning' : 'info'}
+                        />
+                      </TableCell>
+                      <TableCell>{(test.flakinessScore * 100).toFixed(0)}%</TableCell>
+                      <TableCell>{test.occurrenceCount}</TableCell>
+                      <TableCell>
+                        <Typography variant="caption">{new Date(test.createdAt).toLocaleDateString()}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption" sx={{ maxWidth: 200, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {test.reason}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Reinstate test">
+                          <IconButton size="small" color="success" onClick={() => reinstateMutation.mutate(test.id)}>
+                            <ReinstateIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete quarantine record">
+                          <IconButton size="small" color="error" onClick={() => deleteQuarantineMutation.mutate(test.id)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+      )}
 
       {/* Create Rule Dialog */}
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} maxWidth="sm" fullWidth>

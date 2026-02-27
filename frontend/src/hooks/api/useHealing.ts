@@ -178,3 +178,65 @@ export function useSeedHealingRules() {
     },
   });
 }
+
+// ─── Quarantine ────────────────────────────────────────
+
+export interface QuarantinedTest {
+  id: string;
+  testName: string;
+  reason: string;
+  severity: string;
+  quarantinedBy: string;
+  flakinessScore: number;
+  occurrenceCount: number;
+  status: string;
+  createdAt: string;
+}
+
+export function useQuarantinedTests() {
+  return useQuery({
+    queryKey: queryKeys.healing.quarantine(),
+    queryFn: async () => {
+      const json = await api.get<{ data: QuarantinedTest[] }>('/healing/quarantine');
+      return json.data;
+    },
+  });
+}
+
+export function useQuarantineTest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { testName: string; reason: string; severity?: string; flakinessScore?: number }) => {
+      const json = await api.post<{ data: QuarantinedTest }>('/healing/quarantine', data);
+      return json.data;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.healing.quarantine() });
+    },
+  });
+}
+
+export function useReinstateTest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const json = await api.patch<{ data: QuarantinedTest }>(`/healing/quarantine/${id}/reinstate`, {});
+      return json.data;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.healing.quarantine() });
+    },
+  });
+}
+
+export function useDeleteQuarantinedTest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/healing/quarantine/${id}`);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.healing.quarantine() });
+    },
+  });
+}

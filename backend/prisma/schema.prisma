@@ -492,3 +492,20 @@ model HealingEvent {
   @@index([pipelineId, createdAt])
   @@index([status])
 }
+
+model QuarantinedTest {
+  id              String   @id @default(uuid())
+  testName        String   @unique
+  reason          String
+  severity        String   @default("MEDIUM") // HIGH | MEDIUM | LOW
+  quarantinedBy   String   @default("auto") // 'auto' | userId
+  healingEventId  String?
+  flakinessScore  Float    @default(0)
+  occurrenceCount Int      @default(1)
+  status          String   @default("quarantined") // quarantined | reinstated | deleted
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([testName])
+}

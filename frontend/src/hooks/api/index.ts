@@ -18,4 +18,4 @@ export { useFlakyTests } from './useFlakyTests';
 export { useFailureInsights, useFailureSearch, useFailureComments, useAddFailureComment, useDeleteFailureComment } from './useFailureArchive';
 export { useTeams, useTeamDetail, useCreateTeam, useAddTeamMember, useRemoveTeamMember, useUpdateTeamMemberRole } from './useTeams';
 export { useProviderConfig, useTestProviderConnection, useSaveProviderConfig, type ProviderConfig } from './useProviderConfig';
-export { useHealingRules, useHealingEvents, useHealingStats, useCreateHealingRule, useUpdateHealingRule, useToggleHealingRule, useDeleteHealingRule, useEvaluateHealing, useExecuteHealing, useSeedHealingRules, type HealingRule, type HealingEvent, type HealingStats } from './useHealing';
+export { useHealingRules, useHealingEvents, useHealingStats, useCreateHealingRule, useUpdateHealingRule, useToggleHealingRule, useDeleteHealingRule, useEvaluateHealing, useExecuteHealing, useSeedHealingRules, useQuarantinedTests, useQuarantineTest, useReinstateTest, useDeleteQuarantinedTest, type HealingRule, type HealingEvent, type HealingStats, type QuarantinedTest } from './useHealing';

@@ -179,6 +179,67 @@ export class HealingController {
     }
   }
 
+  // ─── Quarantine ─────────────────────────────────────────
+
+  static async getQuarantinedTests(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const tests = await SelfHealingService.getQuarantinedTests();
+      res.json({ success: true, data: tests });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async quarantineTest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const data = z.object({
+        testName: z.string().min(1),
+        reason: z.string().min(1).max(500),
+        severity: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
+        flakinessScore: z.number().min(0).max(1).optional(),
+      }).parse(req.body);
+
+      const userId = String(req.user!.id);
+      const test = await SelfHealingService.quarantineTest(
+        data.testName, data.reason, data.severity || 'MEDIUM', userId, data.flakinessScore,
+      );
+      res.status(201).json({ success: true, data: test });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: 'Validation error', details: error.errors });
+        return;
+      }
+      next(error);
+    }
+  }
+
+  static async reinstateTest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const test = await SelfHealingService.reinstateTest(req.params.testId);
+      res.json({ success: true, data: test });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteQuarantinedTest(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await SelfHealingService.deleteQuarantinedTest(req.params.testId);
+      res.json({ success: true, message: 'Quarantined test removed' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getQuarantineStats(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const stats = await SelfHealingService.getQuarantineStats();
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ─── Seed ──────────────────────────────────────────────
 
   static async seedRules(_req: Request, res: Response, next: NextFunction): Promise<void> {

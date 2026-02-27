@@ -30,6 +30,13 @@ router.post('/execute', authorize(UserRole.EDITOR), asMiddleware(HealingControll
 router.get('/events', asMiddleware(HealingController.getEvents));
 router.get('/stats', asMiddleware(HealingController.getStats));
 
+// Quarantine management
+router.get('/quarantine', asMiddleware(HealingController.getQuarantinedTests));
+router.post('/quarantine', authorize(UserRole.EDITOR), asMiddleware(HealingController.quarantineTest));
+router.patch('/quarantine/:testId/reinstate', authorize(UserRole.EDITOR), asMiddleware(HealingController.reinstateTest));
+router.delete('/quarantine/:testId', authorize(UserRole.ADMIN), asMiddleware(HealingController.deleteQuarantinedTest));
+router.get('/quarantine/stats', asMiddleware(HealingController.getQuarantineStats));
+
 // Seed built-in rules
 router.post('/seed', authorize(UserRole.ADMIN), asMiddleware(HealingController.seedRules));
 
