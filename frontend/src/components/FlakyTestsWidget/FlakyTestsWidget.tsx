@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { api } from '../../api/client';
 import {
     Card,
     CardContent,
@@ -34,11 +34,8 @@ export default function FlakyTestsWidget() {
     const { data: flakyTests, isLoading, error } = useQuery<FlakyTestStats[]>({
         queryKey: ['flakyTests'],
         queryFn: async () => {
-            const token = localStorage.getItem('accessToken');
-            const response = await axios.get('/api/v1/tests/flaky', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            return response.data.data;
+            const response = await api.get<{ data: FlakyTestStats[] }>('/tests/flaky');
+            return response.data;
         }
     });
 

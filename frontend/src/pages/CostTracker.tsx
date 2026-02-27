@@ -34,7 +34,7 @@ import {
   Speed as SpeedIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { api } from '../api/client';
 
 interface CostMetrics {
   totalCost: number;
@@ -221,13 +221,7 @@ export default function CostTracker() {
   // Fetch cost metrics
   const { data: metrics, isLoading } = useQuery<CostMetrics>({
     queryKey: ['cost-metrics', timeRange],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`/api/v1/ai/costs?timeRange=${timeRange}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      return response.data;
-    },
+    queryFn: () => api.get<CostMetrics>(`/ai/costs?timeRange=${timeRange}`),
     initialData: {
       totalCost: 2.34,
       monthlySpent: 47.20,
