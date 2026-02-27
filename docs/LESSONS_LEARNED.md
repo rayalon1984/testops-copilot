@@ -29,6 +29,7 @@ These are the distilled "never again" rules from every incident below. **Read th
 | Never fall back to MemoryStore silently in production | Missing Redis causes session loss on restart with no log warning | EPR-014 |
 | Never let CI workflows unconditionally overwrite release content | Custom release notes get clobbered on every tag push | EPR-015 |
 | Never run monorepo sub-project tools from the root without `cd` | eslint/tsc can't find tsconfig.json when invoked from repo root | EPR-016 |
+| Never ship a release without verifying `npm audit --audit-level=high` passes in CI | Transitive dependency CVEs (e.g. minimatch ReDoS) break the security audit gate post-merge | EPR-017 |
 
 ---
 
@@ -280,6 +281,19 @@ JWT_SECRET=<any value for tests>
 | **CI guard** | Pre-commit hook itself — if it fails, commits are blocked |
 | **Status** | **Mitigated** (Sprint 8) — lint-staged config uses `cd` pattern |
 
+### EPR-017: Transitive Dependency CVEs Break CI Security Audit
+
+| Field | Value |
+|-------|-------|
+| **Pattern** | Release ships successfully locally but CI security audit gate (`npm audit --audit-level=high`) fails on `main` due to transitive dependency vulnerabilities not checked during the local verification loop |
+| **First seen** | Sprint 8 (2026-02-27) |
+| **Impact** | P1 — CI red on main immediately after a release merge; blocks downstream workflows |
+| **Root cause** | v3.0.1 local verification loop ran test, typecheck, lint, build, architecture, health — but **did not run `npm audit`**. `minimatch 10.2.2` had two high-severity ReDoS advisories (GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74) in both backend and frontend `node_modules` |
+| **Fix** | `npm audit fix` in both backend and frontend updated minimatch to 10.2.3+. Remaining 16 low-severity AWS SDK transitives are upstream (fast-xml-parser) and don't fail the high-severity gate |
+| **Prevention** | Add `npm audit --audit-level=high` to the AGENTS.md §5 verification loop so it runs before every commit |
+| **CI guard** | `npm audit --audit-level=high` step in backend-ci and frontend-ci workflows |
+| **Status** | **Mitigated** (Sprint 8) — minimatch patched; verification loop updated |
+
 ---
 
 ## Automated Guards Summary
@@ -290,7 +304,7 @@ JWT_SECRET=<any value for tests>
 | `tsc --noEmit` (dev schema) | backend-ci | Models missing from `schema.dev.prisma` | Sprint 4 |
 | `tsc --noEmit` (production schema) | backend-ci | Cross-database type mismatches (SQLite vs PostgreSQL enums) | Sprint 7 |
 | `validate-schema.js --strict-fields` | backend-ci, installation-test | Field-level drift between schemas | Sprint 5 |
-| `npm audit --audit-level=high` | backend-ci | Known vulnerabilities in dependencies | Sprint 4 |
+| `npm audit --audit-level=high` | backend-ci, frontend-ci | Known vulnerabilities in dependencies | Sprint 4 |
 | `eslint` | backend-ci, frontend-ci | Code quality, unused imports, style | Sprint 3 |
 | `jest` / `vitest` | backend-ci, frontend-ci | Functional regressions | Sprint 3 |
 | Weekly dependency scan | dependencies.yml | Outdated deps, new CVEs, license issues | Sprint 4 |
@@ -320,6 +334,7 @@ Before starting each sprint, the Release QA Engineer verifies:
 - [ ] Infrastructure fallback branches include `logger.warn()` with impact description (EPR-014)
 - [ ] Release workflow has guard step to protect custom release notes (EPR-015)
 - [ ] lint-staged config uses `cd` pattern for monorepo sub-projects (EPR-016)
+- [ ] `npm audit --audit-level=high` is included in the local verification loop before every release commit (EPR-017)
 - [ ] This document has been reviewed for new patterns from the previous sprint
 
 ---

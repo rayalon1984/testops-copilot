@@ -258,8 +258,9 @@ Before completing ANY task, run this checklist:
 4. **Lint clean** — `npm run lint` (ESLint passing)
 5. **Architecture clean** — `npm run check:architecture` (no layer violations)
 6. **Code health** — `npm run check:health` (no file/function size violations)
-7. **Specs updated** — If behavior changed, update relevant `specs/` documents
-8. **Self-review** — Read the diff. Check edge cases. Verify error handling.
+7. **Security audit** — `cd backend && npm audit --audit-level=high && cd ../frontend && npm audit --audit-level=high` (no high/critical CVEs)
+8. **Specs updated** — If behavior changed, update relevant `specs/` documents
+9. **Self-review** — Read the diff. Check edge cases. Verify error handling.
 
 **If any check fails**: Fix and retry (max 3 attempts). If still failing, simplify scope or ask.
 
