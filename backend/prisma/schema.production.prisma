@@ -279,6 +279,8 @@ model JiraIssue {
 
   @@index([jiraKey])
   @@index([projectKey])
+  @@index([testRunId])
+  @@index([failureArchiveId])
   @@map("jira_issues")
 }
 

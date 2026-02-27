@@ -172,6 +172,8 @@ model JiraIssue {
 
   @@index([jiraKey])
   @@index([projectKey])
+  @@index([testRunId])
+  @@index([failureArchiveId])
 }
 
 model Pipeline {
