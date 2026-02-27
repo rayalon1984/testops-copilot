@@ -99,6 +99,93 @@ interface ProviderConfig {
 
 type TestStatus = 'idle' | 'testing' | 'success' | 'error';
 
+// ─── Sub-components ───
+
+function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, needsKey, apiKey, setApiKey, showKey, setShowKey, activeConfig, testStatus, setTestStatus, testError, saveError, handleTest, handleSave, saving, canSave, isChanged }: {
+    provider: string; setProvider: (v: string) => void; model: string; setModel: (v: string) => void;
+    catalog: ProviderEntry; needsKey: boolean; apiKey: string; setApiKey: (v: string) => void;
+    showKey: boolean; setShowKey: (v: boolean) => void; activeConfig: ProviderConfig;
+    testStatus: TestStatus; setTestStatus: (v: TestStatus) => void; testError: string; saveError: string;
+    handleTest: () => void; handleSave: () => void; saving: boolean; canSave: boolean; isChanged: boolean;
+}) {
+    return (
+        <>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <SwapIcon fontSize="small" color="primary" />
+                <Typography variant="subtitle2" fontWeight={600}>AI Provider</Typography>
+            </Box>
+
+            <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+                <InputLabel>Provider</InputLabel>
+                <Select value={provider} label="Provider" onChange={(e) => { setProvider(e.target.value); setTestStatus('idle'); }}>
+                    {Object.entries(PROVIDER_CATALOG).map(([key, entry]) => (
+                        <MenuItem key={key} value={key}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <span style={{ fontSize: '0.85rem' }}>{PROVIDER_ICONS[key]}</span>
+                                {entry.label}
+                            </Box>
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+                <InputLabel>Model</InputLabel>
+                <Select value={model} label="Model" onChange={(e) => { setModel(e.target.value); setTestStatus('idle'); }}>
+                    {catalog.models.map((m) => (
+                        <MenuItem key={m.id} value={m.id}>{m.label}</MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            {needsKey && (
+                <TextField
+                    fullWidth size="small" label="API Key" type={showKey ? 'text' : 'password'}
+                    value={apiKey} onChange={(e) => { setApiKey(e.target.value); setTestStatus('idle'); }}
+                    placeholder={activeConfig.hasApiKey && activeConfig.provider === provider ? 'Using stored key (enter new to replace)' : 'sk-...'}
+                    sx={{ mb: 1.5 }}
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton size="small" onClick={() => setShowKey(!showKey)} edge="end">
+                                    {showKey ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+            )}
+
+            {testStatus === 'success' && (
+                <Alert severity="success" sx={{ mb: 1.5, py: 0 }} icon={<ConnectedIcon fontSize="small" />}>Connected</Alert>
+            )}
+            {testStatus === 'error' && (
+                <Alert severity="error" sx={{ mb: 1.5, py: 0 }} icon={<ErrorIcon fontSize="small" />}>{testError}</Alert>
+            )}
+            {saveError && (
+                <Alert severity="error" sx={{ mb: 1.5, py: 0 }}>{saveError}</Alert>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 1 }}>
+                {needsKey && (
+                    <Button size="small" variant="outlined" onClick={handleTest} disabled={testStatus === 'testing' || (!apiKey && !activeConfig.hasApiKey)} sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}>
+                        {testStatus === 'testing' ? <CircularProgress size={16} sx={{ mr: 0.5 }} /> : null}
+                        Test
+                    </Button>
+                )}
+                <Button size="small" variant="contained" onClick={handleSave} disabled={saving || !canSave || !isChanged} sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}>
+                    {saving ? <CircularProgress size={16} sx={{ mr: 0.5, color: 'inherit' }} /> : null}
+                    Activate
+                </Button>
+            </Box>
+
+            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontSize: '0.65rem' }}>
+                Keys are encrypted at rest. Switch providers instantly.
+            </Typography>
+        </>
+    );
+}
+
 // ─── Component ───
 
 export default function ProviderPicker() {
@@ -221,123 +308,13 @@ export default function ProviderPicker() {
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 slotProps={{ paper: { sx: { width: 320, p: 2.5, mt: 0.5, borderRadius: 2 } } }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <SwapIcon fontSize="small" color="primary" />
-                    <Typography variant="subtitle2" fontWeight={600}>AI Provider</Typography>
-                </Box>
-
-                {/* Provider selector */}
-                <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
-                    <InputLabel>Provider</InputLabel>
-                    <Select
-                        value={provider}
-                        label="Provider"
-                        onChange={(e) => { setProvider(e.target.value); setTestStatus('idle'); }}
-                    >
-                        {Object.entries(PROVIDER_CATALOG).map(([key, entry]) => (
-                            <MenuItem key={key} value={key}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <span style={{ fontSize: '0.85rem' }}>{PROVIDER_ICONS[key]}</span>
-                                    {entry.label}
-                                </Box>
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                {/* Model selector */}
-                <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
-                    <InputLabel>Model</InputLabel>
-                    <Select
-                        value={model}
-                        label="Model"
-                        onChange={(e) => { setModel(e.target.value); setTestStatus('idle'); }}
-                    >
-                        {catalog.models.map((m) => (
-                            <MenuItem key={m.id} value={m.id}>{m.label}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
-                {/* API key field (hidden for mock) */}
-                {needsKey && (
-                    <TextField
-                        fullWidth
-                        size="small"
-                        label="API Key"
-                        type={showKey ? 'text' : 'password'}
-                        value={apiKey}
-                        onChange={(e) => { setApiKey(e.target.value); setTestStatus('idle'); }}
-                        placeholder={activeConfig.hasApiKey && activeConfig.provider === provider
-                            ? 'Using stored key (enter new to replace)'
-                            : 'sk-...'}
-                        sx={{ mb: 1.5 }}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        size="small"
-                                        onClick={() => setShowKey(!showKey)}
-                                        edge="end"
-                                    >
-                                        {showKey ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                )}
-
-                {/* Test connection status */}
-                {testStatus === 'success' && (
-                    <Alert severity="success" sx={{ mb: 1.5, py: 0 }} icon={<ConnectedIcon fontSize="small" />}>
-                        Connected
-                    </Alert>
-                )}
-                {testStatus === 'error' && (
-                    <Alert severity="error" sx={{ mb: 1.5, py: 0 }} icon={<ErrorIcon fontSize="small" />}>
-                        {testError}
-                    </Alert>
-                )}
-                {saveError && (
-                    <Alert severity="error" sx={{ mb: 1.5, py: 0 }}>
-                        {saveError}
-                    </Alert>
-                )}
-
-                {/* Actions */}
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                    {needsKey && (
-                        <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={handleTest}
-                            disabled={testStatus === 'testing' || (!apiKey && !activeConfig.hasApiKey)}
-                            sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}
-                        >
-                            {testStatus === 'testing'
-                                ? <CircularProgress size={16} sx={{ mr: 0.5 }} />
-                                : null}
-                            Test
-                        </Button>
-                    )}
-                    <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleSave}
-                        disabled={saving || !canSave || !isChanged}
-                        sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}
-                    >
-                        {saving
-                            ? <CircularProgress size={16} sx={{ mr: 0.5, color: 'inherit' }} />
-                            : null}
-                        Activate
-                    </Button>
-                </Box>
-
-                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1.5, textAlign: 'center', fontSize: '0.65rem' }}>
-                    Keys are encrypted at rest. Switch providers instantly.
-                </Typography>
+                <ProviderPopoverBody
+                    provider={provider} setProvider={setProvider} model={model} setModel={setModel}
+                    catalog={catalog} needsKey={needsKey} apiKey={apiKey} setApiKey={setApiKey}
+                    showKey={showKey} setShowKey={setShowKey} activeConfig={activeConfig}
+                    testStatus={testStatus} setTestStatus={setTestStatus} testError={testError} saveError={saveError}
+                    handleTest={handleTest} handleSave={handleSave} saving={saving} canSave={canSave} isChanged={isChanged}
+                />
             </Popover>
         </>
     );

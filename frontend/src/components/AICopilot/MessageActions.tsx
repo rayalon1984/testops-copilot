@@ -18,6 +18,42 @@ import {
 } from '@mui/icons-material';
 import { api } from '../../api';
 
+function SharePopoverContent({ shareLoading, shareUrl, shareCopied, handleCopyLink, emailTo, setEmailTo, handleEmailShare, emailSending, emailSent }: {
+    shareLoading: boolean; shareUrl: string | null; shareCopied: boolean; handleCopyLink: () => void;
+    emailTo: string; setEmailTo: (v: string) => void; handleEmailShare: () => void; emailSending: boolean; emailSent: boolean;
+}) {
+    if (shareLoading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={20} />
+            </Box>
+        );
+    }
+    if (shareUrl) {
+        return (
+            <Stack spacing={1.5}>
+                <Button size="small" variant="outlined" startIcon={shareCopied ? <CheckIcon /> : <LinkIcon />} onClick={handleCopyLink} fullWidth>
+                    {shareCopied ? 'Link Copied!' : 'Copy Link'}
+                </Button>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <TextField size="small" placeholder="email@example.com" value={emailTo} onChange={e => setEmailTo(e.target.value)} fullWidth inputProps={{ sx: { fontSize: '0.8rem', py: 0.5 } }} />
+                    <Button size="small" variant="contained" onClick={handleEmailShare} disabled={!emailTo || emailSending} sx={{ minWidth: 36, px: 1 }}>
+                        {emailSent ? <CheckIcon fontSize="small" /> : <EmailIcon fontSize="small" />}
+                    </Button>
+                </Box>
+                <Typography variant="caption" color="text.disabled">
+                    Link expires in 7 days. No login required to view.
+                </Typography>
+            </Stack>
+        );
+    }
+    return (
+        <Typography variant="body2" color="text.secondary">
+            Failed to create share link.
+        </Typography>
+    );
+}
+
 interface MessageActionsProps {
     content: string;
     timestamp: Date;
@@ -114,52 +150,7 @@ export default function MessageActions({ content, timestamp, persona, sessionId 
                 slotProps={{ paper: { sx: { p: 2, width: 300 } } }}
             >
                 <Typography variant="subtitle2" gutterBottom>Share Analysis</Typography>
-
-                {shareLoading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                        <CircularProgress size={20} />
-                    </Box>
-                ) : shareUrl ? (
-                    <Stack spacing={1.5}>
-                        <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={shareCopied ? <CheckIcon /> : <LinkIcon />}
-                            onClick={handleCopyLink}
-                            fullWidth
-                        >
-                            {shareCopied ? 'Link Copied!' : 'Copy Link'}
-                        </Button>
-
-                        <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <TextField
-                                size="small"
-                                placeholder="email@example.com"
-                                value={emailTo}
-                                onChange={e => setEmailTo(e.target.value)}
-                                fullWidth
-                                inputProps={{ sx: { fontSize: '0.8rem', py: 0.5 } }}
-                            />
-                            <Button
-                                size="small"
-                                variant="contained"
-                                onClick={handleEmailShare}
-                                disabled={!emailTo || emailSending}
-                                sx={{ minWidth: 36, px: 1 }}
-                            >
-                                {emailSent ? <CheckIcon fontSize="small" /> : <EmailIcon fontSize="small" />}
-                            </Button>
-                        </Box>
-
-                        <Typography variant="caption" color="text.disabled">
-                            Link expires in 7 days. No login required to view.
-                        </Typography>
-                    </Stack>
-                ) : (
-                    <Typography variant="body2" color="text.secondary">
-                        Failed to create share link.
-                    </Typography>
-                )}
+                <SharePopoverContent shareLoading={shareLoading} shareUrl={shareUrl} shareCopied={shareCopied} handleCopyLink={handleCopyLink} emailTo={emailTo} setEmailTo={setEmailTo} handleEmailShare={handleEmailShare} emailSending={emailSending} emailSent={emailSent} />
             </Popover>
 
             <Tooltip title="Helpful">

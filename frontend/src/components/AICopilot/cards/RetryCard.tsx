@@ -41,6 +41,22 @@ function getConfidenceColor(confidence: number): string {
     return '#f44336';
 }
 
+function RetryResult({ retry }: { retry: RetryData }) {
+    return (
+        <Paper sx={{ mb: 2, borderRadius: 2, overflow: 'hidden', border: 1, borderColor: 'divider', borderLeft: 3, borderLeftColor: '#4caf50' }}>
+            <Box sx={{ p: 1.5 }}>
+                <ServiceBadge service="jenkins" subtitle="Retry" />
+                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    Retrying test run <strong>{retry.testRunId}</strong>
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    New run: {retry.newRunId} — Status: {retry.status}
+                </Typography>
+            </Box>
+        </Paper>
+    );
+}
+
 export default function RetryCard({ data, userRole, onAction, cardState }: RetryCardProps) {
     const retry = data as unknown as RetryData;
     const isPending = cardState === 'action_pending';
@@ -49,27 +65,7 @@ export default function RetryCard({ data, userRole, onAction, cardState }: Retry
 
     // If this is a result from a completed retry
     if (retry.newRunId || retry.status === 'PENDING') {
-        return (
-            <Paper sx={{
-                mb: 2,
-                borderRadius: 2,
-                overflow: 'hidden',
-                border: 1,
-                borderColor: 'divider',
-                borderLeft: 3,
-                borderLeftColor: '#4caf50',
-            }}>
-                <Box sx={{ p: 1.5 }}>
-                    <ServiceBadge service="jenkins" subtitle="Retry" />
-                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                        Retrying test run <strong>{retry.testRunId}</strong>
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        New run: {retry.newRunId} — Status: {retry.status}
-                    </Typography>
-                </Box>
-            </Paper>
-        );
+        return <RetryResult retry={retry} />;
     }
 
     // Smart retry suggestion card

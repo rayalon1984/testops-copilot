@@ -78,42 +78,54 @@ const navSections: NavSection[] = [
   },
 ];
 
-export default function Layout() {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+function NavItemButton({ item, active, onNavigate }: {
+  item: { text: string; icon: React.ReactNode; path: string }; active: boolean; onNavigate: (path: string) => void;
+}) {
   const theme = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { mode: designMode, colorMode, toggleColorMode } = useDesignMode();
+  return (
+    <ListItem disablePadding sx={{ mb: 0.25 }}>
+      <ListItemButton
+        onClick={() => onNavigate(item.path)}
+        sx={{
+          borderRadius: 2, py: 0.9, px: 1.5, minHeight: 40,
+          backgroundColor: active ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+          color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+          '&:hover': { backgroundColor: active ? alpha(theme.palette.primary.main, 0.14) : alpha(theme.palette.action.hover, 0.6) },
+          transition: 'all 0.15s ease',
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 36, color: active ? theme.palette.primary.main : theme.palette.text.disabled, '& .MuiSvgIcon-root': { fontSize: 20 } }}>
+          {item.icon}
+        </ListItemIcon>
+        <ListItemText primary={item.text} primaryTypographyProps={{ variant: 'body2', fontWeight: active ? 600 : 400, fontSize: '0.85rem' }} />
+        {active && <Box sx={{ width: 4, height: 20, borderRadius: 2, backgroundColor: theme.palette.primary.main, flexShrink: 0 }} />}
+      </ListItemButton>
+    </ListItem>
+  );
+}
 
-  // Show onboarding wizard on first visit
-  useEffect(() => {
-    const completed = localStorage.getItem('onboardingComplete');
-    if (!completed) {
-      setShowOnboarding(true);
-    }
-  }, []);
-
-  const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    if (isMobile) {
-      setDrawerOpen(false);
-    }
-  };
-
-  const isActive = (path: string) => {
-    if (path === '/dashboard') return location.pathname === '/dashboard' || location.pathname === '/';
-    return location.pathname.startsWith(path);
-  };
-
-  const drawer = (
+function SidebarContent({
+  isMobile,
+  onToggle,
+  navSections,
+  isActive,
+  onNavigate,
+  designMode,
+  colorMode,
+  toggleColorMode,
+}: {
+  isMobile: boolean;
+  onToggle: () => void;
+  navSections: NavSection[];
+  isActive: (path: string) => boolean;
+  onNavigate: (path: string) => void;
+  designMode: string;
+  colorMode: string;
+  toggleColorMode: () => void;
+}) {
+  const theme = useTheme();
+  return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Logo Area */}
       <Box
         sx={{
           px: 2.5,
@@ -151,7 +163,7 @@ export default function Layout() {
           </Box>
         </Box>
         {isMobile && (
-          <IconButton onClick={handleDrawerToggle} size="small">
+          <IconButton onClick={onToggle} size="small">
             <ChevronLeftIcon />
           </IconButton>
         )}
@@ -159,12 +171,10 @@ export default function Layout() {
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 
-      {/* Team Selector */}
       <TeamSelector />
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 
-      {/* Navigation Sections */}
       <Box sx={{ flex: 1, overflowY: 'auto', py: 1.5 }}>
         {navSections.map((section, sectionIndex) => (
           <Box key={section.label} sx={{ mb: sectionIndex < navSections.length - 1 ? 1 : 0 }}>
@@ -179,61 +189,9 @@ export default function Layout() {
               {section.label}
             </Typography>
             <List disablePadding sx={{ px: 1.5 }}>
-              {section.items.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
-                    <ListItemButton
-                      onClick={() => handleNavigation(item.path)}
-                      sx={{
-                        borderRadius: 2,
-                        py: 0.9,
-                        px: 1.5,
-                        minHeight: 40,
-                        backgroundColor: active
-                          ? alpha(theme.palette.primary.main, 0.1)
-                          : 'transparent',
-                        color: active ? theme.palette.primary.main : theme.palette.text.secondary,
-                        '&:hover': {
-                          backgroundColor: active
-                            ? alpha(theme.palette.primary.main, 0.14)
-                            : alpha(theme.palette.action.hover, 0.6),
-                        },
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 36,
-                          color: active ? theme.palette.primary.main : theme.palette.text.disabled,
-                          '& .MuiSvgIcon-root': { fontSize: 20 },
-                        }}
-                      >
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.text}
-                        primaryTypographyProps={{
-                          variant: 'body2',
-                          fontWeight: active ? 600 : 400,
-                          fontSize: '0.85rem',
-                        }}
-                      />
-                      {active && (
-                        <Box
-                          sx={{
-                            width: 4,
-                            height: 20,
-                            borderRadius: 2,
-                            backgroundColor: theme.palette.primary.main,
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                    </ListItemButton>
-                  </ListItem>
-                );
-              })}
+              {section.items.map((item) => (
+                <NavItemButton key={item.text} item={item} active={isActive(item.path)} onNavigate={onNavigate} />
+              ))}
             </List>
           </Box>
         ))}
@@ -241,7 +199,6 @@ export default function Layout() {
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 
-      {/* Bottom: Version & Theme Toggle */}
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
           label="v3.0.0"
@@ -280,6 +237,98 @@ export default function Layout() {
       </Box>
     </Box>
   );
+}
+
+function LayoutHeader({
+  onDrawerToggle,
+  navSections,
+  isActive,
+}: {
+  onDrawerToggle: () => void;
+  navSections: NavSection[];
+  isActive: (path: string) => boolean;
+}) {
+  return (
+    <AppBar
+      position="static"
+      elevation={0}
+      sx={{
+        bgcolor: 'background.default',
+        borderBottom: 1,
+        borderColor: 'divider',
+        color: 'text.primary'
+      }}
+    >
+      <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }}>
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={onDrawerToggle}
+          sx={{ mr: 2, display: { md: 'none' } }}
+        >
+          <MenuIcon />
+        </IconButton>
+
+        <Typography
+          variant="subtitle1"
+          fontWeight={600}
+          color="text.primary"
+          noWrap
+          sx={{ flexGrow: 1 }}
+        >
+          {navSections
+            .flatMap((s) => s.items)
+            .find((item) => isActive(item.path))?.text || 'TestOps Copilot'}
+        </Typography>
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+export default function Layout() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { mode: designMode, colorMode, toggleColorMode } = useDesignMode();
+
+  // Show onboarding wizard on first visit
+  useEffect(() => {
+    const completed = localStorage.getItem('onboardingComplete');
+    if (!completed) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    if (isMobile) {
+      setDrawerOpen(false);
+    }
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/dashboard') return location.pathname === '/dashboard' || location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
+  const sidebarProps = {
+    isMobile,
+    onToggle: handleDrawerToggle,
+    navSections,
+    isActive,
+    onNavigate: handleNavigation,
+    designMode,
+    colorMode,
+    toggleColorMode,
+  };
 
   return (
     <Box
@@ -306,7 +355,7 @@ export default function Layout() {
           overflow: 'hidden'
         }}
       >
-        {drawer}
+        <SidebarContent {...sidebarProps} />
       </Box>
 
       {/* Mobile Drawer (Overlay) */}
@@ -320,7 +369,7 @@ export default function Layout() {
           '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
         }}
       >
-        {drawer}
+        <SidebarContent {...sidebarProps} />
       </Drawer>
 
       {/* 2. Main Content Column */}
@@ -331,44 +380,10 @@ export default function Layout() {
           flexDirection: 'column',
           height: '100%',
           overflow: 'hidden',
-          minWidth: 0 // Prevent flex overflow
+          minWidth: 0
         }}
       >
-        <AppBar
-          position="static"
-          elevation={0}
-          sx={{
-            bgcolor: 'background.default', // match main content bg
-            borderBottom: 1,
-            borderColor: 'divider',
-            color: 'text.primary'
-          }}
-        >
-          <Toolbar sx={{ minHeight: { xs: 56, md: 56 } }}>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: 'none' } }}
-            >
-              <MenuIcon />
-            </IconButton>
-
-            {/* Page title */}
-            <Typography
-              variant="subtitle1"
-              fontWeight={600}
-              color="text.primary"
-              noWrap
-              sx={{ flexGrow: 1 }}
-            >
-              {navSections
-                .flatMap((s) => s.items)
-                .find((item) => isActive(item.path))?.text || 'TestOps Copilot'}
-            </Typography>
-          </Toolbar>
-        </AppBar>
+        <LayoutHeader onDrawerToggle={handleDrawerToggle} navSections={navSections} isActive={isActive} />
 
         <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
           <Outlet />

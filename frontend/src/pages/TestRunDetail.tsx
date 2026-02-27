@@ -59,6 +59,137 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+function TestRunOverviewCards({ testRun }: { testRun: TestRun }) {
+  return (
+    <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid item xs={12} md={4}>
+        <Card>
+          <CardHeader title="Pipeline Info" />
+          <CardContent>
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary="Pipeline"
+                  secondary={testRun.pipelineName}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><TimeIcon /></ListItemIcon>
+                <ListItemText
+                  primary="Duration"
+                  secondary={`${testRun.duration} seconds`}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><ErrorsIcon /></ListItemIcon>
+                <ListItemText
+                  primary="Errors"
+                  secondary={testRun.errorCount}
+                />
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} md={8}>
+        <Card>
+          <CardHeader title="Execution Timeline" />
+          <CardContent>
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary="Start Time"
+                  secondary={new Date(testRun.startTime).toLocaleString()}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="End Time"
+                  secondary={new Date(testRun.endTime).toLocaleString()}
+                />
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+}
+
+function TestRunTabs({
+  testRun,
+  tabValue,
+  onTabChange,
+  onImageClick,
+}: {
+  testRun: TestRun;
+  tabValue: number;
+  onTabChange: (value: number) => void;
+  onImageClick: (src: string) => void;
+}) {
+  return (
+    <Paper sx={{ width: '100%' }}>
+      <Tabs
+        value={tabValue}
+        onChange={(_, newValue) => onTabChange(newValue)}
+        indicatorColor="primary"
+        textColor="primary"
+      >
+        <Tab label="Error Logs" />
+        <Tab label="Screenshots" />
+      </Tabs>
+
+      <TabPanel value={tabValue} index={0}>
+        <List>
+          {(testRun.errorLogs ?? []).map((log, index) => (
+            <ListItem key={index}>
+              <ListItemIcon>
+                <ErrorIcon color="error" />
+              </ListItemIcon>
+              <ListItemText
+                primary={log}
+                sx={{
+                  '& .MuiListItemText-primary': {
+                    fontFamily: 'monospace',
+                    whiteSpace: 'pre-wrap',
+                  },
+                }}
+              />
+            </ListItem>
+          ))}
+          {(testRun.errorLogs ?? []).length === 0 && (
+            <ListItem>
+              <ListItemText primary="No errors found" />
+            </ListItem>
+          )}
+        </List>
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        <ImageList cols={3} gap={16}>
+          {(testRun.screenshots ?? []).map((screenshot, index) => (
+            <ImageListItem
+              key={index}
+              onClick={() => onImageClick(screenshot)}
+              sx={{ cursor: 'pointer' }}
+            >
+              <img
+                src={screenshot}
+                alt={`Test Screenshot ${index + 1}`}
+                loading="lazy"
+              />
+            </ImageListItem>
+          ))}
+        </ImageList>
+        {(testRun.screenshots ?? []).length === 0 && (
+          <Typography>No screenshots available</Typography>
+        )}
+      </TabPanel>
+    </Paper>
+  );
+}
+
 export default function TestRunDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -120,122 +251,14 @@ export default function TestRunDetail() {
         {getStatusIcon(testRun.status)}
       </Box>
 
-      {/* Overview Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title="Pipeline Info" />
-            <CardContent>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="Pipeline"
-                    secondary={testRun.pipelineName}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><TimeIcon /></ListItemIcon>
-                  <ListItemText
-                    primary="Duration"
-                    secondary={`${testRun.duration} seconds`}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon><ErrorsIcon /></ListItemIcon>
-                  <ListItemText
-                    primary="Errors"
-                    secondary={testRun.errorCount}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+      <TestRunOverviewCards testRun={testRun} />
 
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardHeader title="Execution Timeline" />
-            <CardContent>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary="Start Time"
-                    secondary={new Date(testRun.startTime).toLocaleString()}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="End Time"
-                    secondary={new Date(testRun.endTime).toLocaleString()}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Tabs */}
-      <Paper sx={{ width: '100%' }}>
-        <Tabs
-          value={tabValue}
-          onChange={(_, newValue) => setTabValue(newValue)}
-          indicatorColor="primary"
-          textColor="primary"
-        >
-          <Tab label="Error Logs" />
-          <Tab label="Screenshots" />
-        </Tabs>
-
-        {/* Error Logs */}
-        <TabPanel value={tabValue} index={0}>
-          <List>
-            {(testRun.errorLogs ?? []).map((log, index) => (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <ErrorIcon color="error" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={log}
-                  sx={{
-                    '& .MuiListItemText-primary': {
-                      fontFamily: 'monospace',
-                      whiteSpace: 'pre-wrap',
-                    },
-                  }}
-                />
-              </ListItem>
-            ))}
-            {(testRun.errorLogs ?? []).length === 0 && (
-              <ListItem>
-                <ListItemText primary="No errors found" />
-              </ListItem>
-            )}
-          </List>
-        </TabPanel>
-
-        {/* Screenshots */}
-        <TabPanel value={tabValue} index={1}>
-          <ImageList cols={3} gap={16}>
-            {(testRun.screenshots ?? []).map((screenshot, index) => (
-              <ImageListItem
-                key={index}
-                onClick={() => setSelectedImage(screenshot)}
-                sx={{ cursor: 'pointer' }}
-              >
-                <img
-                  src={screenshot}
-                  alt={`Test Screenshot ${index + 1}`}
-                  loading="lazy"
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-          {(testRun.screenshots ?? []).length === 0 && (
-            <Typography>No screenshots available</Typography>
-          )}
-        </TabPanel>
-      </Paper>
+      <TestRunTabs
+        testRun={testRun}
+        tabValue={tabValue}
+        onTabChange={setTabValue}
+        onImageClick={setSelectedImage}
+      />
 
       {/* Screenshot Dialog */}
       <Dialog
