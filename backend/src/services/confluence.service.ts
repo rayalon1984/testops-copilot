@@ -1,10 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
-import { prisma } from '@/lib/prisma';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
 import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 import { withResilience, circuitBreakers } from '@/lib/resilience';
-import { buildRCAContent, buildTestReportContent } from './confluence-formatters';
+import {
+  publishRCADocument as publishRCADocumentFn,
+  publishTestReport as publishTestReportFn,
+} from './confluence-publisher';
 
 const CONFLUENCE_RESILIENCE = {
   circuitBreaker: circuitBreakers.confluence,
@@ -132,6 +134,16 @@ export class ConfluenceService {
     if (!this.enabled || !this.client) {
       throw new Error('Confluence integration is not enabled or configured');
     }
+  }
+
+  /** Expose space key for publisher orchestration */
+  getSpaceKey(): string {
+    return this.spaceKey;
+  }
+
+  /** Expose parent page ID for publisher orchestration */
+  getParentPageId(): string | undefined {
+    return this.parentPageId;
   }
 
   async validateConnection(): Promise<boolean> {
@@ -320,168 +332,25 @@ export class ConfluenceService {
   }
 
   /**
-   * Publish RCA documentation from Failure Archive
+   * Publish RCA documentation from Failure Archive (delegated to confluence-publisher.ts)
    */
   async publishRCADocument(
     failureArchiveId: string,
     options: RCADocumentOptions = {}
   ): Promise<string> {
     this.checkEnabled();
-
-    try {
-      // Get failure archive entry
-      const failure = await prisma.failureArchive.findUnique({
-        where: { id: failureArchiveId },
-        // include: { jiraIssue: true } // Removed
-      });
-
-      if (!failure) {
-        throw new Error('Failure archive entry not found');
-      }
-
-      if (!failure.rootCause) {
-        throw new Error('No RCA documentation available for this failure');
-      }
-
-      // Generate page title
-      const date = new Date(failure.lastOccurrence).toISOString().split('T')[0];
-      const title = `RCA: ${failure.testName} - ${date}`;
-
-      // Build Confluence content in storage format
-      const content = buildRCAContent(failure, options.linkToJira !== false);
-
-      // Check if page already exists
-      const existingPage = await this.findPageByTitle(
-        title,
-        options.spaceKey || this.spaceKey
-      );
-
-      let page: ConfluencePage;
-      if (existingPage) {
-        // Update existing page
-        page = await this.updatePage(
-          existingPage.id,
-          title,
-          content,
-          existingPage.version.number
-        );
-      } else {
-        // Create new page
-        page = await this.createPage(
-          title,
-          content,
-          options.spaceKey || this.spaceKey,
-          options.parentPageId || this.parentPageId
-        );
-      }
-
-      // Add labels
-      const labels = [
-        'rca',
-        'test-failure',
-        (failure.severity || 'info').toLowerCase(),
-        ...(options.addLabels || []),
-      ];
-      await this.addLabels(page.id, labels);
-
-      // Store the mapping
-      await prisma.confluencePage.create({
-        data: {
-          pageId: page.id,
-          title: page.title,
-          spaceKey: page.space.key,
-          url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          // sourceId: failureArchiveId, // Removed
-          metadata: JSON.stringify({
-            version: page.version.number,
-            type: 'rca_document',
-            sourceId: failureArchiveId // Moved to metadata
-          })
-        },
-      });
-
-      logger.info(`Published RCA document for failure ${failureArchiveId}: ${page.id}`);
-      return `${config.confluence!.baseUrl}/wiki${page._links.webui}`;
-    } catch (error) {
-      logger.error(`Failed to publish RCA document:`, error);
-      throw new Error('Failed to publish RCA document to Confluence');
-    }
+    return publishRCADocumentFn(this, failureArchiveId, options);
   }
 
   /**
-   * Publish test execution report
+   * Publish test execution report (delegated to confluence-publisher.ts)
    */
   async publishTestReport(
     testRunId: string,
     options: TestReportOptions = {}
   ): Promise<string> {
     this.checkEnabled();
-
-    try {
-      // Get test run with results
-      // Get test run with results
-      const testRun = await prisma.testRun.findUnique({
-        where: { id: testRunId },
-        include: {
-          pipeline: true,
-          results: true, // Renamed from testResults
-          user: true,
-        },
-      });
-
-      if (!testRun) {
-        throw new Error('Test run not found');
-      }
-
-      // Generate page title
-      const date = new Date(testRun.createdAt).toISOString().split('T')[0];
-      const title = `Test Report: ${testRun.pipeline.name} - ${date}`;
-
-      // Build Confluence content
-      const content = buildTestReportContent(testRun, options.includeFailureDetails !== false);
-
-      // Create page
-      const page = await this.createPage(
-        title,
-        content,
-        options.spaceKey || this.spaceKey,
-        options.parentPageId || this.parentPageId
-      );
-
-      // Add labels
-      // Note: testRun.status is an enum in Prod, so toString() or cast needed if strict config? 
-      // TestStatus enum values match valid labels generally.
-      const statusLabel = typeof testRun.status === 'string' ? testRun.status.toLowerCase() : String(testRun.status).toLowerCase();
-      const labels = [
-        'test-report',
-        'automated-tests',
-        statusLabel,
-        ...(options.addLabels || []),
-      ];
-      await this.addLabels(page.id, labels);
-
-      // Store the mapping
-      await prisma.confluencePage.create({
-        data: {
-          pageId: page.id,
-          title: page.title,
-          spaceKey: page.space.key,
-          url: `${config.confluence!.baseUrl}/wiki${page._links.webui}`,
-          // sourceId: testRunId, // Removed as not in Prod schema
-          metadata: JSON.stringify({
-            version: page.version.number,
-            type: 'test_report',
-            sourceId: testRunId // Stored in metadata
-          })
-        },
-      });
-
-      logger.info(`Published test report for run ${testRunId}: ${page.id}`);
-      return `${config.confluence!.baseUrl}/wiki${page._links.webui}`;
-    } catch (error) {
-      logger.error(`Failed to publish test report:`, error);
-      throw new Error('Failed to publish test report to Confluence');
-    }
+    return publishTestReportFn(this, testRunId, options);
   }
 
   /**

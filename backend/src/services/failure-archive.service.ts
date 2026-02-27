@@ -1,11 +1,15 @@
 /**
  * Failure Archive Service
- * Handles root cause analysis storage, retrieval, and smart matching
+ * Handles failure CRUD, search, insights, and similarity matching.
+ *
+ * Collaborative RCA features (locking, revisions, comments, activity feed)
+ * are in ./failure-collaboration.service.ts
+ *
+ * Fingerprinting/similarity utilities are in ./failure-fingerprint.ts
  */
 
 import { prisma } from '../lib/prisma';
 import { auditService } from './audit.service';
-import crypto from 'crypto';
 import {
   FailureArchive,
   CreateFailureArchiveInput,
@@ -17,106 +21,24 @@ import {
   FailureSeverity
 } from '../types/failure-archive';
 
+// Re-export fingerprinting utilities so existing callers still work
+export {
+  generateFailureSignature,
+  normalizeErrorMessage,
+  normalizeStackTrace,
+  calculateSimilarity,
+  levenshteinDistance,
+} from './failure-fingerprint';
+
+// Re-export collaboration functions so the controller import stays unchanged
+import * as collaboration from './failure-collaboration.service';
+import { generateFailureSignature } from './failure-fingerprint';
+
 export class FailureArchiveService {
-  /**
-   * Generate a unique signature for failure pattern matching
-   */
-  static generateFailureSignature(
-    testName: string,
-    errorMessage: string,
-    stackTrace?: string
-  ): string {
-    const normalizedError = this.normalizeErrorMessage(errorMessage);
-    const stackHash = stackTrace
-      ? crypto.createHash('md5').update(this.normalizeStackTrace(stackTrace)).digest('hex').substring(0, 8)
-      : 'nostk';
-    const testHash = crypto.createHash('md5').update(testName).digest('hex').substring(0, 8);
+  // ─── Fingerprinting (delegated) ──────────────────────────────
+  static generateFailureSignature = generateFailureSignature;
 
-    return `${testHash}:${normalizedError}:${stackHash}`;
-  }
-
-  /**
-   * Normalize error messages by removing variable parts
-   */
-  private static normalizeErrorMessage(error: string): string {
-    return error
-      .toLowerCase()
-      // Remove timestamps
-      .replace(/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d+)?Z?/g, 'TIMESTAMP')
-      // Remove UUIDs
-      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, 'UUID')
-      // Remove IDs
-      .replace(/id[=:\s]+[\w-]+/gi, 'id=ID')
-      // Remove line numbers
-      .replace(/line \d+/gi, 'line X')
-      .replace(/:\d+:\d+/g, ':X:X')
-      // Remove memory addresses
-      .replace(/0x[0-9a-f]+/gi, '0xADDR')
-      // Trim and collapse whitespace
-      .trim()
-      .replace(/\s+/g, ' ')
-      .substring(0, 100); // Take first 100 chars for signature
-  }
-
-  /**
-   * Normalize stack traces for comparison
-   */
-  private static normalizeStackTrace(stackTrace: string): string {
-    return stackTrace
-      .split('\n')
-      .slice(0, 5) // Only look at top 5 stack frames
-      .map(line =>
-        line
-          .replace(/:\d+:\d+/g, ':X:X')
-          .replace(/\([^)]+\)/g, '()')
-          .trim()
-      )
-      .join('\n');
-  }
-
-  /**
-   * Calculate string similarity (Levenshtein distance based)
-   */
-  private static calculateSimilarity(str1: string, str2: string): number {
-    const longer = str1.length > str2.length ? str1 : str2;
-    const shorter = str1.length > str2.length ? str2 : str1;
-
-    if (longer.length === 0) return 1.0;
-
-    const editDistance = this.levenshteinDistance(longer, shorter);
-    return (longer.length - editDistance) / longer.length;
-  }
-
-  /**
-   * Levenshtein distance algorithm
-   */
-  private static levenshteinDistance(str1: string, str2: string): number {
-    const matrix: number[][] = [];
-
-    for (let i = 0; i <= str2.length; i++) {
-      matrix[i] = [i];
-    }
-
-    for (let j = 0; j <= str1.length; j++) {
-      matrix[0][j] = j;
-    }
-
-    for (let i = 1; i <= str2.length; i++) {
-      for (let j = 1; j <= str1.length; j++) {
-        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-        }
-      }
-    }
-
-    return matrix[str2.length][str1.length];
-  }
+  // ─── CRUD / Lifecycle ────────────────────────────────────────
 
   /**
    * Create a new failure archive entry
@@ -234,8 +156,8 @@ export class FailureArchiveService {
       matchReason: 'Exact error match'
     })));
 
-    // 2. Fuzzy match (same test, similar error) not fully implemented 
-    // to keep it simple and type-safe for now. 
+    // 2. Fuzzy match (same test, similar error) not fully implemented
+    // to keep it simple and type-safe for now.
 
     return results;
   }
@@ -278,7 +200,6 @@ export class FailureArchiveService {
     }
 
     if (query.tags && query.tags.length > 0) {
-      // where.tags = { hasSome: query.tags }; // SQLite/Prod tags is String, use contains?
       // For string tags, simple contains check
       where.tags = { contains: query.tags[0] };
     }
@@ -299,8 +220,6 @@ export class FailureArchiveService {
         orderBy: { lastOccurrence: 'desc' },
         take: query.limit || 50,
         skip: query.offset || 0,
-        // include: { jiraIssue: true } // Removed include, Prod doesn't have relation defined THIS way potentially?
-        // Prod schema: NO relation field 'jiraIssue' on FailureArchive. It has 'relatedJiraIssue' string.
       }),
       prisma.failureArchive.count({ where })
     ]);
@@ -322,7 +241,6 @@ export class FailureArchiveService {
       totalFailures,
       documentedCount,
       recurringCount,
-      // resolvedFailures, // timeToResolve not present
       commonFailures,
     ] = await Promise.all([
       prisma.failureArchive.count({
@@ -340,7 +258,6 @@ export class FailureArchiveService {
           occurrenceCount: { gt: 1 }
         }
       }),
-      // Raw query for most common
       prisma.failureArchive.groupBy({
         by: ['testName'],
         _count: {
@@ -368,7 +285,7 @@ export class FailureArchiveService {
         count: f._count.testName,
         lastOccurrence: f._max.lastOccurrence || new Date()
       })),
-      recentPatterns: [] // Removed patterns
+      recentPatterns: []
     };
   }
 
@@ -409,161 +326,15 @@ export class FailureArchiveService {
   static async getById(id: string): Promise<FailureArchive | null> {
     return prisma.failureArchive.findUnique({
       where: { id },
-      // include: { jiraIssue: true } // Removed
     }) as unknown as FailureArchive | null;
   }
 
-  // ─── Collaborative RCA: Optimistic Locking ──────────────────
+  // ─── Collaborative RCA (delegated to failure-collaboration.service.ts) ───
 
-  /**
-   * Document RCA with optimistic locking. Creates a revision snapshot of the old state.
-   */
-  static async documentRCAWithLocking(
-    id: string,
-    input: {
-      rootCause: string;
-      solution?: string;
-      prevention?: string;
-      tags?: string[];
-      expectedVersion: number;
-      editSummary?: string;
-    },
-    userId: string,
-  ): Promise<FailureArchive> {
-    return prisma.$transaction(async (tx) => {
-      const existing = await tx.failureArchive.findUnique({ where: { id } });
-      if (!existing) throw new Error('Failure archive entry not found');
-
-      if (existing.rcaVersion !== input.expectedVersion) {
-        const err = new Error('Conflict: RCA was modified by another user. Reload and try again.');
-        (err as unknown as Record<string, number>).statusCode = 409;
-        throw err;
-      }
-
-      // Snapshot old state as a revision
-      await tx.rCARevision.create({
-        data: {
-          failureArchiveId: id,
-          version: existing.rcaVersion,
-          rootCause: existing.rootCause,
-          solution: existing.solution,
-          prevention: existing.prevention,
-          tags: existing.tags,
-          editedBy: userId,
-          editSummary: input.editSummary || null,
-        },
-      });
-
-      // Update with new data
-      const updated = await tx.failureArchive.update({
-        where: { id },
-        data: {
-          rootCause: input.rootCause,
-          solution: input.solution || null,
-          prevention: input.prevention || null,
-          tags: input.tags?.join(',') || existing.tags,
-          rcaDocumented: true,
-          rcaVersion: { increment: 1 },
-        },
-      });
-
-      return updated as unknown as FailureArchive;
-    });
-  }
-
-  // ─── Collaborative RCA: Revisions ───────────────────────────
-
-  static async getRCARevisions(failureArchiveId: string): Promise<unknown[]> {
-    return prisma.rCARevision.findMany({
-      where: { failureArchiveId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  // ─── Collaborative RCA: Comments ────────────────────────────
-
-  static async addComment(
-    failureArchiveId: string,
-    userId: string,
-    content: string,
-  ): Promise<unknown> {
-    // Verify the failure exists
-    const exists = await prisma.failureArchive.findUnique({
-      where: { id: failureArchiveId },
-      select: { id: true },
-    });
-    if (!exists) throw new Error('Failure archive entry not found');
-
-    return prisma.failureComment.create({
-      data: { failureArchiveId, userId, content },
-    });
-  }
-
-  static async getComments(
-    failureArchiveId: string,
-    limit: number = 50,
-    offset: number = 0,
-  ): Promise<{ comments: unknown[]; total: number }> {
-    const [comments, total] = await Promise.all([
-      prisma.failureComment.findMany({
-        where: { failureArchiveId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.failureComment.count({ where: { failureArchiveId } }),
-    ]);
-    return { comments, total };
-  }
-
-  static async deleteComment(commentId: string, userId: string): Promise<void> {
-    const comment = await prisma.failureComment.findUnique({ where: { id: commentId } });
-    if (!comment) throw new Error('Comment not found');
-    if (comment.userId !== userId) {
-      const err = new Error('Not authorized to delete this comment');
-      (err as unknown as Record<string, number>).statusCode = 403;
-      throw err;
-    }
-    await prisma.failureComment.delete({ where: { id: commentId } });
-  }
-
-  // ─── Collaborative RCA: Activity Feed ───────────────────────
-
-  static async getActivityFeed(
-    failureArchiveId: string,
-    limit: number = 30,
-  ): Promise<Array<{ type: string; timestamp: string; userId: string; content: string }>> {
-    const [revisions, comments] = await Promise.all([
-      prisma.rCARevision.findMany({
-        where: { failureArchiveId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-      }),
-      prisma.failureComment.findMany({
-        where: { failureArchiveId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-      }),
-    ]);
-
-    const feed = [
-      ...revisions.map(r => ({
-        type: 'revision' as const,
-        timestamp: r.createdAt.toISOString(),
-        userId: r.editedBy,
-        content: r.editSummary || `Updated RCA (v${r.version} → v${r.version + 1})`,
-      })),
-      ...comments.map(c => ({
-        type: 'comment' as const,
-        timestamp: c.createdAt.toISOString(),
-        userId: c.userId,
-        content: c.content,
-      })),
-    ];
-
-    // Sort by timestamp descending, take limit
-    return feed
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  }
+  static documentRCAWithLocking = collaboration.documentRCAWithLocking;
+  static getRCARevisions = collaboration.getRCARevisions;
+  static addComment = collaboration.addComment;
+  static getComments = collaboration.getComments;
+  static deleteComment = collaboration.deleteComment;
+  static getActivityFeed = collaboration.getActivityFeed;
 }
