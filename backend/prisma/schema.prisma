@@ -445,3 +445,50 @@ model AuditLog {
   @@index([entityType])
   @@index([createdAt])
 }
+
+// ─── Self-Healing Pipelines ───
+
+model HealingRule {
+  id                  String   @id @default(uuid())
+  name                String
+  description         String
+  pattern             String   // Regex or keyword to match against error messages
+  patternType         String   @default("regex") // regex | keyword | signature
+  category            String   @default("transient") // transient | infrastructure | flaky | custom
+  action              String   @default("retry") // retry | quarantine | fix_pr | notify
+  maxRetries          Int      @default(2)
+  cooldownMinutes     Int      @default(60)
+  confidenceThreshold Float    @default(0.9)
+  enabled             Boolean  @default(true)
+  isBuiltIn           Boolean  @default(false)
+  priority            Int      @default(50)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  events HealingEvent[]
+
+  @@index([enabled, action])
+  @@index([priority])
+}
+
+model HealingEvent {
+  id              String    @id @default(uuid())
+  ruleId          String?
+  testRunId       String
+  pipelineId      String
+  action          String    // retry | quarantine | fix_pr | notify | suggested
+  status          String    @default("pending") // pending | executing | succeeded | failed | skipped
+  matchConfidence Float
+  matchReason     String
+  errorMessage    String?
+  retriedRunId    String?   // ID of the new test run created by retry
+  metadata        String?   // JSON
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  rule HealingRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([testRunId])
+  @@index([pipelineId, createdAt])
+  @@index([status])
+}

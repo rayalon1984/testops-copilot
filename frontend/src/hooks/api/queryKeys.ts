@@ -62,4 +62,10 @@ export const queryKeys = {
   aiConfig: {
     current: () => ['ai-config'] as const,
   },
+
+  healing: {
+    rules: () => ['healing-rules'] as const,
+    events: (filters?: { pipelineId?: string; limit?: number }) => ['healing-events', filters] as const,
+    stats: () => ['healing-stats'] as const,
+  },
 } as const;

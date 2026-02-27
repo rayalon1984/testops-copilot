@@ -31,6 +31,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const FailureKnowledgeBase = lazy(() => import('./pages/FailureKnowledgeBase').then(module => ({ default: module.FailureKnowledgeBase })));
 const CostTracker = lazy(() => import('./pages/CostTracker'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
+const SelfHealing = lazy(() => import('./pages/SelfHealing'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Create Query Client
@@ -91,6 +92,9 @@ function AppContent() {
 
                     {/* Teams */}
                     <Route path="/teams" element={<TeamSettings />} />
+
+                    {/* Self-Healing */}
+                    <Route path="/self-healing" element={<SelfHealing />} />
 
                     {/* Settings */}
                     <Route path="/settings" element={<Settings />} />
