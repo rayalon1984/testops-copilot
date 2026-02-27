@@ -109,6 +109,7 @@ export interface AIConfig {
     bedrockRegion?: string;
     bedrockAccessKeyId?: string;
     bedrockSecretAccessKey?: string;
+    bedrockEmbeddingModel?: string;
   };
 
   vectorDB: {

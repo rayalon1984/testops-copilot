@@ -1,4 +1,4 @@
-# TestOps Companion Architecture
+# TestOps Copilot Architecture
 
 > **Canonical spec**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md) (v3.0.0) | **Autonomy model**: [`specs/AUTONOMOUS_AI_SPEC.md`](../specs/AUTONOMOUS_AI_SPEC.md)
 >

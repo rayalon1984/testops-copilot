@@ -13,7 +13,7 @@
 | Access | HS256 | 24h (`JWT_EXPIRES_IN`) | `Authorization: Bearer` header | `JWT_SECRET` (min 32 chars) |
 | Refresh | HS256 | 7d (`JWT_REFRESH_EXPIRES_IN`) | HTTP-only cookie | `JWT_REFRESH_SECRET` (min 32 chars) |
 
-**JWT Claims**: Issuer = `testops-companion`, Audience = `testops-companion-client`
+**JWT Claims**: Issuer = `testops-copilot`, Audience = `testops-copilot-client`
 
 ### 1.2 Token Lifecycle
 

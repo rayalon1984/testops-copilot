@@ -1,6 +1,6 @@
 # Plans
 
-This directory contains dated planning documents for TestOps Companion.
+This directory contains dated planning documents for TestOps Copilot.
 
 ## Naming Convention
 

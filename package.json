@@ -1,7 +1,7 @@
 {
-  "name": "testops-companion",
+  "name": "testops-copilot",
   "version": "3.0.0",
-  "description": "A comprehensive test operations companion for managing test pipelines and results",
+  "description": "An AI-powered test operations platform with an agentic copilot for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
     "postinstall": "npm run install:backend && npm run install:frontend && npm run install:mcp",

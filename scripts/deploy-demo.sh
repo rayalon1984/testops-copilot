@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TestOps Companion — Demo Setup
+# TestOps Copilot — Demo Setup
 # Single command to set up the demo environment from a clean clone.
 # Modeled after emhub's deploy-dev.sh pattern: sequential, fail-fast, clear output.
 #
@@ -18,7 +18,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${BLUE}==================================${NC}"
-echo -e "${BLUE}TestOps Companion — Demo Setup${NC}"
+echo -e "${BLUE}TestOps Copilot — Demo Setup${NC}"
 echo -e "${BLUE}==================================${NC}"
 echo ""
 

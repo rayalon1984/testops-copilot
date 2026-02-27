@@ -1,7 +1,7 @@
 {
-  "name": "@testops-companion/mcp-server",
+  "name": "@testops-copilot/mcp-server",
   "version": "3.0.0",
-  "description": "MCP Server for TestOps Companion - AI-powered test failure analysis",
+  "description": "MCP Server for TestOps Copilot - AI-powered test failure analysis",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -23,7 +23,7 @@
     "failure-analysis",
     "rca"
   ],
-  "author": "TestOps Companion Team",
+  "author": "TestOps Copilot Team",
   "license": "Apache-2.0",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",

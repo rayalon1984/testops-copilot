@@ -1,6 +1,6 @@
 # AI Services
 
-This directory contains AI-powered features for TestOps Companion.
+This directory contains AI-powered features for TestOps Copilot.
 
 ## Structure
 

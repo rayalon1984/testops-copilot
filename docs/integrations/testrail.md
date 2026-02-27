@@ -1,6 +1,6 @@
 # TestRail Integration
 
-> Seamlessly integrate TestOps Companion with TestRail to automatically sync test results, create test runs, and maintain centralized test case management.
+> Seamlessly integrate TestOps Copilot with TestRail to automatically sync test results, create test runs, and maintain centralized test case management.
 
 ---
 
@@ -20,28 +20,28 @@
 
 ## Overview
 
-The TestRail integration allows TestOps Companion to automatically sync test execution results with your TestRail test case management system. This creates a single source of truth for test case management while leveraging TestOps Companion's advanced analytics and failure knowledge base.
+The TestRail integration allows TestOps Copilot to automatically sync test execution results with your TestRail test case management system. This creates a single source of truth for test case management while leveraging TestOps Copilot's advanced analytics and failure knowledge base.
 
 ### Use Cases
 
 - ✅ Automatically create test runs in TestRail from CI/CD executions
-- ✅ Sync test results from TestOps Companion to TestRail
+- ✅ Sync test results from TestOps Copilot to TestRail
 - ✅ Link test failures to existing test cases
 - ✅ Track test execution history across both platforms
 - ✅ Maintain centralized test case repository in TestRail
-- ✅ Use TestOps Companion's analytics on TestRail test data
+- ✅ Use TestOps Copilot's analytics on TestRail test data
 
 ---
 
 ## Features
 
 ### Automatic Test Run Creation
-- Create TestRail test runs from TestOps Companion test executions
+- Create TestRail test runs from TestOps Copilot test executions
 - Map test cases between systems
 - Include test metadata (branch, build number, environment)
 
 ### Bi-directional Sync
-- Sync test results from TestOps Companion to TestRail
+- Sync test results from TestOps Copilot to TestRail
 - Update TestRail with pass/fail status
 - Include execution time, error messages, and logs
 - Attach screenshots and artifacts
@@ -84,7 +84,7 @@ The TestRail integration allows TestOps Companion to automatically sync test exe
 2. Click on your profile name (top right)
 3. Select "My Settings"
 4. Under "API Keys", click "Add Key"
-5. Enter a description (e.g., "TestOps Companion Integration")
+5. Enter a description (e.g., "TestOps Copilot Integration")
 6. Click "Generate Key"
 7. Copy the API key (you won't be able to see it again!)
 
@@ -269,7 +269,7 @@ await testRailService.addTestResults(runId, [
 ```
 
 #### `syncTestRunResults(testRunId: string): Promise<void>`
-Sync all results from a TestOps Companion test run to TestRail.
+Sync all results from a TestOps Copilot test run to TestRail.
 
 ```typescript
 await testRailService.syncTestRunResults('test-run-uuid');
@@ -480,7 +480,7 @@ const testRun = await testRailService.createTestRun({
 **Solutions:**
 1. Check that the test run is not closed
 2. Verify test IDs match TestRail case IDs
-3. Review TestOps Companion logs for sync errors
+3. Review TestOps Copilot logs for sync errors
 4. Ensure status IDs are valid (1-5)
 
 ### Rate Limiting
@@ -508,13 +508,13 @@ TestRail API has the following limits:
 
 - [TestRail API Documentation](https://www.gurock.com/testrail/docs/api)
 - [TestRail REST API Reference](https://www.gurock.com/testrail/docs/api/reference)
-- [TestOps Companion API Documentation](../api/README.md)
+- [TestOps Copilot API Documentation](../api/README.md)
 
 ---
 
 ## Need Help?
 
-- 📖 [TestOps Companion Documentation](../README.md)
+- 📖 [TestOps Copilot Documentation](../README.md)
 - 🐛 [Report an Issue](https://github.com/rayalon1984/testops-companion/issues)
 - 💬 [Discussions](https://github.com/rayalon1984/testops-companion/discussions)
 

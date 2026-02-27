@@ -128,8 +128,8 @@ describe('JwtService', () => {
         {
           expiresIn: '0s',
           algorithm: 'HS256',
-          issuer: 'testops-companion',
-          audience: 'testops-companion-client',
+          issuer: 'testops-copilot',
+          audience: 'testops-copilot-client',
         }
       );
 
@@ -182,8 +182,8 @@ describe('JwtService', () => {
         {
           expiresIn: '0s',
           algorithm: 'HS256',
-          issuer: 'testops-companion',
-          audience: 'testops-companion-client',
+          issuer: 'testops-copilot',
+          audience: 'testops-copilot-client',
         }
       );
 

@@ -1,8 +1,8 @@
-# TestOps Companion MCP Server
+# TestOps Copilot MCP Server
 
 > **AI-Powered Test Failure Analysis via Model Context Protocol**
 
-MCP server providing intelligent test failure analysis, knowledge base management, and comprehensive statistics for TestOps Companion.
+MCP server providing intelligent test failure analysis, knowledge base management, and comprehensive statistics for TestOps Copilot.
 
 ## 🚀 Quick Start
 
@@ -278,7 +278,7 @@ COST_ALERT_THRESHOLD_USD=100
 
 ### Database Setup
 
-The MCP server uses the same database as TestOps Companion backend:
+The MCP server uses the same database as TestOps Copilot backend:
 
 ```sql
 -- Required tables
@@ -289,7 +289,7 @@ The MCP server uses the same database as TestOps Companion backend:
 - ai_usage (cost tracking)
 ```
 
-These are automatically created by TestOps Companion migrations.
+These are automatically created by TestOps Copilot migrations.
 
 ## 🧪 Testing
 
@@ -334,7 +334,7 @@ LOG_LEVEL=debug npm run dev
 - Add API key: `ANTHROPIC_API_KEY=...`
 
 **"Table 'failure_records' does not exist"**
-- Solution: Run TestOps Companion migrations first
+- Solution: Run TestOps Copilot migrations first
 - `cd backend && npm run db:migrate`
 
 **"Connection timeout"**
@@ -344,7 +344,7 @@ LOG_LEVEL=debug npm run dev
 ## 📚 See Also
 
 - [SKILL.md](./SKILL.md) - Comprehensive development guide
-- [TestOps Companion Docs](../docs/)
+- [TestOps Copilot Docs](../docs/)
 - [Model Context Protocol Docs](https://modelcontextprotocol.io/)
 
 ## 📝 License

@@ -63,7 +63,7 @@ export default function Register() {
           }}
         >
           <Typography component="h1" variant="h5">
-            TestOps Companion
+            TestOps Copilot
           </Typography>
           <Typography component="h2" variant="h6" sx={{ mt: 1 }}>
             Create Account

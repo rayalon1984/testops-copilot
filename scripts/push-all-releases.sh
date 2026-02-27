@@ -84,7 +84,7 @@ Production-grade security, compliance, and scalability foundations.
 - **CI/CD pipeline** with automated quality gates
 NOTES
 upsert_release "v2.8.5" \
-  "TestOps Companion v2.8.5 — Enterprise Readiness" \
+  "TestOps Copilot v2.8.5 — Enterprise Readiness" \
   "false"
 
 # ==========================================================================
@@ -109,7 +109,7 @@ Full agentic backend + 3-column Mission Control UI + production hardening.
 - **AIConfigManager** — consolidated AI config
 NOTES
 upsert_release "v2.9.0-rc.1" \
-  "TestOps Companion v2.9.0-rc.1 — Agentic AI Copilot" \
+  "TestOps Copilot v2.9.0-rc.1 — Agentic AI Copilot" \
   "true"
 
 # ==========================================================================
@@ -130,7 +130,7 @@ AI queries routed to specialist personas for domain-expert responses.
 - **Comprehensive documentation overhaul** — README, DEMO, HOW_IT_WORKS
 NOTES
 upsert_release "v2.9.0-rc.2" \
-  "TestOps Companion v2.9.0-rc.2 — Virtual Team Persona Routing" \
+  "TestOps Copilot v2.9.0-rc.2 — Virtual Team Persona Routing" \
   "true"
 
 # ==========================================================================
@@ -151,7 +151,7 @@ Type safety, schema integrity, security audit, CI hardening.
 - **Bedrock provider import fix** unblocking `tsc --noEmit`
 NOTES
 upsert_release "v2.9.0-rc.3" \
-  "TestOps Companion v2.9.0-rc.3 — Sprint 5 Stabilization" \
+  "TestOps Copilot v2.9.0-rc.3 — Sprint 5 Stabilization" \
   "true"
 
 # ==========================================================================
@@ -174,7 +174,7 @@ Three-tier autonomy model and backend stability refactor.
 - **AI route split** from 778-line monolith to 3 focused modules
 NOTES
 upsert_release "v2.9.0-rc.4" \
-  "TestOps Companion v2.9.0-rc.4 — Graduated Autonomy + Backend Stability" \
+  "TestOps Copilot v2.9.0-rc.4 — Graduated Autonomy + Backend Stability" \
   "true"
 
 # ==========================================================================
@@ -196,7 +196,7 @@ cat > "$_notes_file" <<'NOTES'
 - **GiphyEmbedCard, RetryCard, HousekeepingCard** frontend components
 NOTES
 upsert_release "v2.9.0-rc.5" \
-  "TestOps Companion v2.9.0-rc.5 — Autonomy Tests + New Tools + Proactive UX" \
+  "TestOps Copilot v2.9.0-rc.5 — Autonomy Tests + New Tools + Proactive UX" \
   "true"
 
 # ==========================================================================
@@ -217,7 +217,7 @@ Page-aware AI assistance and production-realistic seed data.
 - **CLAUDE.md** simplified to 6-line pointer to AGENTS.md
 NOTES
 upsert_release "v2.9.0-rc.6" \
-  "TestOps Companion v2.9.0-rc.6 — Global AI Context + High-Fidelity Seeding" \
+  "TestOps Copilot v2.9.0-rc.6 — Global AI Context + High-Fidelity Seeding" \
   "true"
 
 # ==========================================================================
@@ -239,30 +239,30 @@ Circuit breakers, retries, and timeouts for all external services.
 - **All spec docs** verified at v3.0.0
 NOTES
 upsert_release "v2.9.0-rc.7" \
-  "TestOps Companion v2.9.0-rc.7 — Resilience Layer + Documentation" \
+  "TestOps Copilot v2.9.0-rc.7 — Resilience Layer + Documentation" \
   "true"
 
 # ==========================================================================
 # v3.0.0-beta.1 — THE MAIN RELEASE (marketing copy)
 # ==========================================================================
 cat > "$_notes_file" <<'NOTES'
-# TestOps Companion v3.0.0-beta.1
+# TestOps Copilot v3.0.0-beta.1
 
 ### Your QA team just got an AI copilot that actually understands testing.
 
-TestOps Companion v3.0.0 is the culmination of 8 release candidates and thousands of engineering hours. It transforms your testing dashboard from a passive reporting tool into an **intelligent, agentic platform** that reasons about your test data, takes action on your behalf, and learns from every interaction.
+TestOps Copilot v3.0.0 is the culmination of 8 release candidates and thousands of engineering hours. It transforms your testing dashboard from a passive reporting tool into an **intelligent, agentic platform** that reasons about your test data, takes action on your behalf, and learns from every interaction.
 
 ---
 
 ## What Makes This Different
 
-Most "AI-powered" dev tools bolt a chatbot onto a sidebar. **TestOps Companion embeds AI directly into your testing workflow** — it reads your Jira tickets, analyzes your test failures, checks your GitHub PRs, and takes action with your permission.
+Most "AI-powered" dev tools bolt a chatbot onto a sidebar. **TestOps Copilot embeds AI directly into your testing workflow** — it reads your Jira tickets, analyzes your test failures, checks your GitHub PRs, and takes action with your permission.
 
 ### A Virtual Team of 9 Specialists
 Every query is automatically routed to the right expert persona — Security Analyst, Performance Engineer, DevOps Specialist, Test Architect, and more. Ask about flaky tests and get advice from a testing expert. Ask about deployment risks and hear from DevOps.
 
 ### Graduated Autonomy — You Set the Boundaries
-Not all actions are created equal. TestOps Companion classifies every AI tool into three tiers:
+Not all actions are created equal. TestOps Copilot classifies every AI tool into three tiers:
 | Tier | Behavior | Example |
 |------|----------|---------|
 | **Auto** | Executes instantly | Fetching test results, searching Jira |
@@ -325,7 +325,7 @@ npm run setup
 > Found an issue? [Open a bug report →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
 upsert_release "v3.0.0-beta.1" \
-  "TestOps Companion v3.0.0-beta.1 — AI That Thinks, Acts, and Learns" \
+  "TestOps Copilot v3.0.0-beta.1 — AI That Thinks, Acts, and Learns" \
   "true"
 
 # ==========================================================================
@@ -346,7 +346,7 @@ The full agentic copilot flow is now covered by Playwright smoke tests.
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
 upsert_release "v3.0.1-beta.1" \
-  "TestOps Companion v3.0.1-beta.1 — End-to-End Test Coverage" \
+  "TestOps Copilot v3.0.1-beta.1 — End-to-End Test Coverage" \
   "true"
 
 # ==========================================================================
@@ -366,7 +366,7 @@ New users get a guided onboarding flow. Existing users get smarter error handlin
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
 upsert_release "v3.0.2-beta.1" \
-  "TestOps Companion v3.0.2-beta.1 — First-Run Experience & Error Recovery" \
+  "TestOps Copilot v3.0.2-beta.1 — First-Run Experience & Error Recovery" \
   "true"
 
 # ==========================================================================
@@ -393,7 +393,7 @@ Specs are no longer passive documentation. This release connects product specifi
 > This is a pre-release build. [Report issues →](https://github.com/rayalon1984/testops-companion/issues)
 NOTES
 upsert_release "v3.0.3-beta.1" \
-  "TestOps Companion v3.0.3-beta.1 — Living Feature Specs" \
+  "TestOps Copilot v3.0.3-beta.1 — Living Feature Specs" \
   "true"
 
 # ==========================================================================

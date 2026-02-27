@@ -46,8 +46,8 @@ export class OpenRouterProvider extends BaseProvider {
     super(config);
     this.validateConfig();
 
-    this.siteUrl = config.siteUrl || process.env.OPENROUTER_SITE_URL || 'https://testops-companion.dev';
-    this.appName = config.appName || process.env.OPENROUTER_APP_NAME || 'TestOps Companion';
+    this.siteUrl = config.siteUrl || process.env.OPENROUTER_SITE_URL || 'https://testops-copilot.dev';
+    this.appName = config.appName || process.env.OPENROUTER_APP_NAME || 'TestOps Copilot';
 
     this.client = new OpenAI({
       apiKey: config.apiKey,

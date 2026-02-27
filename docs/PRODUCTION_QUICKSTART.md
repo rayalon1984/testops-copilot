@@ -1,6 +1,6 @@
 # Production Quick Start Guide
 
-Deploy TestOps Companion to production in under 5 minutes.
+Deploy TestOps Copilot to production in under 5 minutes.
 
 ## Prerequisites
 

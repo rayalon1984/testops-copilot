@@ -2,7 +2,7 @@
 
 > Updated for v3.0.0
 
-This guide covers testing strategies and practices for the TestOps Companion project.
+This guide covers testing strategies and practices for the TestOps Copilot project.
 
 ## Testing Stack
 

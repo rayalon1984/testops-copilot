@@ -45,8 +45,8 @@ export enum NotificationStatus {
 
 export const JWT_CONFIG = {
   algorithm: 'HS256',
-  issuer: 'testops-companion',
-  audience: 'testops-companion-client'
+  issuer: 'testops-copilot',
+  audience: 'testops-copilot-client'
 } as const;
 
 export const ERROR_MESSAGES = {

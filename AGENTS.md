@@ -1,15 +1,15 @@
-# TestOps Companion — AI Agent Instructions
+# TestOps Copilot — AI Agent Instructions
 
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 3.0.0 | **Updated**: 2026-02-26
+> **Version**: 3.0.1 | **Updated**: 2026-02-26
 
 ---
 
 ## 0) Project Snapshot
 
-- **Product**: TestOps Companion
+- **Product**: TestOps Copilot
 - **Purpose**: Comprehensive test operations platform for managing CI/CD pipelines, tracking test results, analyzing failures with AI, and enriching context across Jira, Confluence, and GitHub.
 - **Architecture**:
   - **Backend**: Node.js 18+ | TypeScript | Express.js | Prisma ORM | PostgreSQL | Redis
@@ -331,7 +331,7 @@ When working on this repo, read documents in this priority:
 
 ## 9) Integration Map
 
-TestOps Companion integrates with these external systems:
+TestOps Copilot integrates with these external systems:
 
 | System | Service File | Purpose |
 |--------|-------------|---------|

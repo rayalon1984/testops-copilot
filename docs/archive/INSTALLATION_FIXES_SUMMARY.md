@@ -171,7 +171,7 @@ Demo mode still works exactly as before.
 1. Pull latest changes
 2. Run new setup script
 3. Report any remaining issues
-4. Enjoy TestOps Companion! 🚀
+4. Enjoy TestOps Copilot! 🚀
 
 ---
 

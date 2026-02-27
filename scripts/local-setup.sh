@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# TestOps Companion - Local Development Setup Script
+# TestOps Copilot - Local Development Setup Script
 # This script sets up everything you need to run locally on Mac
 
 set -e
 
-echo "🚀 TestOps Companion - Local Setup"
+echo "🚀 TestOps Copilot - Local Setup"
 echo "===================================="
 echo ""
 

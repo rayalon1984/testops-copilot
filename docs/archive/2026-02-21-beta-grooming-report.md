@@ -394,4 +394,4 @@ No blockers remain. The product is feature-complete for v3.0.0 GA with 250+ Type
 
 ## Final Word
 
-TestOps Companion v3.0.0 is a mature, well-architected product. The codebase reflects 8 sprints of disciplined engineering: clean architecture, strict TypeScript, comprehensive testing, and thorough documentation. Every persona on the team gives a GO. Ship it.
+TestOps Copilot v3.0.0 is a mature, well-architected product. The codebase reflects 8 sprints of disciplined engineering: clean architecture, strict TypeScript, comprehensive testing, and thorough documentation. Every persona on the team gives a GO. Ship it.

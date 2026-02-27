@@ -1,6 +1,6 @@
 # Monday.com Integration
 
-> Seamlessly integrate TestOps Companion with Monday.com Work OS to automatically create and manage items from test failures.
+> Seamlessly integrate TestOps Copilot with Monday.com Work OS to automatically create and manage items from test failures.
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## Overview
 
-The Monday.com integration allows TestOps Companion to automatically create items (tasks) on your Monday boards when tests fail, add updates with detailed failure information, and sync test statuses with your project management workflow.
+The Monday.com integration allows TestOps Copilot to automatically create items (tasks) on your Monday boards when tests fail, add updates with detailed failure information, and sync test statuses with your project management workflow.
 
 ### Use Cases
 
@@ -38,7 +38,7 @@ The Monday.com integration allows TestOps Companion to automatically create item
 - Create Monday items from failed tests
 - Automatically populate item details with test information
 - Add failure details as updates (comments)
-- Link back to test run in TestOps Companion
+- Link back to test run in TestOps Copilot
 
 ### Bi-directional Sync
 - Update Monday items when tests are re-run
@@ -582,7 +582,7 @@ Monday.com has API rate limits:
 
 - [Monday.com API Documentation](https://developer.monday.com/api-reference/docs)
 - [Monday GraphQL Playground](https://monday.com/developers/v2/try-it-yourself)
-- [TestOps Companion Documentation](../../README.md)
+- [TestOps Copilot Documentation](../../README.md)
 - [Failure Knowledge Base Integration](../features/FAILURE_KNOWLEDGE_BASE.md)
 
 ---

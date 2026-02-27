@@ -94,7 +94,7 @@ clean_dev() {
 
 # Show help message
 show_help() {
-  echo "TestOps Companion Development Script"
+  echo "TestOps Copilot Development Script"
   echo
   echo "Usage: ./dev.sh [command]"
   echo

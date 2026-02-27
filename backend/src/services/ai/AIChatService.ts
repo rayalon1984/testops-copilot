@@ -67,7 +67,7 @@ function buildSystemPrompt(userRole: string, persona?: PersonaSelection): string
         ? `\n## Your Role\n${getPersonaInstruction(persona.persona).systemPromptAddon}\n`
         : '';
 
-    return `You are TestOps Copilot, an intelligent assistant for the TestOps Companion platform.
+    return `You are TestOps Copilot, an intelligent assistant for the TestOps Copilot platform.
 ${roleContext}
 ${personaBlock}
 ## Available Tools

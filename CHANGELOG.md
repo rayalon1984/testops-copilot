@@ -1,8 +1,38 @@
 # Changelog
 
-All notable changes to TestOps Companion are documented here.
+All notable changes to TestOps Copilot (formerly TestOps Companion) are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 Beta releases are pre-release builds on the path to production GA.
+
+---
+
+## [3.0.1] - 2026-02-26
+
+> **TestOps Copilot — The Rebrand Release**
+
+### Rebrand: TestOps Companion → TestOps Copilot
+
+The platform has earned its name. With 9 AI personas, graduated autonomy, and an agentic copilot that investigates failures before you even open your laptop — this is a copilot, not a companion. Every user-facing string, API title, email footer, JWT claim, package name, and documentation page now reflects the new identity.
+
+**Migration note for existing users**: See [MIGRATION.md](docs/MIGRATION.md) for details on JWT re-authentication and encrypted config compatibility.
+
+### Bedrock Embedding Support (Amazon Titan V2)
+
+The `embed()` method is no longer a stub. Bedrock users can now generate vector embeddings via Amazon Titan Embeddings V2 (`amazon.titan-embed-text-v2:0`), enabling semantic failure matching and knowledge base search on AWS infrastructure. Configurable via `AWS_BEDROCK_EMBEDDING_MODEL` env var. No new SDK dependencies — uses the same `@aws-sdk/client-bedrock-runtime` and `InvokeModelCommand`.
+
+### Redis/CSRF Clarification
+
+The v3.0.0 release notes incorrectly stated "Production mode requires Redis for CSRF session validation." In reality, CSRF protection uses a stateless double-submit cookie pattern and works without Redis. Sessions already fell back to MemoryStore silently — now the backend logs a clear `warn` message at startup when Redis is unavailable, explaining the impact (session loss on restart) and confirming CSRF is unaffected.
+
+### E2E Tests in CI
+
+Playwright E2E tests now run in CI via `.github/workflows/e2e.yml`, triggered on PRs that touch `frontend/` or `tests/e2e/`. Three spec files (sanity, AI write flow, copilot agentic) run against a mock API layer — no backend required. Reports are uploaded as artifacts.
+
+### Documentation
+
+- Added **EPR-014** (silent session store fallback), **EPR-015** (CI release notes overwrite), **EPR-016** (monorepo lint-staged path resolution) to LESSONS_LEARNED.md
+- Updated Automated Guards table with Playwright E2E and release notes guard
+- Comprehensive rename across 60+ files (source, docs, specs, configs, infra)
 
 ---
 

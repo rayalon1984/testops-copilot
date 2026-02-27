@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">TestOps Companion</h1>
+  <h1 align="center">TestOps Copilot</h1>
   <p align="center">
     <strong>Your test failures now have a detective on payroll.</strong>
   </p>
@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-companion/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.0.0-blue" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.0.1-blue" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js Version"></a>
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-760%20passing-brightgreen" alt="Tests"></a>
@@ -33,7 +33,7 @@ Your CI pipeline breaks at 2 AM. By the time you open your laptop, the AI copilo
 
 You review it, hit approve, and move on with your coffee.
 
-![TestOps Companion - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
+![TestOps Copilot - Agentic Command Center](docs/assets/screenshots/agentic-command-center.jpg)
 *3-column Mission Control: navigation | main content | AI Copilot panel with persona routing*
 
 ---
@@ -122,7 +122,7 @@ Your failure knowledge base gets smarter with every test run:
 
 ## Integrations
 
-TestOps Companion plugs into your existing stack:
+TestOps Copilot plugs into your existing stack:
 
 | Service | What It Does | Setup |
 |---------|-------------|-------|

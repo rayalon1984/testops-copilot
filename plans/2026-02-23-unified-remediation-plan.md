@@ -1,4 +1,4 @@
-# Unified Remediation Plan — TestOps Companion v3.0.0
+# Unified Remediation Plan — TestOps Copilot v3.0.0
 
 > **Date**: 2026-02-23
 > **Source**: Cross-referenced from two independent audits (internal + external)

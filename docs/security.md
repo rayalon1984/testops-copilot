@@ -4,7 +4,7 @@
 
 ## Overview
 
-This guide outlines security best practices and implementations for TestOps Companion.
+This guide outlines security best practices and implementations for TestOps Copilot.
 
 ## Authentication & Authorization
 

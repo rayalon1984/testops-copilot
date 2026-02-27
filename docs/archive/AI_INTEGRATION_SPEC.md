@@ -9,7 +9,7 @@
 
 ## Overview
 
-This specification defines the integration of AI capabilities into TestOps Companion to provide intelligent failure analysis, automated categorization, and semantic search.
+This specification defines the integration of AI capabilities into TestOps Copilot to provide intelligent failure analysis, automated categorization, and semantic search.
 
 ## Key Features
 

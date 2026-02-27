@@ -1,10 +1,10 @@
 # Release Process
 
-This document outlines the release process for TestOps Companion to ensure consistency and professional presentation for potential employers and users.
+This document outlines the release process for TestOps Copilot to ensure consistency and professional presentation for potential employers and users.
 
 ## Overview
 
-TestOps Companion follows [Semantic Versioning](https://semver.org/):
+TestOps Copilot follows [Semantic Versioning](https://semver.org/):
 - **MAJOR** version (X.0.0): Incompatible API changes
 - **MINOR** version (0.X.0): New functionality in a backward compatible manner
 - **PATCH** version (0.0.X): Backward compatible bug fixes
@@ -116,7 +116,7 @@ TestOps Companion follows [Semantic Versioning](https://semver.org/):
 Use this template when creating/editing GitHub releases:
 
 ```markdown
-## 🎉 TestOps Companion v1.1.0
+## 🎉 TestOps Copilot v1.1.0
 
 **Release Date:** November 16, 2025
 

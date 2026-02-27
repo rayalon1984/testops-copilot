@@ -1,6 +1,6 @@
-# TestOps Companion - Demo & Screenshots
+# TestOps Copilot - Demo & Screenshots
 
-> Visual guide to TestOps Companion's features and user interface.
+> Visual guide to TestOps Copilot's features and user interface.
 > Updated for v3.0.0 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
 
 ---

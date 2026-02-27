@@ -5,7 +5,7 @@
   <!-- Header -->
   <rect width="1200" height="70" fill="#1e293b"/>
   <text x="30" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff">
-    TestOps Companion
+    TestOps Copilot
   </text>
   <text x="1050" y="35" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">
     AI Provider
@@ -316,6 +316,6 @@
 
   <!-- Footer -->
   <text x="30" y="795" font-family="Arial, sans-serif" font-size="10" fill="#64748b">
-    TestOps Companion v2.5.4 • AI-Powered Test Operations Platform • Open Source
+    TestOps Copilot v2.5.4 • AI-Powered Test Operations Platform • Open Source
   </text>
 </svg>

@@ -20,7 +20,7 @@ function loadSpec(): Record<string, unknown> {
         logger.warn('[Swagger] openapi.yaml not found — serving minimal spec');
         return {
             openapi: '3.0.3',
-            info: { title: 'TestOps Companion API', version: '1.0.0' },
+            info: { title: 'TestOps Copilot API', version: '1.0.0' },
             paths: {},
         };
     }

@@ -19,6 +19,7 @@ export interface BedrockProviderConfig extends ProviderConfig {
   region: string;
   accessKeyId?: string;
   secretAccessKey?: string;
+  embeddingModel?: string;
 }
 
 /** Bedrock message in Anthropic Messages API format */
@@ -30,12 +31,14 @@ interface BedrockMessage {
 export class BedrockProvider extends BaseProvider {
   private client: BedrockRuntimeClient;
   private region: string;
+  private embeddingModel: string;
 
   constructor(config: BedrockProviderConfig) {
     // Bedrock doesn't need a traditional API key — use a placeholder so base validation passes
     super({ ...config, apiKey: config.apiKey || 'bedrock-iam-auth' });
 
     this.region = config.region || 'us-east-1';
+    this.embeddingModel = config.embeddingModel || 'amazon.titan-embed-text-v2:0';
 
     const clientConfig: Record<string, unknown> = {
       region: this.region,
@@ -126,10 +129,35 @@ export class BedrockProvider extends BaseProvider {
     }
   }
 
-  async embed(_text: string, _options?: EmbeddingOptions): Promise<number[]> {
-    throw new Error(
-      'Bedrock embedding requires a separate embedding model deployment. Use Amazon Titan Embeddings or Cohere Embed via Bedrock directly.',
-    );
+  async embed(text: string, options?: EmbeddingOptions): Promise<number[]> {
+    const modelId = options?.model || this.embeddingModel;
+
+    try {
+      const body = JSON.stringify({
+        inputText: text,
+        dimensions: 1024,
+        normalize: true,
+      });
+
+      const command = new InvokeModelCommand({
+        modelId,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: new TextEncoder().encode(body),
+      });
+
+      const response = await this.client.send(command);
+      const result = JSON.parse(new TextDecoder().decode(response.body));
+
+      if (!Array.isArray(result.embedding)) {
+        throw new Error(`Unexpected Titan Embedding response — missing embedding array`);
+      }
+
+      return result.embedding;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Bedrock embedding failed (model: ${modelId}): ${message}`);
+    }
   }
 
   async healthCheck(): Promise<boolean> {

@@ -1,4 +1,4 @@
-# TestOps Companion MCP Server - Development Guide
+# TestOps Copilot MCP Server - Development Guide
 
 > **Comprehensive guide for AI assistants and developers working on the MCP server**
 
@@ -20,7 +20,7 @@
 
 ### What is This?
 
-The TestOps Companion MCP Server is a **Model Context Protocol** server that provides AI-powered test failure analysis tools. It allows AI assistants (like Claude) to intelligently analyze test failures, search knowledge bases, and provide actionable recommendations.
+The TestOps Copilot MCP Server is a **Model Context Protocol** server that provides AI-powered test failure analysis tools. It allows AI assistants (like Claude) to intelligently analyze test failures, search knowledge bases, and provide actionable recommendations.
 
 ### Why MCP?
 
@@ -1300,7 +1300,7 @@ Want to add a feature? Here's the process:
 - [Model Context Protocol Docs](https://modelcontextprotocol.io/)
 - [MCP SDK Reference](https://github.com/modelcontextprotocol/sdk)
 
-### TestOps Companion
+### TestOps Copilot
 - [Main Documentation](../docs/)
 - [Backend Architecture](../backend/README.md)
 - [API Reference](../docs/api/)
@@ -1316,4 +1316,4 @@ Want to add a feature? Here's the process:
 
 **Version:** 1.0.0
 
-**Maintained by:** TestOps Companion Team
+**Maintained by:** TestOps Copilot Team

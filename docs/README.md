@@ -1,8 +1,8 @@
-# TestOps Companion Documentation
+# TestOps Copilot Documentation
 
 > **Version**: 3.0.0 · **Last updated**: 2026-02-23
 
-Welcome to the TestOps Companion documentation. This guide will help you understand, install, and use TestOps Companion effectively.
+Welcome to the TestOps Copilot documentation. This guide will help you understand, install, and use TestOps Copilot effectively.
 
 ## Table of Contents
 

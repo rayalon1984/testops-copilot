@@ -117,7 +117,7 @@ async function setupFrontendEnv(envContent) {
 
 // Main setup function
 async function setup() {
-  console.log('Setting up TestOps Companion environment...');
+  console.log('Setting up TestOps Copilot environment...');
   
   // Create directories if they don't exist
   const dirs = [

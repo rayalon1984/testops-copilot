@@ -1,4 +1,4 @@
-# Installation Issues Report - TestOps Companion v2.5.5
+# Installation Issues Report - TestOps Copilot v2.5.5
 
 **Date**: 2026-01-04
 **Severity**: CRITICAL
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Multiple critical issues were identified in the production installation process that prevented beta users from successfully setting up TestOps Companion. The main issues stem from schema configuration errors, port inconsistencies, and inadequate installation validation.
+Multiple critical issues were identified in the production installation process that prevented beta users from successfully setting up TestOps Copilot. The main issues stem from schema configuration errors, port inconsistencies, and inadequate installation validation.
 
 ## Critical Issues Identified
 

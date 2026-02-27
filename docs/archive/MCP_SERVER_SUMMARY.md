@@ -1,4 +1,4 @@
-# 🎉 TestOps Companion MCP Server - Implementation Summary
+# 🎉 TestOps Copilot MCP Server - Implementation Summary
 
 **Date:** 2026-01-20
 **Status:** ✅ Complete and Ready for Testing
@@ -428,7 +428,7 @@ Before deploying to production:
 
 ---
 
-**Built with ❤️ for the TestOps Companion community**
+**Built with ❤️ for the TestOps Copilot community**
 
 **Questions?** See [SKILL.md](mcp-server/SKILL.md) or [MCP_INTEGRATION.md](MCP_INTEGRATION.md)
 

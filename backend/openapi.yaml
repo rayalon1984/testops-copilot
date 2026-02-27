@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: TestOps Companion API
+  title: TestOps Copilot API
   version: 2.9.0
-  description: API specification for TestOps Companion — source of truth for frontend type generation.
+  description: API specification for TestOps Copilot — source of truth for frontend type generation.
 servers:
   - url: /api/v1
     description: V1 API

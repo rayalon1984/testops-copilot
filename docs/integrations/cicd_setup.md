@@ -1,12 +1,12 @@
 # CI/CD Integration Guide
 
-TestOps Companion is designed to integrate seamlessly with your existing CI/CD pipelines. This guide provides step-by-step instructions for connecting Jenkins and GitHub Actions.
+TestOps Copilot is designed to integrate seamlessly with your existing CI/CD pipelines. This guide provides step-by-step instructions for connecting Jenkins and GitHub Actions.
 
 ## 🔗 Connection Architecture
 
-TestOps Companion uses a **Poll & Push** hybrid approach:
-1.  **Trigger**: You send a webhook or API call from your CI provider to TestOps Companion to register a test run.
-2.  **Monitor**: TestOps Companion monitors the build status via the provider's API.
+TestOps Copilot uses a **Poll & Push** hybrid approach:
+1.  **Trigger**: You send a webhook or API call from your CI provider to TestOps Copilot to register a test run.
+2.  **Monitor**: TestOps Copilot monitors the build status via the provider's API.
 3.  **Analyze**: Once completed, failing tests are analyzed and results are processed.
 
 ---
@@ -14,11 +14,11 @@ TestOps Companion uses a **Poll & Push** hybrid approach:
 ## 🛠️ Jenkins Integration
 
 ### Prerequisites
-*   Jenkins URL (accessible from TestOps Companion backend)
+*   Jenkins URL (accessible from TestOps Copilot backend)
 *   Jenkins User & API Token (User > Configure > API Token)
 *   "Test Result" plugin (default in most installs) to generate JUnit XML reports.
 
-### Step 1: Configure Jenkins Credentials in TestOps Companion
+### Step 1: Configure Jenkins Credentials in TestOps Copilot
 Currently, credentials can be configured per pipeline or globally via environment variables (roadmap). For the current version:
 1.  Navigate to **Pipelines** > **New Pipeline**.
 2.  Select Type: **Jenkins**.
@@ -39,7 +39,7 @@ Currently, credentials can be configured per pipeline or globally via environmen
     ```
 
 ### Step 2: Configure Jenkins Pipeline (Jenkinsfile)
-Add a stage to notify TestOps Companion when a build starts.
+Add a stage to notify TestOps Copilot when a build starts.
 
 ```groovy
 pipeline {
@@ -71,7 +71,7 @@ pipeline {
 *   GitHub Repository
 *   Personal Access Token (PAT) with `repo` scope (if using private repos)
 
-### Step 1: Configure GitHub Pipeline in TestOps Companion
+### Step 1: Configure GitHub Pipeline in TestOps Copilot
 1.  Navigate to **Pipelines** > **New Pipeline**.
 2.  Select Type: **GitHub Actions**.
 3.  Configuration:
@@ -85,7 +85,7 @@ pipeline {
     ```
 
 ### Step 2: Add Reporting to GitHub Actions
-TestOps Companion monitors workflow runs. For best results, ensure your workflow generates a summarized report or uses a standard reporter.
+TestOps Copilot monitors workflow runs. For best results, ensure your workflow generates a summarized report or uses a standard reporter.
 
 **Example `.github/workflows/tests.yml`**:
 ```yaml
