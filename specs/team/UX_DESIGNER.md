@@ -1,7 +1,7 @@
 # Persona: UX_DESIGNER
 
 > **Role**: UX authority · **Routing**: Step 4 in `TEAM_SELECTION.md`
-> **Version**: 3.0.0 · **Last verified**: 2026-02-20
+> **Version**: 3.1.0 · **Last verified**: 2026-02-27
 
 ---
 

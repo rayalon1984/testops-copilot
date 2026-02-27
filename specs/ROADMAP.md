@@ -1,11 +1,23 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-20
-> **Current Version**: 3.0.0 (February 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-27
+> **Current Version**: 3.1.0 (February 2026)
 
 ---
 
 ## Shipped
+
+### v3.1.0 — Sprint 9: Self-Healing Pipelines + "Let's TOC" Branding (February 2026)
+- [x] "Let's TOC" branding for AI copilot chat (placeholder, empty state, thinking indicator)
+- [x] Self-Healing Phase 1: Auto-Retry for Transient Failures (8 built-in patterns, circuit breaker, autonomy-aware)
+- [x] Self-Healing Phase 2: Flaky Test Quarantine (auto-quarantine, severity scoring, reinstate/delete)
+- [x] Self-Healing Phase 3: AI-Suggested Fix PRs (RCA fuzzy matching, repository context, fix suggestions)
+- [x] HealingRule, HealingEvent, QuarantinedTest Prisma models with full CRUD
+- [x] Self-Healing dashboard page with 3 tabs (Rules & Events | Quarantine | Fix Suggestions)
+- [x] 24 unit tests for self-healing service (pattern matching, built-in rules)
+- [x] React Query hooks for all healing endpoints
+- [x] Codebase refactoring: dead deps removal, DB indexes, N+1 fixes, god-service splits, React Query migration
+- [x] 812 tests passing (675 backend + 137 frontend), zero lint warnings
 
 ### v3.0.0 — Sprint 8: Global AI Context + High-Fidelity Seeding (February 2026)
 - [x] Global AIProvider React Context (page + entity awareness for AI Copilot)
@@ -134,7 +146,7 @@
 - [x] Real-time collaborative RCA documentation (optimistic locking, revision history)
 
 **Notifications v2**:
-- [ ] Microsoft Teams integration
+- [x] Microsoft Teams integration (Bot Framework + Adaptive Cards + channel user mapping)
 - [ ] Discord integration
 - [ ] Custom notification templates with rich formatting
 - [ ] Notification rules engine

@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.0.0 · **Last verified**: 2026-02-20
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.1.0 · **Last verified**: 2026-02-27
 
 ---
 
@@ -279,6 +279,32 @@ Production responses include `message` only. Development adds `stack` and `detai
 
 **Team roles** (hierarchy): `OWNER` > `ADMIN` > `MEMBER` > `VIEWER`
 
+### 4.14 Self-Healing Pipelines
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| GET | `/api/v1/healing/rules` | Yes | VIEWER | List healing rules |
+| GET | `/api/v1/healing/rules/:id` | Yes | VIEWER | Get healing rule by ID |
+| POST | `/api/v1/healing/rules` | Yes | EDITOR | Create healing rule |
+| PUT | `/api/v1/healing/rules/:id` | Yes | EDITOR | Update healing rule |
+| PATCH | `/api/v1/healing/rules/:id/toggle` | Yes | EDITOR | Toggle rule enabled/disabled |
+| DELETE | `/api/v1/healing/rules/:id` | Yes | EDITOR | Delete healing rule |
+| POST | `/api/v1/healing/evaluate` | Yes | EDITOR | Evaluate test run against healing rules |
+| POST | `/api/v1/healing/execute` | Yes | EDITOR | Execute healing action on a test run |
+| GET | `/api/v1/healing/events` | Yes | VIEWER | List healing events (with filters) |
+| GET | `/api/v1/healing/stats` | Yes | VIEWER | Get healing statistics |
+| GET | `/api/v1/healing/quarantine` | Yes | VIEWER | List quarantined tests |
+| POST | `/api/v1/healing/quarantine` | Yes | EDITOR | Quarantine a test |
+| PATCH | `/api/v1/healing/quarantine/:id/reinstate` | Yes | EDITOR | Reinstate quarantined test |
+| DELETE | `/api/v1/healing/quarantine/:id` | Yes | EDITOR | Delete quarantined test |
+| GET | `/api/v1/healing/quarantine/stats` | Yes | VIEWER | Get quarantine statistics |
+| GET | `/api/v1/healing/fix-suggestions` | Yes | VIEWER | Get AI fix suggestions |
+| POST | `/api/v1/healing/seed` | Yes | ADMIN | Seed built-in healing rules |
+
+**Healing actions**: `retry`, `quarantine`, `fix_pr`, `notify`
+**Pattern types**: `regex`, `keyword`, `signature`
+**Healing categories**: `transient`, `infrastructure`, `flaky`, `custom`
+
 ---
 
 ## 5. Endpoint Summary
@@ -298,7 +324,8 @@ Production responses include `message` only. Development adds `stack` and `detai
 | CI | 1 | 1 | 0 |
 | Monday.com | 9 | 9 | 0 |
 | Teams | 15 | 15 | 1 |
-| **Total** | **99** | **94** | **5** |
+| Self-Healing | 17 | 17 | 1 |
+| **Total** | **116** | **111** | **6** |
 
 ---
 
