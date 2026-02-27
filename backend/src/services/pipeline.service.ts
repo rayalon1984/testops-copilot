@@ -192,7 +192,7 @@ class PipelineService {
       where: { pipelineId },
       orderBy: { createdAt: 'desc' as const },
       take: 20,
-      include: { results: true },
+      include: { results: { select: { status: true } } },
     });
 
     return runs.map(run => {

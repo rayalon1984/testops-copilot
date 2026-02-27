@@ -51,7 +51,10 @@ export class TestRunService {
     async getFormattedTestRuns(userId: string): Promise<FormattedTestRun[]> {
         const testRuns = await prisma.testRun.findMany({
             where: { userId },
-            include: { pipeline: true, results: true },
+            include: {
+                pipeline: true,
+                results: { select: { status: true } },
+            },
             orderBy: { createdAt: 'desc' },
             take: 100,
         });

@@ -98,7 +98,7 @@ export async function getSessionWithMessages(sessionId: string, userId: string) 
     const session = await prisma.chatSession.findFirst({
         where: { id: sessionId, userId },
         include: {
-            messages: { orderBy: { createdAt: 'asc' } },
+            messages: { orderBy: { createdAt: 'asc' }, take: 200 },
         },
     });
     return session;
