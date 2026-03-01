@@ -19,6 +19,7 @@ import {
     PlayArrow as ActionIcon,
     Close as DismissIcon,
 } from '@mui/icons-material';
+import { canAct } from './shared/CardActions';
 
 export interface ProactiveSuggestionData {
     suggestionId: string;
@@ -33,6 +34,7 @@ export interface ProactiveSuggestionData {
 
 interface ProactiveSuggestionCardProps {
     suggestion: ProactiveSuggestionData;
+    userRole?: string;
     onAccept: (suggestion: ProactiveSuggestionData) => void;
     onDismiss: (suggestionId: string) => void;
     dismissed?: boolean;
@@ -64,6 +66,7 @@ function getToolLabel(tool: string): string {
 
 export default function ProactiveSuggestionCard({
     suggestion,
+    userRole,
     onAccept,
     onDismiss,
     dismissed,
@@ -160,8 +163,8 @@ export default function ProactiveSuggestionCard({
                     </Typography>
                 )}
 
-                {/* Action buttons */}
-                {!isResolved && (
+                {/* Action buttons — role-gated: hidden for VIEWER/BILLING */}
+                {!isResolved && canAct(userRole || 'VIEWER') && (
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 0.5 }}>
                         {suggestion.secondaryLabel && (
                             <Button

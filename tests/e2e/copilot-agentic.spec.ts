@@ -69,10 +69,8 @@ test.describe('Agentic AI Copilot E2E', () => {
     // User message should appear
     await expect(page.getByText('Find recent Jira failures')).toBeVisible();
 
-    // Tool execution indicator should appear
-    await expect(page.getByText(/jira_search/i)).toBeVisible({ timeout: 5000 });
-
     // Tool result card should render issue details from JiraSearchCard
+    // (tool_start indicator suppressed per DESIGN_LANG_V2 §6.4 — V2 card headers identify the tool)
     await expect(page.getByText('Login timeout on EU region')).toBeVisible({ timeout: 5000 });
 
     // Final assistant answer

@@ -57,6 +57,65 @@ test('layout components render on dashboard', async ({ page }) => {
     await expect(page.locator('main, [role="main"]').first()).toBeVisible();
 });
 
+// ─── Theme Toggle: Dark ↔ Light ─────────────────────────────────────
+
+test('dark/light mode toggle changes theme without crash', async ({ page }) => {
+    await setupAuthenticatedSession(page);
+
+    // Navigate first, then set localStorage (can't access before navigation)
+    await page.goto('/dashboard');
+    await expect(page.locator('#root')).toBeVisible();
+
+    // Set dark mode and reload
+    await page.evaluate(() => {
+        localStorage.setItem('design_mode', 'modern');
+        localStorage.setItem('color_mode', 'dark');
+    });
+    await page.reload();
+    await expect(page.locator('#root')).toBeVisible();
+
+    // Verify dark mode background (MUI sets body background via CssBaseline)
+    const darkBg = await page.evaluate(() =>
+        getComputedStyle(document.body).backgroundColor
+    );
+    // Dark mode should NOT be white (#ffffff / rgb(255,255,255))
+    expect(darkBg).not.toBe('rgb(255, 255, 255)');
+
+    // Switch to light mode via localStorage + reload
+    await page.evaluate(() => {
+        localStorage.setItem('color_mode', 'light');
+    });
+    await page.reload();
+    await expect(page.locator('#root')).toBeVisible();
+
+    // Verify light mode background is lighter
+    const lightBg = await page.evaluate(() =>
+        getComputedStyle(document.body).backgroundColor
+    );
+    // Light mode should NOT be the same as dark mode
+    expect(lightBg).not.toBe(darkBg);
+
+    // Content should still render correctly after theme switch
+    await expect(page.getByText('Dashboard').first()).toBeVisible();
+
+    // Copilot panel should still be visible
+    await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
+
+    // Switch back to dark mode
+    await page.evaluate(() => {
+        localStorage.setItem('color_mode', 'dark');
+    });
+    await page.reload();
+    await expect(page.locator('#root')).toBeVisible();
+
+    const restoredBg = await page.evaluate(() =>
+        getComputedStyle(document.body).backgroundColor
+    );
+    expect(restoredBg).toBe(darkBg);
+});
+
+// ─── Backend Health ─────────────────────────────────────────────────
+
 test('API health endpoint responds when backend is available', async ({ page }) => {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
 

@@ -55,7 +55,7 @@ export default function HousekeepingCardV2({ data, toolName, userRole, onAction,
                 }}
             >
                 <CardHeaderV2
-                    emoji={'\u26A1'}
+                    emoji={'\uD83D\uDD17'}
                     title="Jira Housekeeping"
                     chip={{ label: 'IN PROGRESS', status: 'In Progress' }}
                 />

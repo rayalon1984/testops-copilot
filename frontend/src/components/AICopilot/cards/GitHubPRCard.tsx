@@ -18,6 +18,7 @@ import {
 import ServiceBadge, { getServiceAccent } from './shared/ServiceBadge';
 import StatusChip from './shared/StatusChip';
 import InlineDiffViewer from './shared/InlineDiffViewer';
+import CardActions from './shared/CardActions';
 import type { CardState } from '../../../hooks/useAICopilot';
 
 interface DiffFile {
@@ -48,6 +49,7 @@ interface GitHubPRData {
 
 interface GitHubPRCardProps {
     data: Record<string, unknown>;
+    userRole?: string;
     onAction?: (prompt: string) => void;
     cardState?: CardState;
 }
@@ -55,7 +57,7 @@ interface GitHubPRCardProps {
 const ADDITION_COLOR = '#3fb950';
 const DELETION_COLOR = '#f85149';
 
-export default function GitHubPRCard({ data, onAction, cardState }: GitHubPRCardProps) {
+export default function GitHubPRCard({ data, userRole, onAction, cardState }: GitHubPRCardProps) {
     const pr = data as unknown as GitHubPRData;
     const [showDiff, setShowDiff] = useState(false);
     const hasFiles = pr.files && pr.files.length > 0;
@@ -136,7 +138,7 @@ export default function GitHubPRCard({ data, onAction, cardState }: GitHubPRCard
                     gap: 1,
                     mt: 1,
                 }}>
-                    {/* Review Diff toggle */}
+                    {/* Review Diff toggle (read-only, always visible) */}
                     {hasFiles && (
                         <Button
                             size="small"
@@ -149,22 +151,24 @@ export default function GitHubPRCard({ data, onAction, cardState }: GitHubPRCard
                         </Button>
                     )}
 
-                    {/* Approve & Merge (only when onAction is wired and PR is mergeable) */}
-                    {onAction && pr.mergeable && pr.owner && pr.repo && (
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="success"
-                            startIcon={<MergeIcon sx={{ fontSize: 14 }} />}
-                            onClick={handleMerge}
-                            disabled={isPending}
-                            sx={{ fontSize: '0.65rem', textTransform: 'none' }}
-                        >
-                            {isPending ? 'Merging...' : 'Approve & Merge'}
-                        </Button>
-                    )}
+                    {/* Approve & Merge — role-gated: hidden for VIEWER/BILLING */}
+                    <CardActions userRole={userRole || 'VIEWER'}>
+                        {onAction && pr.mergeable && pr.owner && pr.repo && (
+                            <Button
+                                size="small"
+                                variant="contained"
+                                color="success"
+                                startIcon={<MergeIcon sx={{ fontSize: 14 }} />}
+                                onClick={handleMerge}
+                                disabled={isPending}
+                                sx={{ fontSize: '0.65rem', textTransform: 'none' }}
+                            >
+                                {isPending ? 'Merging...' : 'Approve & Merge'}
+                            </Button>
+                        )}
+                    </CardActions>
 
-                    {/* External review link */}
+                    {/* External review link (read-only, always visible) */}
                     {pr.url && (
                         <Button
                             size="small"

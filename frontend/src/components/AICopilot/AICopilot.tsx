@@ -144,6 +144,7 @@ function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPro
                 <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0 }}>
                     <ProactiveSuggestionCard
                         suggestion={msg.suggestionData as unknown as ProactiveSuggestionData}
+                        userRole={userRole}
                         onAccept={(s) => handleSuggestionAccept(s, msg.id)}
                         onDismiss={() => handleSuggestionDismiss(msg.id)}
                         accepted={msg.suggestionStatus === 'accepted'}

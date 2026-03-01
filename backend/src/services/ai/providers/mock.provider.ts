@@ -180,6 +180,20 @@ const INTENT_RULES: IntentRule[] = [
       args: { owner: 'testops', repo: 'app', workflowId: 'ci.yml', branch: 'main' },
       preamble: 'Re-running the GitHub Actions workflow.' },
 
+    // Link Jira issues
+    { primary: ['link', 'relate', 'connect', 'associate'],
+      secondary: ['issue', 'ticket', 'jira', 'testops'],
+      tool: 'jira_link_issues',
+      args: { sourceKey: 'TESTOPS-142', targetKeys: ['TESTOPS-143'], linkType: 'relates to' },
+      preamble: 'I\'ll link those Jira issues together.' },
+
+    // Add Jira labels
+    { primary: ['label', 'tag', 'categorize', 'classify'],
+      secondary: ['issue', 'ticket', 'jira', 'testops'],
+      tool: 'jira_add_label',
+      args: { issueKey: 'TESTOPS-142', labels: ['flaky', 'ci-env'] },
+      preamble: 'I\'ll add the labels to the issue.' },
+
     // ── Catch-all: RCA / explain / why — triggers 3-card analysis chain ──
     { primary: ['explain', 'why', 'cause', 'reason', 'analyze', 'failure', 'failed', 'investigate'],
       tool: 'rca_identify', args: { testName: 'PaymentProcessor.processCheckout' },

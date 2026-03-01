@@ -58,7 +58,7 @@ export default function ToolResultCard({ message, userRole, onAction }: ToolResu
     if (isV2) {
         switch (toolName) {
             case 'github_get_pr':
-                return <GitHubPRCardV2 data={toolData} onAction={handleAction} cardState={cardState} />;
+                return <GitHubPRCardV2 data={toolData} userRole={userRole} onAction={handleAction} cardState={cardState} />;
             case 'jira_link_issues':
             case 'jira_add_label':
                 return <HousekeepingCardV2 data={toolData} toolName={toolName || ''} userRole={userRole} onAction={handleAction} cardState={cardState} />;
@@ -74,7 +74,7 @@ export default function ToolResultCard({ message, userRole, onAction }: ToolResu
         case 'github_get_commit':
             return <GitHubCommitCard data={toolData} />;
         case 'github_get_pr':
-            return <GitHubPRCard data={toolData} onAction={handleAction} cardState={cardState} />;
+            return <GitHubPRCard data={toolData} userRole={userRole} onAction={handleAction} cardState={cardState} />;
         case 'confluence_search':
             return <ConfluenceDocCard results={toolData as unknown as Record<string, unknown>[]} />;
         case 'jenkins_get_status':

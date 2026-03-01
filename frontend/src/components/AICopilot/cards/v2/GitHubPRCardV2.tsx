@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import CardHeaderV2 from './CardHeaderV2';
 import InlineDiffViewer from '../shared/InlineDiffViewer';
+import { canAct } from '../shared/CardActions';
 import type { CardState } from '../../../../hooks/useAICopilot';
 
 interface DiffFile {
@@ -47,6 +48,7 @@ interface GitHubPRData {
 
 interface GitHubPRCardV2Props {
     data: Record<string, unknown>;
+    userRole?: string;
     onAction?: (prompt: string) => void;
     cardState?: CardState;
 }
@@ -54,7 +56,7 @@ interface GitHubPRCardV2Props {
 const ADDITION_COLOR = '#3fb950';
 const DELETION_COLOR = '#f85149';
 
-export default function GitHubPRCardV2({ data, onAction, cardState }: GitHubPRCardV2Props) {
+export default function GitHubPRCardV2({ data, userRole, onAction, cardState }: GitHubPRCardV2Props) {
     const pr = data as unknown as GitHubPRData;
     const hasFiles = pr.files && pr.files.length > 0;
     const isPending = cardState === 'action_pending';
@@ -138,8 +140,8 @@ export default function GitHubPRCardV2({ data, onAction, cardState }: GitHubPRCa
                     </Button>
                 )}
 
-                {/* Merge PR (solid green, prominent) */}
-                {onAction && pr.mergeable && pr.owner && pr.repo && (
+                {/* Merge PR — role-gated: hidden for VIEWER/BILLING */}
+                {canAct(userRole || 'VIEWER') && onAction && pr.mergeable && pr.owner && pr.repo && (
                     <Button
                         fullWidth
                         size="medium"
