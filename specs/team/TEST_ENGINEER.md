@@ -1,7 +1,7 @@
 # Persona: TEST_ENGINEER
 
 > **Role**: Test strategy & quality gates · **Routing**: Step 6 in `TEAM_SELECTION.md`
-> **Version**: 3.1.0 · **Last verified**: 2026-02-27
+> **Version**: 3.1.1 · **Last verified**: 2026-03-01
 
 ---
 

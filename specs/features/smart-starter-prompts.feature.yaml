@@ -1,0 +1,254 @@
+feature: smart-starter-prompts
+name: "Smart Starter Prompts (Role-Aware + User-Configurable)"
+version: "1.0.0"
+status: draft
+since: "v3.2.0"
+owner: AI_PRODUCT_MANAGER
+category: frontend
+spec_source: AUTONOMOUS_AI_SPEC.md
+
+# ─── Problem ───────────────────────────────────────────────────────
+# The copilot empty state shows 4 hardcoded quick actions for every user,
+# every session, regardless of role, recent activity, or preferences.
+# This is a missed opportunity: the system already knows who the user is
+# (role, autonomyLevel), what page they're on (usePageContext), and what's
+# happening (pipelines, failures, quarantine queue). Surfacing contextual
+# nudges makes the copilot feel proactive from the first interaction.
+#
+# ─── Approach: Tier 1 + Tier 3 (ship together) ────────────────────
+# Tier 1 — Role-based defaults: map user persona → curated prompt set
+# Tier 3 — User-configurable: pin/unpin/reorder personal favorites
+# Tier 2 — Context-aware (v3.3 candidate): live data signals
+# ──────────────────────────────────────────────────────────────────
+
+capabilities:
+  # ─── Backend ──────────────────────────────────────────────────────
+
+  - id: starter.resolver
+    name: "StarterPromptResolver"
+    version: "1.0.0"
+    description: >
+      Resolves the ordered list of starter prompts for a given user.
+      Merges three layers: role defaults → user pins → context signals (future).
+      Returns max 4 prompts, each with label + full prompt text + optional icon.
+    files:
+      - backend/src/services/ai/StarterPromptResolver.ts
+    assertions:
+      - id: starter.resolver.role-defaults
+        description: "Returns role-specific defaults when user has no pinned prompts"
+        type: invariant
+      - id: starter.resolver.user-pins-override
+        description: "User-pinned prompts replace role defaults in matching slots"
+        type: invariant
+      - id: starter.resolver.max-four
+        description: "Always returns exactly 4 prompts (fills remaining slots with role defaults)"
+        type: invariant
+      - id: starter.resolver.unknown-role-fallback
+        description: "Falls back to generic prompts when role is unrecognized"
+        type: invariant
+
+  - id: starter.role-catalog
+    name: "Role Prompt Catalog"
+    version: "1.0.0"
+    description: >
+      Static catalog mapping each user role to 6-8 curated prompts.
+      Resolver picks top 4 unless overridden by user pins.
+    files:
+      - backend/src/services/ai/starterPromptCatalog.ts
+    assertions:
+      - id: starter.catalog.qa-engineer
+        description: >
+          QA/Test Automation role includes: analyze last failure, check flaky tests,
+          review quarantine queue, show failure trends, run test health check, check healing rules
+        type: behavioral
+      - id: starter.catalog.developer
+        description: >
+          Developer role includes: analyze my PR failures, show broken tests in my repos,
+          find related Jira issues, check pipeline status, review open fix PRs, debug timeout errors
+        type: behavioral
+      - id: starter.catalog.engineering-lead
+        description: >
+          Engineering Lead role includes: show test trends, pipeline health overview,
+          cost tracker summary, team failure hotspots, quarantine queue size, MTTR this week
+        type: behavioral
+      - id: starter.catalog.product-manager
+        description: >
+          Product/QA Manager role includes: time saved this week, failure resolution rate,
+          AI cache hit rate, cost per analysis, test coverage trend, release readiness check
+        type: behavioral
+      - id: starter.catalog.generic-fallback
+        description: >
+          Generic fallback (current 4): analyze last failure, show test trends,
+          check pipelines, find related issues
+        type: invariant
+
+  - id: starter.api
+    name: "Starter Prompts API"
+    version: "1.0.0"
+    description: "GET /api/v1/ai/starter-prompts — returns resolved prompts for current user"
+    files:
+      - backend/src/routes/ai/starterPrompts.ts
+    assertions:
+      - id: starter.api.authenticated
+        description: "Requires valid JWT; returns 401 otherwise"
+        type: contract
+      - id: starter.api.response-shape
+        description: >
+          Returns { prompts: Array<{ id: string; label: string; prompt: string; icon?: string; pinned: boolean }> }
+        type: contract
+      - id: starter.api.cache-header
+        description: "Returns Cache-Control: private, max-age=300 (5 min)"
+        type: contract
+
+  - id: starter.pin-api
+    name: "User Pin/Unpin API"
+    version: "1.0.0"
+    description: "PATCH /api/v1/ai/starter-prompts/pins — save user's pinned prompt IDs + custom prompts"
+    files:
+      - backend/src/routes/ai/starterPrompts.ts
+    assertions:
+      - id: starter.pin-api.save-pins
+        description: "Persists up to 4 pinned prompt IDs (from catalog) or custom prompt objects"
+        type: contract
+      - id: starter.pin-api.custom-prompt-validation
+        description: "Custom prompts require label (≤40 chars) and prompt (≤200 chars)"
+        type: invariant
+      - id: starter.pin-api.max-four
+        description: "Rejects requests with more than 4 pins"
+        type: invariant
+
+  # ─── Data ─────────────────────────────────────────────────────────
+
+  - id: starter.storage
+    name: "User Preferences Storage"
+    version: "1.0.0"
+    description: >
+      Extends User model with pinnedStarterPrompts JSON field.
+      Stores array of { id?, label, prompt } objects. Null = use role defaults.
+    files:
+      - backend/prisma/schema.prisma
+    assertions:
+      - id: starter.storage.json-field
+        description: "pinnedStarterPrompts is an optional String field (JSON-serialized for SQLite compat)"
+        type: contract
+      - id: starter.storage.null-means-defaults
+        description: "Null value means 'use role defaults' — never empty array"
+        type: invariant
+
+  # ─── Frontend ─────────────────────────────────────────────────────
+
+  - id: starter.frontend.empty-state
+    name: "Dynamic EmptyState"
+    version: "1.0.0"
+    description: >
+      EmptyState component fetches prompts from API on mount.
+      Shows skeleton during load, then renders resolved prompt cards.
+      Long-press or right-click on a card opens pin/unpin/customize menu.
+    files:
+      - frontend/src/components/AICopilot/EmptyState.tsx
+      - frontend/src/hooks/api/useStarterPrompts.ts
+    assertions:
+      - id: starter.frontend.fetch-on-mount
+        description: "Calls GET /ai/starter-prompts on mount via React Query"
+        type: behavioral
+      - id: starter.frontend.skeleton-loading
+        description: "Shows 4 skeleton cards (same grid) while loading"
+        type: behavioral
+      - id: starter.frontend.render-prompts
+        description: "Renders label text from API response; onClick sends prompt"
+        type: invariant
+      - id: starter.frontend.pinned-indicator
+        description: "Pinned prompts show a subtle pin icon"
+        type: behavioral
+      - id: starter.frontend.cache-stale-time
+        description: "React Query staleTime = 5 minutes (matches API cache header)"
+        type: behavioral
+
+  - id: starter.frontend.customize
+    name: "Prompt Customization UX"
+    version: "1.0.0"
+    description: >
+      Settings popover (or bottom sheet on mobile) for managing pinned prompts.
+      Accessible via long-press on any prompt card or Settings → Copilot.
+    files:
+      - frontend/src/components/AICopilot/StarterPromptSettings.tsx
+    assertions:
+      - id: starter.frontend.customize.toggle-pin
+        description: "User can pin/unpin prompts from the role catalog"
+        type: behavioral
+      - id: starter.frontend.customize.add-custom
+        description: "User can add a custom label + prompt (max 4 total)"
+        type: behavioral
+      - id: starter.frontend.customize.reorder
+        description: "User can drag-reorder pinned prompts"
+        type: behavioral
+      - id: starter.frontend.customize.reset
+        description: "'Reset to defaults' clears pins and restores role defaults"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-1
+    title: "Role-based default prompts"
+    gherkin: |
+      GIVEN a QA Engineer user with no pinned prompts
+      WHEN the copilot panel loads with an empty chat
+      THEN 4 prompts are displayed matching the QA Engineer catalog
+      AND the prompts differ from what a Developer role user would see
+    maps_to:
+      - starter.resolver.role-defaults
+      - starter.catalog.qa-engineer
+      - starter.catalog.developer
+      - starter.frontend.fetch-on-mount
+      - starter.frontend.render-prompts
+
+  - id: AC-2
+    title: "User pins custom prompts"
+    gherkin: |
+      GIVEN a user viewing the copilot empty state
+      WHEN the user long-presses a prompt card and selects "Customize"
+      THEN a settings popover appears showing the role catalog
+      AND the user can toggle pins, add a custom prompt, and reorder
+      WHEN the user saves
+      THEN the pinned prompts persist across sessions
+      AND the empty state reflects the new selection on next load
+    maps_to:
+      - starter.pin-api.save-pins
+      - starter.pin-api.custom-prompt-validation
+      - starter.storage.json-field
+      - starter.frontend.customize.toggle-pin
+      - starter.frontend.customize.add-custom
+
+  - id: AC-3
+    title: "Fallback for unknown roles"
+    gherkin: |
+      GIVEN a user with an unrecognized or missing role
+      WHEN the copilot panel loads
+      THEN the 4 generic default prompts are shown (current behavior)
+      AND the system does not error
+    maps_to:
+      - starter.resolver.unknown-role-fallback
+      - starter.catalog.generic-fallback
+      - starter.resolver.max-four
+
+  - id: AC-4
+    title: "Reset to defaults"
+    gherkin: |
+      GIVEN a user with custom pinned prompts
+      WHEN the user opens prompt settings and clicks "Reset to defaults"
+      THEN pinned prompts are cleared (pinnedStarterPrompts set to null)
+      AND the empty state reverts to role-based defaults
+    maps_to:
+      - starter.storage.null-means-defaults
+      - starter.frontend.customize.reset
+      - starter.resolver.role-defaults
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-03-01"
+    product_version: "v3.2.0"
+    changes:
+      - "Draft spec: role-based default prompts (Tier 1) + user-configurable pins (Tier 3)"
+      - "Role catalog: QA Engineer, Developer, Engineering Lead, Product Manager + generic fallback"
+      - "API: GET /ai/starter-prompts, PATCH /ai/starter-prompts/pins"
+      - "Frontend: dynamic EmptyState, StarterPromptSettings popover"
+      - "Deferred to v3.3: Tier 2 context-aware prompts (live pipeline/failure signals)"

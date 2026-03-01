@@ -1,7 +1,20 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-02-27
-> **Current Version**: 3.1.0 (February 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-01
+> **Current Version**: 3.1.1 (March 2026)
+
+---
+
+## Planned
+
+### v3.2.0 — Sprint 10: Smart Starter Prompts (March 2026)
+- [ ] Smart Starter Prompts — role-based defaults + user-configurable pins (`specs/features/smart-starter-prompts.feature.yaml`)
+- [ ] Role prompt catalog: QA Engineer, Developer, Engineering Lead, Product Manager + generic fallback
+- [ ] GET /ai/starter-prompts + PATCH /ai/starter-prompts/pins APIs
+- [ ] Dynamic EmptyState component (fetch from API, skeleton loading, pin indicator)
+- [ ] StarterPromptSettings popover (pin/unpin, custom prompts, reorder, reset)
+- [ ] User model: pinnedStarterPrompts JSON field
+- [ ] Deferred to v3.3: Tier 2 context-aware prompts (live pipeline/failure signals)
 
 ---
 

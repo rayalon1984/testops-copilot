@@ -6,6 +6,23 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.1.1] - 2026-03-01
+
+> **QA Fixes + Smart Starter Prompts Spec**
+
+### Bug Fixes
+- **CSRF stateless mode**: Fixed HMAC mismatch caused by `saveUninitialized: false` — switched to stateless session identifier
+- **Auth route CSRF exemption**: Login, register, and refresh endpoints no longer require CSRF tokens
+- **Chat CSRF failure**: `useAICopilot` SSE hook now sends `X-CSRF-Token` header and `credentials: 'include'` (was bypassing centralized API client)
+- **E2E selector mismatch**: Updated 12 placeholder selectors from `"Ask Copilot..."` to `"Let's TOC... ask about a failing test"`
+- **Playwright config**: Added `testMatch`/`testIgnore` to prevent backend test file pickup
+
+### Specs & Planning
+- **Smart Starter Prompts**: Added `specs/features/smart-starter-prompts.feature.yaml` — role-based default prompts + user-configurable pins (targeting v3.2.0)
+- **Roadmap**: Added v3.2.0 planned section for Smart Starter Prompts
+
+---
+
 ## [3.1.0] - 2026-02-27
 
 > **Self-Healing Pipelines + "Let's TOC" Branding**

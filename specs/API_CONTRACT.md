@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.1.0 · **Last verified**: 2026-02-27
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
 
 ---
 
