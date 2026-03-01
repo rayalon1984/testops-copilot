@@ -120,6 +120,9 @@ async function seed() {
     prisma.failurePattern.deleteMany(),
     prisma.testResult.deleteMany(),
     prisma.notification.deleteMany(),
+    prisma.healingEvent.deleteMany(),
+    prisma.healingRule.deleteMany(),
+    prisma.quarantinedTest.deleteMany(),
     prisma.testRun.deleteMany(),
     prisma.jiraIssue.deleteMany(),
     prisma.jiraConfig.deleteMany(),
@@ -753,6 +756,305 @@ async function seed() {
 
   console.log('  Created 3 channel user mappings');
 
+  // ── 20. Self-Healing Rules ──
+  console.log('Creating self-healing rules...');
+
+  const healingRules = await Promise.all([
+    // Built-in transient rules
+    prisma.healingRule.create({
+      data: {
+        name: 'Connection Timeout Retry',
+        description: 'Retries tests that fail due to network connection timeouts',
+        pattern: '(ETIMEDOUT|ECONNREFUSED|ECONNRESET|socket hang up)',
+        patternType: 'regex',
+        category: 'transient',
+        action: 'retry',
+        maxRetries: 2,
+        cooldownMinutes: 30,
+        confidenceThreshold: 0.85,
+        enabled: true,
+        isBuiltIn: true,
+        priority: 90,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'Database Lock Timeout',
+        description: 'Retries tests that fail from database lock contention',
+        pattern: '(lock timeout|deadlock detected|database is locked)',
+        patternType: 'regex',
+        category: 'transient',
+        action: 'retry',
+        maxRetries: 3,
+        cooldownMinutes: 15,
+        confidenceThreshold: 0.9,
+        enabled: true,
+        isBuiltIn: true,
+        priority: 85,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'Flaky UI Assertion',
+        description: 'Quarantines tests with intermittent DOM assertion failures',
+        pattern: '(element not found|timeout waiting for|stale element reference)',
+        patternType: 'regex',
+        category: 'flaky',
+        action: 'quarantine',
+        maxRetries: 1,
+        cooldownMinutes: 120,
+        confidenceThreshold: 0.75,
+        enabled: true,
+        isBuiltIn: true,
+        priority: 70,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'OOM Kill Recovery',
+        description: 'Notifies when tests are killed by OOM',
+        pattern: '(out of memory|OOM|heap out of memory|JavaScript heap)',
+        patternType: 'regex',
+        category: 'infrastructure',
+        action: 'notify',
+        maxRetries: 0,
+        cooldownMinutes: 60,
+        confidenceThreshold: 0.95,
+        enabled: true,
+        isBuiltIn: true,
+        priority: 95,
+      },
+    }),
+    // Custom user-created rules
+    prisma.healingRule.create({
+      data: {
+        name: 'Payment Gateway Timeout',
+        description: 'Auto-retries checkout tests when payment sandbox is slow',
+        pattern: 'payment gateway timeout',
+        patternType: 'keyword',
+        category: 'transient',
+        action: 'retry',
+        maxRetries: 2,
+        cooldownMinutes: 45,
+        confidenceThreshold: 0.8,
+        enabled: true,
+        isBuiltIn: false,
+        priority: 60,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'Auth Token Expiry',
+        description: 'Suggests fix PR when OAuth token refresh logic fails consistently',
+        pattern: '(token expired|401 Unauthorized|JWT malformed)',
+        patternType: 'regex',
+        category: 'custom',
+        action: 'fix_pr',
+        maxRetries: 0,
+        cooldownMinutes: 240,
+        confidenceThreshold: 0.7,
+        enabled: true,
+        isBuiltIn: false,
+        priority: 55,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'Rate Limit Backoff',
+        description: 'Retries API tests hitting rate limits with exponential backoff',
+        pattern: '(429|rate limit|too many requests)',
+        patternType: 'regex',
+        category: 'transient',
+        action: 'retry',
+        maxRetries: 3,
+        cooldownMinutes: 60,
+        confidenceThreshold: 0.88,
+        enabled: true,
+        isBuiltIn: false,
+        priority: 65,
+      },
+    }),
+    prisma.healingRule.create({
+      data: {
+        name: 'Selenium Grid Saturation',
+        description: 'Quarantines UI tests when all grid nodes are occupied',
+        pattern: 'no free nodes available',
+        patternType: 'keyword',
+        category: 'infrastructure',
+        action: 'quarantine',
+        maxRetries: 0,
+        cooldownMinutes: 180,
+        confidenceThreshold: 0.92,
+        enabled: false,
+        isBuiltIn: false,
+        priority: 40,
+      },
+    }),
+  ]);
+
+  console.log(`  Created ${healingRules.length} healing rules (${healingRules.filter(r => r.isBuiltIn).length} built-in, ${healingRules.filter(r => !r.isBuiltIn).length} custom)`);
+
+  // ── 21. Healing Events ──
+  console.log('Creating healing events...');
+
+  // Get some failed test runs to associate healing events with
+  const failedRuns = testRunPayloads.filter(r => r.status === 'FAILED').slice(0, 30);
+  const healingEventPayloads: Prisma.HealingEventCreateManyInput[] = [];
+
+  const errorMessages = [
+    'ETIMEDOUT: connection timed out after 30000ms',
+    'ECONNREFUSED: connect ECONNREFUSED 10.0.0.1:5432',
+    'deadlock detected on table "sessions"',
+    'element not found: #checkout-button (timeout 15000ms)',
+    'timeout waiting for selector "div.payment-form"',
+    'JavaScript heap out of memory',
+    'payment gateway timeout after 20s',
+    'stale element reference: element is not attached to the DOM',
+    'Error 429: too many requests — rate limited',
+    'ECONNRESET: socket hang up during TLS handshake',
+    'JWT malformed: unexpected token at position 0',
+    'database is locked (SQLite busy timeout)',
+  ];
+
+  const matchReasons = [
+    'Matched transient pattern: connection timeout indicates temporary network issue',
+    'Matched infrastructure pattern: database lock contention during peak load',
+    'Matched flaky pattern: intermittent DOM element timing issue',
+    'Matched infrastructure pattern: memory pressure on CI runner',
+    'Matched transient pattern: third-party service temporarily unavailable',
+    'Matched custom pattern: payment sandbox response delay',
+    'Matched flaky pattern: stale element in SPA navigation',
+    'Matched transient pattern: API rate limiting during parallel test execution',
+    'Matched custom pattern: authentication token lifecycle issue',
+  ];
+
+  for (let i = 0; i < Math.min(failedRuns.length, 25); i++) {
+    const run = failedRuns[i];
+    const rule = healingRules[i % healingRules.length];
+    const eventAge = randomBetween(1, DAYS_OF_HISTORY * 24);
+    const createdAt = hoursAgo(eventAge);
+    const isCompleted = Math.random() > 0.15;
+    const succeeded = isCompleted && Math.random() > 0.25;
+
+    healingEventPayloads.push({
+      ruleId: rule.id,
+      testRunId: run.id!,
+      pipelineId: run.pipelineId,
+      action: rule.action,
+      status: isCompleted ? (succeeded ? 'success' : 'failed') : (Math.random() > 0.5 ? 'executing' : 'pending'),
+      matchConfidence: parseFloat((rule.confidenceThreshold + Math.random() * 0.1).toFixed(2)),
+      matchReason: matchReasons[i % matchReasons.length],
+      errorMessage: errorMessages[i % errorMessages.length],
+      retriedRunId: rule.action === 'retry' && succeeded ? (testRunPayloads[randomBetween(0, testRunPayloads.length - 1)]?.id ?? null) : null,
+      metadata: JSON.stringify({
+        attemptNumber: randomBetween(1, rule.maxRetries || 1),
+        executionTimeMs: randomBetween(500, 5000),
+        ...(rule.action === 'fix_pr' ? { prUrl: `https://github.com/org/testops-app/pull/${randomBetween(100, 500)}`, branch: `fix/healing-${i}` } : {}),
+        ...(rule.action === 'quarantine' ? { flakinessScore: parseFloat((Math.random() * 0.6 + 0.4).toFixed(2)) } : {}),
+      }),
+      createdAt,
+      completedAt: isCompleted ? new Date(createdAt.getTime() + randomBetween(2000, 120000)) : null,
+    });
+  }
+
+  await prisma.healingEvent.createMany({ data: healingEventPayloads });
+  console.log(`  Created ${healingEventPayloads.length} healing events`);
+
+  // ── 22. Quarantined Tests ──
+  console.log('Creating quarantined tests...');
+
+  const quarantinedTestData: Prisma.QuarantinedTestCreateManyInput[] = [
+    {
+      testName: 'CheckoutFlow.test.ts > should complete purchase with saved card',
+      reason: 'Intermittent payment gateway timeout (flaky 42% of runs over last 7 days)',
+      severity: 'HIGH',
+      quarantinedBy: 'auto',
+      healingEventId: healingEventPayloads[0] ? undefined : undefined,
+      flakinessScore: 0.42,
+      occurrenceCount: 18,
+      status: 'quarantined',
+    },
+    {
+      testName: 'LoginPage.test.ts > should handle OAuth redirect flow',
+      reason: 'Stale element reference during OAuth popup close (DOM timing)',
+      severity: 'MEDIUM',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.31,
+      occurrenceCount: 12,
+      status: 'quarantined',
+    },
+    {
+      testName: 'DashboardMetrics.test.ts > should render real-time chart updates',
+      reason: 'WebSocket connection race condition on CI runners',
+      severity: 'MEDIUM',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.28,
+      occurrenceCount: 9,
+      status: 'quarantined',
+    },
+    {
+      testName: 'SearchResults.test.ts > should paginate through 1000+ results',
+      reason: 'Heap out of memory on GitHub Actions 4GB runner',
+      severity: 'CRITICAL',
+      quarantinedBy: admin.id,
+      flakinessScore: 0.65,
+      occurrenceCount: 31,
+      status: 'quarantined',
+    },
+    {
+      testName: 'NotificationService.test.ts > should deliver Slack message within SLA',
+      reason: 'Slack sandbox rate limiting during parallel test execution',
+      severity: 'LOW',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.15,
+      occurrenceCount: 5,
+      status: 'quarantined',
+    },
+    {
+      testName: 'UserProfile.test.ts > should upload avatar image',
+      reason: 'S3 presigned URL expiration timing (flaky on slow CI)',
+      severity: 'MEDIUM',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.22,
+      occurrenceCount: 7,
+      status: 'quarantined',
+    },
+    {
+      testName: 'PipelineScheduler.test.ts > should handle concurrent triggers',
+      reason: 'Database deadlock on concurrent pipeline creation',
+      severity: 'HIGH',
+      quarantinedBy: engineer.id,
+      flakinessScore: 0.38,
+      occurrenceCount: 14,
+      status: 'quarantined',
+    },
+    // Reinstated tests (showing recovery)
+    {
+      testName: 'APIRateLimit.test.ts > should respect 429 backoff headers',
+      reason: 'Fixed: Added exponential backoff retry logic (PR #287)',
+      severity: 'LOW',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.05,
+      occurrenceCount: 3,
+      status: 'reinstated',
+    },
+    {
+      testName: 'CacheInvalidation.test.ts > should invalidate on config change',
+      reason: 'Fixed: Race condition resolved with mutex lock (PR #301)',
+      severity: 'MEDIUM',
+      quarantinedBy: 'auto',
+      flakinessScore: 0.02,
+      occurrenceCount: 6,
+      status: 'reinstated',
+    },
+  ];
+
+  await prisma.quarantinedTest.createMany({ data: quarantinedTestData });
+
+  const quarantinedCount = quarantinedTestData.filter(t => t.status === 'quarantined').length;
+  const reinstatedCount = quarantinedTestData.filter(t => t.status === 'reinstated').length;
+  console.log(`  Created ${quarantinedTestData.length} quarantined tests (${quarantinedCount} active, ${reinstatedCount} reinstated)`);
+
   // ── Summary ──
   const summary = {
     users: users.length,
@@ -775,6 +1077,9 @@ async function seed() {
     dashboardConfigs: 2,
     sharedAnalyses: 2,
     channelMappings: 3,
+    healingRules: healingRules.length,
+    healingEvents: healingEventPayloads.length,
+    quarantinedTests: quarantinedTestData.length,
   };
 
   const totalDataPoints = Object.values(summary).reduce((a, b) => a + b, 0);
