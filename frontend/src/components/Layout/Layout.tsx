@@ -92,7 +92,7 @@ function NavItemButton({ item, active, onNavigate }: {
           borderRadius: 2, py: 0.9, px: 1.5, minHeight: 40,
           backgroundColor: active ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
           color: active ? theme.palette.primary.main : theme.palette.text.secondary,
-          '&:hover': { backgroundColor: active ? alpha(theme.palette.primary.main, 0.14) : alpha(theme.palette.action.hover, 0.6) },
+          '&:hover': { backgroundColor: active ? alpha(theme.palette.primary.main, 0.14) : alpha(theme.palette.text.primary, 0.04) },
           transition: 'all 0.15s ease',
         }}
       >
@@ -177,7 +177,7 @@ function SidebarContent({
 
       <Divider sx={{ mx: 2, opacity: 0.6 }} />
 
-      <Box sx={{ flex: 1, overflowY: 'auto', py: 1.5 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0, py: 1.5 }}>
         {navSections.map((section, sectionIndex) => (
           <Box key={section.label} sx={{ mb: sectionIndex < navSections.length - 1 ? 1 : 0 }}>
             <Typography

@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Box, Paper, Typography, Skeleton, Chip, IconButton, Tooltip } from '@mui/material';
+import { Box, Paper, Typography, Skeleton, Chip, IconButton, Tooltip, alpha, useTheme } from '@mui/material';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import TuneIcon from '@mui/icons-material/Tune';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
@@ -43,6 +43,7 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({ onSend }: EmptyStateProps) {
+    const theme = useTheme();
     const { data: prompts, isLoading, isError } = useStarterPrompts();
     const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -119,7 +120,8 @@ export default function EmptyState({ onSend }: EmptyStateProps) {
                                 } : {}),
                                 '&:hover': {
                                     borderColor: 'primary.main',
-                                    bgcolor: 'action.hover',
+                                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                                    boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.12)}`,
                                 },
                             }}
                             onClick={() => onSend(action.prompt)}

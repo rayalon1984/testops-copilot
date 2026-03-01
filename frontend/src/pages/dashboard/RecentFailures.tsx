@@ -64,10 +64,11 @@ export default function RecentFailures({
                       border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                       cursor: 'pointer',
                       position: 'relative',
-                      transition: 'all 0.2s ease',
+                      transition: 'all 0.15s ease',
                       '&:hover': {
-                        borderColor: alpha(catColor, 0.4),
-                        backgroundColor: alpha(theme.palette.action.hover, 0.4),
+                        borderColor: alpha(catColor, 0.5),
+                        bgcolor: alpha(catColor, 0.06),
+                        boxShadow: `0 2px 8px ${alpha(catColor, 0.12)}`,
                         transform: 'translateX(4px)',
                       },
                       '&::before': {

@@ -41,8 +41,8 @@ export default function FlakyTestsWidget() {
     const tests = flakyTests || [];
 
     return (
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
+        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, p: 3, '&:last-child': { pb: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <WarningIcon color="warning" />
@@ -68,17 +68,20 @@ export default function FlakyTestsWidget() {
                         <Typography variant="body2">No flaky tests detected!</Typography>
                     </Box>
                 ) : (
-                    <List sx={{ flex: 1, overflowY: 'auto' }}>
-                        {tests.slice(0, 5).map((test) => (
+                    <List sx={{ flex: 1, overflowY: 'auto', minHeight: 0, mx: -1, px: 1 }}>
+                        {tests.map((test) => (
                             <ListItem
                                 key={test.testName}
                                 sx={{
                                     border: `1px solid ${alpha(theme.palette.divider, 0.6)}`,
                                     borderRadius: 2,
                                     mb: 1,
-                                    transition: 'all 0.2s',
+                                    transition: 'all 0.15s ease',
                                     '&:hover': {
-                                        bgcolor: alpha(theme.palette.action.hover, 0.5)
+                                        borderColor: theme.palette.primary.main,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.06),
+                                        boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`,
+                                        transform: 'translateY(-1px)',
                                     }
                                 }}
                             >

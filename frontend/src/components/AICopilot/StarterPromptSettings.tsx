@@ -144,7 +144,8 @@ export default function StarterPromptSettings({ open, onClose }: StarterPromptSe
                                 <ListItem
                                     key={`pin-${index}`}
                                     sx={{
-                                        bgcolor: 'action.hover',
+                                        border: 1,
+                                        borderColor: 'divider',
                                         borderRadius: 1,
                                         mb: 0.5,
                                         pl: 1,
@@ -204,7 +205,7 @@ export default function StarterPromptSettings({ open, onClose }: StarterPromptSe
                                     mb: 0.5,
                                     cursor: 'pointer',
                                     opacity: isPinned(prompt.id) ? 0.6 : 1,
-                                    '&:hover': { bgcolor: 'action.hover' },
+                                    '&:hover': { bgcolor: 'action.selected' },
                                 }}
                                 onClick={() => togglePin(prompt)}
                             >

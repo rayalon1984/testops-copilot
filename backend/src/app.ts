@@ -49,10 +49,13 @@ const rateLimitMiddleware = rateLimit({
   }
 });
 
-// Stricter rate limiting for auth endpoints (10 requests per 15 minutes)
+// Stricter rate limiting for auth endpoints
+// Dev/demo: 100 req / 15 min (avoids lockouts during testing)
+// Production: 10 req / 15 min (brute-force protection)
+const isDev = process.env.NODE_ENV !== 'production';
 const authRateLimitMiddleware = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: isDev ? 100 : 10,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

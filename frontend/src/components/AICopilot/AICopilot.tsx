@@ -248,7 +248,7 @@ export default function AICopilot() {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
             <CopilotHeader messages={messages} clearMessages={clearMessages} />
 
-            <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0, p: 2, display: 'flex', flexDirection: 'column' }}>
                 {messages.length === 0 && <EmptyState onSend={sendWithContext} />}
 
                 {messages.map((msg) => (

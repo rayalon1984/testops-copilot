@@ -144,7 +144,7 @@ export default function Dashboard() {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
           <Grow in timeout={1000}>
-            <Box sx={{ height: '400px' }}>
+            <Box sx={{ height: 400 }}>
               <FlakyTestsWidget />
             </Box>
           </Grow>
