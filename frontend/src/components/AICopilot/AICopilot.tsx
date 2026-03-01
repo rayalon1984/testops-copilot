@@ -117,24 +117,21 @@ function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPro
                 </Box>
             );
         case 'thinking':
-            return <ThinkingIndicator key={msg.id} text={msg.content || 'Thinking'} />;
+            // Suppressed: StreamingIndicator at bottom of chat handles live thinking state.
+            // Rendering these as permanent messages creates noise between cards (DESIGN_LANG_V2 §6.4).
+            return null;
         case 'tool_start':
-            return (
-                <Box key={msg.id} sx={{ alignSelf: 'center', mb: 1 }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.65rem' }}>
-                        Action: {msg.toolName}
-                    </Typography>
-                </Box>
-            );
+            // Suppressed: V2 card headers already identify the tool; "ACTION: xxx" labels are dev noise.
+            return null;
         case 'tool_result':
             return (
-                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0, overflow: 'hidden' }}>
+                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0 }}>
                     <ToolResultCard message={msg} userRole={userRole} onAction={sendActionPrompt} />
                 </Box>
             );
         case 'confirmation_request':
             return (
-                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0, overflow: 'hidden' }}>
+                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0 }}>
                     <ConfirmationPreview
                         msg={msg} userRole={userRole}
                         onConfirm={() => msg.actionId && confirmAction(msg.actionId, true)}
@@ -144,7 +141,7 @@ function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPro
             );
         case 'proactive_suggestion':
             return (
-                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0, overflow: 'hidden' }}>
+                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0 }}>
                     <ProactiveSuggestionCard
                         suggestion={msg.suggestionData as unknown as ProactiveSuggestionData}
                         onAccept={(s) => handleSuggestionAccept(s, msg.id)}
@@ -156,7 +153,7 @@ function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPro
             );
         case 'autonomous_action':
             return (
-                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0, overflow: 'hidden' }}>
+                <Box key={msg.id} sx={{ mb: 1.5, minWidth: 0 }}>
                     <ToolResultCard message={{ ...msg, role: 'tool_result' }} userRole={userRole} onAction={sendActionPrompt} />
                 </Box>
             );

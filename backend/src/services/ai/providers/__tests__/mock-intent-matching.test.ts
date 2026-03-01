@@ -31,11 +31,11 @@ describe('MockProvider — intent matching', () => {
     describe('quick-action prompts WITH Dashboard UI context', () => {
         const UI_CTX = 'User is viewing: Dashboard overview';
 
-        it('routes "Analyze the most recent test failure..." to jira_search', async () => {
+        it('routes "Analyze the most recent test failure..." to rca_identify', async () => {
             const res = await provider.chat(userMsg(
                 'Analyze the most recent test failure and suggest a fix', UI_CTX));
             expect(res.toolCalls).toBeDefined();
-            expect(res.toolCalls![0].name).toBe('jira_search');
+            expect(res.toolCalls![0].name).toBe('rca_identify');
         });
 
         it('routes "Show me failure trends..." to failure_predictions', async () => {
@@ -63,11 +63,11 @@ describe('MockProvider — intent matching', () => {
     // ── Same prompts WITHOUT UI context ──
 
     describe('quick-action prompts WITHOUT UI context', () => {
-        it('routes "Analyze the most recent test failure..." to jira_search', async () => {
+        it('routes "Analyze the most recent test failure..." to rca_identify', async () => {
             const res = await provider.chat(userMsg(
                 'Analyze the most recent test failure and suggest a fix'));
             expect(res.toolCalls).toBeDefined();
-            expect(res.toolCalls![0].name).toBe('jira_search');
+            expect(res.toolCalls![0].name).toBe('rca_identify');
         });
 
         it('routes "Show me failure trends..." to failure_predictions', async () => {
