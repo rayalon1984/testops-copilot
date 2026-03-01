@@ -47,7 +47,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     };
 
     return (
-        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', bgcolor: 'background.default' }}>
+        <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', bgcolor: 'background.default', flexShrink: 0 }}>
             <Paper
                 elevation={0}
                 sx={{

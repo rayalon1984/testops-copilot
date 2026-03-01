@@ -106,7 +106,7 @@ function MessageRenderer({ msg, activePersona, userRole, messages, sendActionPro
             return <UserMessage key={msg.id} content={msg.content} />;
         case 'assistant':
             return (
-                <Box key={msg.id} sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%', minWidth: 0, overflow: 'hidden' }}>
+                <Box key={msg.id} sx={{ alignSelf: 'flex-start', mb: 2, maxWidth: '90%', minWidth: 0 }}>
                     {activePersona && activePersona.persona !== 'SENIOR_ENGINEER' && (
                         <Chip label={activePersona.displayName} size="small" variant="outlined"
                             sx={{ fontSize: '0.6rem', height: 18, mb: 0.5, color: 'text.secondary', borderColor: 'divider', fontWeight: 500 }}
@@ -245,7 +245,7 @@ export default function AICopilot() {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
             <CopilotHeader messages={messages} clearMessages={clearMessages} />
 
-            <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, p: 2, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0, px: 2, pt: 2, pb: 4, display: 'flex', flexDirection: 'column' }}>
                 {messages.length === 0 && <EmptyState onSend={sendWithContext} />}
 
                 {messages.map((msg) => (
