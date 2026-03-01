@@ -1,24 +1,37 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-01
-> **Current Version**: 3.1.1 (March 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-02
+> **Current Version**: 3.2.0 (March 2026)
 
 ---
 
 ## Planned
 
-### v3.2.0 — Sprint 10: Smart Starter Prompts (March 2026)
-- [ ] Smart Starter Prompts — role-based defaults + user-configurable pins (`specs/features/smart-starter-prompts.feature.yaml`)
-- [ ] Role prompt catalog: QA Engineer, Developer, Engineering Lead, Product Manager + generic fallback
-- [ ] GET /ai/starter-prompts + PATCH /ai/starter-prompts/pins APIs
-- [ ] Dynamic EmptyState component (fetch from API, skeleton loading, pin indicator)
-- [ ] StarterPromptSettings popover (pin/unpin, custom prompts, reorder, reset)
-- [ ] User model: pinnedStarterPrompts JSON field
-- [ ] Deferred to v3.3: Tier 2 context-aware prompts (live pipeline/failure signals)
+### v3.3.0 — Sprint 11 (March 2026)
+- [ ] Tier 2 context-aware starter prompts (live pipeline/failure signals)
+- [ ] Persona override picker (user selects persona manually)
+- [ ] Persona analytics (track which personas are used most)
+- [ ] Usage dashboard per-session (cost breakdown by tool/provider)
 
 ---
 
 ## Shipped
+
+### v3.2.0 — Sprint 10: Smart Starter Prompts + Card Redesign (March 2026)
+- [x] Smart Starter Prompts — role-based defaults + user-configurable pins (`specs/features/smart-starter-prompts.feature.yaml`)
+- [x] Role prompt catalog: QA Engineer, Developer, Engineering Lead, Product Manager + generic fallback
+- [x] GET /ai/starter-prompts + PATCH /ai/starter-prompts/pins APIs
+- [x] Dynamic EmptyState component (fetch from API, skeleton loading, pin indicator)
+- [x] StarterPromptSettings popover (pin/unpin, custom prompts, reorder, reset)
+- [x] User model: pinnedStarterPrompts JSON field
+- [x] V2 Card Redesign (feature-flagged): RootCauseCard → GitHubPRCardV2 → HousekeepingCardV2 analysis chain
+- [x] `rca_identify` tool — AI root cause analysis with confidence scoring
+- [x] Self-Healing demo data seeding (rules, events, quarantine)
+- [x] Copilot panel always-visible on desktop (md+ breakpoint)
+- [x] Rate limiter fix: 1000 req/15min in dev/demo mode (prevents false 429s)
+- [x] Code health refactoring: mock provider split (625→418 lines), StarterPromptSettings extraction (278→144 lines)
+- [x] 831 tests passing (675 backend + 137 frontend + 19 E2E), zero lint warnings
+- [x] Deferred to v3.3: Tier 2 context-aware prompts (live pipeline/failure signals)
 
 ### v3.1.0 — Sprint 9: Self-Healing Pipelines + "Let's TOC" Branding (February 2026)
 - [x] "Let's TOC" branding for AI copilot chat (placeholder, empty state, thinking indicator)
