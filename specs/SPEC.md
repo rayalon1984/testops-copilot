@@ -35,7 +35,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Log Summarization | v2.5.4 | Root cause extraction, error location, suggested fixes |
 | RCA Semantic Matching | v2.5.3 | Weaviate vector DB embeddings for similar-failure search |
 | Context Enrichment | v2.8.0 | Parallel queries to Jira + Confluence + GitHub for richer analysis |
-| Agentic Copilot | v2.9.0 | ReAct loop with 13 tools (7 read, 6 write) and human-in-the-loop gates |
+| Agentic Copilot | v2.9.0 | ReAct loop with 14 tools (8 read, 6 write) and human-in-the-loop gates |
 
 **AI Providers**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 Flash, Azure OpenAI, OpenRouter.
 
@@ -87,6 +87,12 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 - **Write tools**: Create Jira issues, transition tickets, add comments, open GitHub PRs, create branches, update files
 - Human-in-the-loop confirmation gates for all write operations (5-minute expiry)
 - Role-aware system prompts (Admin vs User)
+- **V2 card variants** (v3.1.1): Redesigned tool result cards behind `copilot-cards-v2` feature flag
+  - `RootCauseCard` — emoji + bold header, confidence badge, related issue link
+  - `GitHubPRCardV2` — diff visible by default, prominent merge button, role-gated actions
+  - `HousekeepingCardV2` — clean header with status chip, undo button
+- **3-card analysis chain**: `rca_identify → github_get_pr → jira_link_issues` with rich wrap-up summary
+- Copilot panel visible on all desktop viewports (md breakpoint, 900px+)
 
 ## 4. Deployment Modes
 

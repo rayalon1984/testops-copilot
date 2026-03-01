@@ -35,10 +35,15 @@ app.use(asMiddleware(cors({
   credentials: true
 })));
 
+// Dev/demo mode flag — used by rate limiters below
+const isDev = process.env.NODE_ENV !== 'production';
+
 // Rate limiting - global
+// Dev/demo: 1000 req / 15 min (mock provider has zero cost — don't throttle demos)
+// Production: 100 req / 15 min (protects real AI provider budget)
 const rateLimitMiddleware = rateLimit({
   windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
+  max: isDev ? 1000 : config.rateLimit.maxRequests,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -52,7 +57,6 @@ const rateLimitMiddleware = rateLimit({
 // Stricter rate limiting for auth endpoints
 // Dev/demo: 100 req / 15 min (avoids lockouts during testing)
 // Production: 10 req / 15 min (brute-force protection)
-const isDev = process.env.NODE_ENV !== 'production';
 const authRateLimitMiddleware = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: isDev ? 100 : 10,

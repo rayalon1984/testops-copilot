@@ -188,6 +188,23 @@ Used everywhere to represent pipeline/test/run status. MUI Chip with semantic co
 
 Progress bar changes color: green (<60%), orange (60–80%), red (>80%).
 
+### 6.7 V2 Card Variants (Feature-Flagged)
+
+Behind `copilot-cards-v2` (localStorage: `ff:copilot-cards-v2`). When ON, these replace V1 cards:
+
+| Card | V1 Style | V2 Style |
+|------|----------|----------|
+| `RootCauseCard` | N/A (new) | 🔥 emoji + bold title, confidence badge, no ServiceBadge |
+| `GitHubPRCardV2` | Left border, collapsed diff | 🔧 header, diff visible by default, prominent Merge button |
+| `HousekeepingCardV2` | ServiceBadge + left border | 🔗/🏷️ emoji header + "IN PROGRESS" chip, Undo button |
+
+**V2 design principles:**
+- Emoji + bold title headers replace ServiceBadge rows
+- No colored left borders — clean Paper elevation
+- Action buttons role-gated via `canAct()` (requires EDITOR+)
+- Cards use `CardHeaderV2` shared component for consistency
+- Text containment: `overflowWrap: 'break-word'`, `wordBreak: 'break-word'`, `minWidth: 0`
+
 ---
 
 ## 7. Animation & Motion

@@ -8,7 +8,7 @@
 
 | Category | Count | Confirmation | Policy |
 |----------|-------|-------------|--------|
-| **Read-only** | 7 | No | Auto-approved — safe, no side effects |
+| **Read-only** | 8 | No | Auto-approved — safe, no side effects |
 | **Write** | 6 | Yes | Requires explicit user approval (5-min TTL) |
 
 ---
@@ -65,6 +65,13 @@
 - **Parameters**:
   - `timeRange` (string, optional) — Enum: `7d`, `30d`, `90d`
 - **Returns**: Aggregated metrics: total tests, pass/fail/flaky rates, top failures
+
+### `rca_identify`
+- **Description**: Identify root cause of a test failure using AI analysis. Returns structured RCA data with confidence score, failure category, and related issues.
+- **Parameters**:
+  - `testName` (string, required) — Fully qualified test name (e.g. `PaymentProcessor.processCheckout`)
+  - `testRunId` (string, optional) — Specific test run to analyze
+- **Returns**: Root cause analysis: title, rootCause description, confidence (0–1), category (timeout/assertion/env/flaky), relatedIssue key
 
 ---
 
