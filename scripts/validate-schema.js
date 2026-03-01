@@ -280,13 +280,9 @@ function checkModelParity() {
     log(`✅ Field parity OK — all shared models have identical field sets`, colors.green);
   } else if (valid) {
     log(`✅ Model parity OK — ${sharedModels.length} shared models, ${allowlist.size} allowlisted`, colors.green);
-    log(`⚠️  Field drift detected: ${fieldDriftCount} field(s) differ across schemas (warning, not blocking)`, colors.yellow);
-    log(`   Run with --strict-fields to fail on field-level drift`, colors.yellow);
-  }
-
-  // If --strict-fields flag is passed, field drift also fails validation
-  if (fieldDriftCount > 0 && process.argv.includes('--strict-fields')) {
-    log(`❌ --strict-fields: field drift is treated as a failure`, colors.red);
+    log(`❌ Field drift detected: ${fieldDriftCount} field(s) differ across schemas`, colors.red);
+    log(`   All 3 Prisma schemas (schema.prisma, schema.dev.prisma, schema.production.prisma)`, colors.yellow);
+    log(`   must declare the same fields. Update ALL schemas when adding/removing fields.`, colors.yellow);
     valid = false;
   }
 
