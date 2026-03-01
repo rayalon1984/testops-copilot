@@ -17,8 +17,9 @@ model User {
   firstName      String?
   lastName       String?
   role           UserRole      @default(USER)
-  autonomyLevel  AutonomyLevel @default(balanced)
-  createdAt      DateTime      @default(now())
+  autonomyLevel         AutonomyLevel @default(balanced)
+  pinnedStarterPrompts  String?
+  createdAt             DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   notifications    Notification[]
