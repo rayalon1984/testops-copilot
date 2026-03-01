@@ -123,10 +123,13 @@ async function handleStreamToolCall(
     const eventType = wasTier1 ? 'autonomous_action' as SSEEventType : 'tool_result';
     sendSSE(res, createEvent(eventType, JSON.stringify({ summary: toolResult.summary, data: toolResult.data }), tool.name));
 
-    // Proactive suggestion engine
-    const suggestion = evaluateSuggestion({ toolName: tool.name, toolResult, previousResults: collectedResults, userMessage: req.message });
-    if (suggestion) {
-        sendSSE(res, createEvent('proactive_suggestion' as SSEEventType, JSON.stringify(suggestion)));
+    // Proactive suggestion engine — skip during analysis chain (rca_identify drives its own 3-card flow)
+    const isAnalysisChain = collectedResults.some(r => r.name === 'rca_identify');
+    if (!isAnalysisChain) {
+        const suggestion = evaluateSuggestion({ toolName: tool.name, toolResult, previousResults: collectedResults, userMessage: req.message });
+        if (suggestion) {
+            sendSSE(res, createEvent('proactive_suggestion' as SSEEventType, JSON.stringify(suggestion)));
+        }
     }
 
     // Feed result back with token budgeting

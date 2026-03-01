@@ -210,6 +210,8 @@ const TOOL_SUMMARIES: Record<string, string> = {
     github_rerun_workflow: 'GitHub Actions workflow `ci.yml` has been re-triggered on `main`. It should start shortly.',
     github_merge_pr: 'PR **#489** has been merged via squash into `main`. The fix increases the SSO timeout from 5s to 10s. The branch has been automatically deleted.',
     giphy_search: 'Here\'s a celebratory GIF! Enjoy the moment.',
+    jira_link_issues: 'Jira tickets linked. I\'ve connected the related issues so the team can see the full picture. The root cause, fix PR, and tracking tickets are now all cross-referenced.',
+    jira_add_label: 'Labels added. The issue is now tagged for easier filtering and triage.',
 };
 
 // ─── Provider ───
@@ -253,6 +255,18 @@ export class MockProvider extends BaseProvider {
                     args: { sourceKey: 'PROJ-1247', targetKeys: ['PROJ-1248'], linkType: 'relates to' },
                     preamble: 'PR ready for review. Now linking the related Jira tickets.',
                 });
+            }
+
+            // Analysis-flow wrap-up: after the full 3-card chain, provide a rich summary
+            if (toolName === 'jira_link_issues' && this.isAnalysisFlow(messages)) {
+                return this.makeResponse(
+                    '**Analysis complete.** Here\'s what I found and did:\n\n' +
+                    '1. **Root cause**: The `tax_calculation` service timed out due to missing EU config data\n' +
+                    '2. **Fix PR #402**: Increases the timeout from 2s → 5s for EU regions — ready for review\n' +
+                    '3. **Jira housekeeping**: Linked PROJ-1247 ↔ PROJ-1248 for traceability\n\n' +
+                    'Want me to **merge the PR** or **create a follow-up ticket** for the EU config gap?',
+                    200,
+                );
             }
 
             // Default wrap-up
