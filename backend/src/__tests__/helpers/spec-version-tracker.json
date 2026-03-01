@@ -26,7 +26,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:46:38.479Z"
+    "lastRun": "2026-03-01T22:20:51.848Z"
   },
   "react-loop": {
     "lastTestedVersion": "1.0.0",
@@ -45,7 +45,7 @@
       "notify.slack": "1.0.0",
       "notify.urls": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:11.393Z"
+    "lastRun": "2026-03-01T22:20:52.774Z"
   },
   "smart-retry": {
     "lastTestedVersion": "1.0.0",
@@ -55,7 +55,7 @@
       "retry.execution": "1.0.0",
       "retry.frontend": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:10.748Z"
+    "lastRun": "2026-03-01T22:20:52.227Z"
   },
   "failure-analysis": {
     "lastTestedVersion": "1.0.0",
@@ -64,7 +64,7 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:11.151Z"
+    "lastRun": "2026-03-01T22:20:51.251Z"
   },
   "context-enrichment": {
     "lastTestedVersion": "1.0.0",
@@ -85,7 +85,7 @@
       "autonomy.frontend": "1.0.0",
       "autonomy.api": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:08.484Z"
+    "lastRun": "2026-03-01T22:20:50.888Z"
   },
   "proactive-suggestions": {
     "lastTestedVersion": "1.0.0",
@@ -95,7 +95,7 @@
       "proactive.frontend": "1.0.0",
       "proactive.sse": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:08.924Z"
+    "lastRun": "2026-03-01T22:20:51.782Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -105,7 +105,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:09.897Z"
+    "lastRun": "2026-03-01T22:20:52.655Z"
   },
   "inline-diff": {
     "lastTestedVersion": "1.0.0",
@@ -114,7 +114,7 @@
       "diff.pr-card": "1.0.0",
       "diff.merge-tool": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:31:40.961Z"
+    "lastRun": "2026-03-01T22:20:52.165Z"
   },
   "giphy-integration": {
     "lastTestedVersion": "1.0.0",
@@ -124,7 +124,7 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:10.455Z"
+    "lastRun": "2026-03-01T22:20:51.426Z"
   },
   "pipeline-management": {
     "lastTestedVersion": "1.0.0",
@@ -133,7 +133,7 @@
       "pipeline.runs": "1.0.0",
       "pipeline.scheduling": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:11.362Z"
+    "lastRun": "2026-03-01T22:20:52.915Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -154,6 +154,19 @@
       "mcp.knowledge": "1.0.0",
       "mcp.stats": "1.0.0"
     },
-    "lastRun": "2026-03-01T21:56:11.008Z"
+    "lastRun": "2026-03-01T22:20:51.898Z"
+  },
+  "smart-starter-prompts": {
+    "lastTestedVersion": "1.0.0",
+    "capabilities": {
+      "starter.resolver": "1.0.0",
+      "starter.role-catalog": "1.0.0",
+      "starter.api": "1.0.0",
+      "starter.pin-api": "1.0.0",
+      "starter.storage": "1.0.0",
+      "starter.frontend.empty-state": "1.0.0",
+      "starter.frontend.customize": "1.0.0"
+    },
+    "lastRun": "2026-03-01T22:20:54.305Z"
   }
 }
