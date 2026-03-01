@@ -1,7 +1,7 @@
 # Product Specification — TestOps Copilot
 
 > **Status**: Living document · **Owner**: AI Product Manager
-> **Last synced**: 2026-03-01 · **Version**: 3.1.1
+> **Last synced**: 2026-03-02 · **Version**: 3.2.0
 
 ---
 
@@ -35,7 +35,10 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Log Summarization | v2.5.4 | Root cause extraction, error location, suggested fixes |
 | RCA Semantic Matching | v2.5.3 | Weaviate vector DB embeddings for similar-failure search |
 | Context Enrichment | v2.8.0 | Parallel queries to Jira + Confluence + GitHub for richer analysis |
-| Agentic Copilot | v2.9.0 | ReAct loop with 14 tools (8 read, 6 write) and human-in-the-loop gates |
+| Agentic Copilot | v2.9.0 | ReAct loop with 23 tools (12 read, 7 write, 4 action) and human-in-the-loop gates |
+| Root Cause Analysis | v3.2.0 | `rca_identify` tool — structured RCA with confidence scoring, category, related issues |
+| Smart Starter Prompts | v3.2.0 | Role-based prompt defaults (QA, Dev, Lead, PM) + user-pinnable custom prompts (max 4) |
+| V2 Card Redesign | v3.2.0 | Feature-flagged (`copilot-cards-v2`) emoji-header cards: RootCauseCard, GitHubPRCardV2, HousekeepingCardV2 |
 
 **AI Providers**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 Flash, Azure OpenAI, OpenRouter.
 

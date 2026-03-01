@@ -1,0 +1,163 @@
+feature: copilot-cards-v2
+name: "Copilot Card Redesign (V2)"
+version: "1.0.0"
+status: shipped
+since: "v3.2.0"
+owner: AI_ARCHITECT
+category: frontend
+spec_source: DESIGN_LANG_V2.md
+
+config:
+  env:
+    COPILOT_CARDS_V2:
+      required: false
+      default: "false"
+      description: "Feature flag for V2 card variants (localStorage ff:copilot-cards-v2)"
+
+capabilities:
+  - id: cards.v2.feature-flag
+    name: "Feature Flag Routing"
+    version: "1.0.0"
+    description: "ToolResultCard routes to V2 cards when flag is ON, V1 when OFF"
+    files:
+      - frontend/src/components/AICopilot/messages/ToolResultCard.tsx
+      - frontend/src/hooks/useFeatureFlag.ts
+    assertions:
+      - id: cards.v2.flag-on-routes-v2
+        description: "When copilot-cards-v2 flag is ON, github_get_pr renders GitHubPRCardV2"
+        type: behavioral
+      - id: cards.v2.flag-off-routes-v1
+        description: "When copilot-cards-v2 flag is OFF, github_get_pr renders GitHubPRCard (V1)"
+        type: behavioral
+      - id: cards.v2.rca-always-new
+        description: "rca_identify always renders RootCauseCard regardless of flag state"
+        type: invariant
+
+  - id: cards.v2.rca
+    name: "RootCauseCard"
+    version: "1.0.0"
+    description: "Root cause analysis card (🔥 emoji, confidence badge, no ServiceBadge)"
+    files:
+      - frontend/src/components/AICopilot/cards/RootCauseCard.tsx
+    assertions:
+      - id: cards.v2.rca.renders-title
+        description: "Displays fire emoji and 'Root Cause Identified' title"
+        type: invariant
+      - id: cards.v2.rca.renders-description
+        description: "Displays rootCause text from tool data"
+        type: invariant
+      - id: cards.v2.rca.confidence-badge
+        description: "Shows confidence percentage chip when confidence field present"
+        type: behavioral
+      - id: cards.v2.rca.text-containment
+        description: "Applies overflow-wrap and word-break guards per AGENTS.md §Text-Containment"
+        type: invariant
+
+  - id: cards.v2.github-pr
+    name: "GitHubPRCardV2"
+    version: "1.0.0"
+    description: "V2 PR card (🔧 emoji, diff visible by default, two action buttons)"
+    files:
+      - frontend/src/components/AICopilot/cards/v2/GitHubPRCardV2.tsx
+    assertions:
+      - id: cards.v2.pr.emoji-header
+        description: "Uses CardHeaderV2 with wrench emoji and 'Fix Proposed: PR #NNN' title"
+        type: invariant
+      - id: cards.v2.pr.diff-default-visible
+        description: "Inline diff is shown by default (no toggle to expand)"
+        type: behavioral
+      - id: cards.v2.pr.two-actions
+        description: "Renders Review Diff and Merge PR buttons"
+        type: behavioral
+
+  - id: cards.v2.housekeeping
+    name: "HousekeepingCardV2"
+    version: "1.0.0"
+    description: "V2 housekeeping card (🔗 emoji, IN PROGRESS chip, Undo button)"
+    files:
+      - frontend/src/components/AICopilot/cards/v2/HousekeepingCardV2.tsx
+    assertions:
+      - id: cards.v2.hk.emoji-header
+        description: "Uses CardHeaderV2 with link emoji and 'Jira Housekeeping' title"
+        type: invariant
+      - id: cards.v2.hk.status-chip
+        description: "Displays IN PROGRESS status chip in header"
+        type: behavioral
+      - id: cards.v2.hk.undo-action
+        description: "Provides Undo button for reversing the action"
+        type: behavioral
+
+  - id: cards.v2.analysis-chain
+    name: "Analysis Flow Chain"
+    version: "1.0.0"
+    description: "Mock provider chains: rca_identify → github_get_pr → jira_link_issues"
+    files:
+      - backend/src/services/ai/providers/mock.provider.ts
+      - backend/src/services/ai/mock-tool-results.ts
+    assertions:
+      - id: cards.v2.chain.rca-to-pr
+        description: "After rca_identify, mock provider auto-chains to github_get_pr (PR #402)"
+        type: behavioral
+      - id: cards.v2.chain.pr-to-housekeeping
+        description: "After github_get_pr in analysis flow, mock provider auto-chains to jira_link_issues"
+        type: behavioral
+      - id: cards.v2.chain.wrap-up
+        description: "After full 3-card chain, mock provider returns rich summary with follow-up options"
+        type: behavioral
+      - id: cards.v2.chain.rca-mock-data
+        description: "rca_identify mock returns rootCause, confidence, category, relatedIssue fields"
+        type: invariant
+
+acceptance_criteria:
+  - id: AC-1
+    title: "Feature flag controls card routing"
+    gherkin: |
+      GIVEN the copilot-cards-v2 flag is OFF
+      WHEN a github_get_pr tool result renders
+      THEN the V1 GitHubPRCard is shown
+      AND when the flag is toggled ON
+      THEN the V2 GitHubPRCardV2 is shown instead
+    maps_to:
+      - cards.v2.flag-on-routes-v2
+      - cards.v2.flag-off-routes-v1
+
+  - id: AC-2
+    title: "Analysis chain renders 3 cards"
+    gherkin: |
+      GIVEN a user asks 'analyze the most recent test failure'
+      WHEN the mock provider processes the intent
+      THEN 3 cards render in sequence: RootCauseCard, GitHubPRCardV2, HousekeepingCardV2
+      AND a wrap-up summary follows with next-step suggestions
+    maps_to:
+      - cards.v2.chain.rca-to-pr
+      - cards.v2.chain.pr-to-housekeeping
+      - cards.v2.chain.wrap-up
+      - cards.v2.rca-always-new
+
+  - id: AC-3
+    title: "V2 cards match design spec"
+    gherkin: |
+      GIVEN V2 cards are enabled
+      WHEN RootCauseCard, GitHubPRCardV2, HousekeepingCardV2 render
+      THEN each uses emoji + bold header (no ServiceBadge, no colored left border)
+      AND RootCauseCard shows confidence badge
+      AND GitHubPRCardV2 shows diff by default with Review Diff + Merge PR buttons
+      AND HousekeepingCardV2 shows IN PROGRESS chip with Undo button
+    maps_to:
+      - cards.v2.rca.renders-title
+      - cards.v2.rca.confidence-badge
+      - cards.v2.pr.emoji-header
+      - cards.v2.pr.diff-default-visible
+      - cards.v2.pr.two-actions
+      - cards.v2.hk.emoji-header
+      - cards.v2.hk.status-chip
+      - cards.v2.hk.undo-action
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-03-02"
+    product_version: "v3.2.0"
+    changes:
+      - "Initial release: RootCauseCard, GitHubPRCardV2, HousekeepingCardV2"
+      - "Feature flag copilot-cards-v2 (localStorage ff:copilot-cards-v2)"
+      - "3-card analysis chain: rca_identify → github_get_pr → jira_link_issues"

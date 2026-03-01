@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.2.0 · **Last verified**: 2026-03-02
 
 ---
 
@@ -208,6 +208,21 @@ Production responses include `message` only. Development adds `stack` and `detai
 | POST | `/api/v1/ai/enrich` | Yes | VIEWER | Cross-platform context enrichment |
 
 **Failure categories**: `bug_critical`, `bug_minor`, `environment`, `flaky`, `configuration`, `unknown`
+
+### 4.8a AI Starter Prompts (v3.2.0)
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| GET | `/api/v1/ai/starter-prompts` | Yes | VIEWER | Resolved prompts for current user (role defaults + pins) |
+| GET | `/api/v1/ai/starter-prompts/catalog` | Yes | VIEWER | Full prompt catalog for settings UI |
+| PATCH | `/api/v1/ai/starter-prompts/pins` | Yes | VIEWER | Save/update user pinned prompts (max 4) |
+| DELETE | `/api/v1/ai/starter-prompts/pins` | Yes | VIEWER | Reset to role defaults |
+
+**GET response**: `{ data: { prompts: [{ id, label, prompt, icon?, category?, pinned, source }] } }` — `source`: `pin` | `context` | `role`
+
+**PATCH body**: `{ pins: [{ id?, label, prompt }] }` — Validation: max 4 pins, label ≤ 40 chars, prompt ≤ 200 chars
+
+**Cache**: `Cache-Control: private, max-age=300` (5 min)
 
 ### 4.9 AI Chat (Agentic — SSE Streaming)
 

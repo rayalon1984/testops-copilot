@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — System Design
 
-> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.2.0 · **Last verified**: 2026-03-02
 
 ---
 
@@ -180,10 +180,11 @@ FOR iteration 0..7 (max 8):
 
 ### 5.3 Tool Registry
 
-- 7 read-only tools (auto-approved): `jira_search`, `jira_get`, `github_get_commit`, `github_get_pr`, `confluence_search`, `jenkins_get_status`, `dashboard_metrics`
-- 6 write tools (confirmation required): `jira_create_issue`, `jira_transition_issue`, `jira_comment`, `github_create_pr`, `github_create_branch`, `github_update_file`
+- 12 read-only tools (auto-approved): `jira_search`, `jira_get`, `github_get_commit`, `github_get_pr`, `confluence_search`, `jenkins_get_status`, `dashboard_metrics`, `failure_predictions`, `giphy_search`, `rca_identify`, `jira_link_issues`, `jira_add_label`
+- 7 write tools (confirmation required): `jira_create_issue`, `jira_transition_issue`, `jira_comment`, `github_create_pr`, `github_create_branch`, `github_update_file`, `github_merge_pr`
+- 4 action-gap tools (confirmation required): `jenkins_trigger_build`, `testrun_cancel`, `testrun_retry`, `github_rerun_workflow`
 
-See `specs/AI_TOOLS.md` for full registry.
+See `specs/AI_TOOLS.md` for full registry (23 tools total).
 
 ### 5.4 Cost Management
 
@@ -191,6 +192,14 @@ See `specs/AI_TOOLS.md` for full registry.
 - Monthly budget default: $100 with 80% alert threshold
 - 3-tier Redis cache targets >50% hit rate
 - MCP server provides 98% token reduction for Claude Code/Cursor
+
+### 5.5 Smart Starter Prompts (v3.2.0)
+
+- **StarterPromptResolver**: Merges user pins → context signals → role defaults → always returns exactly 4 prompts
+- **starterPromptCatalog**: Role-based prompt sets (QA: 6, Dev: 6, Lead: 6, PM: 6, Generic: 4 = 28 total)
+- **Storage**: `User.pinnedStarterPrompts` JSON field — null = use role defaults
+- **API**: `GET /ai/starter-prompts`, `GET .../catalog`, `PATCH .../pins`, `DELETE .../pins`
+- **Feature flag**: `copilot-cards-v2` (localStorage `ff:copilot-cards-v2`) — toggles V2 card variants for RCA chain
 
 ---
 

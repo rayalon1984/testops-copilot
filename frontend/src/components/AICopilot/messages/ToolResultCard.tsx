@@ -1,14 +1,13 @@
 /**
  * ToolResultCard — Router that dispatches to the correct service card by toolName.
  *
- * V2 card variants are currently hardcoded ON for testing.
- * To revert: change `const isV2 = true` back to `useFeatureFlag('copilot-cards-v2')`.
+ * V2 card variants are behind the `copilot-cards-v2` feature flag.
+ * Enable: localStorage.setItem('ff:copilot-cards-v2', 'true')
  * The rca_identify tool always renders RootCauseCard (no V1 equivalent).
  */
 
 import { ChatMessage } from '../../../hooks/useAICopilot';
-// V2 hardcoded ON for testing — to revert: uncomment and use in place of `const isV2 = true`
-// import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
+import { useFeatureFlag } from '../../../hooks/useFeatureFlag';
 
 // V1 cards
 import JiraIssueCard from '../cards/JiraIssueCard';
@@ -36,8 +35,7 @@ interface ToolResultCardProps {
 }
 
 export default function ToolResultCard({ message, userRole, onAction }: ToolResultCardProps) {
-    // Hardcoded ON for testing — to revert: const isV2 = useFeatureFlag('copilot-cards-v2');
-    const isV2 = true;
+    const isV2 = useFeatureFlag('copilot-cards-v2');
     const { toolName, toolData, content, id, cardState } = message;
 
     const handleAction = (prompt: string) => {
