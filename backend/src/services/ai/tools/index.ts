@@ -14,6 +14,7 @@ import { confluenceSearchTool } from './confluence';
 import { jenkinsGetStatusTool } from './jenkins';
 import { dashboardMetricsTool } from './dashboard';
 import { failurePredictionsTool } from './predictions';
+import { rcaIdentifyTool } from './rca';
 
 // Phase 2: Write tools (require confirmation)
 import { githubCreatePRTool } from './github-write';
@@ -41,6 +42,7 @@ const phase1Tools = [
     dashboardMetricsTool,
     failurePredictionsTool,
     giphySearchTool,          // Sprint 7: personality GIFs
+    rcaIdentifyTool,          // Root cause analysis (card redesign)
     jiraLinkIssuesTool,       // Sprint 7: auto-link related issues (Tier 1)
     jiraAddLabelTool,         // Sprint 7: auto-label issues (Tier 1)
 ];

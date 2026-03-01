@@ -98,13 +98,13 @@ function escapeHtml(str: string): string {
 function parseInline(text: string): string {
     let result = escapeHtml(text);
     // Inline code
-    result = result.replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:0.85em">$1</code>');
+    result = result.replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:0.85em;word-break:break-all">$1</code>');
     // Bold
     result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     // Italic
     result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
     // Links
-    result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#1976d2">$1</a>');
+    result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#1976d2;word-break:break-all">$1</a>');
     return result;
 }
 
@@ -238,5 +238,15 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
         return result;
     }, [content]);
 
-    return <Box>{elements}</Box>;
+    return (
+        <Box sx={{
+            /* Overflow guard — prevents any child from escaping card boundaries */
+            overflow: 'hidden',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            minWidth: 0,            /* flex child containment */
+        }}>
+            {elements}
+        </Box>
+    );
 }

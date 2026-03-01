@@ -52,7 +52,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                 elevation={0}
                 sx={{
                     display: 'flex',
-                    alignItems: 'flex-end',
+                    alignItems: 'center',
                     bgcolor: 'background.paper',
                     border: 1,
                     borderColor: 'divider',
@@ -82,8 +82,8 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                         fontFamily: 'inherit',
                         fontSize: '0.95rem',
                         lineHeight: `${LINE_HEIGHT}px`,
-                        p: 1.5,
-                        pl: 2,
+                        py: 1.25,
+                        px: 2,
                         minHeight: LINE_HEIGHT + 12,
                         maxHeight: MAX_ROWS * LINE_HEIGHT,
                         overflow: 'auto',
@@ -93,7 +93,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                 />
                 <IconButton
                     color="primary"
-                    sx={{ p: '10px', mb: 0.25, mr: 0.5 }}
+                    sx={{ p: '10px', mr: 0.5 }}
                     onClick={handleSend}
                     disabled={!value.trim() || disabled}
                 >

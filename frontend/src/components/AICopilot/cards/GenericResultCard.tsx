@@ -27,7 +27,7 @@ export default function GenericResultCard({ toolName, summary, data }: GenericRe
             <Box sx={{ p: 1.5 }}>
                 <ServiceBadge service="generic" subtitle={toolName} />
 
-                <Typography variant="body2" sx={{ mb: data ? 0.75 : 0 }}>
+                <Typography variant="body2" sx={{ mb: data ? 0.75 : 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {summary}
                 </Typography>
 

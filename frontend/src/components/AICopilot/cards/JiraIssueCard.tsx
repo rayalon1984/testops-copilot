@@ -78,7 +78,7 @@ export default function JiraIssueCard({ data, userRole, onAction, cardState }: J
                         <Typography variant="caption" fontWeight={700} color="text.secondary">
                             {issue.key}
                         </Typography>
-                        <Typography variant="body2" fontWeight={600} sx={{ mt: 0.25 }}>
+                        <Typography variant="body2" fontWeight={600} sx={{ mt: 0.25, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                             {issue.summary}
                         </Typography>
                     </Box>

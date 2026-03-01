@@ -170,12 +170,34 @@ On the fast path: apply AGENTS.md rules directly → implement → run the verif
 | State | Zustand for client UI state. Never useState for server data. |
 | Components | Reuse from `frontend/src/components/`. Check before creating new ones. |
 | Styling | Material-UI theme system. CSS only in `*.css` files, not inline. |
+| Text containment | **Every card/bubble that renders dynamic text must enforce overflow guards.** See §Text-Containment below. |
 | Types | Shared types in `frontend/src/types/`. Mirror backend DTOs. |
 | Error boundaries | Wrap each route-level page in an `<ErrorBoundary>`. A component crash must never take down the whole app. Reuse `frontend/src/components/ErrorBoundary/`. |
 | Component splitting | If a component exceeds ~200 lines, split it. Extract hooks for logic, keep the render function lean. One file = one responsibility. |
 | Forms | Use React Hook Form + Zod for validation. Mirror backend Zod schemas where possible to avoid divergence. |
 | Code splitting | Lazy-load route-level pages with `React.lazy`. Heavy components (charts, editors, modals with rich content) get their own chunk. |
 | Loading states | Every async operation needs a loading indicator. Use React Query's `isLoading`/`isFetching` — never manual boolean flags. |
+
+### §Text-Containment — Overflow Prevention Checklist
+
+Any component that renders **dynamic text** inside a bounded container (cards, chat
+bubbles, panels) **must** apply these guards. Forgetting any one layer can cause
+text to visually escape its card.
+
+| Layer | Where | CSS Properties | Why |
+|-------|-------|---------------|-----|
+| **Scroll container** | Outer scrollable area (e.g. copilot message list) | `overflowX: 'hidden'` | Prevents horizontal scrollbar from long content |
+| **Message wrapper** | Box wrapping each message type | `minWidth: 0`, `overflow: 'hidden'` | Flex child containment — prevents flex item from growing beyond parent |
+| **Card / Paper** | The Paper/Card surface itself | `overflow: 'hidden'` | Hard clip boundary for all descendants |
+| **Text body** | Any `<Typography>` or `<Box>` rendering dynamic strings | `overflowWrap: 'break-word'`, `wordBreak: 'break-word'` | Breaks long URLs, tokens, paths, IDs mid-word |
+| **Inline code** | `<code>` tags in markdown | `word-break: break-all` | Monospace code tokens are never natural-wrap points |
+| **Markdown root** | MarkdownRenderer root `<Box>` | `overflow: 'hidden'`, `overflowWrap: 'break-word'`, `wordBreak: 'break-word'`, `minWidth: 0` | Catch-all for any parsed element |
+
+**Common pitfalls:**
+- `maxWidth: '90%'` alone does NOT prevent overflow — children can still escape if they have intrinsic width
+- Flex children default to `min-width: auto` — always add `minWidth: 0` on flex items that contain text
+- `dangerouslySetInnerHTML` bypasses React text flow — the container must enforce word-break
+- Hover effects with `transform` don't affect containment but test them visually
 
 ### Dependency Governance
 

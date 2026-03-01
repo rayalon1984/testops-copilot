@@ -29,16 +29,36 @@ const INTENT_RULES: IntentRule[] = [
       tool: 'dashboard_metrics', args: {},
       preamble: 'Let me pull up the dashboard metrics for you.' },
 
-    // Predictions / risk
-    { primary: ['predict', 'risk', 'forecast', 'trend', 'anomaly', 'flaky'],
+    // Predictions / risk / flaky
+    { primary: ['predict', 'risk', 'forecast', 'anomaly', 'flaky', 'flakiest', 'flakiness'],
       tool: 'failure_predictions', args: {},
       preamble: 'I\'ll check the predictive failure analysis.' },
 
+    // Failure trends / hotspots
+    { primary: ['trend', 'hotspot', 'hot spot'],
+      tool: 'failure_predictions', args: {},
+      preamble: 'Analyzing failure trends and hotspots.' },
+
     // Jenkins / pipeline / build status
     { primary: ['pipeline', 'build', 'jenkins', 'ci', 'cd', 'workflow status'],
-      secondary: ['status', 'check', 'how', 'show', 'get', 'recent', 'last'],
+      secondary: ['status', 'check', 'how', 'show', 'get', 'recent', 'last', 'health', 'overview', 'green', 'all'],
       tool: 'jenkins_get_status', args: { pipelineName: 'checkout-e2e' },
       preamble: 'Checking the pipeline status.' },
+
+    // Broken tests
+    { primary: ['broken test', 'broken tests', 'failing test', 'failing tests'],
+      tool: 'failure_predictions', args: {},
+      preamble: 'Looking for broken and failing tests across your repositories.' },
+
+    // Fix PRs / suggested fixes
+    { primary: ['fix pr', 'fix prs', 'suggested fix', 'ai-suggested', 'open fix'],
+      tool: 'github_get_pr', args: { owner: 'testops', repo: 'app', prNumber: 487 },
+      preamble: 'Looking up AI-suggested fix PRs.' },
+
+    // Timeout / debug
+    { primary: ['timeout', 'timed out', 'debug timeout'],
+      tool: 'jira_search', args: { query: 'timeout failure' },
+      preamble: 'Searching for timeout-related test failures.' },
 
     // Confluence / docs / runbook
     { primary: ['doc', 'documentation', 'runbook', 'confluence', 'wiki', 'guide'],
@@ -46,20 +66,20 @@ const INTENT_RULES: IntentRule[] = [
       preamble: 'Searching Confluence for relevant documentation.' },
 
     // GitHub PR
-    { primary: ['pull request', 'pr ', 'merge request'],
-      secondary: ['get', 'show', 'find', 'check', 'review', 'what'],
+    { primary: ['pull request', 'pr '],
+      secondary: ['get', 'show', 'find', 'check', 'review', 'what', 'my', 'related', 'recent'],
       tool: 'github_get_pr', args: { owner: 'testops', repo: 'app', prNumber: 487 },
       preamble: 'Looking up the pull request.' },
 
-    // GitHub commit
+    // GitHub commit / diff review
     { primary: ['commit', 'change', 'diff', 'what changed', 'code change'],
-      secondary: ['get', 'show', 'find', 'check', 'last', 'recent'],
+      secondary: ['get', 'show', 'find', 'check', 'last', 'recent', 'review'],
       tool: 'github_get_commit', args: { owner: 'testops', repo: 'app', sha: 'a1b2c3d' },
       preamble: 'Fetching the commit details.' },
 
     // Jira search
     { primary: ['jira', 'issue', 'ticket', 'bug'],
-      secondary: ['search', 'find', 'related', 'look', 'any', 'show', 'list'],
+      secondary: ['search', 'find', 'related', 'look', 'any', 'show', 'list', 'open'],
       tool: 'jira_search', args: { query: 'checkout flaky' },
       preamble: 'Searching Jira for related issues.' },
 
@@ -146,6 +166,13 @@ const INTENT_RULES: IntentRule[] = [
       args: { owner: 'testops', repo: 'app', path: 'src/pages/Checkout.tsx', content: 'await page.waitForSelector("#confirm-button", { state: "visible" });', message: 'fix: add waitForVisible', branch: 'fix/checkout-flaky' },
       preamble: 'I\'ll update the file with the fix.' },
 
+    // Merge PR
+    { primary: ['merge'],
+      secondary: ['pr', 'pull request', 'fix'],
+      tool: 'github_merge_pr',
+      args: { owner: 'testops', repo: 'app', prNumber: 489, mergeMethod: 'squash' },
+      preamble: 'I\'ll merge the approved PR for you.' },
+
     // Rerun GitHub workflow
     { primary: ['rerun', 're-run', 'restart'],
       secondary: ['workflow', 'action', 'github action'],
@@ -153,15 +180,16 @@ const INTENT_RULES: IntentRule[] = [
       args: { owner: 'testops', repo: 'app', workflowId: 'ci.yml', branch: 'main' },
       preamble: 'Re-running the GitHub Actions workflow.' },
 
-    // ── Catch-all: RCA / explain / why ──
+    // ── Catch-all: RCA / explain / why — triggers 3-card analysis chain ──
     { primary: ['explain', 'why', 'cause', 'reason', 'analyze', 'failure', 'failed', 'investigate'],
-      tool: 'jira_search', args: { query: 'checkout test failure' },
-      preamble: 'Let me investigate. First, I\'ll search for related issues.' },
+      tool: 'rca_identify', args: { testName: 'PaymentProcessor.processCheckout' },
+      preamble: 'Let me investigate the root cause of this failure.' },
 ];
 
 // ─── Wrap-up responses after tool results ───
 
 const TOOL_SUMMARIES: Record<string, string> = {
+    rca_identify: 'Root cause identified. The service timed out due to missing config. Let me check if there\'s already a fix PR.',
     jira_search: 'I found **3 related Jira issues**. TESTOPS-142 looks directly related — it\'s a flaky checkout test with a 21% failure rate. Want me to transition it to "In Progress" or pull up more details?',
     jira_get: 'Here are the full details for this issue. The flakiness is caused by a race condition in the CSS transition. Maria Chen is already assigned. Want me to add a comment with the latest analysis?',
     github_get_commit: 'This commit addresses the flaky checkout test by adding `waitForVisible` before the confirm button click. 3 files changed across the checkout page, test spec, and a new wait helper utility.',
@@ -180,6 +208,7 @@ const TOOL_SUMMARIES: Record<string, string> = {
     testrun_cancel: 'Test run cancelled successfully. The run has been marked as CANCELLED.',
     testrun_retry: 'Retrying the failed test run. A new run has been queued as PENDING.',
     github_rerun_workflow: 'GitHub Actions workflow `ci.yml` has been re-triggered on `main`. It should start shortly.',
+    github_merge_pr: 'PR **#489** has been merged via squash into `main`. The fix increases the SSO timeout from 5s to 10s. The branch has been automatically deleted.',
     giphy_search: 'Here\'s a celebratory GIF! Enjoy the moment.',
 };
 
@@ -205,9 +234,28 @@ export class MockProvider extends BaseProvider {
     async chat(messages: ChatMessage[], _options?: CompletionOptions): Promise<AIResponse> {
         const lastMessage = messages[messages.length - 1];
 
-        // After tool result → provide a contextual wrap-up answer
+        // After tool result → chain the analysis flow or provide a wrap-up
         if (lastMessage.role === 'tool') {
             const toolName = lastMessage.name || '';
+
+            // ── Analysis flow chaining: rca_identify → github_get_pr → jira_link_issues ──
+            if (toolName === 'rca_identify') {
+                return this.makeToolCallResponse({
+                    primary: [], tool: 'github_get_pr',
+                    args: { owner: 'testops', repo: 'app', prNumber: 402 },
+                    preamble: 'Found the root cause. Let me pull up the proposed fix PR.',
+                });
+            }
+
+            if (toolName === 'github_get_pr' && this.isAnalysisFlow(messages)) {
+                return this.makeToolCallResponse({
+                    primary: [], tool: 'jira_link_issues',
+                    args: { sourceKey: 'PROJ-1247', targetKeys: ['PROJ-1248'], linkType: 'relates to' },
+                    preamble: 'PR ready for review. Now linking the related Jira tickets.',
+                });
+            }
+
+            // Default wrap-up
             const wrapUp = TOOL_SUMMARIES[toolName]
                 || 'Done! The action completed successfully. Is there anything else I can help with?';
 
@@ -232,6 +280,12 @@ export class MockProvider extends BaseProvider {
                 "Try any of these, or ask me anything about your test failures!",
                 150,
             );
+        }
+
+        // ── Direct rich responses for starter prompts that don't need tool cards ──
+        const directResponse = this.getDirectResponse(userContent);
+        if (directResponse) {
+            return this.makeResponse(directResponse, 250);
         }
 
         // Help
@@ -281,6 +335,218 @@ export class MockProvider extends BaseProvider {
     }
 
     // ─── Helpers ───
+
+    /**
+     * Direct text responses for starter prompts that benefit from rich markdown
+     * answers rather than tool card UIs. Checked BEFORE intent rules.
+     */
+    private getDirectResponse(text: string): string | null {
+        // Quarantine queue
+        if (text.includes('quarantine')) {
+            return '## Quarantine Queue\n\n' +
+                '**9 tests** currently quarantined across 3 pipelines:\n\n' +
+                '| Test | Severity | Days in Quarantine | Reinstatement |\n' +
+                '|------|----------|-------------------|---------------|\n' +
+                '| `PaymentProcessor.processCheckout` | 🔴 CRITICAL | 12 | Not ready — 87% failure rate |\n' +
+                '| `UserAuth.loginWithSSO` | 🟠 HIGH | 8 | Review needed — 62% failure rate |\n' +
+                '| `CartService.applyDiscount` | 🟡 MODERATE | 5 | Almost ready — 2 consecutive passes |\n' +
+                '| `SearchAPI.fuzzyMatch` | 🟢 LOW | 3 | Ready for reinstatement |\n' +
+                '| `NotificationService.sendEmail` | 🟢 LOW | 2 | Ready for reinstatement |\n\n' +
+                '**Severity breakdown:** 1 Critical, 1 High, 3 Moderate, 4 Low\n\n' +
+                'Want me to reinstate the tests that are ready, or review the critical ones?';
+        }
+
+        // Self-healing rules
+        if (text.includes('healing') || text.includes('self-healing') || text.includes('auto-fix')) {
+            return '## Self-Healing Rules\n\n' +
+                '**8 active rules** (4 built-in, 4 custom):\n\n' +
+                '| Rule | Type | Matches (7d) | Auto-fixed | Success Rate |\n' +
+                '|------|------|-------------|------------|-------------|\n' +
+                '| Connection Timeout Retry | Built-in | 23 | 21 | 91% |\n' +
+                '| Database Lock Recovery | Built-in | 15 | 14 | 93% |\n' +
+                '| Flaky UI Element Wait | Built-in | 31 | 28 | 90% |\n' +
+                '| OOM Heap Increase | Built-in | 8 | 7 | 88% |\n' +
+                '| Payment Gateway Retry | Custom | 12 | 11 | 92% |\n' +
+                '| Auth Token Refresh | Custom | 19 | 18 | 95% |\n' +
+                '| Rate Limit Backoff | Custom | 7 | 7 | 100% |\n' +
+                '| Selenium Grid Reconnect | Custom | 5 | 4 | 80% |\n\n' +
+                '**Overall:** 120 matches → 110 auto-fixed (**91.7% success rate**)\n\n' +
+                'The Selenium Grid rule has the lowest success rate. Want me to review its pattern or suggest improvements?';
+        }
+
+        // Health check / test health
+        if (text.includes('health check') || text.includes('suite health') || (text.includes('health') && text.includes('test'))) {
+            return '## Test Suite Health Check\n\n' +
+                '| Metric | Value | Trend |\n' +
+                '|--------|-------|-------|\n' +
+                '| Pass Rate | **94.2%** | ↗️ +1.3% vs last week |\n' +
+                '| Flakiness Rate | **3.8%** | ↘️ -0.5% (improving) |\n' +
+                '| Avg Duration | **4m 32s** | → Stable |\n' +
+                '| Coverage | **78.4%** | ↗️ +2.1% |\n' +
+                '| Quarantined | **9 tests** | ↘️ -2 reinstated |\n\n' +
+                '**Coverage gaps detected:**\n' +
+                '- `src/services/payment/` — 42% coverage (below 60% threshold)\n' +
+                '- `src/api/webhooks/` — 38% coverage (no tests for retry logic)\n\n' +
+                '**Top concern:** PaymentProcessor.processCheckout has an 87/100 risk score. Want me to investigate?';
+        }
+
+        // Cost / spend / budget
+        if (text.includes('cost') || text.includes('spend') || text.includes('budget')) {
+            return '## AI Cost Summary — This Month\n\n' +
+                '| Provider | Analyses | Cost | Avg/Analysis |\n' +
+                '|----------|----------|------|--------------|\n' +
+                '| Claude 3.5 Sonnet | 342 | $18.74 | $0.055 |\n' +
+                '| GPT-4o | 128 | $12.30 | $0.096 |\n' +
+                '| Gemini 1.5 | 87 | $4.22 | $0.049 |\n' +
+                '| **Total** | **557** | **$35.26** | **$0.063** |\n\n' +
+                '**Cache hit rate:** 67.3% (saved ~$71 in duplicate analyses)\n\n' +
+                '**Budget status:** $35.26 / $100.00 (35.3% used, 22 days remaining)\n\n' +
+                'Costs are trending 12% lower than last month thanks to improved caching. Want a per-team breakdown?';
+        }
+
+        // MTTR / resolution time
+        if (text.includes('mttr') || text.includes('mean time') || text.includes('time to resolution') || text.includes('time to fix')) {
+            return '## Mean Time to Resolution — This Week\n\n' +
+                '| Priority | MTTR | Target SLA | Status |\n' +
+                '|----------|------|-----------|--------|\n' +
+                '| 🔴 Critical | **2h 14m** | 4h | ✅ Within SLA |\n' +
+                '| 🟠 High | **6h 38m** | 8h | ✅ Within SLA |\n' +
+                '| 🟡 Medium | **18h 22m** | 24h | ✅ Within SLA |\n' +
+                '| 🟢 Low | **3d 4h** | 5d | ✅ Within SLA |\n\n' +
+                '**Overall MTTR: 8h 42m** (↘️ 23% faster than last week)\n\n' +
+                'AI-assisted investigations resolved **34% faster** than manual ones. The checkout team has the fastest resolution times.';
+        }
+
+        // Time saved / ROI
+        if (text.includes('time saved') || text.includes('investigation time') || text.includes('hours saved')) {
+            return '## AI Time Savings — This Week\n\n' +
+                '| Activity | Manual Estimate | AI-Assisted | Saved |\n' +
+                '|----------|----------------|-------------|-------|\n' +
+                '| Failure triage | 12.5h | 3.2h | **9.3h** |\n' +
+                '| Root cause analysis | 8.0h | 2.1h | **5.9h** |\n' +
+                '| Jira ticket creation | 3.5h | 0.4h | **3.1h** |\n' +
+                '| Fix suggestion review | 6.0h | 1.8h | **4.2h** |\n' +
+                '| **Total** | **30.0h** | **7.5h** | **22.5h** |\n\n' +
+                '**ROI:** 22.5 hours saved × $85/hr avg = **$1,912 this week**\n\n' +
+                'Self-healing auto-fixed 110 failures without any human intervention, saving an additional ~15h.';
+        }
+
+        // Cache hit rate
+        if (text.includes('cache hit') || text.includes('hit rate') || text.includes('knowledge base')) {
+            return '## AI Knowledge Base Performance\n\n' +
+                '| Metric | Value |\n' +
+                '|--------|-------|\n' +
+                '| Cache hit rate | **67.3%** |\n' +
+                '| Unique failure signatures | 142 |\n' +
+                '| RCA documents indexed | 89 |\n' +
+                '| Avg lookup time | 45ms |\n' +
+                '| Cost savings from cache | ~$71/month |\n\n' +
+                '**Top cached patterns:**\n' +
+                '1. Connection timeout → retry with backoff (34 hits)\n' +
+                '2. Stale element reference → re-query DOM (28 hits)\n' +
+                '3. Database lock → sequential execution (19 hits)\n\n' +
+                'The knowledge base is improving — hit rate was 52% last month.';
+        }
+
+        // Release readiness
+        if (text.includes('release readiness') || text.includes('ready to release') || text.includes('blocker') || text.includes('green light')) {
+            return '## Release Readiness Check\n\n' +
+                '| Pipeline | Status | Pass Rate | Blockers |\n' +
+                '|----------|--------|-----------|----------|\n' +
+                '| checkout-e2e | 🟡 Warning | 91.2% | 2 flaky tests |\n' +
+                '| auth-service | 🟢 Ready | 99.1% | None |\n' +
+                '| payment-api | 🟢 Ready | 97.8% | None |\n' +
+                '| search-service | 🟢 Ready | 98.5% | None |\n' +
+                '| notification-svc | 🟡 Warning | 93.4% | 1 timeout |\n\n' +
+                '**Verdict: 🟡 Conditional Go**\n\n' +
+                '3 of 5 pipelines are green. 2 have warnings but no critical blockers.\n\n' +
+                '**Action items:**\n' +
+                '- Quarantine `PaymentProcessor.processCheckout` (flaky, not a real bug)\n' +
+                '- Investigate notification timeout (new since last deploy)\n\n' +
+                'Want me to quarantine the flaky test and clear the path?';
+        }
+
+        // Resolution rate / SLA
+        if (text.includes('resolution rate') || text.includes('resolved') || text.includes('within sla')) {
+            return '## Failure Resolution Rate — This Month\n\n' +
+                '| Metric | Value |\n' +
+                '|--------|-------|\n' +
+                '| Total failures | **247** |\n' +
+                '| Resolved | **231** (93.5%) |\n' +
+                '| Within SLA | **218** (88.3%) |\n' +
+                '| Auto-healed | **110** (44.5%) |\n' +
+                '| Still open | **16** |\n\n' +
+                '**Breakdown by resolution method:**\n' +
+                '- 🤖 Self-healing auto-fix: 110 (47.6%)\n' +
+                '- 🧑‍💻 AI-assisted manual: 89 (38.5%)\n' +
+                '- 🔧 Manual only: 32 (13.9%)\n\n' +
+                'SLA compliance is up from 82% last month. The self-healing rules are making the biggest impact.';
+        }
+
+        // Coverage trend
+        if (text.includes('coverage trend') || text.includes('test coverage')) {
+            return '## Test Coverage Trends — Last 30 Days\n\n' +
+                '| Week | Coverage | Delta | New Tests |\n' +
+                '|------|----------|-------|-----------|\n' +
+                '| Week 1 | 74.2% | — | 12 |\n' +
+                '| Week 2 | 75.8% | +1.6% | 18 |\n' +
+                '| Week 3 | 77.1% | +1.3% | 15 |\n' +
+                '| Week 4 | **78.4%** | +1.3% | 14 |\n\n' +
+                '**Trend: ↗️ Steady improvement** (+4.2% over 30 days)\n\n' +
+                '**Low-coverage areas:**\n' +
+                '- `payment/webhooks` — 38% (needs webhook retry tests)\n' +
+                '- `auth/sso` — 45% (SSO edge cases untested)\n' +
+                '- `search/fuzzy` — 52% (missing boundary tests)\n\n' +
+                'Want me to create Jira tickets for the coverage gaps?';
+        }
+
+        // Broken tests in repos
+        if (text.includes('broken test') || text.includes('broken tests')) {
+            return '## Broken Tests in Your Repositories\n\n' +
+                '**5 tests currently failing** across 3 repos:\n\n' +
+                '| Test | Repo | Failing Since | Cause |\n' +
+                '|------|------|--------------|-------|\n' +
+                '| `PaymentProcessor.processCheckout` | app | 2 days | Race condition |\n' +
+                '| `UserAuth.loginWithSSO` | auth-service | 1 day | SSO provider timeout |\n' +
+                '| `CartService.applyDiscount` | app | 3 days | Rounding error |\n' +
+                '| `WebSocket.handleConnection` | realtime-svc | 5 hours | Connection pool exhaustion |\n' +
+                '| `SearchAPI.fuzzyMatch` | search-service | 1 day | Index not refreshed |\n\n' +
+                'The PaymentProcessor test has the highest impact (CRITICAL risk score). Want me to analyze it or create a fix PR?';
+        }
+
+        // Fix PRs / suggested fixes
+        if (text.includes('fix pr') || text.includes('fix prs') || text.includes('suggested fix') || text.includes('ai-suggested')) {
+            return '## Open AI-Suggested Fix PRs\n\n' +
+                '| PR | Title | Status | Confidence |\n' +
+                '|----|-------|--------|------------|\n' +
+                '| #492 | fix(checkout): add waitForVisible | 🟡 Awaiting review | 94% |\n' +
+                '| #489 | fix(auth): increase SSO timeout to 10s | 🟢 Approved | 88% |\n' +
+                '| #487 | fix(cart): use Decimal for discount calc | 🟡 Changes requested | 91% |\n\n' +
+                '**Summary:** 3 open fix PRs, 1 approved and ready to merge.\n\n' +
+                'PR #489 has been approved — want me to merge it?';
+        }
+
+        // Timeout debugging
+        if (text.includes('timeout') && !text.includes('trigger')) {
+            return '## Timeout-Related Failures (Last 7 Days)\n\n' +
+                '**12 timeout failures** detected across 4 test suites:\n\n' +
+                '| Test | Timeout | Frequency | Root Cause |\n' +
+                '|------|---------|-----------|------------|\n' +
+                '| `UserAuth.loginWithSSO` | 5000ms | 8 failures | OAuth provider latency |\n' +
+                '| `PaymentGateway.charge` | 3000ms | 2 failures | Stripe API slow |\n' +
+                '| `SearchAPI.reindex` | 10000ms | 1 failure | Large dataset |\n' +
+                '| `WebSocket.connect` | 2000ms | 1 failure | Connection pool full |\n\n' +
+                '**Pattern:** 67% of timeouts occur during peak load (2-4pm UTC)\n\n' +
+                '**Recommendation:** Increase SSO timeout from 5s to 10s — a fix PR is already open (#489). Want me to merge it?';
+        }
+
+        return null;
+    }
+
+    /** Check if the conversation is in an analysis flow (rca_identify was called). */
+    private isAnalysisFlow(messages: ChatMessage[]): boolean {
+        return messages.some(m => m.role === 'tool' && m.name === 'rca_identify');
+    }
 
     private matchesAny(text: string, keywords: string[]): boolean {
         return keywords.some(k => text.includes(k));

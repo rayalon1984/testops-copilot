@@ -50,17 +50,74 @@ const githubGetCommit: MockResultFn = (args) => ({
     },
 });
 
-const githubGetPR: MockResultFn = (args) => ({
+const rcaIdentify: MockResultFn = (args) => ({
     success: true,
-    summary: `PR #${args.prNumber || 487}: Fix flaky checkout test`,
+    summary: 'Root Cause Identified',
     data: {
-        number: Number(args.prNumber) || 487,
-        title: 'fix(checkout): resolve flaky PaymentProcessor timeout',
-        author: 'maria-chen',
-        url: 'https://github.com/testops/app/pull/487',
-        state: 'open',
+        title: 'Root Cause Identified',
+        rootCause: 'The "tax_calculation" service timed out (2k ms exceeded) due to missing EU config data.',
+        testName: args.testName || 'PaymentProcessor.processCheckout',
+        confidence: 0.94,
+        category: 'timeout',
+        relatedIssue: 'PROJ-1247',
     },
 });
+
+const githubGetPR: MockResultFn = (args) => {
+    const prNumber = Number(args.prNumber) || 487;
+
+    // PR #402 = analysis-flow PR with full diff (matches README screenshot)
+    if (prNumber === 402) {
+        return {
+            success: true,
+            summary: `PR #402: Fix for EU latency timeout`,
+            data: {
+                number: 402,
+                title: 'fix: increase tax_calculation timeout for EU regions',
+                author: 'maria-chen',
+                url: 'https://github.com/testops/app/pull/402',
+                state: 'open',
+                mergeable: true,
+                owner: 'testops',
+                repo: 'app',
+                filesChanged: 1,
+                totalAdditions: 1,
+                totalDeletions: 1,
+                files: [{
+                    filename: 'config/tax.js',
+                    status: 'modified',
+                    additions: 1,
+                    deletions: 1,
+                    patch: '- timeout: 2000\n+ timeout: 5000 // Fix for EU latency',
+                }],
+            },
+        };
+    }
+
+    // Default PR (existing behavior)
+    return {
+        success: true,
+        summary: `PR #${prNumber}: Fix flaky checkout test`,
+        data: {
+            number: prNumber,
+            title: 'fix(checkout): resolve flaky PaymentProcessor timeout',
+            author: 'maria-chen',
+            url: `https://github.com/testops/app/pull/${prNumber}`,
+            state: 'open',
+            mergeable: true,
+            owner: args.owner || 'testops',
+            repo: args.repo || 'app',
+            filesChanged: 3,
+            totalAdditions: 26,
+            totalDeletions: 3,
+            files: [
+                { filename: 'src/pages/Checkout.tsx', status: 'modified', additions: 8, deletions: 2, patch: '@@ -142,7 +142,13 @@\n-    await page.click("#confirm-button");\n+    await page.waitForSelector("#confirm-button", { state: "visible" });\n+    await page.click("#confirm-button");' },
+                { filename: 'tests/e2e/checkout.spec.ts', status: 'modified', additions: 3, deletions: 1 },
+                { filename: 'src/utils/wait-helpers.ts', status: 'added', additions: 15, deletions: 0 },
+            ],
+        },
+    };
+};
 
 const confluenceSearch: MockResultFn = (args) => ({
     success: true,
@@ -298,6 +355,7 @@ const githubMergePR: MockResultFn = (args) => ({
 
 const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
     // Phase 1: Read
+    rca_identify: rcaIdentify,
     jira_search: jiraSearch,
     jira_get: jiraGet,
     github_get_commit: githubGetCommit,

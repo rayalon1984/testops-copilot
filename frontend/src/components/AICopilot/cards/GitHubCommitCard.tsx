@@ -42,7 +42,7 @@ export default function GitHubCommitCard({ data }: GitHubCommitCardProps) {
             <Box sx={{ p: 1.5 }}>
                 <ServiceBadge service="github" />
 
-                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {commit.message}
                 </Typography>
 

@@ -113,7 +113,7 @@ export default function ProactiveSuggestionCard({
                 </Box>
 
                 {/* Reason */}
-                <Typography variant="body2" sx={{ mb: 1, fontSize: '0.8rem', lineHeight: 1.5 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontSize: '0.8rem', lineHeight: 1.5, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {suggestion.reason}
                 </Typography>
 

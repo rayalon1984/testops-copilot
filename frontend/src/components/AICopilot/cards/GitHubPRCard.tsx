@@ -84,7 +84,7 @@ export default function GitHubPRCard({ data, onAction, cardState }: GitHubPRCard
 
                 {/* PR title + number */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" fontWeight={600} sx={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                         #{pr.number} {pr.title}
                     </Typography>
                 </Box>

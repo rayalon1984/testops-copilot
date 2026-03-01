@@ -49,7 +49,7 @@ export default function ConfluenceDocCard({ results }: ConfluenceDocCardProps) {
                     <Box sx={{ p: 1.5 }}>
                         <ServiceBadge service="confluence" />
 
-                        <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                        <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                             {doc.title}
                         </Typography>
 
@@ -65,6 +65,8 @@ export default function ConfluenceDocCard({ results }: ConfluenceDocCardProps) {
                                     textOverflow: 'ellipsis',
                                     WebkitLineClamp: 3,
                                     WebkitBoxOrient: 'vertical',
+                                    overflowWrap: 'break-word',
+                                    wordBreak: 'break-word',
                                 }}
                             >
                                 &ldquo;{doc.excerpt}&rdquo;
