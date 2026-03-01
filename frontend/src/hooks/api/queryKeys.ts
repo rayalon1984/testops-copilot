@@ -39,6 +39,8 @@ export const queryKeys = {
     autonomy: () => ['autonomy-preference'] as const,
     quota: () => ['ai-quota'] as const,
     costMetrics: (timeRange: string) => ['cost-metrics', timeRange] as const,
+    starterPrompts: () => ['starter-prompts'] as const,
+    starterCatalog: () => ['starter-prompts', 'catalog'] as const,
   },
 
   dashboard: {

@@ -5,6 +5,7 @@
  *   - config.ts  — Health, personas, autonomy, provider config
  *   - analysis.ts — RCA, categorization, summarization, enrichment, costs
  *   - chat.ts    — SSE chat, session CRUD, action confirmation
+ *   - starterPrompts.ts — Role-based + context-aware starter prompts
  */
 
 import { Router, IRouter } from 'express';
@@ -12,6 +13,7 @@ import { authenticate } from '../../middleware/auth';
 import configRoutes from './config';
 import analysisRoutes from './analysis';
 import chatRoutes from './chat';
+import starterPromptRoutes from './starterPrompts';
 
 const router: IRouter = Router();
 
@@ -22,5 +24,6 @@ router.use(authenticate);
 router.use(configRoutes);
 router.use(analysisRoutes);
 router.use(chatRoutes);
+router.use(starterPromptRoutes);
 
 export default router;

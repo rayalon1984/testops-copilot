@@ -18,8 +18,9 @@ model User {
   firstName      String?
   lastName       String?
   role           String   @default("USER") // ADMIN | USER
-  autonomyLevel  String   @default("balanced") // conservative | balanced | autonomous
-  createdAt      DateTime @default(now())
+  autonomyLevel         String   @default("balanced") // conservative | balanced | autonomous
+  pinnedStarterPrompts  String?  // JSON array of pinned prompt objects, null = use role defaults
+  createdAt             DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   notifications    Notification[]
@@ -452,10 +453,10 @@ model HealingRule {
   id                  String   @id @default(uuid())
   name                String
   description         String
-  pattern             String   // Regex or keyword to match against error messages
-  patternType         String   @default("regex") // regex | keyword | signature
+  pattern             String
+  patternType         String   @default("regex")   // regex | keyword | signature
   category            String   @default("transient") // transient | infrastructure | flaky | custom
-  action              String   @default("retry") // retry | quarantine | fix_pr | notify
+  action              String   @default("retry")    // retry | quarantine | fix_pr | notify
   maxRetries          Int      @default(2)
   cooldownMinutes     Int      @default(60)
   confidenceThreshold Float    @default(0.9)
@@ -476,13 +477,13 @@ model HealingEvent {
   ruleId          String?
   testRunId       String
   pipelineId      String
-  action          String    // retry | quarantine | fix_pr | notify | suggested
-  status          String    @default("pending") // pending | executing | succeeded | failed | skipped
+  action          String
+  status          String    @default("pending") // pending | executing | success | failed | skipped
   matchConfidence Float
   matchReason     String
   errorMessage    String?
-  retriedRunId    String?   // ID of the new test run created by retry
-  metadata        String?   // JSON
+  retriedRunId    String?
+  metadata        String?   // JSON string (SQLite)
   createdAt       DateTime  @default(now())
   completedAt     DateTime?
 
@@ -497,12 +498,12 @@ model QuarantinedTest {
   id              String   @id @default(uuid())
   testName        String   @unique
   reason          String
-  severity        String   @default("MEDIUM") // HIGH | MEDIUM | LOW
-  quarantinedBy   String   @default("auto") // 'auto' | userId
+  severity        String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  quarantinedBy   String   @default("auto")
   healingEventId  String?
   flakinessScore  Float    @default(0)
   occurrenceCount Int      @default(1)
-  status          String   @default("quarantined") // quarantined | reinstated | deleted
+  status          String   @default("quarantined") // quarantined | reinstated
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -19,3 +19,4 @@ export { useFailureInsights, useFailureSearch, useFailureComments, useAddFailure
 export { useTeams, useTeamDetail, useCreateTeam, useAddTeamMember, useRemoveTeamMember, useUpdateTeamMemberRole } from './useTeams';
 export { useProviderConfig, useTestProviderConnection, useSaveProviderConfig, type ProviderConfig } from './useProviderConfig';
 export { useHealingRules, useHealingEvents, useHealingStats, useCreateHealingRule, useUpdateHealingRule, useToggleHealingRule, useDeleteHealingRule, useEvaluateHealing, useExecuteHealing, useSeedHealingRules, useQuarantinedTests, useQuarantineTest, useReinstateTest, useDeleteQuarantinedTest, useFixSuggestions, type HealingRule, type HealingEvent, type HealingStats, type QuarantinedTest, type FixSuggestion } from './useHealing';
+export { useStarterPrompts, useStarterPromptCatalog, useSavePinnedPrompts, useResetPinnedPrompts, type StarterPrompt, type PinnedPromptEntry } from './useStarterPrompts';
