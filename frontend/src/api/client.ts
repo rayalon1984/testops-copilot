@@ -41,6 +41,17 @@ async function fetchCsrfToken(): Promise<string> {
   return csrfToken;
 }
 
+/**
+ * Ensure CSRF token is available (fetches one if needed) and return it.
+ * Used by SSE hooks that bypass `apiFetch` but still need CSRF protection.
+ */
+export async function ensureCsrfToken(): Promise<string> {
+  if (!csrfToken) {
+    await fetchCsrfToken();
+  }
+  return csrfToken!;
+}
+
 const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 // ─── Auth helpers ───

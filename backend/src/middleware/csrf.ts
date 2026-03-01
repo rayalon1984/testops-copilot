@@ -16,7 +16,11 @@ const {
   generateCsrfToken,
 } = doubleCsrf({
   getSecret: () => config.security.csrfSecret,
-  getSessionIdentifier: (req) => req.session?.id ?? '',
+  // Stateless: always return empty string. The double-submit cookie pattern
+  // derives security from the HMAC secret + HttpOnly cookie, not the session.
+  // Using session IDs caused HMAC mismatches when sessions weren't persisted
+  // (saveUninitialized: false), resulting in 500 errors on login/register.
+  getSessionIdentifier: () => '',
   cookieName: '__csrf',
   cookieOptions: {
     httpOnly: true,
@@ -33,6 +37,12 @@ const {
   skipCsrfProtection: (req: Request) => {
     // Webhook endpoints use their own signature verification (Slack HMAC, Teams JWT)
     if (req.path.startsWith('/api/v1/channels/')) return true;
+    // Auth endpoints: login/register/refresh are protected by credentials,
+    // not CSRF tokens. Exempting them prevents bootstrap issues where the
+    // frontend cannot yet have a valid CSRF token.
+    if (req.path.startsWith('/api/v1/auth/login')) return true;
+    if (req.path.startsWith('/api/v1/auth/register')) return true;
+    if (req.path.startsWith('/api/v1/auth/refresh')) return true;
     return false;
   },
 });

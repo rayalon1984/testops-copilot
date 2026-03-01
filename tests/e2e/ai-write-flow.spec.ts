@@ -15,7 +15,7 @@ test('AI Write Tool Confirmation Flow', async ({ page }) => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Trigger write action via copilot chat
-    const input = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const input = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(input).toBeVisible();
     await input.fill('Create a Jira bug: "E2E Test Failure"');
     await input.press('Enter');

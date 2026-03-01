@@ -12,6 +12,7 @@ export type { MessageRole, CardState, PersonaInfo, ChatMessage, UseAICopilotRetu
 import type { ChatMessage, PersonaInfo, CardState, UseAICopilotReturn } from './copilot/types';
 import { generateId, generateSessionId, processSSEEvent } from './copilot/sseProcessor';
 import { handleConfirmAction } from './copilot/confirmAction';
+import { ensureCsrfToken } from '../api/client';
 
 export function useAICopilot(): UseAICopilotReturn {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -56,12 +57,15 @@ export function useAICopilot(): UseAICopilotReturn {
             abortRef.current = controller;
 
             const token = localStorage.getItem('accessToken');
+            const csrf = await ensureCsrfToken();
             const response = await fetch('/api/v1/ai/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    'X-CSRF-Token': csrf,
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     message,
                     history,

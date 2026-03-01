@@ -50,7 +50,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Empty state should show starter prompts (placeholder text on textarea)
-    await expect(page.getByPlaceholder('Ask Copilot...')).toBeVisible();
+    await expect(page.getByPlaceholder("Let's TOC... ask about a failing test")).toBeVisible();
   });
 
   // ─── 2. Read-Only Query → Full ReAct Flow ─────────────────────────
@@ -61,7 +61,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Type a message in the copilot chat
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Find recent Jira failures');
     await chatInput.press('Enter');
@@ -87,7 +87,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible({ timeout: 10000 });
 
     // Send a write-triggering message
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
@@ -107,7 +107,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
@@ -130,7 +130,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Create a Jira bug for the login timeout');
     await chatInput.press('Enter');
@@ -153,7 +153,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Check if there is a Jira for the checkout failure');
     await chatInput.press('Enter');
@@ -175,7 +175,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Analyze the root cause of PROJ-1248');
     await chatInput.press('Enter');
@@ -198,7 +198,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Are there any auth vulnerabilities?');
     await chatInput.press('Enter');
@@ -218,7 +218,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
     // Send a message to populate chat
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Find failures');
     await chatInput.press('Enter');
@@ -260,7 +260,7 @@ test.describe('Agentic AI Copilot E2E', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('TestOps Copilot').first()).toBeVisible();
 
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
 
     // Shift+Enter should add newline without sending
@@ -286,7 +286,7 @@ test.describe('Agentic AI Copilot E2E', () => {
 
     // First query
     await mockChatSSE(page, SCENARIO_JIRA_SEARCH);
-    const chatInput = page.locator('textarea[placeholder="Ask Copilot..."]');
+    const chatInput = page.locator('textarea[placeholder="Let\'s TOC... ask about a failing test"]');
     await expect(chatInput).toBeVisible();
     await chatInput.fill('Find Jira issues');
     await chatInput.press('Enter');
