@@ -7,11 +7,15 @@
 
 ## Planned
 
-### v3.3.0 — Sprint 11 (March 2026)
+### v3.3.0 — Sprint 11: Xray Integration + Context-Aware Prompts (March 2026)
+- [ ] Xray Cloud integration — XrayService (OAuth2 auth, test case search, result sync)
+- [ ] `xray_search` AI tool — query Xray test cases/plans from copilot (read-only, Tier 1)
+- [ ] Xray sync: POST /xray/sync/:testRunId (map Copilot test run → Xray Test Execution)
+- [ ] Xray Settings UI (client ID/secret, project key, test connection)
+- [ ] XraySync Prisma model (sync state tracking, execution ID persistence)
+- [ ] Xray circuit breaker + resilience wrapper
 - [ ] Tier 2 context-aware starter prompts (live pipeline/failure signals)
-- [ ] Persona override picker (user selects persona manually)
-- [ ] Persona analytics (track which personas are used most)
-- [ ] Usage dashboard per-session (cost breakdown by tool/provider)
+- [ ] Deferred to v3.4: Xray bi-directional sync, Xray Server (on-prem), test case creation
 
 ---
 
