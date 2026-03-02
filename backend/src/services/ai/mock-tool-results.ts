@@ -352,14 +352,49 @@ const githubMergePR: MockResultFn = (args) => ({
 });
 
 // Sprint 11: Xray integration
-const xraySearch: MockResultFn = (args) => ({
+const xraySearch: MockResultFn = (args) => {
+    const type = (args.type as string) || 'test_case';
+    if (type === 'test_plan') {
+        return {
+            success: true,
+            summary: 'Found 3 Xray test plans with coverage data',
+            data: [
+                { key: 'PROJ-TP-1', summary: 'Checkout Regression', testCount: 45, passRate: 0, coveragePercentage: 87, coveredCount: 39, lastUpdated: '2026-03-14' },
+                { key: 'PROJ-TP-2', summary: 'Payment Integration', testCount: 22, passRate: 0, coveragePercentage: 64, coveredCount: 14, lastUpdated: '2026-03-12' },
+                { key: 'PROJ-TP-3', summary: 'User Auth Smoke', testCount: 8, passRate: 0, coveragePercentage: 100, coveredCount: 8, lastUpdated: '2026-03-10' },
+            ],
+        };
+    }
+    return {
+        success: true,
+        summary: `Found 3 Xray test cases matching "${args.query || 'checkout'}"`,
+        data: {
+            testCases: [
+                { key: 'PROJ-TC-101', summary: 'Checkout — valid payment', status: 'PASS', lastRun: '2026-02-28' },
+                { key: 'PROJ-TC-102', summary: 'Checkout — expired card', status: 'FAIL', lastRun: '2026-02-28' },
+                { key: 'PROJ-TC-103', summary: 'Checkout — empty cart guard', status: 'TODO', lastRun: null },
+            ],
+        },
+    };
+};
+
+// Sprint 12: Xray enrichment context (used by AI enrichment pipeline)
+const xrayTestCaseHistory: MockResultFn = (args) => ({
     success: true,
-    summary: `Found 3 Xray test cases matching "${args.query || 'checkout'}"`,
+    summary: `Xray test case history for ${args.testCaseKey || 'PROJ-TC-102'}`,
     data: {
-        testCases: [
-            { key: 'PROJ-TC-101', summary: 'Checkout — valid payment', status: 'PASS', lastRun: '2026-02-28' },
-            { key: 'PROJ-TC-102', summary: 'Checkout — expired card', status: 'FAIL', lastRun: '2026-02-28' },
-            { key: 'PROJ-TC-103', summary: 'Checkout — empty cart guard', status: 'TODO', lastRun: null },
+        testCaseKey: args.testCaseKey || 'PROJ-TC-102',
+        summary: 'Checkout — expired card',
+        status: 'FAIL',
+        executionHistory: [
+            { date: '2026-03-01', status: 'FAIL', executionKey: 'PROJ-EX-201' },
+            { date: '2026-02-28', status: 'FAIL', executionKey: 'PROJ-EX-198' },
+            { date: '2026-02-25', status: 'PASS', executionKey: 'PROJ-EX-185' },
+            { date: '2026-02-20', status: 'PASS', executionKey: 'PROJ-EX-170' },
+            { date: '2026-02-15', status: 'PASS', executionKey: 'PROJ-EX-155' },
+        ],
+        linkedDefects: [
+            { key: 'PROJ-1247', summary: 'Card expiry validation fails for EU date format', status: 'Open' },
         ],
     },
 });
@@ -394,8 +429,9 @@ const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
     jira_link_issues: jiraLinkIssues,
     jira_add_label: jiraAddLabel,
     github_merge_pr: githubMergePR,
-    // Sprint 11: Xray
+    // Sprint 11-12: Xray
     xray_search: xraySearch,
+    xray_test_case_history: xrayTestCaseHistory,
 };
 
 /**

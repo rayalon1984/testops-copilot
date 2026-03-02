@@ -13,6 +13,7 @@ import { logger } from '@/utils/logger';
 import { jiraService } from '@/services/jira.service';
 import { confluenceService } from '@/services/confluence.service';
 import { githubService } from '@/services/github.service';
+import { xrayService } from '@/services/xray.service';
 import { JiraIssueResponse } from '@/types/jira';
 import { TestFailure, ChatMessage } from '../types';
 import { BaseProvider } from '../providers/base.provider';
@@ -23,6 +24,7 @@ import type {
   PullRequestContext,
   JiraContext,
   ConfluenceContext,
+  XrayEnrichmentContext,
 } from './context-enrichment.types';
 
 // Re-export types so existing imports from this file continue to work
@@ -33,6 +35,7 @@ export type {
   PullRequestContext,
   JiraContext,
   ConfluenceContext,
+  XrayEnrichmentContext,
 } from './context-enrichment.types';
 
 // ── Service ────────────────────────────────────────────────────────────────
@@ -57,12 +60,14 @@ export class ContextEnrichmentService {
     const enableJira = sources?.jira !== false;
     const enableConfluence = sources?.confluence !== false;
     const enableGitHub = sources?.github !== false;
+    const enableXray = sources?.xray !== false;
 
     const sourcesQueried: string[] = [];
     const jiraIssues: JiraContext[] = [];
     const confluencePages: ConfluenceContext[] = [];
     let commitContext: EnrichmentResult['context']['codeChanges']['commit'];
     let prContext: PullRequestContext | undefined;
+    let xrayContext: XrayEnrichmentContext | undefined;
 
     // Gather context from all sources concurrently
     const tasks: Promise<void>[] = [];
@@ -101,6 +106,17 @@ export class ContextEnrichmentService {
       );
     }
 
+    // ── Xray: fetch test case history for mapped tests ──
+    if (enableXray && xrayService.isEnabled() && failure.externalTestCaseId) {
+      tasks.push(
+        this.gatherXrayContext(failure.externalTestCaseId)
+          .then(result => {
+            xrayContext = result;
+            if (result) sourcesQueried.push('xray');
+          })
+      );
+    }
+
     await Promise.allSettled(tasks);
 
     // Build the enrichment result
@@ -111,6 +127,7 @@ export class ContextEnrichmentService {
         commit: commitContext,
         pullRequest: prContext,
       },
+      xrayContext,
     };
 
     // Generate AI analysis if we have a provider and gathered any context
@@ -234,6 +251,20 @@ export class ContextEnrichmentService {
     }
   }
 
+  // ── Xray context gathering ───────────────────────────────────────────
+
+  private async gatherXrayContext(
+    testCaseKey: string
+  ): Promise<XrayEnrichmentContext | undefined> {
+    try {
+      const history = await xrayService.getTestCaseHistory(testCaseKey);
+      return history;
+    } catch (error) {
+      logger.warn('Failed to gather Xray context:', error);
+      return undefined;
+    }
+  }
+
   // ── AI synthesis ───────────────────────────────────────────────────────
 
   private async synthesizeAnalysis(
@@ -341,6 +372,24 @@ Be specific and concise. Focus on:
       }
     }
 
+    // Xray context
+    if (context.xrayContext) {
+      const xray = context.xrayContext;
+      prompt += `\n\n## Xray Test Case History\n**Test Case:** ${xray.testCaseKey} — ${xray.summary} [${xray.status}]\n`;
+      if (xray.executionHistory.length > 0) {
+        prompt += '**Recent Executions:**\n';
+        for (const exec of xray.executionHistory) {
+          prompt += `- ${exec.date}: ${exec.status} (${exec.executionKey})\n`;
+        }
+      }
+      if (xray.linkedDefects.length > 0) {
+        prompt += '**Linked Defects:**\n';
+        for (const defect of xray.linkedDefects) {
+          prompt += `- ${defect.key}: ${defect.summary} [${defect.status}]\n`;
+        }
+      }
+    }
+
     prompt += '\n\nProvide a concise analysis connecting these dots. What is the most likely root cause and recommended action?';
 
     return prompt;
@@ -386,6 +435,7 @@ Be specific and concise. Focus on:
       if (context.codeChanges.pullRequest) confidence += 0.25;
       else if (context.codeChanges.commit) confidence += 0.15;
     }
+    if (sourcesQueried.includes('xray') && context.xrayContext) confidence += 0.15;
     return Math.min(confidence, 0.95);
   }
 
@@ -411,6 +461,16 @@ Be specific and concise. Focus on:
     } else if (context.codeChanges.commit) {
       const c = context.codeChanges.commit;
       parts.push(`Commit ${c.sha.substring(0, 8)}: "${c.message}" (${c.files.length} files changed)`);
+    }
+
+    if (context.xrayContext) {
+      const xray = context.xrayContext;
+      const failCount = xray.executionHistory.filter(e => e.status === 'FAIL').length;
+      parts.push(`Xray test case ${xray.testCaseKey}: ${xray.summary} [${xray.status}] — ${failCount}/${xray.executionHistory.length} recent executions failed`);
+      if (xray.linkedDefects.length > 0) {
+        const defectKeys = xray.linkedDefects.map(d => d.key).join(', ');
+        parts.push(`Linked defects: ${defectKeys}`);
+      }
     }
 
     return parts.length > 0

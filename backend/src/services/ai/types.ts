@@ -227,6 +227,9 @@ export interface TestFailure {
   commitHash: string;
   timestamp: Date;
 
+  // Optional Xray mapping
+  externalTestCaseId?: string;
+
   // Optional AI-generated fields
   embedding?: Embedding;
   category?: FailureCategory;

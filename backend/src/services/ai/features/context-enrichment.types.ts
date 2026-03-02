@@ -19,6 +19,7 @@ export interface EnrichmentInput {
     jira?: boolean;
     confluence?: boolean;
     github?: boolean;
+    xray?: boolean;
   };
   /** Maximum number of results per source */
   maxResultsPerSource?: number;
@@ -37,6 +38,7 @@ export interface EnrichmentResult {
       commit?: { sha: string; message: string; files: CodeChange[] };
       pullRequest?: PullRequestContext;
     };
+    xrayContext?: XrayEnrichmentContext;
   };
   /** Which sources were available and queried */
   sourcesQueried: string[];
@@ -77,4 +79,20 @@ export interface ConfluenceContext {
   url: string;
   excerpt: string;
   labels: string[];
+}
+
+export interface XrayEnrichmentContext {
+  testCaseKey: string;
+  summary: string;
+  status: string;
+  executionHistory: Array<{
+    date: string;
+    status: string;
+    executionKey: string;
+  }>;
+  linkedDefects: Array<{
+    key: string;
+    summary: string;
+    status: string;
+  }>;
 }
