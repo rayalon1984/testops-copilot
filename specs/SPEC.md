@@ -1,7 +1,7 @@
 # Product Specification — TestOps Copilot
 
 > **Status**: Living document · **Owner**: AI Product Manager
-> **Last synced**: 2026-03-02 · **Version**: 3.2.0
+> **Last synced**: 2026-03-02 · **Version**: 3.3.0
 
 ---
 
@@ -35,10 +35,11 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Log Summarization | v2.5.4 | Root cause extraction, error location, suggested fixes |
 | RCA Semantic Matching | v2.5.3 | Weaviate vector DB embeddings for similar-failure search |
 | Context Enrichment | v2.8.0 | Parallel queries to Jira + Confluence + GitHub for richer analysis |
-| Agentic Copilot | v2.9.0 | ReAct loop with 23 tools (12 read, 7 write, 4 action) and human-in-the-loop gates |
+| Agentic Copilot | v2.9.0 | ReAct loop with 24 tools (13 read, 7 write, 4 action) and human-in-the-loop gates |
 | Root Cause Analysis | v3.2.0 | `rca_identify` tool — structured RCA with confidence scoring, category, related issues |
 | Smart Starter Prompts | v3.2.0 | Role-based prompt defaults (QA, Dev, Lead, PM) + user-pinnable custom prompts (max 4) |
 | V2 Card Redesign | v3.2.0 | Feature-flagged (`copilot-cards-v2`) emoji-header cards: RootCauseCard, GitHubPRCardV2, HousekeepingCardV2 |
+| Xray Integration | v3.3.0 | Xray Cloud test management: search test cases/plans (`xray_search` tool), sync test runs as Xray executions, admin settings page |
 
 **AI Providers**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 Flash, Azure OpenAI, OpenRouter.
 
@@ -54,7 +55,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Category | Services |
 |----------|----------|
 | Issue Tracking | Jira (bi-directional sync, auto-create), Monday.com (GraphQL) |
-| Test Management | TestRail (test case sync, milestone support) |
+| Test Management | TestRail (test case sync, milestone support), Xray Cloud (OAuth2, GraphQL search, test execution sync) |
 | Knowledge | Confluence (RCA publishing, knowledge search) |
 | CI/CD | Jenkins, GitHub Actions, custom |
 | Source Control | GitHub (PR awareness, commit diffs, branch creation) |

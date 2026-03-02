@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.2.0 · **Last verified**: 2026-03-02
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.3.0 · **Last verified**: 2026-03-02
 
 ---
 
@@ -294,7 +294,28 @@ Production responses include `message` only. Development adds `stack` and `detai
 
 **Team roles** (hierarchy): `OWNER` > `ADMIN` > `MEMBER` > `VIEWER`
 
-### 4.14 Self-Healing Pipelines
+### 4.14 Xray Integration (v3.3.0)
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| POST | `/api/v1/xray/test-connection` | Yes | ADMIN | Validate Xray credentials (OAuth2 auth test) |
+| GET | `/api/v1/xray/test-cases` | Yes | VIEWER | Search Xray test cases. Query: `?query=string&limit=number` |
+| GET | `/api/v1/xray/test-plans` | Yes | VIEWER | List Xray test plans for configured project |
+| POST | `/api/v1/xray/sync/:testRunId` | Yes | EDITOR | Sync a test run to Xray as a Test Execution (idempotent) |
+| GET | `/api/v1/xray/syncs` | Yes | VIEWER | List sync history (most recent first) |
+| GET | `/api/v1/xray/syncs/:id` | Yes | VIEWER | Get sync status by ID |
+
+**Authentication**: OAuth2 client credentials flow (`client_id` + `client_secret` → JWT token). Tokens cached for 55 minutes.
+
+**Env vars**: `XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET`, `XRAY_PROJECT_KEY`, `XRAY_CLOUD_URL` (default: `https://xray.cloud.getxray.app`), `XRAY_AUTO_SYNC` (default: `false`)
+
+**Sync statuses**: `PENDING`, `SYNCING`, `SYNCED`, `FAILED`
+
+**Status mapping** (TestOps → Xray): `PASSED→PASS`, `FAILED→FAIL`, `SKIPPED→TODO`, `FLAKY→FAIL`, `ERROR→FAIL`, `PENDING→TODO`, `RUNNING→TODO`
+
+**503 response**: All endpoints return `{ error: "Xray integration is not configured" }` with HTTP 503 when env vars are not set.
+
+### 4.15 Self-Healing Pipelines
 
 | Method | Path | Auth | Role | Description |
 |--------|------|------|------|-------------|
@@ -339,8 +360,9 @@ Production responses include `message` only. Development adds `stack` and `detai
 | CI | 1 | 1 | 0 |
 | Monday.com | 9 | 9 | 0 |
 | Teams | 15 | 15 | 1 |
+| Xray | 6 | 6 | 1 |
 | Self-Healing | 17 | 17 | 1 |
-| **Total** | **116** | **111** | **6** |
+| **Total** | **122** | **117** | **7** |
 
 ---
 

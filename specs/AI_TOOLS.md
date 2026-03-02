@@ -1,6 +1,6 @@
 # AI_TOOLS.md — AI Tool Registry
 
-> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.3.0 · **Last verified**: 2026-03-02
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Category | Count | Confirmation | Policy |
 |----------|-------|-------------|--------|
-| **Read-only** | 8 | No | Auto-approved — safe, no side effects |
+| **Read-only** | 9 | No | Auto-approved — safe, no side effects |
 | **Write** | 6 | Yes | Requires explicit user approval (5-min TTL) |
 
 ---
@@ -72,6 +72,15 @@
   - `testName` (string, required) — Fully qualified test name (e.g. `PaymentProcessor.processCheckout`)
   - `testRunId` (string, optional) — Specific test run to analyze
 - **Returns**: Root cause analysis: title, rootCause description, confidence (0–1), category (timeout/assertion/env/flaky), relatedIssue key
+
+### `xray_search`
+- **Description**: Search Xray test cases and test plans in the configured Jira project. Returns test case keys, summaries, statuses, and last execution dates.
+- **Parameters**:
+  - `query` (string, required) — Search text for test case summary or key (e.g. `"checkout"`, `"login flow"`)
+  - `type` (string, optional, default: `test_case`) — Entity type: `test_case` or `test_plan`
+  - `limit` (number, optional, default: 10) — Maximum results (capped at 25)
+- **Returns**: Array of test cases (`key`, `summary`, `status`, `lastExecution`) or test plans (`key`, `summary`, `testCount`, `passRate`)
+- **Notes**: Requires Xray Cloud integration (`XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET`, `XRAY_PROJECT_KEY`). Returns graceful error when not configured.
 
 ---
 
