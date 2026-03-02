@@ -95,6 +95,48 @@ function getContextSignals(): ContextSignal[] {
         category: 'context',
       },
     },
+    {
+      // If there are failed Xray syncs in the last 24h
+      condition: async () => {
+        try {
+          const failedSyncs = await prisma.xraySync.count({
+            where: {
+              status: 'FAILED',
+              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+          });
+          return failedSyncs > 0;
+        } catch { return false; }
+      },
+      prompt: {
+        id: 'ctx-xray-sync-failed',
+        label: 'Xray sync failures',
+        prompt: 'There are failed Xray syncs in the last 24 hours. Check the sync history and resolve connection issues.',
+        icon: 'SyncProblem',
+        category: 'context',
+      },
+    },
+    {
+      // If flaky test ratio is high in recent runs
+      condition: async () => {
+        try {
+          const recentResults = await prisma.testResult.count({
+            where: {
+              status: 'FLAKY',
+              createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+          });
+          return recentResults >= 10;
+        } catch { return false; }
+      },
+      prompt: {
+        id: 'ctx-flaky-spike',
+        label: 'Flaky test spike',
+        prompt: 'High number of flaky tests detected in the last 24 hours. Review the flakiest tests and suggest quarantine candidates.',
+        icon: 'FlipCameraAndroid',
+        category: 'context',
+      },
+    },
   ];
 }
 

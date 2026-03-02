@@ -123,6 +123,7 @@ async function seed() {
     prisma.healingEvent.deleteMany(),
     prisma.healingRule.deleteMany(),
     prisma.quarantinedTest.deleteMany(),
+    prisma.xraySync.deleteMany(),
     prisma.testRun.deleteMany(),
     prisma.jiraIssue.deleteMany(),
     prisma.jiraConfig.deleteMany(),

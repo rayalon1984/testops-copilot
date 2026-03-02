@@ -1,6 +1,6 @@
 feature: smart-starter-prompts
-name: "Smart Starter Prompts (Role-Aware + User-Configurable)"
-version: "1.0.0"
+name: "Smart Starter Prompts (Role-Aware + Context-Aware + User-Configurable)"
+version: "1.1.0"
 status: draft
 since: "v3.2.0"
 owner: AI_PRODUCT_MANAGER
@@ -115,6 +115,40 @@ capabilities:
         type: invariant
       - id: starter.pin-api.max-four
         description: "Rejects requests with more than 4 pins"
+        type: invariant
+
+  # ─── Context-Aware Signals (Tier 2) ──────────────────────────────
+
+  - id: starter.context
+    name: "Context-Aware Signals"
+    version: "1.0.0"
+    description: >
+      Live data signals that dynamically promote relevant prompts based on
+      system state (recent failures, quarantine backlog, pipeline health,
+      Xray sync failures, flaky test spikes). Checked at resolve time.
+    files:
+      - backend/src/services/ai/StarterPromptResolver.ts
+    assertions:
+      - id: starter.context.recent-failures
+        description: "Surfaces 'New failures detected' prompt when test runs failed in the last hour"
+        type: behavioral
+      - id: starter.context.quarantine-backlog
+        description: "Surfaces 'Quarantine needs review' prompt when 3+ tests are quarantined"
+        type: behavioral
+      - id: starter.context.pipeline-trending
+        description: "Surfaces 'Pipeline failures trending' prompt when 5+ runs failed in 24h"
+        type: behavioral
+      - id: starter.context.xray-sync-failed
+        description: "Surfaces 'Xray sync failures' prompt when Xray syncs failed in last 24h"
+        type: behavioral
+      - id: starter.context.flaky-spike
+        description: "Surfaces 'Flaky test spike' prompt when 10+ flaky results in last 24h"
+        type: behavioral
+      - id: starter.context.priority-merge
+        description: "Context signals inserted between user pins and role defaults in priority order"
+        type: invariant
+      - id: starter.context.graceful-failure
+        description: "Failed condition checks are silently skipped — never block prompt resolution"
         type: invariant
 
   # ─── Data ─────────────────────────────────────────────────────────
@@ -242,7 +276,27 @@ acceptance_criteria:
       - starter.frontend.customize.reset
       - starter.resolver.role-defaults
 
+  - id: AC-5
+    title: "Context-aware signals surface dynamically"
+    gherkin: |
+      GIVEN recent test failures exist (within last hour)
+      WHEN the copilot panel loads with an empty chat
+      THEN a "New failures detected" prompt appears with a "Live" badge
+      AND it is prioritized above role defaults but below user pins
+    maps_to:
+      - starter.context.recent-failures
+      - starter.context.priority-merge
+      - starter.context.graceful-failure
+
 changelog:
+  - version: "1.1.0"
+    date: "2026-03-02"
+    product_version: "v3.3.0"
+    changes:
+      - "Tier 2 context-aware signals: recent failures, quarantine backlog, pipeline trends, Xray sync failures, flaky spike"
+      - "7 new assertions (5 behavioral + 2 invariant) in starter.context capability"
+      - "AC-5: context-aware signal acceptance criterion"
+      - "Frontend: SyncProblem + FlipCameraAndroid icons for new context signals"
   - version: "1.0.0"
     date: "2026-03-01"
     product_version: "v3.2.0"

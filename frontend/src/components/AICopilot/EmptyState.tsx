@@ -12,6 +12,8 @@ import TuneIcon from '@mui/icons-material/Tune';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import ShieldIcon from '@mui/icons-material/Shield';
 import ErrorIcon from '@mui/icons-material/Error';
+import SyncProblemIcon from '@mui/icons-material/SyncProblem';
+import FlipCameraAndroidIcon from '@mui/icons-material/FlipCameraAndroid';
 import { useStarterPrompts, type StarterPrompt } from '../../hooks/api/useStarterPrompts';
 import StarterPromptSettings from './StarterPromptSettings';
 
@@ -34,6 +36,8 @@ const CONTEXT_ICON_MAP: Record<string, React.ReactNode> = {
     'ctx-recent-failures': <NotificationsActiveIcon sx={{ fontSize: 12, color: 'error.main' }} />,
     'ctx-quarantine-review': <ShieldIcon sx={{ fontSize: 12, color: 'warning.main' }} />,
     'ctx-pipeline-failed': <ErrorIcon sx={{ fontSize: 12, color: 'error.main' }} />,
+    'ctx-xray-sync-failed': <SyncProblemIcon sx={{ fontSize: 12, color: 'error.main' }} />,
+    'ctx-flaky-spike': <FlipCameraAndroidIcon sx={{ fontSize: 12, color: 'warning.main' }} />,
 };
 
 // ─── Component ─────────────────────────────────────────────────
