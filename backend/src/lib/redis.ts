@@ -7,8 +7,20 @@ let redisClient: Redis | Cluster;
 // ── Guard: skip connection entirely when Redis is disabled ───────────
 if (!config.redis.enabled) {
     logger.info('Redis is disabled (REDIS_ENABLED=false). Using in-memory fallbacks.');
-    // Create a stub client in "end" state — never connects, never retries.
-    redisClient = new Redis({ lazyConnect: true });
+
+    // Build a no-op Redis stub that never touches the network.
+    // All commands reject immediately so consumers fall through to their
+    // in-memory fallbacks (tokenBlacklist, AI cache, etc.).
+    const noop = new Redis({ lazyConnect: true });
+    // Attach an error handler BEFORE anything can emit — prevents
+    // "[ioredis] Unhandled error event" from ever appearing.
+    noop.on('error', () => {});
+    // Force permanent "end" status so session-store / health checks skip Redis
+    Object.defineProperty(noop, 'status', { get: () => 'end', configurable: true });
+    // Kill the internal connection so commands reject and no TCP is attempted
+    noop.disconnect(false);
+
+    redisClient = noop;
 } else {
     const redisConfig: RedisOptions = {
         host: config.redis.host,
