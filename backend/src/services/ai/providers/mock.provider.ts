@@ -105,6 +105,12 @@ const INTENT_RULES: IntentRule[] = [
           return { query: 'celebration' };
       } },
 
+    // Xray — test case / test plan search (Sprint 11)
+    { primary: ['xray', 'test case', 'test plan', 'xray test', 'test management'],
+      secondary: ['search', 'find', 'show', 'list', 'get', 'query'],
+      tool: 'xray_search', args: { query: 'checkout', type: 'test_case', limit: 10 },
+      preamble: 'Searching Xray test cases.' },
+
     // ── Write tools (Phase 2) — these trigger confirmation previews ──
 
     // Trigger build / re-run pipeline
@@ -227,6 +233,7 @@ const TOOL_SUMMARIES: Record<string, string> = {
     giphy_search: 'Here\'s a celebratory GIF! Enjoy the moment.',
     jira_link_issues: 'Jira tickets linked. I\'ve connected the related issues so the team can see the full picture. The root cause, fix PR, and tracking tickets are now all cross-referenced.',
     jira_add_label: 'Labels added. The issue is now tagged for easier filtering and triage.',
+    xray_search: 'Found Xray test cases matching the query. Here are the matching cases with their statuses and last execution dates.',
 };
 
 // ─── Provider ───

@@ -15,6 +15,7 @@ import { jenkinsGetStatusTool } from './jenkins';
 import { dashboardMetricsTool } from './dashboard';
 import { failurePredictionsTool } from './predictions';
 import { rcaIdentifyTool } from './rca';
+import { xraySearchTool } from './xray';
 
 // Phase 2: Write tools (require confirmation)
 import { githubCreatePRTool } from './github-write';
@@ -45,6 +46,7 @@ const phase1Tools = [
     rcaIdentifyTool,          // Root cause analysis (card redesign)
     jiraLinkIssuesTool,       // Sprint 7: auto-link related issues (Tier 1)
     jiraAddLabelTool,         // Sprint 7: auto-label issues (Tier 1)
+    xraySearchTool,           // Sprint 11: Xray test case search (Tier 1)
 ];
 
 // Register all Phase 2 tools (write, require confirmation)

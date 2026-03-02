@@ -109,6 +109,7 @@ export interface ScanReport {
 function findTestFiles(): string[] {
   const testDirs = [
     path.join(BACKEND_SRC, '__tests__'),
+    path.join(BACKEND_SRC, 'services', '__tests__'),
     path.join(BACKEND_SRC, 'services', 'ai', '__tests__'),
     path.join(BACKEND_SRC, 'middleware', '__tests__'),
     path.join(BACKEND_SRC, 'lib', '__tests__'),

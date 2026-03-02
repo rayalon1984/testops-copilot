@@ -1,5 +1,6 @@
 import { Application } from 'express';
 import { jiraController } from '../controllers/jira.controller';
+import { xrayController } from '../controllers/xray.controller';
 import failureArchiveRouter from './failure-archive.routes';
 import mondayRouter from './monday.routes';
 import metricsRouter from './metrics.routes';
@@ -35,6 +36,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/test-runs', testRunRouter);
   app.use('/api/v1/notifications', notificationRouter);
   app.use('/api/v1/jira', jiraController);
+  app.use('/api/v1/xray', xrayController);
   app.use('/api/v1/failure-archive', failureArchiveRouter);
   app.use('/api/v1/monday', mondayRouter);
   app.use('/api/v1/metrics', metricsRouter);

@@ -351,6 +351,19 @@ const githubMergePR: MockResultFn = (args) => ({
     },
 });
 
+// Sprint 11: Xray integration
+const xraySearch: MockResultFn = (args) => ({
+    success: true,
+    summary: `Found 3 Xray test cases matching "${args.query || 'checkout'}"`,
+    data: {
+        testCases: [
+            { key: 'PROJ-TC-101', summary: 'Checkout — valid payment', status: 'PASS', lastRun: '2026-02-28' },
+            { key: 'PROJ-TC-102', summary: 'Checkout — expired card', status: 'FAIL', lastRun: '2026-02-28' },
+            { key: 'PROJ-TC-103', summary: 'Checkout — empty cart guard', status: 'TODO', lastRun: null },
+        ],
+    },
+});
+
 // ─── Registry ───
 
 const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
@@ -381,6 +394,8 @@ const MOCK_TOOL_RESULTS: Record<string, MockResultFn> = {
     jira_link_issues: jiraLinkIssues,
     jira_add_label: jiraAddLabel,
     github_merge_pr: githubMergePR,
+    // Sprint 11: Xray
+    xray_search: xraySearch,
 };
 
 /**
