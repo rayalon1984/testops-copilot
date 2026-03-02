@@ -5,7 +5,7 @@
       "cost.tracking": "1.0.0",
       "cost.cache": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.098Z"
+    "lastRun": "2026-03-02T09:19:27.486Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -15,7 +15,7 @@
       "kb.rca-docs": "1.0.0",
       "kb.insights": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.375Z"
+    "lastRun": "2026-03-02T09:19:27.721Z"
   },
   "jira-housekeeping": {
     "lastTestedVersion": "1.0.0",
@@ -26,7 +26,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:48.761Z"
+    "lastRun": "2026-03-02T09:19:26.889Z"
   },
   "react-loop": {
     "lastTestedVersion": "1.0.0",
@@ -36,7 +36,7 @@
       "react.streaming": "1.0.0",
       "react.tools-registry": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.198Z"
+    "lastRun": "2026-03-02T09:19:27.758Z"
   },
   "notifications-alerting": {
     "lastTestedVersion": "1.0.0",
@@ -45,7 +45,7 @@
       "notify.slack": "1.0.0",
       "notify.urls": "1.0.0"
     },
-    "lastRun": "2026-03-02T07:51:33.722Z"
+    "lastRun": "2026-03-02T09:19:27.358Z"
   },
   "smart-retry": {
     "lastTestedVersion": "1.0.0",
@@ -55,7 +55,7 @@
       "retry.execution": "1.0.0",
       "retry.frontend": "1.0.0"
     },
-    "lastRun": "2026-03-02T07:49:51.244Z"
+    "lastRun": "2026-03-02T09:19:27.534Z"
   },
   "failure-analysis": {
     "lastTestedVersion": "1.0.0",
@@ -64,7 +64,7 @@
       "analysis.log-summary": "1.0.0",
       "analysis.rca-matching": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.015Z"
+    "lastRun": "2026-03-02T09:19:27.130Z"
   },
   "context-enrichment": {
     "lastTestedVersion": "1.0.0",
@@ -73,7 +73,7 @@
       "enrichment.confidence": "1.0.0",
       "enrichment.synthesis": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.228Z"
+    "lastRun": "2026-03-02T09:19:27.809Z"
   },
   "autonomy-preferences": {
     "lastTestedVersion": "1.0.0",
@@ -95,7 +95,7 @@
       "proactive.frontend": "1.0.0",
       "proactive.sse": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:46.686Z"
+    "lastRun": "2026-03-02T09:19:24.936Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -105,7 +105,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:48.379Z"
+    "lastRun": "2026-03-02T09:19:26.079Z"
   },
   "inline-diff": {
     "lastTestedVersion": "1.0.0",
@@ -133,7 +133,7 @@
       "pipeline.runs": "1.0.0",
       "pipeline.scheduling": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.105Z"
+    "lastRun": "2026-03-02T09:19:27.671Z"
   },
   "authentication": {
     "lastTestedVersion": "1.0.0",
@@ -144,7 +144,7 @@
       "auth.blacklist": "1.0.0",
       "auth.audit": "1.0.0"
     },
-    "lastRun": "2026-03-02T07:51:32.966Z"
+    "lastRun": "2026-03-02T09:19:26.713Z"
   },
   "mcp-server": {
     "lastTestedVersion": "1.0.0",
@@ -154,7 +154,7 @@
       "mcp.knowledge": "1.0.0",
       "mcp.stats": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:48.532Z"
+    "lastRun": "2026-03-02T09:19:27.299Z"
   },
   "smart-starter-prompts": {
     "lastTestedVersion": "1.1.0",
@@ -168,7 +168,7 @@
       "starter.frontend.empty-state": "1.0.0",
       "starter.frontend.customize": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.870Z"
+    "lastRun": "2026-03-02T09:19:25.639Z"
   },
   "copilot-cards-v2": {
     "lastTestedVersion": "1.0.0",
@@ -179,6 +179,6 @@
       "cards.v2.housekeeping": "1.0.0",
       "cards.v2.analysis-chain": "1.0.0"
     },
-    "lastRun": "2026-03-02T08:29:49.054Z"
+    "lastRun": "2026-03-02T09:19:27.031Z"
   }
 }

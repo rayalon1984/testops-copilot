@@ -6,6 +6,41 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.3.0] - 2026-03-02
+
+> **Xray Cloud Integration + Context-Aware Prompts**
+
+TestOps Copilot now talks to Xray. Push test results to Xray Cloud with one click, search test cases from the AI copilot, and track every sync in a unified history. No more copy-pasting between tools.
+
+### Xray Cloud Integration
+
+Connect your Xray Cloud instance and sync test results directly from Copilot:
+
+- **One-click sync**: "Sync to Xray" button on every test run detail page — maps PASSED→PASS, FAILED→FAIL, SKIPPED→TODO and creates a linked Test Execution in Xray
+- **AI-powered search**: Ask the copilot "find Xray test cases for checkout" — the new `xray_search` tool queries Xray's API and returns matching cases with status and last execution date
+- **Settings & connection testing**: New Xray tab in Settings with one-click connection validation, sync history table, and status tracking (SYNCED / FAILED / SYNCING)
+- **Resilient by design**: OAuth2 authentication with token caching, circuit breaker (opens after 5 failures), retry with backoff, SSRF validation on configurable URLs
+
+### Context-Aware Starter Prompts (Tier 2)
+
+The copilot empty state now reacts to what's happening in your system. Five live signals surface the right prompt at the right time:
+
+- **New failures detected** — when tests fail in the last hour
+- **Quarantine needs review** — when 3+ tests are quarantined
+- **Pipeline failures trending** — when 5+ runs fail in 24h
+- **Xray sync failures** — when Xray syncs fail in the last 24h
+- **Flaky test spike** — when 10+ flaky results detected in 24h
+
+Each signal appears with a "Live" badge and is prioritized between user pins and role defaults.
+
+### Quality
+
+- 930 tests passing (787 backend + 143 frontend)
+- 246/246 feature spec assertions at 100% coverage
+- 28 Xray assertions + 33 starter prompt assertions (draft specs, fully tested)
+
+---
+
 ## [3.1.1] - 2026-03-01
 
 > **QA Fixes + Smart Starter Prompts Spec**

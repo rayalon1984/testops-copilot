@@ -1,6 +1,6 @@
 {
   "name": "testops-copilot",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "An AI-powered test operations platform with an agentic copilot for managing test pipelines and results",
   "main": "index.js",
   "scripts": {
@@ -58,6 +58,7 @@
     "validate:specs:json": "npx tsx scripts/scan-feature-specs.ts --json",
     "report:specs": "npx tsx scripts/feature-health-report.ts --pr",
     "report:specs:dashboard": "npx tsx scripts/feature-health-report.ts --dashboard",
+    "release": "bash scripts/release.sh",
     "prepare": "husky install"
   },
   "lint-staged": {
