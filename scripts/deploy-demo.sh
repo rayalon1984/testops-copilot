@@ -91,6 +91,12 @@ EOF
     echo -e "  Created backend/.env (demo config)"
 else
     echo -e "  Using existing backend/.env"
+    # Ensure PORT is 4000 (matches Vite proxy target)
+    if grep -q 'PORT=3000' backend/.env 2>/dev/null; then
+        sed -i.bak 's|PORT=3000|PORT=4000|' backend/.env
+        rm -f backend/.env.bak
+        echo -e "  ${YELLOW}→ Patched PORT to 4000${NC}"
+    fi
     # Ensure DATABASE_URL points to the correct SQLite path for demo mode
     if ! grep -q 'DATABASE_URL.*file:./prisma/dev.db' backend/.env 2>/dev/null; then
         sed -i.bak 's|DATABASE_URL=.*|DATABASE_URL="file:./prisma/dev.db"|' backend/.env
