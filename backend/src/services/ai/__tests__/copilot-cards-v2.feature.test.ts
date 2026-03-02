@@ -35,28 +35,26 @@ function userMessage(content: string): ChatMessage {
 
 describeFeature('copilot-cards-v2', (feature) => {
 
-  // ── cards.v2.feature-flag ──
+  // ── cards.v2.routing (graduated — V2 is the only version) ──
 
-  itAssertion('cards.v2.flag-on-routes-v2', () => {
-    // Feature flag routing is frontend-only (ToolResultCard.tsx).
-    // This test validates the contract: ToolResultCard renders GitHubPRCardV2
-    // when isV2=true. The actual rendering is tested in ToolResultCard.test.tsx.
-    // Here we verify the hook interface exists and returns a boolean.
-    // The useFeatureFlag hook reads localStorage — in Node we validate the pattern.
-    const flagKey = 'ff:copilot-cards-v2';
-    expect(flagKey).toBe('ff:copilot-cards-v2');
-    // Flag-on behavior exercised in frontend ToolResultCard.test.tsx
-  });
-
-  itAssertion('cards.v2.flag-off-routes-v1', () => {
-    // Counterpart: when flag is OFF, V1 cards render.
-    // This is implicitly tested by ToolResultCard.test.tsx's default state.
-    // Backend spec just validates the tool data shapes are compatible with both V1 and V2.
+  itAssertion('cards.v2.always-v2', () => {
+    // V2 is the default — feature flag removed in v3.4.
+    // Backend validates that PR data shape is consumed by GitHubPRCardV2.
     const prResult = getMockToolResult('github_get_pr', { owner: 'testops', repo: 'app', prNumber: 487 });
     expect(prResult).not.toBeNull();
     expect(prResult!.data).toHaveProperty('number');
     expect(prResult!.data).toHaveProperty('title');
-    // V1 and V2 both consume the same data shape — no transformation needed
+    // V2 always renders — no V1 fallback
+  });
+
+  itAssertion('cards.v2.no-feature-flag', () => {
+    // No feature flag import in ToolResultCard.tsx — all tools route directly.
+    // Backend validates that mock tool results are self-contained (no flag-dependent data).
+    const rcaResult = getMockToolResult('rca_identify', { testName: 'test' });
+    const prResult = getMockToolResult('github_get_pr', { prNumber: 402 });
+    expect(rcaResult).not.toBeNull();
+    expect(prResult).not.toBeNull();
+    // Both tools return complete data shapes that render without conditional logic
   });
 
   itAssertion('cards.v2.rca-always-new', () => {

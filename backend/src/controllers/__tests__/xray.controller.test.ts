@@ -1,11 +1,12 @@
 /**
  * Xray Controller — Integration Tests
  *
- * Tests all 6 Xray endpoints via supertest:
- *  - Auth (401 without token, 403 for non-admin on test-connection)
+ * Tests all 10 Xray endpoints via supertest:
+ *  - Auth (401 without token, 403 for non-admin on test-connection/config)
  *  - 503 when Xray is not configured
- *  - Validation (Zod: query params, UUID params)
- *  - Success paths
+ *  - Validation (Zod: query params, UUID params, plan IDs, test case keys)
+ *  - Success paths for all endpoints
+ *  - Config PATCH/GET for auto-sync toggle
  */
 
 import express, { Request, Response, NextFunction } from 'express';
@@ -50,10 +51,6 @@ jest.mock('@/services/xray.service', () => ({
   xrayService: mockXrayService,
 }));
 
-jest.mock('@/config', () => ({
-  config: { xray: { autoSync: false } },
-}));
-
 jest.mock('@/lib/prisma', () => ({
   prisma: {},
 }));
@@ -67,6 +64,7 @@ jest.mock('@/config', () => ({
       secureCookie: false,
     },
     log: { level: 'silent' },
+    xray: { autoSync: false },
   },
 }));
 
@@ -284,6 +282,124 @@ describe('Xray Controller', () => {
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('SYNCED');
       expect(mockXrayService.getSyncStatus).toHaveBeenCalledWith(syncId);
+    });
+  });
+
+  // ─── v3.4 New Endpoints ───────────────────────────────────
+
+  describe('GET /test-plans/:planId', () => {
+    it('returns single plan with test cases', async () => {
+      const res = await request(app)
+        .get('/api/v1/xray/test-plans/PROJ-TP-1')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(200);
+      expect(res.body.key).toBe('PROJ-TP-1');
+      expect(res.body.testCases).toHaveLength(1);
+      expect(res.body.coveragePercentage).toBe(80);
+      expect(mockXrayService.getTestPlan).toHaveBeenCalledWith('PROJ-TP-1');
+    });
+
+    it('returns 503 when Xray disabled', async () => {
+      mockXrayService.isEnabled.mockReturnValue(false);
+      const res = await request(app)
+        .get('/api/v1/xray/test-plans/PROJ-TP-1')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(503);
+    });
+  });
+
+  describe('GET /test-cases/:key/history', () => {
+    it('returns test case history with executions and defects', async () => {
+      const res = await request(app)
+        .get('/api/v1/xray/test-cases/PROJ-TC-1/history')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(200);
+      expect(res.body.testCaseKey).toBe('PROJ-TC-1');
+      expect(res.body.executionHistory).toHaveLength(1);
+      expect(res.body.linkedDefects).toEqual([]);
+      expect(mockXrayService.getTestCaseHistory).toHaveBeenCalledWith('PROJ-TC-1');
+    });
+
+    it('returns 503 when Xray disabled', async () => {
+      mockXrayService.isEnabled.mockReturnValue(false);
+      const res = await request(app)
+        .get('/api/v1/xray/test-cases/PROJ-TC-1/history')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(503);
+    });
+  });
+
+  describe('PATCH /config', () => {
+    it('requires ADMIN role', async () => {
+      const res = await request(app)
+        .patch('/api/v1/xray/config')
+        .set('x-test-role', 'VIEWER')
+        .send({ autoSync: true });
+      expect(res.status).toBe(403);
+    });
+
+    it('updates auto-sync config for admin', async () => {
+      const res = await request(app)
+        .patch('/api/v1/xray/config')
+        .set('x-test-role', 'ADMIN')
+        .send({ autoSync: true });
+      expect(res.status).toBe(200);
+      expect(res.body.autoSync).toBe(true);
+      expect(res.body.message).toMatch(/enabled/i);
+    });
+
+    it('disables auto-sync', async () => {
+      const res = await request(app)
+        .patch('/api/v1/xray/config')
+        .set('x-test-role', 'ADMIN')
+        .send({ autoSync: false });
+      expect(res.status).toBe(200);
+      expect(res.body.autoSync).toBe(false);
+      expect(res.body.message).toMatch(/disabled/i);
+    });
+
+    it('rejects invalid body', async () => {
+      const res = await request(app)
+        .patch('/api/v1/xray/config')
+        .set('x-test-role', 'ADMIN')
+        .send({ autoSync: 'not-a-boolean' });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /config', () => {
+    it('returns config state for any authenticated user', async () => {
+      const res = await request(app)
+        .get('/api/v1/xray/config')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('configured');
+      expect(res.body).toHaveProperty('autoSync');
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).get('/api/v1/xray/config');
+      expect(res.status).toBe(401);
+    });
+  });
+
+  // ─── Test Plan Pagination ──────────────────────────────────
+
+  describe('GET /test-plans pagination', () => {
+    it('passes limit and start to service', async () => {
+      const res = await request(app)
+        .get('/api/v1/xray/test-plans?limit=5&start=10')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(200);
+      expect(mockXrayService.getTestPlans).toHaveBeenCalledWith(5, 10);
+    });
+
+    it('uses defaults when no params given', async () => {
+      const res = await request(app)
+        .get('/api/v1/xray/test-plans')
+        .set('x-test-role', 'VIEWER');
+      expect(res.status).toBe(200);
+      expect(mockXrayService.getTestPlans).toHaveBeenCalledWith(10, 0);
     });
   });
 });
