@@ -1073,6 +1073,7 @@ async function seed() {
       xrayExecutionId: status === 'SYNCED' ? `PROJ-EX-${200 + i}` : null,
       projectKey: 'PROJ',
       status,
+      trigger: i < 3 ? 'AUTO' : 'MANUAL', // first 3 are auto-synced, rest manual
       resultCount: status === 'SYNCED' ? randomBetween(8, 50) : 0,
       errorMessage: isFailed ? 'Authentication failed (HTTP 401)' : null,
       syncedAt,

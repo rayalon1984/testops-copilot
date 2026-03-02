@@ -520,6 +520,7 @@ model XraySync {
   xrayExecutionId String?                      // Xray Test Execution issue key (e.g., "PROJ-456")
   projectKey      String                       // Jira project key
   status          String    @default("PENDING") // PENDING | SYNCING | SYNCED | FAILED
+  trigger         String    @default("MANUAL")  // MANUAL | AUTO
   resultCount     Int       @default(0)         // Number of results pushed
   errorMessage    String?                       // Last error if FAILED
   syncedAt        DateTime?                     // When sync completed
