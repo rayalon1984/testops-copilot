@@ -21,6 +21,9 @@ import {
   ImageListItem,
   Dialog,
   DialogContent,
+  Button,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -29,10 +32,11 @@ import {
   Schedule as PendingIcon,
   AccessTime as TimeIcon,
   BugReport as ErrorsIcon,
+  Sync as SyncIcon,
 } from '@mui/icons-material';
 import type { ApiSchemas } from '../api';
 import { usePageContext } from '../hooks/usePageContext';
-import { useTestRun } from '../hooks/api';
+import { useTestRun, useXraySyncTestRun } from '../hooks/api';
 
 type TestRun = ApiSchemas['TestRunDetail'];
 
@@ -195,8 +199,26 @@ export default function TestRunDetail() {
   const [tabValue, setTabValue] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const [syncResult, setSyncResult] = useState<{ status: string; xrayExecutionId: string | null } | null>(null);
+  const [syncError, setSyncError] = useState('');
+
   // Fetch test run details via shared hook
   const { data: testRun, isLoading } = useTestRun(id);
+  const syncToXray = useXraySyncTestRun();
+
+  const handleSyncToXray = () => {
+    if (!id) return;
+    setSyncResult(null);
+    setSyncError('');
+    syncToXray.mutate(id, {
+      onSuccess: (data) => {
+        setSyncResult({ status: data.status, xrayExecutionId: data.xrayExecutionId });
+      },
+      onError: (err: Error) => {
+        setSyncError(err.message || 'Sync failed');
+      },
+    });
+  };
 
   usePageContext('testrun-detail', testRun ? {
     type: 'testrun', id: testRun.id, label: testRun.pipelineName || testRun.id,
@@ -244,6 +266,33 @@ export default function TestRunDetail() {
         <Typography variant="h5" sx={{ flexGrow: 1 }}>
           Test Run Details
         </Typography>
+
+        {/* Xray sync button + result chip */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
+          {syncResult && (
+            <Chip
+              size="small"
+              color="success"
+              label={syncResult.xrayExecutionId ?? 'Synced'}
+              variant="outlined"
+            />
+          )}
+          {syncError && (
+            <Tooltip title={syncError}>
+              <Chip size="small" color="error" label="Sync failed" variant="outlined" />
+            </Tooltip>
+          )}
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={syncToXray.isPending ? <CircularProgress size={14} /> : <SyncIcon />}
+            onClick={handleSyncToXray}
+            disabled={syncToXray.isPending}
+          >
+            {syncToXray.isPending ? 'Syncing…' : 'Sync to Xray'}
+          </Button>
+        </Box>
+
         {getStatusIcon(testRun.status)}
       </Box>
 
