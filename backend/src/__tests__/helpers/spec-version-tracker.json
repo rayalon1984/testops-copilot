@@ -5,7 +5,7 @@
       "cost.tracking": "1.0.0",
       "cost.cache": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:58.845Z"
+    "lastRun": "2026-03-02T11:35:34.097Z"
   },
   "failure-knowledge-base": {
     "lastTestedVersion": "1.0.0",
@@ -15,7 +15,7 @@
       "kb.rca-docs": "1.0.0",
       "kb.insights": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:58.509Z"
+    "lastRun": "2026-03-02T11:35:33.976Z"
   },
   "jira-housekeeping": {
     "lastTestedVersion": "1.0.0",
@@ -26,7 +26,7 @@
       "housekeeping.suggestion": "1.0.0",
       "housekeeping.undo": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:14:00.508Z"
+    "lastRun": "2026-03-02T11:35:33.094Z"
   },
   "react-loop": {
     "lastTestedVersion": "1.0.0",
@@ -36,7 +36,7 @@
       "react.streaming": "1.0.0",
       "react.tools-registry": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:58.622Z"
+    "lastRun": "2026-03-02T11:35:34.405Z"
   },
   "notifications-alerting": {
     "lastTestedVersion": "1.0.0",
@@ -55,7 +55,7 @@
       "retry.execution": "1.0.0",
       "retry.frontend": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:08.616Z"
+    "lastRun": "2026-03-02T11:35:33.132Z"
   },
   "failure-analysis": {
     "lastTestedVersion": "1.0.0",
@@ -73,7 +73,7 @@
       "enrichment.confidence": "1.0.0",
       "enrichment.synthesis": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:58.597Z"
+    "lastRun": "2026-03-02T11:35:34.395Z"
   },
   "autonomy-preferences": {
     "lastTestedVersion": "1.0.0",
@@ -85,7 +85,7 @@
       "autonomy.frontend": "1.0.0",
       "autonomy.api": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:14:00.396Z"
+    "lastRun": "2026-03-02T11:35:33.544Z"
   },
   "proactive-suggestions": {
     "lastTestedVersion": "1.0.0",
@@ -95,7 +95,7 @@
       "proactive.frontend": "1.0.0",
       "proactive.sse": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:02:38.055Z"
+    "lastRun": "2026-03-02T11:35:33.946Z"
   },
   "resilience": {
     "lastTestedVersion": "1.0.0",
@@ -105,7 +105,7 @@
       "resilience.timeout": "1.0.0",
       "resilience.preconfigured": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:14:00.012Z"
+    "lastRun": "2026-03-02T11:35:33.017Z"
   },
   "inline-diff": {
     "lastTestedVersion": "1.0.0",
@@ -124,7 +124,7 @@
       "giphy.frontend": "1.0.0",
       "giphy.autonomy": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:11:58.700Z"
+    "lastRun": "2026-03-02T11:35:33.845Z"
   },
   "pipeline-management": {
     "lastTestedVersion": "1.0.0",
@@ -154,7 +154,7 @@
       "mcp.knowledge": "1.0.0",
       "mcp.stats": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:14:00.949Z"
+    "lastRun": "2026-03-02T11:35:34.340Z"
   },
   "smart-starter-prompts": {
     "lastTestedVersion": "1.1.0",
@@ -168,7 +168,7 @@
       "starter.frontend.empty-state": "1.0.0",
       "starter.frontend.customize": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:14:00.841Z"
+    "lastRun": "2026-03-02T11:35:34.246Z"
   },
   "copilot-cards-v2": {
     "lastTestedVersion": "2.0.0",
@@ -179,6 +179,6 @@
       "cards.v2.housekeeping": "1.0.0",
       "cards.v2.analysis-chain": "1.0.0"
     },
-    "lastRun": "2026-03-02T11:13:58.058Z"
+    "lastRun": "2026-03-02T11:35:30.147Z"
   }
 }

@@ -67,6 +67,7 @@ model TestRun {
   pipeline    Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   results     TestResult[]
   notifications Notification[]
+  xraySyncs   XraySync[]
 
   @@index([userId])
   @@index([pipelineId])
@@ -575,6 +576,8 @@ model XraySync {
   syncedAt        DateTime?                      // When sync completed
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  testRun         TestRun   @relation(fields: [testRunId], references: [id], onDelete: Cascade)
 
   @@index([testRunId])
   @@index([status])

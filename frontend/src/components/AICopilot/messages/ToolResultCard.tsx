@@ -24,6 +24,10 @@ import RootCauseCard from '../cards/RootCauseCard';
 import GitHubPRCardV2 from '../cards/v2/GitHubPRCardV2';
 import HousekeepingCardV2 from '../cards/v2/HousekeepingCardV2';
 
+// Xray cards (v3.4)
+import XraySearchCard from '../cards/XraySearchCard';
+import XrayHistoryCard from '../cards/XrayHistoryCard';
+
 interface ToolResultCardProps {
     message: ChatMessage;
     userRole: string;
@@ -51,6 +55,12 @@ export default function ToolResultCard({ message, userRole, onAction }: ToolResu
         case 'jira_link_issues':
         case 'jira_add_label':
             return <HousekeepingCardV2 data={toolData} toolName={toolName || ''} userRole={userRole} onAction={handleAction} cardState={cardState} />;
+
+        // Xray cards
+        case 'xray_search':
+            return <XraySearchCard data={toolData} />;
+        case 'xray_test_case_history':
+            return <XrayHistoryCard data={toolData} />;
 
         // Standard cards
         case 'jira_get':
