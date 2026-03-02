@@ -51,8 +51,8 @@ export const xraySearchTool: Tool = {
             const limit = Math.min((args.limit as number) || 10, 25);
 
             if (type === 'test_plan') {
-                const plans = await xrayService.getTestPlans();
-                if (plans.length === 0) {
+                const result = await xrayService.getTestPlans(limit);
+                if (result.plans.length === 0) {
                     return {
                         success: true,
                         data: [],
@@ -61,8 +61,8 @@ export const xraySearchTool: Tool = {
                 }
                 return {
                     success: true,
-                    data: plans,
-                    summary: `Found ${plans.length} Xray test plan(s).`,
+                    data: result.plans,
+                    summary: `Found ${result.plans.length} Xray test plan(s) with coverage data.`,
                 };
             }
 

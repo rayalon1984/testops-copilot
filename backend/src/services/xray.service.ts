@@ -19,6 +19,29 @@ export interface XrayTestPlan {
   summary: string;
   testCount: number;
   passRate: number;
+  coveragePercentage: number;
+  coveredCount: number;
+  lastUpdated: string | null;
+}
+
+export interface XrayTestPlanDetail extends XrayTestPlan {
+  testCases: XrayTestCase[];
+}
+
+export interface XrayTestCaseHistory {
+  testCaseKey: string;
+  summary: string;
+  status: string;
+  executionHistory: Array<{
+    date: string;
+    status: string;
+    executionKey: string;
+  }>;
+  linkedDefects: Array<{
+    key: string;
+    summary: string;
+    status: string;
+  }>;
 }
 
 export interface XraySyncResult {
@@ -230,10 +253,11 @@ export class XrayService {
   }
 
   /**
-   * List Xray test plans for the configured project.
+   * List Xray test plans for the configured project (paginated with coverage).
    */
-  async getTestPlans(): Promise<XrayTestPlan[]> {
+  async getTestPlans(limit: number = 10, start: number = 0): Promise<{ total: number; plans: XrayTestPlan[] }> {
     this.checkEnabled();
+    const cappedLimit = Math.min(limit, 25);
 
     try {
       const client = await this.getAuthorizedClient();
@@ -244,13 +268,16 @@ export class XrayService {
             {
               getTestPlans(
                 jql: "project = '${this.projectKey}'"
-                limit: 25
+                limit: ${cappedLimit}
+                start: ${start}
               ) {
                 total
                 results {
                   issueId
                   jira(fields: ["key", "summary"])
                   tests(limit: 100) { total }
+                  testCoverage { covered total percentage }
+                  lastModified
                 }
               }
             }
@@ -259,17 +286,161 @@ export class XrayService {
         XRAY_RESILIENCE,
       );
 
-      const results = response.data?.data?.getTestPlans?.results || [];
-      return results.map((r: Record<string, unknown>) => ({
-        key: (r.jira as Record<string, unknown>)?.key || r.issueId,
-        summary: (r.jira as Record<string, unknown>)?.summary || 'Unknown',
-        testCount: (r.tests as Record<string, unknown>)?.total || 0,
-        passRate: 0, // Would require execution data — left as placeholder
-      }));
+      const data = response.data?.data?.getTestPlans || {};
+      const results = data.results || [];
+      return {
+        total: data.total || results.length,
+        plans: results.map((r: Record<string, unknown>) => {
+          const coverage = r.testCoverage as Record<string, number> | undefined;
+          return {
+            key: (r.jira as Record<string, unknown>)?.key || r.issueId,
+            summary: (r.jira as Record<string, unknown>)?.summary || 'Unknown',
+            testCount: coverage?.total || (r.tests as Record<string, unknown>)?.total || 0,
+            passRate: 0,
+            coveragePercentage: coverage?.percentage || 0,
+            coveredCount: coverage?.covered || 0,
+            lastUpdated: (r.lastModified as string) || null,
+          };
+        }),
+      };
     } catch (error) {
       const message = this.sanitizeError(error);
       logger.error('Failed to get Xray test plans:', message);
       throw new Error('Failed to get Xray test plans');
+    }
+  }
+
+  /**
+   * Get a single test plan with its test cases.
+   */
+  async getTestPlan(planId: string): Promise<XrayTestPlanDetail> {
+    this.checkEnabled();
+
+    try {
+      const client = await this.getAuthorizedClient();
+
+      const response = await withResilience(
+        () => client.post('/graphql', {
+          query: `
+            {
+              getTestPlan(issueId: "${this.escapeJql(planId)}") {
+                issueId
+                jira(fields: ["key", "summary"])
+                testCoverage { covered total percentage }
+                lastModified
+                tests(limit: 100) {
+                  total
+                  results {
+                    issueId
+                    testType { name }
+                    status { name }
+                    lastModified
+                    jira(fields: ["key", "summary"])
+                  }
+                }
+              }
+            }
+          `,
+        }),
+        XRAY_RESILIENCE,
+      );
+
+      const plan = response.data?.data?.getTestPlan;
+      if (!plan) throw new Error('Test plan not found');
+
+      const coverage = plan.testCoverage as Record<string, number> | undefined;
+      const testResults = plan.tests?.results || [];
+
+      return {
+        key: ((plan.jira as Record<string, unknown>)?.key as string) || plan.issueId,
+        summary: ((plan.jira as Record<string, unknown>)?.summary as string) || 'Unknown',
+        testCount: coverage?.total || testResults.length,
+        passRate: 0,
+        coveragePercentage: coverage?.percentage || 0,
+        coveredCount: coverage?.covered || 0,
+        lastUpdated: (plan.lastModified as string) || null,
+        testCases: testResults.map((r: Record<string, unknown>) => ({
+          key: ((r.jira as Record<string, unknown>)?.key as string) || r.issueId,
+          summary: ((r.jira as Record<string, unknown>)?.summary as string) || 'Unknown',
+          status: ((r.status as Record<string, unknown>)?.name as string) || 'UNKNOWN',
+          lastExecution: (r.lastModified as string) || null,
+        })),
+      };
+    } catch (error) {
+      const message = this.sanitizeError(error);
+      logger.error('Failed to get Xray test plan:', message);
+      throw new Error('Failed to get Xray test plan');
+    }
+  }
+
+  /**
+   * Get execution history for a specific test case (for AI enrichment).
+   */
+  async getTestCaseHistory(testCaseKey: string): Promise<XrayTestCaseHistory> {
+    this.checkEnabled();
+
+    try {
+      const client = await this.getAuthorizedClient();
+      const escapedKey = this.escapeJql(testCaseKey);
+
+      const response = await withResilience(
+        () => client.post('/graphql', {
+          query: `
+            {
+              getTests(
+                jql: "key = '${escapedKey}'"
+                limit: 1
+              ) {
+                results {
+                  issueId
+                  testType { name }
+                  status { name }
+                  jira(fields: ["key", "summary"])
+                  testRuns(limit: 5) {
+                    results {
+                      status { name }
+                      startedOn
+                      testExecIssue { jira(fields: ["key"]) }
+                    }
+                  }
+                  preconditions(limit: 10) {
+                    results {
+                      jira(fields: ["key", "summary", "status"])
+                    }
+                  }
+                }
+              }
+            }
+          `,
+        }),
+        XRAY_RESILIENCE,
+      );
+
+      const testCase = response.data?.data?.getTests?.results?.[0];
+      if (!testCase) throw new Error('Test case not found');
+
+      const runs = testCase.testRuns?.results || [];
+      const defects = testCase.preconditions?.results || [];
+
+      return {
+        testCaseKey: (testCase.jira as Record<string, unknown>)?.key as string || testCaseKey,
+        summary: (testCase.jira as Record<string, unknown>)?.summary as string || 'Unknown',
+        status: (testCase.status as Record<string, unknown>)?.name as string || 'UNKNOWN',
+        executionHistory: runs.map((run: Record<string, unknown>) => ({
+          date: (run.startedOn as string) || new Date().toISOString(),
+          status: ((run.status as Record<string, unknown>)?.name as string) || 'UNKNOWN',
+          executionKey: ((run.testExecIssue as Record<string, Record<string, unknown>>)?.jira?.key as string) || 'N/A',
+        })),
+        linkedDefects: defects.map((d: Record<string, unknown>) => ({
+          key: ((d.jira as Record<string, unknown>)?.key as string) || 'N/A',
+          summary: ((d.jira as Record<string, unknown>)?.summary as string) || 'Unknown',
+          status: ((d.jira as Record<string, unknown>)?.status as string) || 'Unknown',
+        })),
+      };
+    } catch (error) {
+      const message = this.sanitizeError(error);
+      logger.error('Failed to get Xray test case history:', message);
+      throw new Error('Failed to get Xray test case history');
     }
   }
 
@@ -280,7 +451,7 @@ export class XrayService {
    * Atomic: creates XraySync record only on full success.
    * Idempotent: re-syncing updates the existing XraySync record.
    */
-  async syncTestRun(testRunId: string): Promise<XraySyncResult> {
+  async syncTestRun(testRunId: string, trigger: 'MANUAL' | 'AUTO' = 'MANUAL'): Promise<XraySyncResult> {
     this.checkEnabled();
 
     // 1. Fetch test run + results
@@ -310,6 +481,7 @@ export class XrayService {
             testRunId,
             projectKey: this.projectKey,
             status: 'SYNCING',
+            trigger,
           },
         });
 

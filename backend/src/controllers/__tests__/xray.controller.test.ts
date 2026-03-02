@@ -19,9 +19,19 @@ const mockXrayService = {
   getTestCases: jest.fn().mockResolvedValue([
     { key: 'PROJ-TC-1', summary: 'Login test', status: 'PASS', lastExecution: null },
   ]),
-  getTestPlans: jest.fn().mockResolvedValue([
-    { key: 'PROJ-TP-1', summary: 'Sprint 11', testCount: 5, passRate: 0 },
-  ]),
+  getTestPlans: jest.fn().mockResolvedValue({
+    total: 1,
+    plans: [{ key: 'PROJ-TP-1', summary: 'Sprint 11', testCount: 5, passRate: 0, coveragePercentage: 80, coveredCount: 4, lastUpdated: null }],
+  }),
+  getTestPlan: jest.fn().mockResolvedValue({
+    key: 'PROJ-TP-1', summary: 'Sprint 11', testCount: 5, passRate: 0, coveragePercentage: 80, coveredCount: 4, lastUpdated: null,
+    testCases: [{ key: 'PROJ-TC-1', summary: 'Login test', status: 'PASS', lastExecution: null }],
+  }),
+  getTestCaseHistory: jest.fn().mockResolvedValue({
+    testCaseKey: 'PROJ-TC-1', summary: 'Login test', status: 'PASS',
+    executionHistory: [{ date: '2026-03-01', status: 'PASS', executionKey: 'PROJ-EX-1' }],
+    linkedDefects: [],
+  }),
   syncTestRun: jest.fn().mockResolvedValue({
     syncId: '00000000-0000-0000-0000-000000000001',
     status: 'SYNCED',
@@ -38,6 +48,10 @@ const mockXrayService = {
 
 jest.mock('@/services/xray.service', () => ({
   xrayService: mockXrayService,
+}));
+
+jest.mock('@/config', () => ({
+  config: { xray: { autoSync: false } },
 }));
 
 jest.mock('@/lib/prisma', () => ({
@@ -246,7 +260,7 @@ describe('Xray Controller', () => {
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('SYNCED');
       expect(res.body.xrayExecutionId).toBe('PROJ-123');
-      expect(mockXrayService.syncTestRun).toHaveBeenCalledWith(testRunId);
+      expect(mockXrayService.syncTestRun).toHaveBeenCalledWith(testRunId, 'MANUAL');
     });
   });
 

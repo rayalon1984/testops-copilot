@@ -3,6 +3,8 @@ import { TestRun, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
 import { logger } from '@/utils/logger';
+import { config } from '@/config';
+import { xrayService } from '@/services/xray.service';
 
 // Reusing the type from validation if possible, otherwise defining here or importing
 // Ideally, validation types should be shared. For now, using Partial<TestRun> for creation/update as a base
@@ -238,6 +240,37 @@ export class TestRunService {
 
         logger.info(`Test run retry created: ${newTestRun.id}`);
         return newTestRun;
+    }
+
+    /**
+     * Transition a test run to COMPLETED (or given status) and trigger auto-sync if enabled.
+     * Fire-and-forget: auto-sync never blocks the completion response.
+     */
+    async completeTestRun(id: string, userId: string, status: string = 'PASSED'): Promise<TestRun> {
+        const testRun = await this.getTestRunById(id, userId);
+
+        if (!['PENDING', 'RUNNING'].includes(testRun.status)) {
+            throw new Error('Can only complete pending or running test runs');
+        }
+
+        const updatedTestRun = await prisma.testRun.update({
+            where: { id },
+            data: {
+                status,
+                completedAt: new Date(),
+            },
+        });
+
+        logger.info(`Test run completed: ${id} (status: ${status})`);
+
+        // Auto-sync to Xray (fire-and-forget — never blocks completion)
+        if (config.xray?.autoSync && xrayService.isEnabled()) {
+            xrayService.syncTestRun(id, 'AUTO').catch((err) => {
+                logger.warn('Auto-sync to Xray failed', { testRunId: id, error: (err as Error).message });
+            });
+        }
+
+        return updatedTestRun;
     }
 
     async deleteTestRun(id: string): Promise<void> {
