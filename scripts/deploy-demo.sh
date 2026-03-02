@@ -85,8 +85,14 @@ GIPHY_ENABLED=true
 CORS_ORIGIN=http://localhost:5173
 EOF
     echo -e "  Created backend/.env (demo config)"
-elif [ -f "backend/.env" ]; then
+else
     echo -e "  Using existing backend/.env"
+    # Ensure DATABASE_URL is SQLite-compatible for demo mode
+    if grep -q 'DATABASE_URL.*postgresql' backend/.env 2>/dev/null; then
+        sed -i.bak 's|DATABASE_URL=.*|DATABASE_URL="file:./prisma/dev.db"|' backend/.env
+        rm -f backend/.env.bak
+        echo -e "  ${YELLOW}→ Patched DATABASE_URL to SQLite (was PostgreSQL)${NC}"
+    fi
 fi
 
 # Frontend .env — create if missing
