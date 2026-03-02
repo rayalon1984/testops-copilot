@@ -1,36 +1,31 @@
 feature: copilot-cards-v2
-name: "Copilot Card Redesign (V2)"
-version: "1.0.0"
-status: shipped
+name: "Copilot Card Redesign (V2) — Graduated"
+version: "2.0.0"
+status: graduated
 since: "v3.2.0"
 owner: AI_ARCHITECT
 category: frontend
 spec_source: DESIGN_LANG_V2.md
 
-config:
-  env:
-    COPILOT_CARDS_V2:
-      required: false
-      default: "false"
-      description: "Feature flag for V2 card variants (localStorage ff:copilot-cards-v2)"
+# Feature flag removed in v3.4.0 — V2 is the only card style.
+# The useFeatureFlag hook and V1 GitHubPRCard have been deleted.
 
 capabilities:
-  - id: cards.v2.feature-flag
-    name: "Feature Flag Routing"
-    version: "1.0.0"
-    description: "ToolResultCard routes to V2 cards when flag is ON, V1 when OFF"
+  - id: cards.v2.routing
+    name: "V2 Card Routing (Graduated)"
+    version: "2.0.0"
+    description: "ToolResultCard always routes to V2 cards. Feature flag removed in v3.4."
     files:
       - frontend/src/components/AICopilot/messages/ToolResultCard.tsx
-      - frontend/src/hooks/useFeatureFlag.ts
     assertions:
-      - id: cards.v2.flag-on-routes-v2
-        description: "When copilot-cards-v2 flag is ON, github_get_pr renders GitHubPRCardV2"
-        type: behavioral
-      - id: cards.v2.flag-off-routes-v1
-        description: "When copilot-cards-v2 flag is OFF, github_get_pr renders GitHubPRCard (V1)"
-        type: behavioral
+      - id: cards.v2.always-v2
+        description: "github_get_pr always renders GitHubPRCardV2 (V1 deleted)"
+        type: invariant
       - id: cards.v2.rca-always-new
-        description: "rca_identify always renders RootCauseCard regardless of flag state"
+        description: "rca_identify always renders RootCauseCard"
+        type: invariant
+      - id: cards.v2.no-feature-flag
+        description: "No feature flag import or check in ToolResultCard"
         type: invariant
 
   - id: cards.v2.rca
@@ -154,6 +149,13 @@ acceptance_criteria:
       - cards.v2.hk.undo-action
 
 changelog:
+  - version: "2.0.0"
+    date: "2026-03-02"
+    product_version: "v3.4.0"
+    changes:
+      - "Graduated: feature flag removed, V2 is the default (V1 GitHubPRCard deleted)"
+      - "ToolResultCard switch statement simplified — no conditional V1/V2 routing"
+      - "useFeatureFlag import removed from ToolResultCard"
   - version: "1.0.0"
     date: "2026-03-02"
     product_version: "v3.2.0"

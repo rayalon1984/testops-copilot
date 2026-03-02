@@ -1,7 +1,7 @@
 feature: smart-starter-prompts
 name: "Smart Starter Prompts (Role-Aware + Context-Aware + User-Configurable)"
 version: "1.1.0"
-status: draft
+status: active
 since: "v3.2.0"
 owner: AI_PRODUCT_MANAGER
 category: frontend

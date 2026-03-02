@@ -1,7 +1,7 @@
 feature: xray
 name: "Xray Cloud Integration"
-version: "1.0.0"
-status: draft
+version: "2.0.0"
+status: active
 since: "v3.3.0"
 owner: AI_ARCHITECT
 category: backend
@@ -171,17 +171,83 @@ capabilities:
         description: "Mock xray_search returns realistic test case results"
         type: behavioral
 
+  # ── Auto-Sync (v3.4) ────────────────────────────────────────────────
+  - id: xray.auto-sync
+    name: "Auto-Sync on Test Run Completion"
+    version: "1.0.0"
+    description: "Fire-and-forget sync to Xray when a test run completes (if enabled)"
+    files:
+      - backend/src/services/testRun.service.ts
+      - backend/src/services/xray.service.ts
+      - backend/src/controllers/xray.controller.ts
+    assertions:
+      - id: xray.auto-sync.fire-and-forget
+        description: "Auto-sync never blocks test run completion — errors caught silently"
+        type: invariant
+      - id: xray.auto-sync.trigger-field
+        description: "XraySync record stores trigger='AUTO' for auto-synced runs"
+        type: invariant
+      - id: xray.auto-sync.config-toggle
+        description: "PATCH /xray/config toggles auto-sync on/off (admin only)"
+        type: contract
+      - id: xray.auto-sync.gated
+        description: "Auto-sync only fires when config.xray.autoSync is true AND xrayService.isEnabled()"
+        type: invariant
+
+  # ── Test Plan Browser (v3.4) ───────────────────────────────────────
+  - id: xray.test-plans
+    name: "Test Plan Browser"
+    version: "1.0.0"
+    description: "Browse Xray test plans with coverage data and drill-down"
+    files:
+      - backend/src/controllers/xray.controller.ts
+      - backend/src/services/xray.service.ts
+      - frontend/src/pages/Settings/XrayTab.tsx
+      - frontend/src/hooks/api/useXray.ts
+    assertions:
+      - id: xray.test-plans.list-paginated
+        description: "GET /xray/test-plans returns paginated plans with coverage percentage"
+        type: contract
+      - id: xray.test-plans.detail-drill-down
+        description: "GET /xray/test-plans/:planId returns plan with test cases array"
+        type: contract
+      - id: xray.test-plans.coverage-bar
+        description: "Frontend renders coverage percentage as colored progress bar"
+        type: behavioral
+      - id: xray.test-plans.expandable-rows
+        description: "Clicking a plan row expands to show its test cases"
+        type: behavioral
+
+  # ── AI Enrichment (v3.4) ───────────────────────────────────────────
+  - id: xray.enrichment
+    name: "Xray Context Enrichment"
+    version: "1.0.0"
+    description: "Xray test case history as 4th enrichment source for AI analysis"
+    files:
+      - backend/src/services/ai/features/context-enrichment.ts
+      - backend/src/services/ai/features/context-enrichment.types.ts
+    assertions:
+      - id: xray.enrichment.parallel
+        description: "Xray enrichment runs in parallel with Jira, Confluence, GitHub via Promise.allSettled"
+        type: invariant
+      - id: xray.enrichment.gated
+        description: "Only fires when failure has externalTestCaseId and xrayService.isEnabled()"
+        type: invariant
+      - id: xray.enrichment.failure-isolation
+        description: "Xray enrichment failure does not block other enrichment sources"
+        type: invariant
+
   # ── Frontend ─────────────────────────────────────────────────────────
   - id: xray.frontend
     name: "Xray Settings UI"
-    version: "1.0.0"
-    description: "Settings form for configuring Xray connection"
+    version: "2.0.0"
+    description: "Settings tab with connection test, auto-sync toggle, test plan browser, and sync history"
     files:
-      - frontend/src/pages/Settings/XraySettings.tsx
+      - frontend/src/pages/Settings/XrayTab.tsx
       - frontend/src/hooks/api/useXray.ts
     assertions:
       - id: xray.frontend.config-form
-        description: "Settings form collects client_id, client_secret, project_key"
+        description: "Settings form shows env var guidance for client_id, client_secret, project_key"
         type: behavioral
       - id: xray.frontend.test-connection
         description: "Test Connection button calls API and shows success/failure"
@@ -191,6 +257,12 @@ capabilities:
         type: behavioral
       - id: xray.frontend.error-display
         description: "Connection failure shows specific error (auth vs network vs timeout)"
+        type: behavioral
+      - id: xray.frontend.auto-sync-toggle
+        description: "Switch component toggles auto-sync via PATCH /xray/config"
+        type: behavioral
+      - id: xray.frontend.trigger-column
+        description: "Sync history table shows trigger type column (Manual/Auto)"
         type: behavioral
 
 acceptance_criteria:
@@ -247,6 +319,16 @@ acceptance_criteria:
       - xray.api.not-configured
 
 changelog:
+  - version: "2.0.0"
+    date: "2026-03-02"
+    product_version: "v3.4.0"
+    changes:
+      - "Status: draft → active"
+      - "Auto-sync: fire-and-forget on test run completion with trigger tracking"
+      - "Test plan browser: paginated list with coverage bars, expandable drill-down"
+      - "AI enrichment: Xray as 4th parallel source in context enrichment pipeline"
+      - "Frontend: auto-sync toggle, test plans section, trigger column in sync history"
+      - "14 new assertions across 4 new capabilities (auto-sync, test-plans, enrichment, frontend v2)"
   - version: "1.0.0"
     date: "2026-03-02"
     product_version: "v3.3.0"
