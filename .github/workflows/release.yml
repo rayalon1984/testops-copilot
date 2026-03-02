@@ -104,7 +104,7 @@ jobs:
 
           ### 📖 Documentation
 
-          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/v${{ steps.get_version.outputs.version }}/CHANGELOG.md) for complete details.
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for complete details.
         draft: false
         prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
 

@@ -221,6 +221,41 @@ echo "── Pushing to origin ────────────────�
 
 git push origin "${BRANCH}" --tags
 
+echo "  ✓ Pushed to origin/${BRANCH}"
+echo ""
+
+# ── Create GitHub Release ──────────────────────────────────────────────
+# Creates the release via gh CLI so CI doesn't auto-generate a grocery list.
+# The CI workflow's skip check will see this release exists and not overwrite it.
+
+if command -v gh &>/dev/null; then
+  echo "── Creating GitHub Release ──────────────────────────────"
+
+  RELEASE_BODY="${CHANGELOG_ENTRY}
+
+### Installation
+
+\`\`\`bash
+git clone https://github.com/$(gh repo view --json nameWithOwner -q '.nameWithOwner').git
+cd testops-copilot
+git checkout ${TAG}
+npm run setup
+\`\`\`
+
+📖 See [CHANGELOG.md](https://github.com/$(gh repo view --json nameWithOwner -q '.nameWithOwner')/blob/main/CHANGELOG.md) for full history."
+
+  gh release create "${TAG}" \
+    --title "TestOps Copilot ${TAG}" \
+    --notes "${RELEASE_BODY}" \
+    --verify-tag
+
+  echo "  ✓ GitHub Release created"
+else
+  echo "⚠ gh CLI not found — skipping GitHub Release creation."
+  echo "  CI will auto-generate release notes (may be less polished)."
+  echo "  Install gh: https://cli.github.com"
+fi
+
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║  ✓ Released ${TAG}                                   "
@@ -228,5 +263,5 @@ echo "╚═══════════════════════�
 echo ""
 echo "  Tag:       ${TAG}"
 echo "  Changelog: CHANGELOG.md updated"
-echo "  Remote:    pushed to origin/${BRANCH}"
+echo "  Release:   https://github.com/$(gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || echo 'OWNER/REPO')/releases/tag/${TAG}"
 echo ""
