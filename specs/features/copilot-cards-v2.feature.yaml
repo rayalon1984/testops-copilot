@@ -105,16 +105,14 @@ capabilities:
 
 acceptance_criteria:
   - id: AC-1
-    title: "Feature flag controls card routing"
+    title: "V2 cards are the default (graduated)"
     gherkin: |
-      GIVEN the copilot-cards-v2 flag is OFF
+      GIVEN the copilot-cards-v2 feature has graduated
       WHEN a github_get_pr tool result renders
-      THEN the V1 GitHubPRCard is shown
-      AND when the flag is toggled ON
-      THEN the V2 GitHubPRCardV2 is shown instead
+      THEN GitHubPRCardV2 is always shown (V1 deleted, no feature flag)
     maps_to:
-      - cards.v2.flag-on-routes-v2
-      - cards.v2.flag-off-routes-v1
+      - cards.v2.always-v2
+      - cards.v2.no-feature-flag
 
   - id: AC-2
     title: "Analysis chain renders 3 cards"

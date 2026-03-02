@@ -78,7 +78,7 @@ export interface FeatureManifest {
 // --- Validation helpers ---
 
 const VALID_ASSERTION_TYPES: ReadonlySet<string> = new Set(['invariant', 'behavioral', 'contract']);
-const VALID_STATUSES: ReadonlySet<string> = new Set(['draft', 'shipped', 'deprecated']);
+const VALID_STATUSES: ReadonlySet<string> = new Set(['draft', 'active', 'shipped', 'graduated', 'deprecated']);
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 
 export interface ValidationError {

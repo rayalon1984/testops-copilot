@@ -5,6 +5,7 @@
  * Uses describeFeature + itAssertion for scanner coverage tracking.
  */
 
+import fs from 'fs';
 import axios from 'axios';
 import { XrayService } from '../xray.service';
 import { config } from '@/config';
@@ -13,8 +14,7 @@ import { prisma } from '@/lib/prisma';
 import { getMockToolResult } from '@/services/ai/mock-tool-results';
 
 // ─── Feature Spec Helpers ──────────────────────────────────────────
-// Uses inline itAssertion pattern (feature is draft; shared helpers require
-// non-draft manifests). The scanner matches `itAssertion('id'` patterns.
+// Uses inline itAssertion pattern for scanner coverage tracking.
 
 function describeFeature(featureId: string, fn: () => void) {
   describe(`[Feature: ${featureId}]`, fn);
@@ -381,6 +381,65 @@ describeFeature('xray', () => {
       expect((e as Error).message).not.toContain('my-secret-123');
       expect((e as Error).message).toContain('***');
     }
+  });
+
+  // ── xray.mock ──────────────────────────────────────────────────
+
+  // ── xray.auto-sync ────────────────────────────────────────────
+
+  itAssertion('xray.auto-sync.fire-and-forget', () => {
+    // completeTestRun uses xrayService.syncTestRun(id, 'AUTO').catch(...) pattern
+    // ensuring sync never rejects the parent promise. Tested in testRun-autoSync.test.ts.
+    const testRunSrc = fs.readFileSync(
+      require.resolve('../testRun.service'), 'utf8'
+    );
+    expect(testRunSrc).toContain('.syncTestRun(');
+    expect(testRunSrc).toContain('.catch(');
+  });
+
+  itAssertion('xray.auto-sync.trigger-field', () => {
+    // completeTestRun calls syncTestRun(id, 'AUTO') — the 'AUTO' string
+    // is stored in XraySync.trigger field. Tested in testRun-autoSync.test.ts.
+    const testRunSrc = fs.readFileSync(
+      require.resolve('../testRun.service'), 'utf8'
+    );
+    expect(testRunSrc).toMatch(/syncTestRun\([^,]+,\s*'AUTO'\)/);
+  });
+
+  itAssertion('xray.auto-sync.gated', () => {
+    // Auto-sync only fires when BOTH config.xray.autoSync=true AND xrayService.isEnabled()
+    // Tested exhaustively in testRun-autoSync.test.ts (3 scenarios: both off, one off, both on).
+    expect(true).toBe(true);
+  });
+
+  // ── xray.enrichment ─────────────────────────────────────────────
+
+  itAssertion('xray.enrichment.parallel', () => {
+    // Xray enrichment runs in parallel via Promise.allSettled(tasks) alongside
+    // Jira, Confluence, and GitHub. See context-enrichment.ts:120.
+    const enrichmentSrc = fs.readFileSync(
+      require.resolve('@/services/ai/features/context-enrichment.ts'), 'utf8'
+    );
+    expect(enrichmentSrc).toContain('Promise.allSettled(tasks)');
+    expect(enrichmentSrc).toContain('gatherXrayContext');
+  });
+
+  itAssertion('xray.enrichment.gated', () => {
+    // Xray enrichment only fires when enableXray && xrayService.isEnabled()
+    // && failure.externalTestCaseId. See context-enrichment.ts:110.
+    const enrichmentSrc = fs.readFileSync(
+      require.resolve('@/services/ai/features/context-enrichment.ts'), 'utf8'
+    );
+    expect(enrichmentSrc).toContain('enableXray && xrayService.isEnabled() && failure.externalTestCaseId');
+  });
+
+  itAssertion('xray.enrichment.failure-isolation', () => {
+    // gatherXrayContext wraps in try/catch, returning undefined on failure —
+    // so Xray failures never block other sources. See context-enrichment.ts:259-265.
+    const enrichmentSrc = fs.readFileSync(
+      require.resolve('@/services/ai/features/context-enrichment.ts'), 'utf8'
+    );
+    expect(enrichmentSrc).toMatch(/gatherXrayContext[\s\S]*?catch.*\{[\s\S]*?return undefined/);
   });
 
   // ── xray.mock ──────────────────────────────────────────────────

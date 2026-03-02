@@ -39,7 +39,7 @@ capabilities:
     version: "1.0.0"
     description: "Enhanced PR card with embedded diff and merge actions"
     files:
-      - frontend/src/components/AICopilot/cards/GitHubPRCard.tsx
+      - frontend/src/components/AICopilot/cards/v2/GitHubPRCardV2.tsx
     assertions:
       - id: diff.pr-card.file-summary
         description: "Shows file count chip, total additions (green), and total deletions (red)"

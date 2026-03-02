@@ -80,7 +80,6 @@ capabilities:
     version: "1.0.0"
     description: "REST endpoints for Xray connection testing and sync triggering"
     files:
-      - backend/src/routes/xray.routes.ts
       - backend/src/controllers/xray.controller.ts
     assertions:
       - id: xray.api.auth-required
