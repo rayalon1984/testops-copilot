@@ -127,6 +127,13 @@ const envSchema = z.object({
   // Microsoft Teams
   TEAMS_APP_ID: z.string().optional(),
   TEAMS_APP_PASSWORD: z.string().optional(),
+
+  // Xray Cloud (optional)
+  XRAY_CLIENT_ID: z.string().optional(),
+  XRAY_CLIENT_SECRET: z.string().optional(),
+  XRAY_PROJECT_KEY: z.string().optional(),
+  XRAY_CLOUD_URL: z.string().url().optional().default('https://xray.cloud.getxray.app'),
+  XRAY_AUTO_SYNC: z.string().transform(val => val === 'true').default('false'),
 });
 
 // Parse and validate environment variables
@@ -270,6 +277,13 @@ export interface Config {
       appToken: string;
     };
   };
+  xray?: {
+    clientId: string;
+    clientSecret: string;
+    projectKey: string;
+    cloudUrl: string;
+    autoSync: boolean;
+  };
   ai: {
     provider: 'openai' | 'anthropic' | 'mock';
     apiKey: string;
@@ -317,6 +331,15 @@ export const config: Config = {
       username: env.TESTRAIL_USERNAME,
       apiKey: env.TESTRAIL_API_KEY,
       projectId: env.TESTRAIL_PROJECT_ID,
+    },
+  }),
+  ...(env.XRAY_CLIENT_ID && env.XRAY_CLIENT_SECRET && env.XRAY_PROJECT_KEY && {
+    xray: {
+      clientId: env.XRAY_CLIENT_ID,
+      clientSecret: env.XRAY_CLIENT_SECRET,
+      projectKey: env.XRAY_PROJECT_KEY,
+      cloudUrl: env.XRAY_CLOUD_URL,
+      autoSync: env.XRAY_AUTO_SYNC,
     },
   }),
   ...(env.CONFLUENCE_BASE_URL && env.CONFLUENCE_USERNAME && env.CONFLUENCE_API_TOKEN && {

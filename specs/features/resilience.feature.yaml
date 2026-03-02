@@ -73,10 +73,10 @@ capabilities:
       - backend/src/lib/resilience.ts
     assertions:
       - id: resilience.preconfigured.four-services
-        description: "Pre-configured breakers exist for: github, jira, jenkins, confluence"
+        description: "Pre-configured breakers exist for: github, jira, jenkins, confluence, xray"
         type: invariant
       - id: resilience.preconfigured.all-statuses
-        description: "getAllCircuitBreakerStatuses returns array of 4 status objects"
+        description: "getAllCircuitBreakerStatuses returns array of 5 status objects"
         type: contract
 
 acceptance_criteria:

@@ -179,6 +179,8 @@ function collectUntestedByType(
     const filePath = path.join(FEATURES_DIR, r.fileName);
     const content = fs.readFileSync(filePath, 'utf-8');
     const manifest = yaml.load(content) as FeatureManifest;
+    // Skip draft features — they don't count toward thresholds
+    if (manifest.status === 'draft') continue;
     for (const cap of manifest.capabilities) {
       for (const assertion of cap.assertions) {
         if (assertion.type === type && !assertion.deprecated && !freshTestedIds.has(assertion.id)) {
@@ -273,6 +275,8 @@ function scan(): ScanReport {
       capabilities: [],
     };
 
+    const isDraft = manifest.status === 'draft';
+
     // Validate capabilities
     for (const cap of manifest.capabilities) {
       const capSummary: CapabilitySummary = {
@@ -283,10 +287,12 @@ function scan(): ScanReport {
         hasDrift: false,
       };
 
-      // Check source file existence
-      for (const f of cap.files) {
-        if (!checkFileExists(f)) {
-          result.errors.push(`File not found: ${f} (capability: ${cap.id})`);
+      // Check source file existence (skip for draft features — files haven't been created yet)
+      if (!isDraft) {
+        for (const f of cap.files) {
+          if (!checkFileExists(f)) {
+            result.errors.push(`File not found: ${f} (capability: ${cap.id})`);
+          }
         }
       }
 
@@ -303,13 +309,20 @@ function scan(): ScanReport {
 
       for (const assertion of cap.assertions) {
         result.assertionCount++;
-        coverage.total++;
+
+        // Draft features are tracked but excluded from coverage thresholds
+        if (!isDraft) {
+          coverage.total++;
+          const typeKey = assertion.type === 'invariant' ? 'invariants'
+            : assertion.type === 'behavioral' ? 'behavioral'
+            : 'contracts';
+          coverage[typeKey].total++;
+        }
 
         // Track assertion type coverage
         const typeKey = assertion.type === 'invariant' ? 'invariants'
           : assertion.type === 'behavioral' ? 'behavioral'
           : 'contracts';
-        coverage[typeKey].total++;
 
         // Check for duplicate assertion IDs across all features
         if (allAssertionIds.has(assertion.id)) {
@@ -321,8 +334,10 @@ function scan(): ScanReport {
         if (testedIds.has(assertion.id)) {
           result.testedCount++;
           capSummary.testedCount++;
-          coverage.tested++;
-          coverage[typeKey].tested++;
+          if (!isDraft) {
+            coverage.tested++;
+            coverage[typeKey].tested++;
+          }
           testedIds.delete(assertion.id); // Remove so we can find orphaned tests later
         } else if (!assertion.deprecated) {
           result.untestedCount++;
@@ -436,8 +451,9 @@ function scan(): ScanReport {
 
     for (const r of results) {
       const icon = r.errors.length > 0 ? 'x' : r.untestedCount > 0 ? '!' : '+';
+      const draftTag = r.status === 'draft' ? ' [DRAFT]' : '';
       console.log(
-        `${icon} ${r.featureId} (v${r.version}) — ${r.assertionCount} assertions, ` +
+        `${icon} ${r.featureId} (v${r.version})${draftTag} — ${r.assertionCount} assertions, ` +
         `${r.testedCount} tested, ${r.untestedCount} untested`,
       );
     }

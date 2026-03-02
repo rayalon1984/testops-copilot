@@ -327,6 +327,10 @@ export const circuitBreakers = {
     failureThreshold: 5,
     resetTimeoutMs: 30_000,
   }),
+  xray: new CircuitBreaker('xray', {
+    failureThreshold: 5,
+    resetTimeoutMs: 30_000,
+  }),
 } as const;
 
 /** Snapshot of all circuit breaker states (for /health/full). */

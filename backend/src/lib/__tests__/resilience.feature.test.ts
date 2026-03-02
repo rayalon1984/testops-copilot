@@ -174,11 +174,12 @@ describeFeature('resilience', () => {
     expect(circuitBreakers.jira).toBeInstanceOf(CircuitBreaker);
     expect(circuitBreakers.jenkins).toBeInstanceOf(CircuitBreaker);
     expect(circuitBreakers.confluence).toBeInstanceOf(CircuitBreaker);
+    expect(circuitBreakers.xray).toBeInstanceOf(CircuitBreaker);
   });
 
   itAssertion('resilience.preconfigured.all-statuses', () => {
     const statuses = getAllCircuitBreakerStatuses();
-    expect(statuses).toHaveLength(4);
+    expect(statuses).toHaveLength(5);
     for (const s of statuses) {
       expect(s).toHaveProperty('name');
       expect(s).toHaveProperty('state');

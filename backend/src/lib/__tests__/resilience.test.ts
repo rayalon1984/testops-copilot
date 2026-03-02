@@ -352,22 +352,24 @@ describe('circuitBreakers', () => {
     Object.values(circuitBreakers).forEach(cb => cb.reset());
   });
 
-  it('has breakers for github, jira, jenkins, confluence', () => {
+  it('has breakers for github, jira, jenkins, confluence, xray', () => {
     expect(circuitBreakers.github).toBeInstanceOf(CircuitBreaker);
     expect(circuitBreakers.jira).toBeInstanceOf(CircuitBreaker);
     expect(circuitBreakers.jenkins).toBeInstanceOf(CircuitBreaker);
     expect(circuitBreakers.confluence).toBeInstanceOf(CircuitBreaker);
+    expect(circuitBreakers.xray).toBeInstanceOf(CircuitBreaker);
   });
 
   it('getAllCircuitBreakerStatuses() returns all breaker states', () => {
     const statuses = getAllCircuitBreakerStatuses();
-    expect(statuses).toHaveLength(4);
+    expect(statuses).toHaveLength(5);
 
     const names = statuses.map(s => s.name);
     expect(names).toContain('github');
     expect(names).toContain('jira');
     expect(names).toContain('jenkins');
     expect(names).toContain('confluence');
+    expect(names).toContain('xray');
 
     statuses.forEach(s => {
       expect(s.state).toBe('CLOSED');

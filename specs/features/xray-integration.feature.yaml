@@ -1,0 +1,256 @@
+feature: xray
+name: "Xray Cloud Integration"
+version: "1.0.0"
+status: draft
+since: "v3.3.0"
+owner: AI_ARCHITECT
+category: backend
+spec_source: "plans/2026-03-02-xray-integration-v3.3.md"
+
+config:
+  env:
+    XRAY_CLIENT_ID:
+      required: true
+      default: ""
+      description: "Xray Cloud API client ID"
+    XRAY_CLIENT_SECRET:
+      required: true
+      default: ""
+      description: "Xray Cloud API client secret"
+    XRAY_PROJECT_KEY:
+      required: true
+      default: ""
+      description: "Jira project key for Xray test cases"
+    XRAY_CLOUD_URL:
+      required: false
+      default: "https://xray.cloud.getxray.app"
+      description: "Xray Cloud base URL"
+    XRAY_AUTO_SYNC:
+      required: false
+      default: "false"
+      description: "Auto-push results on test run completion"
+
+capabilities:
+  # ── Authentication ───────────────────────────────────────────────────
+  - id: xray.auth
+    name: "Xray Authentication"
+    version: "1.0.0"
+    description: "OAuth2 client credentials exchange with Xray Cloud API"
+    files:
+      - backend/src/services/xray.service.ts
+    assertions:
+      - id: xray.auth.oauth2-exchange
+        description: "Exchanges client_id + client_secret for JWT via Xray Cloud API"
+        type: invariant
+      - id: xray.auth.token-cache
+        description: "Caches JWT token and refreshes on 401 response"
+        type: invariant
+      - id: xray.auth.invalid-credentials
+        description: "Returns clear error message for invalid client_id/secret"
+        type: invariant
+
+  # ── Test Run Sync ────────────────────────────────────────────────────
+  - id: xray.sync
+    name: "Test Run Sync"
+    version: "1.0.0"
+    description: "Push Copilot test run results to Xray Cloud as Test Executions"
+    files:
+      - backend/src/services/xray.service.ts
+      - backend/prisma/schema.prisma
+    assertions:
+      - id: xray.sync.create-execution
+        description: "Creates Xray Test Execution with mapped test results"
+        type: invariant
+      - id: xray.sync.status-mapping
+        description: "Maps Copilot statuses correctly: PASSED→PASS, FAILED→FAIL, SKIPPED→TODO"
+        type: invariant
+      - id: xray.sync.atomic
+        description: "Sync is all-or-nothing; partial uploads are rolled back"
+        type: invariant
+      - id: xray.sync.stores-execution-id
+        description: "Persists Xray execution ID in XraySync model after success"
+        type: invariant
+      - id: xray.sync.idempotent
+        description: "Re-syncing same test run updates existing execution, does not create duplicate"
+        type: behavioral
+
+  # ── API Endpoints ────────────────────────────────────────────────────
+  - id: xray.api
+    name: "Xray API Endpoints"
+    version: "1.0.0"
+    description: "REST endpoints for Xray connection testing and sync triggering"
+    files:
+      - backend/src/routes/xray.routes.ts
+      - backend/src/controllers/xray.controller.ts
+    assertions:
+      - id: xray.api.auth-required
+        description: "All endpoints require valid JWT; returns 401 otherwise"
+        type: contract
+      - id: xray.api.admin-only-connection
+        description: "GET /xray/test-connection requires ADMIN role"
+        type: contract
+      - id: xray.api.sync-response-shape
+        description: "POST /xray/sync/:id returns { syncId, status, xrayExecutionId, resultCount }"
+        type: contract
+      - id: xray.api.not-configured
+        description: "Returns 503 with clear message when Xray is not configured"
+        type: contract
+
+  # ── Resilience ───────────────────────────────────────────────────────
+  - id: xray.resilience
+    name: "Xray Resilience"
+    version: "1.0.0"
+    description: "Circuit breaker, retry, and timeout for Xray API calls"
+    files:
+      - backend/src/services/xray.service.ts
+      - backend/src/lib/resilience.ts
+    assertions:
+      - id: xray.resilience.circuit-breaker
+        description: "Circuit breaker opens after 5 consecutive Xray API failures"
+        type: invariant
+      - id: xray.resilience.retry-transient
+        description: "Retries 429 and 503 responses with exponential backoff (max 2)"
+        type: behavioral
+      - id: xray.resilience.timeout
+        description: "Enforces 15s timeout on all Xray API calls"
+        type: invariant
+
+  # ── AI Tool ──────────────────────────────────────────────────────────
+  - id: xray.tool
+    name: "xray_search AI Tool"
+    version: "1.0.0"
+    description: "Read-only AI tool to query Xray test cases from the copilot"
+    files:
+      - backend/src/services/ai/tools/xray.ts
+      - backend/src/services/ai/tools/index.ts
+    assertions:
+      - id: xray.tool.read-only
+        description: "Tool is classified as read-only (no confirmation required)"
+        type: invariant
+      - id: xray.tool.returns-cases
+        description: "Returns test case key, summary, status, and last execution result"
+        type: behavioral
+      - id: xray.tool.graceful-disabled
+        description: "Returns helpful error when Xray integration is not configured"
+        type: behavioral
+      - id: xray.tool.limit-cap
+        description: "Caps results at 25 regardless of user request"
+        type: invariant
+
+  # ── Security ─────────────────────────────────────────────────────────
+  - id: xray.security
+    name: "Xray Security"
+    version: "1.0.0"
+    description: "SSRF protection, input sanitization, and credential safety"
+    files:
+      - backend/src/services/xray.service.ts
+    assertions:
+      - id: xray.security.ssrf-validation
+        description: "Constructor validates XRAY_CLOUD_URL with validateUrlForSSRF()"
+        type: invariant
+      - id: xray.security.jql-escape
+        description: "Search queries are escaped before being sent to Xray API"
+        type: invariant
+      - id: xray.security.no-secret-leak
+        description: "Error responses never include client_secret or JWT token in body"
+        type: invariant
+
+  # ── Mock / Demo Path ─────────────────────────────────────────────────
+  - id: xray.mock
+    name: "Xray Demo/Mock Path"
+    version: "1.0.0"
+    description: "Mock provider support for demo mode and testing"
+    files:
+      - backend/src/services/ai/providers/mock.provider.ts
+      - backend/src/services/ai/mock-tool-results.ts
+    assertions:
+      - id: xray.mock.intent-routes
+        description: "Mock provider routes 'xray test cases' queries to xray_search tool"
+        type: behavioral
+      - id: xray.mock.returns-data
+        description: "Mock xray_search returns realistic test case results"
+        type: behavioral
+
+  # ── Frontend ─────────────────────────────────────────────────────────
+  - id: xray.frontend
+    name: "Xray Settings UI"
+    version: "1.0.0"
+    description: "Settings form for configuring Xray connection"
+    files:
+      - frontend/src/pages/Settings/XraySettings.tsx
+      - frontend/src/hooks/api/useXray.ts
+    assertions:
+      - id: xray.frontend.config-form
+        description: "Settings form collects client_id, client_secret, project_key"
+        type: behavioral
+      - id: xray.frontend.test-connection
+        description: "Test Connection button calls API and shows success/failure"
+        type: behavioral
+      - id: xray.frontend.validation
+        description: "Submit disabled with validation messages when required fields empty"
+        type: behavioral
+      - id: xray.frontend.error-display
+        description: "Connection failure shows specific error (auth vs network vs timeout)"
+        type: behavioral
+
+acceptance_criteria:
+  - id: AC-1
+    title: "Connection Setup"
+    gherkin: |
+      GIVEN Xray credentials are configured in settings
+      WHEN the admin clicks "Test Connection"
+      THEN the system exchanges credentials for a JWT and returns success/failure
+    maps_to:
+      - xray.api.auth-required
+      - xray.api.admin-only-connection
+      - xray.auth.oauth2-exchange
+
+  - id: AC-2
+    title: "Result Sync"
+    gherkin: |
+      GIVEN a completed test run with results
+      WHEN the user clicks "Sync to Xray"
+      THEN results are pushed as a Test Execution with correct status mapping
+    maps_to:
+      - xray.sync.create-execution
+      - xray.sync.status-mapping
+      - xray.sync.stores-execution-id
+
+  - id: AC-3
+    title: "AI Tool Search"
+    gherkin: |
+      GIVEN Xray is configured and the copilot is open
+      WHEN the user asks "find Xray test cases for checkout"
+      THEN the xray_search tool returns matching test cases with key, summary, and status
+    maps_to:
+      - xray.tool.returns-cases
+      - xray.tool.read-only
+
+  - id: AC-4
+    title: "Sync Error Handling"
+    gherkin: |
+      GIVEN Xray API is temporarily unavailable
+      WHEN sync is attempted
+      THEN the system retries transient errors and shows clear failure message
+    maps_to:
+      - xray.resilience.retry-transient
+      - xray.api.not-configured
+
+  - id: AC-5
+    title: "Test Case Mapping"
+    gherkin: |
+      GIVEN test results with externalTestCaseId populated
+      WHEN synced to Xray
+      THEN results are linked to the correct Xray test cases
+    maps_to:
+      - xray.sync.create-execution
+      - xray.api.not-configured
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-03-02"
+    product_version: "v3.3.0"
+    changes:
+      - "Initial Xray Cloud integration feature spec"
+      - "28 assertions across 8 capabilities"
+      - "5 acceptance criteria with full assertion traceability"

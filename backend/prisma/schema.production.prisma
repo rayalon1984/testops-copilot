@@ -111,16 +111,17 @@ enum PipelineType {
 }
 
 model TestResult {
-  id          String   @id @default(uuid()) @db.Uuid
-  testRunId   String   @db.Uuid
-  name        String
-  className   String?
-  status      TestStatus
-  duration    Int?
-  error       String?
-  stackTrace  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String     @id @default(uuid()) @db.Uuid
+  testRunId          String     @db.Uuid
+  name               String
+  className          String?
+  status             TestStatus
+  duration           Int?
+  error              String?
+  stackTrace         String?
+  externalTestCaseId String?    // e.g., "PROJ-TC-123" (Xray) or "C12345" (TestRail)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
   testRun     TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
 
@@ -558,4 +559,23 @@ model QuarantinedTest {
   @@index([status])
   @@index([testName])
   @@map("quarantined_tests")
+}
+
+// ─── Xray Cloud Integration ───
+
+model XraySync {
+  id              String    @id @default(uuid()) @db.Uuid
+  testRunId       String    @db.Uuid             // FK to TestRun
+  xrayExecutionId String?                        // Xray Test Execution issue key (e.g., "PROJ-456")
+  projectKey      String                         // Jira project key
+  status          String    @default("PENDING")  // PENDING | SYNCING | SYNCED | FAILED
+  resultCount     Int       @default(0)          // Number of results pushed
+  errorMessage    String?                        // Last error if FAILED
+  syncedAt        DateTime?                      // When sync completed
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([testRunId])
+  @@index([status])
+  @@map("xray_syncs")
 }
