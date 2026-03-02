@@ -299,6 +299,8 @@ async function seed() {
         duration: randomBetween(50, 5000),
         error: isFailed ? tpl.errorMessage : null,
         stackTrace: isFailed ? tpl.stackTrace : null,
+        // ~30% of results linked to Xray test cases for demo
+        externalTestCaseId: Math.random() < 0.3 ? `PROJ-TC-${randomBetween(100, 199)}` : null,
         createdAt: endTime,
       });
     }
@@ -1055,6 +1057,31 @@ async function seed() {
   const reinstatedCount = quarantinedTestData.filter(t => t.status === 'reinstated').length;
   console.log(`  Created ${quarantinedTestData.length} quarantined tests (${quarantinedCount} active, ${reinstatedCount} reinstated)`);
 
+  // ── 23. Xray Sync Records ──
+  console.log('Creating Xray sync records...');
+
+  const recentRuns = testRunPayloads.slice(0, 6);
+  const xraySyncPayloads: Prisma.XraySyncCreateManyInput[] = recentRuns.map((run, i) => {
+    const isFailed = i === 4; // one failure for realism
+    const isSyncing = i === 5; // one in-progress
+    const syncedAt = isFailed || isSyncing ? null : hoursAgo(randomBetween(1, 48));
+    const status = isFailed ? 'FAILED' : isSyncing ? 'SYNCING' : 'SYNCED';
+
+    return {
+      testRunId: run.id!,
+      xrayExecutionId: status === 'SYNCED' ? `PROJ-EX-${200 + i}` : null,
+      projectKey: 'PROJ',
+      status,
+      resultCount: status === 'SYNCED' ? randomBetween(8, 50) : 0,
+      errorMessage: isFailed ? 'Authentication failed (HTTP 401)' : null,
+      syncedAt,
+      createdAt: hoursAgo(randomBetween(2, 72)),
+    };
+  });
+
+  await prisma.xraySync.createMany({ data: xraySyncPayloads });
+  console.log(`  Created ${xraySyncPayloads.length} Xray sync records`);
+
   // ── Summary ──
   const summary = {
     users: users.length,
@@ -1080,6 +1107,7 @@ async function seed() {
     healingRules: healingRules.length,
     healingEvents: healingEventPayloads.length,
     quarantinedTests: quarantinedTestData.length,
+    xraySyncs: xraySyncPayloads.length,
   };
 
   const totalDataPoints = Object.values(summary).reduce((a, b) => a + b, 0);
