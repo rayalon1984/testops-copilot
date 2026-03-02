@@ -15,6 +15,7 @@ import { NotificationsTab } from './settings/NotificationsTab';
 import { CICDTab } from './settings/CICDTab';
 import { GeneralTab } from './settings/GeneralTab';
 import { AutonomyTab } from './settings/AutonomyTab';
+import { XrayTab } from './settings/XrayTab';
 import { useSettings, useUpdateSettings } from '../hooks/api';
 
 export default function Settings() {
@@ -78,6 +79,7 @@ export default function Settings() {
           <Tab label="CI/CD Integration" />
           <Tab label="General" />
           <Tab label="AI Copilot" />
+          <Tab label="Xray" />
         </Tabs>
 
         {error && (
@@ -106,6 +108,10 @@ export default function Settings() {
 
         <TabPanel value={tabValue} index={3}>
           <AutonomyTab />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={4}>
+          <XrayTab />
         </TabPanel>
       </Paper>
     </Container>

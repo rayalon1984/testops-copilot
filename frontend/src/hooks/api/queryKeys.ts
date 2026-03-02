@@ -65,6 +65,13 @@ export const queryKeys = {
     current: () => ['ai-config'] as const,
   },
 
+  xray: {
+    testCases: (query: string) => ['xray', 'test-cases', query] as const,
+    testPlans: () => ['xray', 'test-plans'] as const,
+    syncHistory: () => ['xray', 'syncs'] as const,
+    syncStatus: (id: string | undefined) => ['xray', 'sync', id] as const,
+  },
+
   healing: {
     rules: () => ['healing-rules'] as const,
     events: (filters?: { pipelineId?: string; limit?: number }) => ['healing-events', filters] as const,
