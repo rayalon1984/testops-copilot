@@ -72,6 +72,7 @@ const envSchema = z.object({
   CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters').default('csrf-dev-secret-change-in-production-32chars'),
 
   // Redis
+  REDIS_ENABLED: z.string().transform(val => val === 'true').default('false'),
   REDIS_MODE: z.enum(['standalone', 'cluster', 'sentinel']).default('standalone'),
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.string().transform(Number).default('6379'),
@@ -230,6 +231,7 @@ export interface Config {
     csrfSecret: string;
   };
   redis: {
+    enabled: boolean;
     mode: 'standalone' | 'cluster' | 'sentinel';
     host: string;
     port: number;
@@ -367,6 +369,7 @@ export const config: Config = {
     csrfSecret: env.CSRF_SECRET,
   },
   redis: {
+    enabled: env.REDIS_ENABLED,
     mode: env.REDIS_MODE,
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,
