@@ -201,7 +201,7 @@ capabilities:
     files:
       - backend/src/controllers/xray.controller.ts
       - backend/src/services/xray.service.ts
-      - frontend/src/pages/Settings/XrayTab.tsx
+      - frontend/src/pages/settings/XrayTab.tsx
       - frontend/src/hooks/api/useXray.ts
     assertions:
       - id: xray.test-plans.list-paginated
@@ -242,7 +242,7 @@ capabilities:
     version: "2.0.0"
     description: "Settings tab with connection test, auto-sync toggle, test plan browser, and sync history"
     files:
-      - frontend/src/pages/Settings/XrayTab.tsx
+      - frontend/src/pages/settings/XrayTab.tsx
       - frontend/src/hooks/api/useXray.ts
     assertions:
       - id: xray.frontend.config-form

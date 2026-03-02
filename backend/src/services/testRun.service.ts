@@ -1,5 +1,5 @@
 
-import { TestRun, TestStatus, Prisma } from '@prisma/client';
+import { TestRun, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { NotFoundError, AuthorizationError, ValidationError } from '@/middleware/errorHandler';
 import { logger } from '@/utils/logger';
@@ -263,7 +263,7 @@ export class TestRunService {
         const updatedTestRun = await prisma.testRun.update({
             where: { id },
             data: {
-                status: status as TestStatus,
+                status: status as TestRun['status'],
                 completedAt: new Date(),
             },
         });
