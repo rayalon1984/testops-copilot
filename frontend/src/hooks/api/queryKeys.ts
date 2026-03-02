@@ -68,8 +68,10 @@ export const queryKeys = {
   xray: {
     testCases: (query: string) => ['xray', 'test-cases', query] as const,
     testPlans: () => ['xray', 'test-plans'] as const,
+    testPlanDetail: (planId: string | undefined) => ['xray', 'test-plan', planId] as const,
     syncHistory: () => ['xray', 'syncs'] as const,
     syncStatus: (id: string | undefined) => ['xray', 'sync', id] as const,
+    config: () => ['xray', 'config'] as const,
   },
 
   healing: {
