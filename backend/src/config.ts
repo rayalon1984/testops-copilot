@@ -12,7 +12,7 @@ dotenv.config({ path: ['.env', '.env.dev'] });
 const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default('3000'),
+  PORT: z.string().transform(Number).default('4000'),
 
   // API
   API_PREFIX: z.string().default('/api/v1'),
