@@ -82,8 +82,11 @@ router.get(
 
 // ─── Get Single Test Plan (with test cases) ──────────────────────────
 
+/** Matches Jira/Xray issue keys: PROJ-123, PROJ-TC-1, PROJ-TP-42 */
+const jiraKeyPattern = /^[A-Z][A-Z0-9_]+(-[A-Z0-9]+)+$/i;
+
 const testPlanIdSchema = z.object({
-  planId: z.string().min(1, 'Plan ID is required'),
+  planId: z.string().min(1, 'Plan ID is required').regex(jiraKeyPattern, 'Invalid Jira issue key format'),
 });
 
 router.get(
@@ -104,7 +107,7 @@ router.get(
 // ─── Get Test Case History (for AI enrichment) ──────────────────────
 
 const testCaseKeySchema = z.object({
-  key: z.string().min(1, 'Test case key is required'),
+  key: z.string().min(1, 'Test case key is required').regex(jiraKeyPattern, 'Invalid test case key format'),
 });
 
 router.get(
@@ -130,6 +133,7 @@ const syncParamsSchema = z.object({
 
 router.post(
   '/sync/:testRunId',
+  authorize(UserRole.EDITOR),
   asyncHandler(async (req: Request, res: Response) => {
     if (!xrayService.isEnabled()) {
       return res.status(503).json({
@@ -182,10 +186,15 @@ router.get(
 
 // ─── Sync History ────────────────────────────────────────────────────
 
+const syncHistoryQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+});
+
 router.get(
   '/syncs',
-  asyncHandler(async (_req: Request, res: Response) => {
-    const syncs = await xrayService.getSyncHistory();
+  asyncHandler(async (req: Request, res: Response) => {
+    const { limit } = syncHistoryQuerySchema.parse(req.query);
+    const syncs = await xrayService.getSyncHistory(limit);
     return res.status(200).json({ syncs, total: syncs.length });
   })
 );

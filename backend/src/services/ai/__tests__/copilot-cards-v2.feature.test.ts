@@ -33,7 +33,7 @@ function userMessage(content: string): ChatMessage {
 
 // ─── Tests ────────────────────────────────────────────────────────────
 
-describeFeature('copilot-cards-v2', (feature) => {
+describeFeature('copilot-cards-v2', (_feature) => {
 
   // ── cards.v2.routing (graduated — V2 is the only version) ──
 

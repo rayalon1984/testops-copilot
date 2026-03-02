@@ -192,20 +192,12 @@ function TestPlanExpandableRow({ plan }: { plan: XrayTestPlan }) {
   );
 }
 
-// ─── Component ───────────────────────────────────────────────
+// ─── Connection Card ─────────────────────────────────────────
 
-export function XrayTab(): React.ReactElement {
+function ConnectionCard() {
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [connectionError, setConnectionError] = useState('');
-
   const testConnection = useXrayTestConnection();
-  const { data: syncData, isLoading: historyLoading } = useXraySyncHistory();
-  const { data: plansData, isLoading: plansLoading } = useXrayTestPlans();
-  const { data: xrayConfig, isLoading: configLoading } = useXrayConfig();
-  const updateConfig = useUpdateXrayConfig();
-
-  const syncHistory = syncData?.syncs;
-  const testPlans = plansData?.testPlans;
 
   const handleTestConnection = (): void => {
     setConnectionStatus('idle');
@@ -222,221 +214,240 @@ export function XrayTab(): React.ReactElement {
     });
   };
 
+  return (
+    <Card>
+      <CardHeader
+        title="Xray Cloud Connection"
+        subheader="Connect to Xray Cloud to sync test executions and search test cases from the AI Copilot."
+      />
+      <CardContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Xray credentials are configured via environment variables:
+          <code style={{ display: 'block', marginTop: 8, padding: '8px 12px', background: 'rgba(0,0,0,0.04)', borderRadius: 4 }}>
+            XRAY_CLIENT_ID, XRAY_CLIENT_SECRET, XRAY_PROJECT_KEY
+          </code>
+        </Typography>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={testConnection.isPending ? <CircularProgress size={16} /> : <SyncIcon />}
+            onClick={handleTestConnection}
+            disabled={testConnection.isPending}
+          >
+            {testConnection.isPending ? 'Testing\u2026' : 'Test Connection'}
+          </Button>
+
+          {connectionStatus === 'success' && (
+            <Chip icon={<CheckIcon />} label="Connected" color="success" variant="outlined" size="small" />
+          )}
+          {connectionStatus === 'error' && (
+            <Chip icon={<ErrorIcon />} label="Not Connected" color="error" variant="outlined" size="small" />
+          )}
+        </Box>
+
+        {connectionStatus === 'success' && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            Xray Cloud credentials are valid. Test case search and sync are available.
+          </Alert>
+        )}
+        {connectionStatus === 'error' && (
+          <Alert severity="error" sx={{ mt: 2 }} icon={<LinkOffIcon />}>
+            {connectionError}
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Auto-Sync Card ──────────────────────────────────────────
+
+function AutoSyncCard() {
+  const { data: xrayConfig, isLoading: configLoading } = useXrayConfig();
+  const updateConfig = useUpdateXrayConfig();
+
   const handleAutoSyncToggle = (_event: React.ChangeEvent<HTMLInputElement>, checked: boolean): void => {
     updateConfig.mutate({ autoSync: checked });
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Connection Card */}
-      <Card>
-        <CardHeader
-          title="Xray Cloud Connection"
-          subheader="Connect to Xray Cloud to sync test executions and search test cases from the AI Copilot."
-        />
-        <CardContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Xray credentials are configured via environment variables:
-            <code style={{ display: 'block', marginTop: 8, padding: '8px 12px', background: 'rgba(0,0,0,0.04)', borderRadius: 4 }}>
-              XRAY_CLIENT_ID, XRAY_CLIENT_SECRET, XRAY_PROJECT_KEY
-            </code>
-          </Typography>
-
+    <Card>
+      <CardHeader
+        title="Auto-Sync"
+        subheader="Automatically sync test run results to Xray when a test run completes."
+      />
+      <CardContent>
+        {configLoading ? (
+          <CircularProgress size={20} />
+        ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={testConnection.isPending ? <CircularProgress size={16} /> : <SyncIcon />}
-              onClick={handleTestConnection}
-              disabled={testConnection.isPending}
-            >
-              {testConnection.isPending ? 'Testing\u2026' : 'Test Connection'}
-            </Button>
-
-            {connectionStatus === 'success' && (
-              <Chip
-                icon={<CheckIcon />}
-                label="Connected"
-                color="success"
-                variant="outlined"
-                size="small"
-              />
-            )}
-
-            {connectionStatus === 'error' && (
-              <Chip
-                icon={<ErrorIcon />}
-                label="Not Connected"
-                color="error"
-                variant="outlined"
-                size="small"
-              />
-            )}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={xrayConfig?.autoSync ?? false}
+                  onChange={handleAutoSyncToggle}
+                  disabled={updateConfig.isPending || !xrayConfig?.configured}
+                />
+              }
+              label={
+                <Box>
+                  <Typography variant="body2">
+                    {xrayConfig?.autoSync ? 'Auto-sync enabled' : 'Auto-sync disabled'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {xrayConfig?.configured
+                      ? 'Test results will be pushed to Xray automatically when runs complete.'
+                      : 'Configure Xray credentials first to enable auto-sync.'}
+                  </Typography>
+                </Box>
+              }
+            />
+            {updateConfig.isPending && <CircularProgress size={16} />}
           </Box>
+        )}
 
-          {connectionStatus === 'success' && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              Xray Cloud credentials are valid. Test case search and sync are available.
-            </Alert>
-          )}
+        {updateConfig.isSuccess && (
+          <Alert severity="success" sx={{ mt: 1 }}>
+            {updateConfig.data?.message || 'Config updated.'}
+          </Alert>
+        )}
+        {updateConfig.isError && (
+          <Alert severity="error" sx={{ mt: 1 }}>
+            Failed to update auto-sync setting.
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-          {connectionStatus === 'error' && (
-            <Alert severity="error" sx={{ mt: 2 }} icon={<LinkOffIcon />}>
-              {connectionError}
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+// ─── Test Plans Card ─────────────────────────────────────────
 
-      {/* Auto-Sync Configuration Card */}
-      <Card>
-        <CardHeader
-          title="Auto-Sync"
-          subheader="Automatically sync test run results to Xray when a test run completes."
-        />
-        <CardContent>
-          {configLoading ? (
-            <CircularProgress size={20} />
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={xrayConfig?.autoSync ?? false}
-                    onChange={handleAutoSyncToggle}
-                    disabled={updateConfig.isPending || !xrayConfig?.configured}
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography variant="body2">
-                      {xrayConfig?.autoSync ? 'Auto-sync enabled' : 'Auto-sync disabled'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {xrayConfig?.configured
-                        ? 'Test results will be pushed to Xray automatically when runs complete.'
-                        : 'Configure Xray credentials first to enable auto-sync.'}
-                    </Typography>
-                  </Box>
-                }
-              />
-              {updateConfig.isPending && <CircularProgress size={16} />}
-            </Box>
-          )}
+function TestPlansBrowserCard() {
+  const { data: plansData, isLoading: plansLoading } = useXrayTestPlans();
+  const testPlans = plansData?.testPlans;
 
-          {updateConfig.isSuccess && (
-            <Alert severity="success" sx={{ mt: 1 }}>
-              {updateConfig.data?.message || 'Config updated.'}
-            </Alert>
-          )}
+  return (
+    <Card>
+      <CardHeader
+        title="Test Plans"
+        subheader="Browse Xray test plans with coverage data. Expand a plan to see its test cases."
+        action={
+          plansData?.total !== undefined ? (
+            <Tooltip title="Total plans">
+              <Chip label={`${plansData.total} plans`} size="small" variant="outlined" />
+            </Tooltip>
+          ) : null
+        }
+      />
+      <CardContent>
+        {plansLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : !testPlans || testPlans.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No test plans found. Ensure Xray is configured and has test plans in the project.
+          </Typography>
+        ) : (
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Plan</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Summary</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="center">Tests</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Coverage</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {testPlans.map((plan) => (
+                  <TestPlanExpandableRow key={plan.key} plan={plan} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-          {updateConfig.isError && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              Failed to update auto-sync setting.
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+// ─── Sync History Card ───────────────────────────────────────
 
-      {/* Test Plans Browser Card */}
-      <Card>
-        <CardHeader
-          title="Test Plans"
-          subheader="Browse Xray test plans with coverage data. Expand a plan to see its test cases."
-          action={
-            plansData?.total !== undefined ? (
-              <Tooltip title="Total plans">
-                <Chip label={`${plansData.total} plans`} size="small" variant="outlined" />
-              </Tooltip>
-            ) : null
-          }
-        />
-        <CardContent>
-          {plansLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : !testPlans || testPlans.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No test plans found. Ensure Xray is configured and has test plans in the project.
-            </Typography>
-          ) : (
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Plan</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Summary</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }} align="center">Tests</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Coverage</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
+function SyncHistoryCard() {
+  const { data: syncData, isLoading: historyLoading } = useXraySyncHistory();
+  const syncHistory = syncData?.syncs;
+
+  return (
+    <Card>
+      <CardHeader
+        title="Sync History"
+        subheader="Recent test run syncs to Xray Cloud."
+      />
+      <CardContent>
+        {historyLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : !syncHistory || syncHistory.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No syncs yet. Sync a test run from the test run detail page.
+          </Typography>
+        ) : (
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Xray Execution</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Trigger</TableCell>
+                  <TableCell align="right">Results</TableCell>
+                  <TableCell>Synced At</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {syncHistory.map((sync) => (
+                  <TableRow key={sync.id}>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        {sync.xrayExecutionId ?? '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <SyncStatusChip status={sync.status} />
+                    </TableCell>
+                    <TableCell>
+                      <TriggerChip trigger={sync.trigger ?? 'MANUAL'} />
+                    </TableCell>
+                    <TableCell align="right">{sync.resultCount}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {sync.syncedAt ? new Date(sync.syncedAt).toLocaleString() : '—'}
+                      </Typography>
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {testPlans.map((plan) => (
-                    <TestPlanExpandableRow key={plan.key} plan={plan} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-      {/* Sync History Card */}
-      <Card>
-        <CardHeader
-          title="Sync History"
-          subheader="Recent test run syncs to Xray Cloud."
-        />
-        <CardContent>
-          {historyLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : !syncHistory || syncHistory.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No syncs yet. Sync a test run from the test run detail page.
-            </Typography>
-          ) : (
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Xray Execution</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Trigger</TableCell>
-                    <TableCell align="right">Results</TableCell>
-                    <TableCell>Synced At</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {syncHistory.map((sync) => (
-                    <TableRow key={sync.id}>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                          {sync.xrayExecutionId ?? '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <SyncStatusChip status={sync.status} />
-                      </TableCell>
-                      <TableCell>
-                        <TriggerChip trigger={sync.trigger ?? 'MANUAL'} />
-                      </TableCell>
-                      <TableCell align="right">{sync.resultCount}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {sync.syncedAt ? new Date(sync.syncedAt).toLocaleString() : '—'}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+// ─── Main Component ──────────────────────────────────────────
+
+export function XrayTab(): React.ReactElement {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <ConnectionCard />
+      <AutoSyncCard />
+      <TestPlansBrowserCard />
+      <SyncHistoryCard />
     </Box>
   );
 }

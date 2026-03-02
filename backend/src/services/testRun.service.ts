@@ -1,10 +1,13 @@
 
 import { TestRun, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { NotFoundError, AuthorizationError } from '@/middleware/errorHandler';
+import { NotFoundError, AuthorizationError, ValidationError } from '@/middleware/errorHandler';
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
 import { xrayService } from '@/services/xray.service';
+
+/** Valid terminal statuses for completing a test run. */
+const VALID_COMPLETION_STATUSES = ['PASSED', 'FAILED', 'SKIPPED', 'FLAKY'] as const;
 
 // Reusing the type from validation if possible, otherwise defining here or importing
 // Ideally, validation types should be shared. For now, using Partial<TestRun> for creation/update as a base
@@ -247,10 +250,14 @@ export class TestRunService {
      * Fire-and-forget: auto-sync never blocks the completion response.
      */
     async completeTestRun(id: string, userId: string, status: string = 'PASSED'): Promise<TestRun> {
+        if (!(VALID_COMPLETION_STATUSES as readonly string[]).includes(status)) {
+            throw new ValidationError(`Invalid completion status: ${status}. Must be one of: ${VALID_COMPLETION_STATUSES.join(', ')}`);
+        }
+
         const testRun = await this.getTestRunById(id, userId);
 
         if (!['PENDING', 'RUNNING'].includes(testRun.status)) {
-            throw new Error('Can only complete pending or running test runs');
+            throw new ValidationError('Can only complete pending or running test runs');
         }
 
         const updatedTestRun = await prisma.testRun.update({

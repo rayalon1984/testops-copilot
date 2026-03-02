@@ -5,51 +5,8 @@ import { config } from '@/config';
 import { validateUrlForSSRF } from '@/utils/ssrf-validator';
 import { withResilience, circuitBreakers } from '@/lib/resilience';
 
-// ─── Types ───────────────────────────────────────────────────────────
-
-export interface XrayTestCase {
-  key: string;
-  summary: string;
-  status: string;
-  lastExecution: string | null;
-}
-
-export interface XrayTestPlan {
-  key: string;
-  summary: string;
-  testCount: number;
-  passRate: number;
-  coveragePercentage: number;
-  coveredCount: number;
-  lastUpdated: string | null;
-}
-
-export interface XrayTestPlanDetail extends XrayTestPlan {
-  testCases: XrayTestCase[];
-}
-
-export interface XrayTestCaseHistory {
-  testCaseKey: string;
-  summary: string;
-  status: string;
-  executionHistory: Array<{
-    date: string;
-    status: string;
-    executionKey: string;
-  }>;
-  linkedDefects: Array<{
-    key: string;
-    summary: string;
-    status: string;
-  }>;
-}
-
-export interface XraySyncResult {
-  syncId: string;
-  status: string;
-  xrayExecutionId: string | null;
-  resultCount: number;
-}
+import type { XrayTestCase, XrayTestPlan, XrayTestPlanDetail, XrayTestCaseHistory, XraySyncResult } from './xray.types';
+export type { XrayTestCase, XrayTestPlan, XrayTestPlanDetail, XrayTestCaseHistory, XraySyncResult } from './xray.types';
 
 // ─── Status Mapping ──────────────────────────────────────────────────
 
@@ -540,15 +497,19 @@ export class XrayService {
         resultCount: tests.length,
       };
     } catch (error) {
-      // Rollback: mark as FAILED
+      // Rollback: mark as FAILED (wrapped in try/catch to avoid masking the original error)
       const message = this.sanitizeError(error);
-      await prisma.xraySync.update({
-        where: { id: syncRecord.id },
-        data: {
-          status: 'FAILED',
-          errorMessage: message,
-        },
-      });
+      try {
+        await prisma.xraySync.update({
+          where: { id: syncRecord.id },
+          data: {
+            status: 'FAILED',
+            errorMessage: message,
+          },
+        });
+      } catch (rollbackError) {
+        logger.error(`Failed to rollback sync record ${syncRecord.id}:`, this.sanitizeError(rollbackError));
+      }
 
       logger.error(`Failed to sync test run ${testRunId} to Xray:`, message);
       throw new Error('Failed to sync test results to Xray');
