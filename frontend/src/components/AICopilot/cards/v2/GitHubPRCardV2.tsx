@@ -6,7 +6,7 @@
  * - Inline diff shown by default (no toggle)
  * - Two prominent full-width buttons: Review Diff + Merge PR
  *
- * Feature-flagged: only renders when `copilot-cards-v2` is ON.
+ * Graduated in v3.4.0 — always rendered (feature flag removed).
  * Reuses the existing InlineDiffViewer component.
  */
 

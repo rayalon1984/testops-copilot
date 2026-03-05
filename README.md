@@ -10,11 +10,11 @@
 
 <p align="center">
   <a href="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.0.1-blue" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.4.0-blue" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js Version"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-760%20passing-brightgreen" alt="Tests"></a>
-  <a href="specs/features/"><img src="https://img.shields.io/badge/spec%20assertions-229%2F229-brightgreen" alt="Spec Coverage"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-967%20passing-brightgreen" alt="Tests"></a>
+  <a href="specs/features/"><img src="https://img.shields.io/badge/spec%20assertions-320%2F320-brightgreen" alt="Spec Coverage"></a>
 </p>
 
 <p align="center">

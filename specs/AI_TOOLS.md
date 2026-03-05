@@ -1,6 +1,6 @@
 # AI_TOOLS.md — AI Tool Registry
 
-> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.3.0 · **Last verified**: 2026-03-02
+> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
 
 ---
 

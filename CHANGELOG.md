@@ -6,6 +6,66 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.4.0] - 2026-03-02
+
+> **Xray Deep Integration + Card Graduation + RC Hardening**
+
+v3.4 completes the Xray Cloud story and graduates the V2 card system. Every test run can now auto-sync to Xray on completion, test plans are browsable directly from Settings, and AI failure analysis pulls Xray test case history as a 4th enrichment source.
+
+### Auto-Sync to Xray
+
+- **Fire-and-forget**: When enabled, `completeTestRun` pushes results to Xray automatically with trigger=AUTO. Sync failures are logged but never block completion.
+- **Admin toggle**: `PATCH /xray/config` flips auto-sync on/off from the Settings UI.
+- **Trigger tracking**: Sync history table shows Manual vs Auto trigger for every sync record.
+
+### Test Plan Browser
+
+- **Paginated list**: `GET /xray/test-plans` returns plans with coverage percentage.
+- **Drill-down**: Click any plan row to expand and see its test cases.
+- **Coverage bars**: Visual progress bars show pass rate at a glance.
+
+### AI Enrichment Pipeline
+
+Xray is now the 4th parallel source in the context enrichment pipeline:
+
+- Runs alongside Jira, Confluence, and GitHub via `Promise.allSettled`.
+- Gated: only fires when `externalTestCaseId` is present and Xray is enabled.
+- Failure-isolated: Xray errors never block other enrichment sources.
+
+### Dedicated Xray Cards
+
+Two new copilot result cards replace GenericResultCard for Xray tools:
+
+- **XraySearchCard**: Renders test case results with status chips, test plan results with coverage bars.
+- **XrayHistoryCard**: Shows execution timeline as date+status chips and linked defects.
+
+### V2 Card Graduation
+
+The `copilot-cards-v2` feature flag has been removed. V2 is now the only card style:
+
+- Feature flag deleted, V1 `GitHubPRCard` removed.
+- `ToolResultCard` switch simplified — no conditional routing.
+- XraySync -> TestRun FK relation with cascade delete across all 3 Prisma schemas.
+
+### RC Hardening
+
+Full audit uncovered and resolved 5 issues:
+
+- **HIGH**: Added EDITOR authorization to `POST /sync/:testRunId`.
+- Jira key format validation (multi-segment: `PROJ-TC-1`).
+- Sync history limit param wired through Zod schema.
+- `completeTestRun` status validation with `ValidationError`.
+- Rollback error handling in `syncTestRun` (try/catch on failure update).
+
+### Quality
+
+- 967 tests passing (822 backend + 145 frontend)
+- 320 feature spec assertions — invariants at 100%, behavioral 90%, contracts 95%
+- All CI green: Backend, Frontend, Feature Spec Validation, Installation Test
+- Zero lint warnings, zero typecheck errors
+
+---
+
 ## [3.3.0] - 2026-03-02
 
 > **Xray Cloud Integration + Context-Aware Prompts**

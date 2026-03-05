@@ -1,6 +1,6 @@
 # Deployment Guide
 
-> Updated for v3.0.0 | **Quick start**: [`docs/PRODUCTION_QUICKSTART.md`](PRODUCTION_QUICKSTART.md) | **Dev modes**: [`docs/DEV_MODE.md`](DEV_MODE.md) | **DevOps spec**: [`specs/team/DEVOPS_ENGINEER.md`](../specs/team/DEVOPS_ENGINEER.md)
+> Updated for v3.4.0 | **Quick start**: [`docs/PRODUCTION_QUICKSTART.md`](PRODUCTION_QUICKSTART.md) | **Dev modes**: [`docs/DEV_MODE.md`](DEV_MODE.md) | **DevOps spec**: [`specs/team/DEVOPS_ENGINEER.md`](../specs/team/DEVOPS_ENGINEER.md)
 
 This guide covers different deployment options for TestOps Copilot, from development to production environments.
 

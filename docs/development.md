@@ -1,6 +1,6 @@
 # Development Guide
 
-> Updated for v3.0.0 | **Agent instructions**: [`AGENTS.md`](../AGENTS.md) | **Persona routing**: [`specs/team/TEAM_SELECTION.md`](../specs/team/TEAM_SELECTION.md) | **Coding standards**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md)
+> Updated for v3.4.0 | **Agent instructions**: [`AGENTS.md`](../AGENTS.md) | **Persona routing**: [`specs/team/TEAM_SELECTION.md`](../specs/team/TEAM_SELECTION.md) | **Coding standards**: [`specs/ARCHITECTURE.md`](../specs/ARCHITECTURE.md)
 
 This guide provides detailed information for developers working on the TestOps Copilot project.
 

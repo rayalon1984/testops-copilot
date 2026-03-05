@@ -6,7 +6,7 @@
  * - Clean description text
  * - Retains Undo button via CardActions
  *
- * Feature-flagged: only renders when `copilot-cards-v2` is ON.
+ * Graduated in v3.4.0 — always rendered (feature flag removed).
  */
 
 import { Box, Paper, Typography, Button } from '@mui/material';

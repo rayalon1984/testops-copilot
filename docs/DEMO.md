@@ -1,7 +1,7 @@
 # TestOps Copilot - Demo & Screenshots
 
 > Visual guide to TestOps Copilot's features and user interface.
-> Updated for v3.0.0 — Graduated Autonomy, Global AI Context, High-Fidelity Seeding.
+> Updated for v3.4.0 — Xray Deep Integration, Card Graduation, AI Enrichment Pipeline.
 
 ---
 

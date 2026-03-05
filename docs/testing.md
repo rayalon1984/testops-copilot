@@ -1,6 +1,6 @@
 # Testing Guide
 
-> Updated for v3.0.0
+> Updated for v3.4.0
 
 This guide covers testing strategies and practices for the TestOps Copilot project.
 

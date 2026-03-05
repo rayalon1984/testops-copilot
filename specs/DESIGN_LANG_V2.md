@@ -1,6 +1,6 @@
 # DESIGN_LANG_V2.md — UI Design Language
 
-> **Owner**: UX Designer · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Owner**: UX Designer · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
 
 ---
 
@@ -188,9 +188,9 @@ Used everywhere to represent pipeline/test/run status. MUI Chip with semantic co
 
 Progress bar changes color: green (<60%), orange (60–80%), red (>80%).
 
-### 6.7 V2 Card Variants (Feature-Flagged)
+### 6.7 V2 Card Variants
 
-Behind `copilot-cards-v2` (localStorage: `ff:copilot-cards-v2`). When ON, these replace V1 cards:
+V2 cards are the default style (graduated v3.4.0, feature flag removed). V1 cards have been deleted:
 
 | Card | V1 Style | V2 Style |
 |------|----------|----------|

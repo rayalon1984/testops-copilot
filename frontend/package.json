@@ -1,6 +1,6 @@
 {
   "name": "testops-copilot-frontend",
-  "version": "3.2.0",
+  "version": "3.4.0",
   "private": true,
   "type": "module",
   "scripts": {

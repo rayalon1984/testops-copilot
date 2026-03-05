@@ -1,6 +1,6 @@
 # SECURITY.md — Security Architecture
 
-> **Owner**: Security Engineer · **Status**: Living document · **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Owner**: Security Engineer · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
 
 ---
 

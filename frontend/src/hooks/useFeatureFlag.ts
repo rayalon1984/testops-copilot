@@ -2,9 +2,9 @@
  * useFeatureFlag — Simple localStorage-backed feature flags.
  *
  * Toggle via browser console:
- *   localStorage.setItem('ff:copilot-cards-v2', 'true')   // enable
- *   localStorage.setItem('ff:copilot-cards-v2', 'false')  // disable
- *   localStorage.removeItem('ff:copilot-cards-v2')        // disable (default off)
+ *   localStorage.setItem('ff:some-feature', 'true')   // enable
+ *   localStorage.setItem('ff:some-feature', 'false')  // disable
+ *   localStorage.removeItem('ff:some-feature')        // disable (default off)
  *
  * Cross-tab sync via StorageEvent listener.
  */

@@ -1,25 +1,42 @@
 # ROADMAP.md — Canonical Roadmap
 
 > **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-02
-> **Current Version**: 3.2.0 (March 2026)
+> **Current Version**: 3.4.0 (March 2026)
 
 ---
 
 ## Planned
 
-### v3.3.0 — Sprint 11: Xray Integration + Context-Aware Prompts (March 2026)
-- [ ] Xray Cloud integration — XrayService (OAuth2 auth, test case search, result sync)
-- [ ] `xray_search` AI tool — query Xray test cases/plans from copilot (read-only, Tier 1)
-- [ ] Xray sync: POST /xray/sync/:testRunId (map Copilot test run → Xray Test Execution)
-- [ ] Xray Settings UI (client ID/secret, project key, test connection)
-- [ ] XraySync Prisma model (sync state tracking, execution ID persistence)
-- [ ] Xray circuit breaker + resilience wrapper
-- [ ] Tier 2 context-aware starter prompts (live pipeline/failure signals)
-- [ ] Deferred to v3.4: Xray bi-directional sync, Xray Server (on-prem), test case creation
+### v3.5.0 — Sprint 13: Xray Bi-Directional Sync + Xray Server (TBD)
+- [ ] Xray bi-directional sync (push results, pull test case updates)
+- [ ] Xray Server (on-prem) support
+- [ ] Test case creation from Copilot
 
 ---
 
 ## Shipped
+
+### v3.4.0 — Sprint 12: Xray Deep Integration + Card Graduation (March 2026)
+- [x] Auto-sync to Xray — fire-and-forget on test run completion (trigger=AUTO)
+- [x] Admin toggle — PATCH `/xray/config` flips auto-sync on/off
+- [x] Trigger tracking — sync history shows Manual vs Auto trigger
+- [x] Test Plan Browser — paginated list with coverage bars, drill-down to test cases
+- [x] AI Enrichment Pipeline — Xray as 4th parallel source (Promise.allSettled)
+- [x] Dedicated Xray Cards — XraySearchCard + XrayHistoryCard
+- [x] V2 Card Graduation — feature flag removed, V1 GitHubPRCard deleted
+- [x] XraySync → TestRun FK relation with cascade delete (all 3 Prisma schemas)
+- [x] RC Hardening: EDITOR auth on sync, Jira multi-segment key validation, Zod schema for sync history limit, completeTestRun status validation, syncTestRun rollback error handling
+- [x] 967 tests passing (822 backend + 145 frontend), 320 feature spec assertions
+
+### v3.3.0 — Sprint 11: Xray Integration + Context-Aware Prompts (March 2026)
+- [x] Xray Cloud integration — XrayService (OAuth2 auth, test case search, result sync)
+- [x] `xray_search` AI tool — query Xray test cases/plans from copilot (read-only, Tier 1)
+- [x] Xray sync: POST /xray/sync/:testRunId (map Copilot test run → Xray Test Execution)
+- [x] Xray Settings UI (client ID/secret, project key, test connection)
+- [x] XraySync Prisma model (sync state tracking, execution ID persistence)
+- [x] Xray circuit breaker + resilience wrapper
+- [x] Tier 2 context-aware starter prompts (live pipeline/failure signals)
+- [x] 930 tests passing (787 backend + 143 frontend), 246 feature spec assertions
 
 ### v3.2.0 — Sprint 10: Smart Starter Prompts + Card Redesign (March 2026)
 - [x] Smart Starter Prompts — role-based defaults + user-configurable pins (`specs/features/smart-starter-prompts.feature.yaml`)
@@ -28,7 +45,7 @@
 - [x] Dynamic EmptyState component (fetch from API, skeleton loading, pin indicator)
 - [x] StarterPromptSettings popover (pin/unpin, custom prompts, reorder, reset)
 - [x] User model: pinnedStarterPrompts JSON field
-- [x] V2 Card Redesign (feature-flagged): RootCauseCard → GitHubPRCardV2 → HousekeepingCardV2 analysis chain
+- [x] V2 Card Redesign (graduated v3.4.0): RootCauseCard → GitHubPRCardV2 → HousekeepingCardV2 analysis chain
 - [x] `rca_identify` tool — AI root cause analysis with confidence scoring
 - [x] Self-Healing demo data seeding (rules, events, quarantine)
 - [x] Copilot panel always-visible on desktop (md+ breakpoint)

@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — System Design
 
-> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.2.0 · **Last verified**: 2026-03-02
+> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
 
 ---
 
@@ -199,7 +199,7 @@ See `specs/AI_TOOLS.md` for full registry (23 tools total).
 - **starterPromptCatalog**: Role-based prompt sets (QA: 6, Dev: 6, Lead: 6, PM: 6, Generic: 4 = 28 total)
 - **Storage**: `User.pinnedStarterPrompts` JSON field — null = use role defaults
 - **API**: `GET /ai/starter-prompts`, `GET .../catalog`, `PATCH .../pins`, `DELETE .../pins`
-- **Feature flag**: `copilot-cards-v2` (localStorage `ff:copilot-cards-v2`) — toggles V2 card variants for RCA chain
+- **V2 cards**: Graduated in v3.4.0 — V2 card variants are always active (feature flag removed)
 
 ---
 

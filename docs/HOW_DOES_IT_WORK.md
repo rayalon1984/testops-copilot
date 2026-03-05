@@ -1,7 +1,7 @@
 # How Does TestOps Copilot Actually Work?
 
 > A plain-English guide for anyone who wants to understand what happens under the hood.
-> Updated for v3.0.0 — Graduated Autonomy, Proactive Suggestions, Global AI Context.
+> Updated for v3.4.0 — Xray Deep Integration, Card Graduation, AI Enrichment Pipeline.
 
 ---
 

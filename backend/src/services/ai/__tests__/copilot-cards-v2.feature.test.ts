@@ -60,7 +60,7 @@ describeFeature('copilot-cards-v2', (_feature) => {
   itAssertion('cards.v2.rca-always-new', () => {
     // rca_identify always renders RootCauseCard — no V1 equivalent exists.
     // Verified by: ToolResultCard always dispatches to RootCauseCard for rca_identify,
-    // regardless of isV2 flag. Here we confirm the tool result exists and has the required shape.
+    // regardless of flag state. Here we confirm the tool result exists and has the required shape.
     const result = getMockToolResult('rca_identify', { testName: 'test' });
     expect(result).not.toBeNull();
     expect(result!.data).toHaveProperty('rootCause');
@@ -168,7 +168,7 @@ describeFeature('copilot-cards-v2', (_feature) => {
       issueKey: 'TESTOPS-142', labels: ['flaky'],
     });
     expect(labelResult!.success).toBe(true);
-    // Both tool types route to HousekeepingCardV2 when V2 is ON
+    // Both tool types route to HousekeepingCardV2
   });
 
   itAssertion('cards.v2.hk.undo-action', () => {

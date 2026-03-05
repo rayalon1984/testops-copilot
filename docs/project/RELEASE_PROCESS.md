@@ -11,7 +11,7 @@ TestOps Copilot follows [Semantic Versioning](https://semver.org/):
 
 ## Current Version
 
-**Latest Release:** v3.0.0 (2026-02-20)
+**Latest Release:** v3.4.0 (2026-03-02)
 
 ## Release Checklist
 

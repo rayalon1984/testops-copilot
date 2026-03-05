@@ -1,7 +1,7 @@
 # Product Specification — TestOps Copilot
 
 > **Status**: Living document · **Owner**: AI Product Manager
-> **Last synced**: 2026-03-02 · **Version**: 3.3.0
+> **Last synced**: 2026-03-05 · **Version**: 3.4.0
 
 ---
 
@@ -38,7 +38,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Agentic Copilot | v2.9.0 | ReAct loop with 24 tools (13 read, 7 write, 4 action) and human-in-the-loop gates |
 | Root Cause Analysis | v3.2.0 | `rca_identify` tool — structured RCA with confidence scoring, category, related issues |
 | Smart Starter Prompts | v3.2.0 | Role-based prompt defaults (QA, Dev, Lead, PM) + user-pinnable custom prompts (max 4) |
-| V2 Card Redesign | v3.2.0 | Feature-flagged (`copilot-cards-v2`) emoji-header cards: RootCauseCard, GitHubPRCardV2, HousekeepingCardV2 |
+| V2 Card Redesign | v3.2.0 | Emoji-header cards (graduated v3.4.0): RootCauseCard, GitHubPRCardV2, HousekeepingCardV2 |
 | Xray Integration | v3.3.0 | Xray Cloud test management: search test cases/plans (`xray_search` tool), sync test runs as Xray executions, admin settings page |
 
 **AI Providers**: Anthropic Claude Opus 4.6, OpenAI GPT-4.1, Google Gemini 3.0 Flash, Azure OpenAI, OpenRouter.
@@ -91,7 +91,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 - **Write tools**: Create Jira issues, transition tickets, add comments, open GitHub PRs, create branches, update files
 - Human-in-the-loop confirmation gates for all write operations (5-minute expiry)
 - Role-aware system prompts (Admin vs User)
-- **V2 card variants** (v3.1.1): Redesigned tool result cards behind `copilot-cards-v2` feature flag
+- **V2 card variants** (v3.2.0, graduated v3.4.0): Redesigned tool result cards — emoji headers, confidence badges, role-gated actions
   - `RootCauseCard` — emoji + bold header, confidence badge, related issue link
   - `GitHubPRCardV2` — diff visible by default, prominent merge button, role-gated actions
   - `HousekeepingCardV2` — clean header with status chip, undo button

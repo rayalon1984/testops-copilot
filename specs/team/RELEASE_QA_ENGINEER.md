@@ -1,7 +1,7 @@
 # Persona: RELEASE_QA_ENGINEER
 
 > **Role**: Release lifecycle owner · **Routing**: Step 10 in `TEAM_SELECTION.md`
-> **Version**: 3.1.1 · **Last verified**: 2026-03-01
+> **Version**: 3.4.0 · **Last verified**: 2026-03-05
 
 ---
 
