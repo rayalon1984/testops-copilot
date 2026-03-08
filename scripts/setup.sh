@@ -137,7 +137,7 @@ main() {
   echo
   echo "To start the development environment:"
   echo "1. Start the services: docker-compose up -d"
-  echo "2. Frontend will be available at: http://localhost:3000"
+  echo "2. Frontend will be available at: http://localhost:5173"
   echo "3. Log in with your new credentials:"
   echo "   Email:    $ADMIN_EMAIL"
   echo "   Password: $ADMIN_PASSWORD"

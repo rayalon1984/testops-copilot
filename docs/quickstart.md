@@ -90,7 +90,7 @@ See the **[Production Quickstart](PRODUCTION_QUICKSTART.md)** for full instructi
 
 ```bash
 cp .env.production.example .env.production
-# Edit .env.production: set DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET
+# Edit .env.production: set POSTGRES_PASSWORD, JWT_SECRET, JWT_REFRESH_SECRET
 
 docker compose -f docker-compose.ghcr.yml up -d
 # Dashboard: http://localhost

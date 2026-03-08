@@ -62,15 +62,15 @@ deploy: build ## Deploy to production
 
 db-migrate: ## Run database migrations
 	@echo "$(GREEN)Running database migrations...$(NC)"
-	cd $(BACKEND_DIR) && $(NPM) run migrate:deploy
+	cd $(BACKEND_DIR) && $(NPM) run db:migrate
 
 db-seed: ## Seed database with test data
 	@echo "$(GREEN)Seeding database...$(NC)"
-	cd $(BACKEND_DIR) && $(NPM) run seed
+	cd $(BACKEND_DIR) && $(NPM) run db:seed
 
-generate-types: ## Generate TypeScript types
-	@echo "$(GREEN)Generating TypeScript types...$(NC)"
-	cd $(BACKEND_DIR) && $(NPM) run generate:types
+generate-types: ## Generate Prisma client types
+	@echo "$(GREEN)Generating Prisma client...$(NC)"
+	cd $(BACKEND_DIR) && $(NPM) run db:generate
 
 logs: ## View logs
 	$(DOCKER_COMPOSE) logs -f

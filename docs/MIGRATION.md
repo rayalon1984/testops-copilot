@@ -86,7 +86,7 @@ npm run start    # or: docker compose up -d
 # → Automatic: invalid tokens redirect to /login
 
 # 5. Verify
-curl http://localhost:3000/api/health
+curl http://localhost:3000/health
 ```
 
 That's it. The upgrade is designed to be seamless — the only user-visible change is a one-time re-login.

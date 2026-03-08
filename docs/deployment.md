@@ -55,7 +55,7 @@ npm run dev
 
 # Start frontend (new terminal)
 cd frontend
-npm start
+npm run dev
 ```
 
 ## Docker Deployment
@@ -79,20 +79,19 @@ docker-compose down
 
 ### Production Docker Deployment
 
-1. Create production docker-compose file:
+See the **[Production Quickstart](PRODUCTION_QUICKSTART.md)** for the recommended path using pre-built images.
+
+To build from source instead:
+
+1. Configure production environment:
 ```bash
-cp docker-compose.yml docker-compose.prod.yml
-# Edit docker-compose.prod.yml for production settings
+cp .env.production.example .env.production
+# Edit .env.production: set POSTGRES_PASSWORD, JWT_SECRET, JWT_REFRESH_SECRET
 ```
 
-2. Build production images:
+2. Build and deploy with production configuration:
 ```bash
-docker-compose -f docker-compose.prod.yml build
-```
-
-3. Deploy with production configuration:
-```bash
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ## Production Deployment
