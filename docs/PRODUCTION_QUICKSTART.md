@@ -20,7 +20,7 @@ cd testops-copilot
 cp .env.production.example .env.production
 
 # 3. Edit secrets (REQUIRED!)
-nano .env.production  # Set DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET
+nano .env.production  # Set POSTGRES_PASSWORD, JWT_SECRET, JWT_REFRESH_SECRET
 
 # 4. Start all services
 docker compose -f docker-compose.ghcr.yml up -d
@@ -43,18 +43,22 @@ All accounts use password `demo123`:
 
 ### Production Mode
 
-Register your first admin account via the API (backend runs on port 3000 inside the Docker network, exposed on the same port):
+Register your first admin account via the API (backend runs on port 3000 inside the Docker network, exposed on the same port).
+
+**Password requirements:** 8+ characters, must include at least one uppercase letter, one lowercase letter, one digit, and one special character (`@`, `$`, `!`, `%`, `*`, `?`, or `&`).
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@yourcompany.com",
-    "password": "your-secure-password",
+    "password": "SecureP@ss1",
     "firstName": "Admin",
     "lastName": "User"
   }'
 ```
+
+> **Note:** Change the example password above to your own before running.
 
 ---
 
@@ -84,9 +88,11 @@ docker compose -f docker-compose.ghcr.yml up -d
 
 | Variable | Description |
 |----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
+| `POSTGRES_PASSWORD` | Secure password for the PostgreSQL database |
 | `JWT_SECRET` | 64-char random string for auth tokens |
 | `JWT_REFRESH_SECRET` | 64-char random string for refresh tokens |
+
+`DATABASE_URL` is pre-configured in `.env.production.example` using `${POSTGRES_PASSWORD}` interpolation — you only need to set the password.
 
 See `.env.production.example` for all available options.
 

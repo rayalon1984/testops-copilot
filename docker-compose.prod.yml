@@ -30,7 +30,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=info
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000/health/ready || exit 1" ]
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/health/ready || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 3
