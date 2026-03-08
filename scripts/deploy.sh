@@ -46,8 +46,12 @@ validate_environment() {
     echo -e "${YELLOW}Validating environment variables...${NC}"
     
     required_vars=(
-        "DB_PASSWORD"
+        "POSTGRES_PASSWORD"
         "JWT_SECRET"
+    )
+    
+    # Optional integration vars — warn if missing, don't block deployment
+    optional_vars=(
         "SLACK_WEBHOOK_URL"
         "JENKINS_TOKEN"
     )
@@ -56,6 +60,12 @@ validate_environment() {
         if [ -z "${!var}" ]; then
             echo -e "${RED}Error: Required environment variable $var is not set${NC}"
             exit 1
+        fi
+    done
+    
+    for var in "${optional_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            echo -e "${YELLOW}Warning: Optional environment variable $var is not set (skipping related features)${NC}"
         fi
     done
 }
@@ -137,11 +147,15 @@ check_health() {
 
 # Function to send deployment notification
 notify_deployment() {
-    echo -e "${YELLOW}Sending deployment notification...${NC}"
-    
     local status=$1
     local message="Deployment to $DEPLOY_ENV: $status"
     
+    if [ -z "$SLACK_WEBHOOK_URL" ]; then
+        echo -e "${YELLOW}Slack webhook not configured — skipping notification${NC}"
+        return 0
+    fi
+    
+    echo -e "${YELLOW}Sending deployment notification...${NC}"
     curl -X POST -H 'Content-type: application/json' \
         --data "{\"text\":\"$message\"}" \
         "$SLACK_WEBHOOK_URL"
