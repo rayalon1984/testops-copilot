@@ -27,14 +27,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
   Tabs,
   Tab,
-  Button,
   Skeleton,
   Tooltip,
   IconButton,
-  useTheme,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -72,7 +69,6 @@ const STATUS_COLORS: Record<string, 'error' | 'warning' | 'success' | 'default'>
 // ── Component ────────────────────────────────────────────────────────────
 
 const SmartSelection: React.FC = () => {
-  const theme = useTheme();
   const [tabIndex, setTabIndex] = useState(0);
   const [windowDays, setWindowDays] = useState(30);
 
