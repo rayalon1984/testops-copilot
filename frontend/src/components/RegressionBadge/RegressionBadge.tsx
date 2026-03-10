@@ -19,6 +19,7 @@ import {
   Paper,
   Divider,
   useTheme,
+  type Theme,
 } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -73,6 +74,127 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   resolved: { label: 'Resolved', color: '#4caf50' },
   false_positive: { label: 'False Positive', color: '#9e9e9e' },
 };
+
+// ── Popover Content Sub-Component ─────────────────────────────────────────
+
+interface RegressionPopoverContentProps {
+  regression: RegressionData;
+  config: { color: 'error' | 'warning' | 'info' | 'default' | 'success'; label: string };
+  statusConfig: { label: string; color: string };
+  testName: string;
+  theme: Theme;
+}
+
+function RegressionPopoverContent({
+  regression,
+  config,
+  statusConfig,
+  testName,
+  theme,
+}: RegressionPopoverContentProps): React.ReactElement {
+  return (
+    <Paper sx={{ p: 2, maxWidth: 360 }}>
+      <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+        Regression Details
+      </Typography>
+
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="caption" color="text.secondary">Test</Typography>
+        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
+          {testName}
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+        <Chip
+          label={config.label}
+          size="small"
+          color={config.color}
+          sx={{ fontWeight: 600 }}
+        />
+        <Chip
+          label={statusConfig.label}
+          size="small"
+          variant="outlined"
+          sx={{ fontWeight: 500, borderColor: statusConfig.color, color: statusConfig.color }}
+        />
+      </Box>
+
+      <Divider sx={{ my: 1 }} />
+
+      {regression.introducingCommit && (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            Introducing Commit
+          </Typography>
+          <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
+            {regression.introducingCommit.substring(0, 8)}
+          </Typography>
+        </Box>
+      )}
+
+      {regression.introducingPR && (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            Pull Request
+          </Typography>
+          <Typography variant="body2">
+            #{regression.introducingPR}
+            {regression.prTitle && `: ${regression.prTitle}`}
+          </Typography>
+        </Box>
+      )}
+
+      {regression.prAuthor && (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary">Author</Typography>
+          <Typography variant="body2">{regression.prAuthor}</Typography>
+        </Box>
+      )}
+
+      {regression.lastPassingCommit && (
+        <Box sx={{ mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary">
+            Last Passing Commit
+          </Typography>
+          <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
+            {regression.lastPassingCommit.substring(0, 8)}
+          </Typography>
+        </Box>
+      )}
+
+      {regression.errorMessage && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="caption" color="text.secondary">Error</Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: '0.75rem',
+              fontFamily: 'monospace',
+              bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
+              p: 1,
+              borderRadius: 1,
+              maxHeight: 80,
+              overflow: 'auto',
+              wordBreak: 'break-all',
+            }}
+          >
+            {regression.errorMessage.substring(0, 200)}
+            {(regression.errorMessage?.length ?? 0) > 200 ? '...' : ''}
+          </Typography>
+        </Box>
+      )}
+
+      {regression.detectedAt && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            Detected: {new Date(regression.detectedAt).toLocaleString()}
+          </Typography>
+        </Box>
+      )}
+    </Paper>
+  );
+}
 
 // ── Component ────────────────────────────────────────────────────────────
 
@@ -164,106 +286,13 @@ export default function RegressionBadge({
           anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          <Paper sx={{ p: 2, maxWidth: 360 }}>
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-              Regression Details
-            </Typography>
-
-            <Box sx={{ mb: 1 }}>
-              <Typography variant="caption" color="text.secondary">Test</Typography>
-              <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
-                {testName}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-              <Chip
-                label={config.label}
-                size="small"
-                color={config.color}
-                sx={{ fontWeight: 600 }}
-              />
-              <Chip
-                label={statusConfig.label}
-                size="small"
-                variant="outlined"
-                sx={{ fontWeight: 500, borderColor: statusConfig.color, color: statusConfig.color }}
-              />
-            </Box>
-
-            <Divider sx={{ my: 1 }} />
-
-            {regression.introducingCommit && (
-              <Box sx={{ mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Introducing Commit
-                </Typography>
-                <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
-                  {regression.introducingCommit.substring(0, 8)}
-                </Typography>
-              </Box>
-            )}
-
-            {regression.introducingPR && (
-              <Box sx={{ mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Pull Request
-                </Typography>
-                <Typography variant="body2">
-                  #{regression.introducingPR}
-                  {regression.prTitle && `: ${regression.prTitle}`}
-                </Typography>
-              </Box>
-            )}
-
-            {regression.prAuthor && (
-              <Box sx={{ mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">Author</Typography>
-                <Typography variant="body2">{regression.prAuthor}</Typography>
-              </Box>
-            )}
-
-            {regression.lastPassingCommit && (
-              <Box sx={{ mb: 0.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Last Passing Commit
-                </Typography>
-                <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
-                  {regression.lastPassingCommit.substring(0, 8)}
-                </Typography>
-              </Box>
-            )}
-
-            {regression.errorMessage && (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="caption" color="text.secondary">Error</Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: '0.75rem',
-                    fontFamily: 'monospace',
-                    bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                    p: 1,
-                    borderRadius: 1,
-                    maxHeight: 80,
-                    overflow: 'auto',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {regression.errorMessage.substring(0, 200)}
-                  {(regression.errorMessage?.length ?? 0) > 200 ? '...' : ''}
-                </Typography>
-              </Box>
-            )}
-
-            {regression.detectedAt && (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Detected: {new Date(regression.detectedAt).toLocaleString()}
-                </Typography>
-              </Box>
-            )}
-          </Paper>
+          <RegressionPopoverContent
+            regression={regression}
+            config={config}
+            statusConfig={statusConfig}
+            testName={testName}
+            theme={theme}
+          />
         </Popover>
       )}
     </>

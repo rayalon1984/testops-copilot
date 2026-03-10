@@ -40,10 +40,12 @@ import {
     azdoGetWorkItemTool,
     azdoGetBuildTool,
     azdoGetPullRequestTool,
+} from './azuredevops';
+import {
     azdoListWikisTool,
     azdoGetWikiPageTool,
     azdoGetTestResultsTool,
-} from './azuredevops';
+} from './azuredevops-read2';
 import {
     azdoCreateWorkItemTool,
     azdoUpdateWorkItemTool,
