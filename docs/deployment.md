@@ -23,7 +23,7 @@ This guide covers different deployment options for TestOps Copilot, from develop
 
 ### Required Access
 - GitHub repository access
-- CI/CD platform access (Jenkins/GitHub Actions)
+- CI/CD platform access (Jenkins/GitHub Actions/Azure DevOps)
 - Cloud platform access (if deploying to cloud)
 - Domain name and SSL certificates
 
@@ -45,6 +45,14 @@ npm run setup
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 # Edit .env files with your configuration
+```
+
+**Azure DevOps** (optional — set all three to enable):
+```bash
+AZDO_ORG_URL=https://dev.azure.com/your-org
+AZDO_PAT=your-personal-access-token
+AZDO_PROJECT=your-project-name
+AZDO_TEAM=your-team-name  # optional, defaults to project default team
 ```
 
 4. Start development servers:

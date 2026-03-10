@@ -18,15 +18,18 @@ graph TD
     API --> GitHub[GitHub API]
     API --> Jira[Jira API]
     API --> Confluence[Confluence API]
+    API --> AzDO[Azure DevOps API]
     API --> Slack[Slack API]
     API --> Email[Email Service]
     API --> Pushover[Pushover API]
+    API --> SmartSelect[Smart Test Selection]
 
     subgraph "Context Enrichment (v2.8.0)"
         API --> Enrichment[Enrichment Service]
         Enrichment --> Jira
         Enrichment --> Confluence
         Enrichment --> GitHub
+        Enrichment --> AzDO
         Enrichment --> AI
     end
 ```
@@ -230,6 +233,7 @@ graph TD
 ### CI/CD Systems
 - Jenkins API integration
 - GitHub Actions integration
+- Azure DevOps Pipelines integration (v3.5.0)
 - Custom CI system support
 
 ### Notification Systems
@@ -239,6 +243,7 @@ graph TD
 
 ### Issue Tracking & Project Management
 - **Jira**: Automatic issue creation, bi-directional sync, custom field mapping, and similar issue search *(v2.8.0)*
+- **Azure DevOps Work Items**: WIQL query, search by text/type/state, create and update work items *(v3.5.0)*
 - **Monday.com**: Work OS integration, automatic item creation from failures, GraphQL API
 - Link failures to existing issues
 - Search and prevent duplicate entries
@@ -300,6 +305,12 @@ graph TD
 - **TestRun**: Test execution records
 - **TestResult**: Individual test results
 - **Notification**: Notification history and settings
+
+### Smart Test Selection Tables (v3.5.0)
+- **TestCoverageMap**: Test name → source file → covered lines mapping
+- **DependencyEdge**: Source file → target file import graph edges
+- **SelectionAccuracy**: Precision/recall/F1 tracking per selection
+- **RegressionEvent**: Detected regressions with severity, status, and attribution
 
 ### Failure Knowledge Base Tables
 - **FailureArchive**: Complete failure records with RCA

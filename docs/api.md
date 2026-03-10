@@ -238,6 +238,101 @@ Paginated endpoints return metadata:
 }
 ```
 
+## Smart Test Selection (v3.5.0)
+
+#### POST /ci/smart-select
+Determine which tests to run based on changed files. Supports multiple strategies: direct test file detection, convention mapping, dependency graph analysis, coverage-based selection, and historical correlation.
+
+```json
+{
+  "files": ["src/services/auth.service.ts", "src/utils/crypto.ts"],
+  "validateFileExistence": true
+}
+```
+
+**Response:**
+```json
+{
+  "selectedTests": ["src/services/__tests__/auth.service.test.ts"],
+  "reason": "Convention-based mapping from changed source files",
+  "totalTests": 856,
+  "savedTests": 844,
+  "ciCommand": "npx jest --testPathPattern='src/services/__tests__/auth.service.test.ts'",
+  "confidence": 0.85,
+  "selectionStrategy": "convention",
+  "estimatedTimeSaved": "12m 30s"
+}
+```
+
+#### POST /ci/coverage-upload
+Upload test coverage data (LCOV, Istanbul JSON, or Cobertura XML) for coverage-based test selection.
+
+#### GET /ci/selection-accuracy
+Get selection accuracy metrics (precision, recall, F1) over a time window.
+
+#### GET /ci/recall-health
+Get recall health status — alerts if recall drops below 95% threshold.
+
+#### GET /ci/regressions
+Get regression summary including open/resolved counts and recent regressions.
+
+---
+
+## Azure DevOps (v3.5.0)
+
+Full Azure DevOps REST API v7.1 integration. Requires `AZDO_ORG_URL`, `AZDO_PAT`, and `AZDO_PROJECT` environment variables.
+
+#### Pipelines
+```
+GET    /azure-devops/pipelines                    # List pipelines
+GET    /azure-devops/pipelines/:id                # Get pipeline details
+POST   /azure-devops/pipelines/:id/runs           # Trigger pipeline run
+GET    /azure-devops/pipelines/:id/runs            # List recent runs
+```
+
+#### Builds
+```
+GET    /azure-devops/builds                       # List builds (with filters)
+GET    /azure-devops/builds/:id                   # Get build details
+GET    /azure-devops/builds/:id/timeline          # Build timeline (stages/jobs)
+GET    /azure-devops/builds/:id/logs              # Build logs
+```
+
+#### Work Items
+```
+POST   /azure-devops/work-items/query             # WIQL query
+GET    /azure-devops/work-items/search            # Search by text/type/state
+GET    /azure-devops/work-items/:id               # Get work item
+POST   /azure-devops/work-items                   # Create work item
+PATCH  /azure-devops/work-items/:id               # Update work item
+```
+
+#### Wiki
+```
+GET    /azure-devops/wikis                        # List wikis
+GET    /azure-devops/wikis/:id/pages              # Get wiki page
+PUT    /azure-devops/wikis/:id/pages              # Create/update page
+DELETE /azure-devops/wikis/:id/pages              # Delete page
+GET    /azure-devops/wikis/:id/tree               # Page tree navigation
+```
+
+#### Repositories & Pull Requests
+```
+GET    /azure-devops/repos                        # List repos
+GET    /azure-devops/repos/:id/pull-requests      # List PRs
+GET    /azure-devops/pull-requests/:id            # Get PR details
+GET    /azure-devops/pull-requests/:id/threads    # Comment threads
+GET    /azure-devops/pull-requests/:id/iterations # Iteration changes
+```
+
+#### Test Runs
+```
+GET    /azure-devops/test-runs                    # List test runs
+GET    /azure-devops/test-runs/:id/results        # Get test results
+```
+
+---
+
 ## AI Endpoints
 
 ### Context Enrichment (v2.8.0)

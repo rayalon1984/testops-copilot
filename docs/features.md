@@ -9,7 +9,7 @@
 - **Smart RCA Matching**: Semantic search across historical failures using AI embeddings
 - **Automated Failure Categorization**: AI-powered classification into 6 categories (bug_critical, bug_minor, environment, flaky, configuration, unknown) with confidence scoring and suggested actions
 - **Intelligent Log Summarization**: AI analysis of test logs with root cause extraction, error location identification, and suggested fixes
-- **Cross-Platform Context Enrichment**: Automatically gathers context from Jira, Confluence, and GitHub to produce richer failure analysis
+- **Cross-Platform Context Enrichment**: Automatically gathers context from Jira, Confluence, GitHub, and Azure DevOps to produce richer failure analysis
 
 ### Agentic Capabilities (v2.9.0 → v3.0.0)
 - **Agentic Command Center**: Persistent, 3-column "Mission Control" interface
@@ -39,11 +39,13 @@
 
 - **Jira**: Issue creation, sync, and similar issue search
 - **GitHub**: Workflow triggers, status updates, commit diffs, PR awareness
+- **Azure DevOps**: Pipelines, builds, work items, wiki, PRs, test runs (v3.5.0)
 - **Confluence**: RCA documentation and knowledge retrieval
 - **Slack/Pushover**: Real-time alerts and notifications
 - **Grafana/Prometheus**: Metrics visualization
 - **Monday.com**: Task management integration
 - **TestRail**: Test case synchronization
+- **Xray Cloud**: Test management sync, test plans, execution history (v3.4.0)
 
 ---
 
@@ -60,8 +62,18 @@
 
 - **3-Tier Autonomy**: Full Auto / AI-in-the-Loop / Human-in-the-Loop — user-configurable
 - **9 AI Specialist Personas**: Security, AI, Data, UX, Performance, Test, DevOps, Product, Senior Engineer
-- **22 AI Tools**: 8 read-only (auto-execute) + 11 write (tiered approval) + 3 housekeeping
+- **35 AI Tools**: Read-only (auto-execute) + write (tiered approval) + housekeeping — spanning Jira, GitHub, Confluence, Jenkins, Azure DevOps, and Xray
 - **Proactive Suggestions**: AI anticipates next steps after every action
 - **Page-Aware Context**: AI adapts behavior based on which page you're viewing
 - **Living Feature Specs**: 229 machine-readable assertions with automated drift detection
 - **Resilience Layer**: Circuit breakers, retries, and timeouts on all external services
+
+---
+
+## 🎯 v3.5.0 — Smart Test Selection & Azure DevOps
+
+- **Smart Test Selection Platform**: Determines which tests to run based on code changes — convention mapping, dependency graph analysis, coverage-based selection, and historical correlation learning
+- **Selection Accuracy Tracking**: Precision, recall, and F1 metrics after every CI run with recall health monitoring (>95% threshold)
+- **Regression Detection**: Automatically identifies regressions, attributes them to introducing commits and PRs, with severity assessment
+- **Azure DevOps Integration**: First-class REST API v7.1 integration — pipelines, builds, work items, wiki, repos, PRs, test runs (12 new AI tools)
+- **Cross-Pipeline Impact**: Shared path detection across pipelines so changes in shared code trigger tests in all affected services
