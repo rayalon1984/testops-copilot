@@ -1,6 +1,6 @@
 # Features
 
-> All features below are standard in **v3.4.0**. Version annotations show when each capability was introduced.
+> All features below are standard in **v3.5.0**. Version annotations show when each capability was introduced.
 
 ## 🤖 AI-Powered Analysis
 *(Introduced v2.5.3 → v2.9.0, graduated autonomy in v3.0.0)*

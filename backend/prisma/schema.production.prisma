@@ -583,3 +583,79 @@ model XraySync {
   @@index([status])
   @@map("xray_syncs")
 }
+
+// ─── Smart Test Selection (Phase 3) ───
+
+model TestCoverageMap {
+  id            String   @id @default(uuid()) @db.Uuid
+  testName      String
+  sourceFile    String
+  coveredLines  String   // JSON array of line ranges: [[1,50],[80,120]]
+  pipelineId    String?  @db.Uuid
+  branch        String?
+  collectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([testName, sourceFile])
+  @@index([sourceFile])
+  @@index([testName])
+  @@map("test_coverage_maps")
+}
+
+model DependencyEdge {
+  id            String   @id @default(uuid()) @db.Uuid
+  sourceFile    String   // The file that imports
+  targetFile    String   // The file being imported
+  importType    String   @default("static") // static | dynamic | re-export
+  pipelineId    String?  @db.Uuid
+  collectedAt   DateTime @default(now())
+
+  @@unique([sourceFile, targetFile])
+  @@index([targetFile])
+  @@index([sourceFile])
+  @@map("dependency_edges")
+}
+
+model SelectionAccuracy {
+  id              String   @id @default(uuid()) @db.Uuid
+  testRunId       String?  @db.Uuid
+  pipelineId      String?  @db.Uuid
+  totalSelected   Int
+  truePositives   Int      @default(0)
+  falseNegatives  Int      @default(0)
+  falsePositives  Int      @default(0)
+  precision       Float    @default(0)
+  recall          Float    @default(0)
+  strategyUsed    String   // convention | dependency | coverage | correlation | mixed
+  changedFiles    String?  // JSON array of changed files
+  createdAt       DateTime @default(now())
+
+  @@index([pipelineId])
+  @@index([createdAt])
+  @@index([strategyUsed])
+  @@map("selection_accuracies")
+}
+
+model RegressionEvent {
+  id                String    @id @default(uuid()) @db.Uuid
+  testName          String
+  pipelineId        String    @db.Uuid
+  introducingCommit String?
+  introducingPR     Int?
+  prTitle           String?
+  prAuthor          String?
+  testRunId         String    @db.Uuid
+  lastPassingCommit String?
+  severity          String    @default("MEDIUM") // CRITICAL | HIGH | MEDIUM | LOW
+  status            String    @default("detected") // detected | confirmed | resolved | false_positive
+  errorMessage      String?
+  resolvedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([testName])
+  @@index([pipelineId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("regression_events")
+}

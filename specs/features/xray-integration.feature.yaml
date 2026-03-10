@@ -320,7 +320,7 @@ acceptance_criteria:
 changelog:
   - version: "2.0.0"
     date: "2026-03-02"
-    product_version: "v3.4.0"
+    product_version: "v3.5.0"
     changes:
       - "Status: draft → active"
       - "Auto-sync: fire-and-forget on test run completion with trigger tracking"

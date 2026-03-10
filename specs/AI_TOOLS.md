@@ -1,6 +1,6 @@
 # AI_TOOLS.md — AI Tool Registry
 
-> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Owner**: AI Architect · **Status**: Living document · **Version**: 3.5.0 · **Last verified**: 2026-03-10
 
 ---
 
@@ -8,8 +8,9 @@
 
 | Category | Count | Confirmation | Policy |
 |----------|-------|-------------|--------|
-| **Read-only** | 9 | No | Auto-approved — safe, no side effects |
-| **Write** | 6 | Yes | Requires explicit user approval (5-min TTL) |
+| **Read-only** | 18 | No | Auto-approved — safe, no side effects |
+| **Write** | 10 | Yes | Requires explicit user approval (5-min TTL) |
+| **Action** | 7 | Yes | Requires explicit user approval (context-dependent) |
 
 ---
 
@@ -82,6 +83,75 @@
 - **Returns**: Array of test cases (`key`, `summary`, `status`, `lastExecution`) or test plans (`key`, `summary`, `testCount`, `passRate`)
 - **Notes**: Requires Xray Cloud integration (`XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET`, `XRAY_PROJECT_KEY`). Returns graceful error when not configured.
 
+### `smart_test_select`
+- **Description**: Determine which tests to run based on changed files. Returns selected tests, strategy, confidence, and estimated time savings.
+- **Parameters**:
+  - `files` (string[], required) — Changed file paths relative to project root
+  - `validateFileExistence` (boolean, optional) — Verify mapped test files exist on disk
+  - `useCorrelation` (boolean, optional) — Use historical correlation analysis
+  - `excludeQuarantined` (boolean, optional) — Exclude flaky/quarantined tests
+- **Returns**: Selected tests, total/saved test counts, selection strategy, confidence score, CI command, details, and metadata.
+
+### `azdo_get_pipeline`
+- **Description**: Get Azure DevOps pipeline status and recent runs
+- **Parameters**:
+  - `pipelineName` (string, optional) — Pipeline name or partial match
+  - `pipelineId` (number, optional) — Pipeline ID (takes precedence)
+  - `limit` (number, optional) — Recent runs to return (default: 5)
+- **Returns**: Pipeline details and recent run results
+
+### `azdo_search_work_items`
+- **Description**: Search Azure DevOps work items by text, type, or state
+- **Parameters**:
+  - `searchText` (string, optional) — Search text for titles
+  - `type` (string, optional) — Work item type filter (Bug, Task, User Story, Epic)
+  - `state` (string, optional) — State filter (New, Active, Resolved, Closed)
+  - `top` (number, optional) — Max results (default: 10)
+- **Returns**: Array of work items with id, title, type, state, assignee, priority
+
+### `azdo_get_work_item`
+- **Description**: Get detailed Azure DevOps work item by ID
+- **Parameters**:
+  - `id` (number, required) — Work item ID
+- **Returns**: Full work item with all fields, description, tags, area/iteration paths
+
+### `azdo_get_build`
+- **Description**: Get Azure DevOps build details with timeline and failed tasks
+- **Parameters**:
+  - `buildId` (number, required) — Build ID
+  - `includeTimeline` (boolean, optional) — Include stage/job/task breakdown (default: true)
+- **Returns**: Build details, timeline records, and failed task list with issues
+
+### `azdo_get_pull_request`
+- **Description**: Get Azure DevOps pull request details, reviewers, and threads
+- **Parameters**:
+  - `repoName` (string, required) — Repository name or ID
+  - `pullRequestId` (number, required) — PR ID
+  - `includeThreads` (boolean, optional) — Include comment threads (default: true)
+- **Returns**: PR details with reviewers, vote status, labels, and comment threads
+
+### `azdo_list_wikis`
+- **Description**: List Azure DevOps wikis and optionally page tree
+- **Parameters**:
+  - `wikiName` (string, optional) — Wiki name to get page tree for
+- **Returns**: Wiki list or specific wiki with page tree
+
+### `azdo_get_wiki_page`
+- **Description**: Get Azure DevOps wiki page content
+- **Parameters**:
+  - `wikiId` (string, required) — Wiki ID
+  - `pagePath` (string, required) — Path to the wiki page
+- **Returns**: Page path, content (Markdown), and URL
+
+### `azdo_get_test_results`
+- **Description**: Get test results from an Azure DevOps test run
+- **Parameters**:
+  - `testRunId` (number, required) — Test run ID
+  - `outcomeFilter` (string, optional) — Filter by outcome: Failed, Passed, or all
+- **Returns**: Result counts, failed test details with error messages
+
+- **Notes**: All Azure DevOps tools require `AZDO_ORG_URL`, `AZDO_PAT`, and `AZDO_PROJECT` environment variables. Returns graceful error when not configured.
+
 ---
 
 ## 3. Write Tools (Confirmation Required)
@@ -139,6 +209,46 @@
   - `message` (string, required) — Commit message
   - `branch` (string, required) — Target branch
 - **Returns**: Commit SHA and URL
+
+### `azdo_create_work_item`
+- **Description**: Create a new Azure DevOps work item (Bug, Task, User Story, Epic)
+- **Parameters**:
+  - `type` (string, required) — Work item type
+  - `title` (string, required) — Work item title
+  - `description` (string, optional) — HTML description
+  - `assignedTo` (string, optional) — Assignee email or display name
+  - `priority` (number, optional) — Priority (1-4)
+  - `tags` (string, optional) — Semicolon-separated tags
+  - `areaPath` (string, optional) — Area path
+  - `iterationPath` (string, optional) — Sprint iteration path
+- **Returns**: Created work item with ID, title, state
+
+### `azdo_update_work_item`
+- **Description**: Update an existing Azure DevOps work item
+- **Parameters**:
+  - `id` (number, required) — Work item ID
+  - `state` (string, optional) — New state
+  - `title` (string, optional) — New title
+  - `assignedTo` (string, optional) — New assignee
+  - `priority` (number, optional) — New priority (1-4)
+  - `comment` (string, optional) — Comment to add
+- **Returns**: Updated work item
+
+### `azdo_trigger_pipeline`
+- **Description**: Trigger an Azure DevOps pipeline run
+- **Parameters**:
+  - `pipelineId` (number, required) — Pipeline ID
+  - `branch` (string, optional) — Branch to run on
+  - `parameters` (object, optional) — Template parameters
+- **Returns**: Run ID, state, pipeline name
+
+### `azdo_create_wiki_page`
+- **Description**: Create or update an Azure DevOps wiki page
+- **Parameters**:
+  - `wikiId` (string, required) — Wiki ID
+  - `pagePath` (string, required) — Page path
+  - `content` (string, required) — Markdown content
+- **Returns**: Page path and URL
 
 ---
 

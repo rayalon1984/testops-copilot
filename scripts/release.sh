@@ -6,7 +6,7 @@
 #   ./scripts/release.sh <version> "<headline>"
 #
 # Example:
-#   ./scripts/release.sh 3.4.0 "Auto-Sync + Test Plan Browser"
+#   ./scripts/release.sh 3.5.0 "Auto-Sync + Test Plan Browser"
 #
 # What it does:
 #   1. Validates inputs and checks for clean working tree
@@ -31,7 +31,7 @@ HEADLINE="${2:-}"
 
 if [[ -z "$VERSION" || -z "$HEADLINE" ]]; then
   echo "Usage: ./scripts/release.sh <version> \"<headline>\""
-  echo "  e.g. ./scripts/release.sh 3.4.0 \"Auto-Sync + Test Plan Browser\""
+  echo "  e.g. ./scripts/release.sh 3.5.0 \"Auto-Sync + Test Plan Browser\""
   exit 1
 fi
 

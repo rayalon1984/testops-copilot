@@ -3,7 +3,7 @@
 > **Owner**: Release QA Engineer + all personas
 > **Status**: Living document — updated every sprint
 > **Purpose**: Track recurring error patterns, root causes, and preventive measures so we never repeat the same class of failure twice.
-> **Current Version**: 3.4.0
+> **Current Version**: 3.5.0
 
 ---
 

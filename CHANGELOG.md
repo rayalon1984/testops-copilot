@@ -6,6 +6,90 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.5.0] - 2026-03-10
+
+> **Smart Test Selection Platform + Azure DevOps Integration + AI-Powered Regression Detection**
+
+v3.5 is the biggest intelligence upgrade since launch. Smart Test Selection evolves from a simple convention-based mapper to a full platform with dependency graph analysis, code coverage mapping, historical correlation learning, and regression detection. Azure DevOps joins as a first-class integration alongside GitHub, Jira, and Jenkins.
+
+### Smart Test Selection — Foundation to Platform (Phases 1-5)
+
+**Phase 1: Production-Ready Foundation**
+- **Zod validation**: `POST /api/v1/ci/smart-select` now validates input via `smartSelectSchema` middleware, matching all other endpoints.
+- **Real test count**: `totalTests` is queried from the database (no more hardcoded `100`).
+- **File existence check**: Optional `validateFileExistence` flag verifies mapped test paths exist on disk.
+- **Expanded global triggers**: `tsconfig.json`, `jest.config.*`, `vitest.config.*`, `docker-compose.yml`, `package-lock.json` now trigger full suite.
+- **Controller renamed**: `getImpactedtests` → `getImpactedTests` (typo fix).
+
+**Phase 2: CI/CD Integration**
+- **CI auth token**: `X-CI-Token` header support alongside JWT (env: `CI_API_TOKEN`).
+- **AI Copilot tool**: `smart_test_select` lets the copilot answer "which tests should I run for my PR?"
+- **Enhanced response**: `ciCommand`, `confidence` score, `selectionStrategy`, `estimatedTimeSaved`, `details[]`, and `metadata`.
+
+**Phase 3: Intelligence Layer**
+- **Dependency graph** (`DependencyGraphService`): Parses TypeScript imports, builds adjacency list, BFS traversal for transitive dependents, cached in `DependencyEdge` DB model.
+- **Coverage mapping** (`CoverageMapService`): Parses LCOV and Istanbul JSON, maps test → source file → covered lines, stored in `TestCoverageMap` model.
+- **Coverage upload**: `POST /api/v1/ci/coverage-upload` accepts LCOV/Istanbul/Cobertura for CI integration.
+- **Strategy composition**: Coverage → Dependency → Convention → Direct → Global (safety net), with per-strategy confidence weighting.
+
+**Phase 4: AI-Powered Historical Learning**
+- **Correlation engine** (`TestCorrelationService`): Co-failure matrix (Jaccard similarity), file-to-failure correlation, exponential decay recency weighting (30-day half-life).
+- **Selection accuracy tracking** (`SelectionAccuracyService`): Precision, recall, F1 after every CI run. Weekly trend bucketing. Recall health monitoring (>95% threshold).
+- **AI explanation** (`SelectionExplainerService`): Natural-language explanations via AIManager with fallback to rule-based templates.
+- **Quarantine exclusion**: Flaky/quarantined tests are automatically excluded from selection.
+
+**Phase 5: Full Loop — Regression Detection & Cross-Pipeline**
+- **Regression detection** (`RegressionDetectionService`): Compares test results across runs. Severity assessment (CRITICAL/HIGH/MEDIUM). Confirm or mark as false positive. `RegressionEvent` DB model.
+- **Cross-pipeline impact** (`CrossPipelineService`): Shared path detection across pipelines. When shared code changes, affected pipelines are identified.
+- **Frontend dashboard** (`SmartSelection.tsx`): Accuracy trends, strategy performance, regression list with actions.
+- **Frontend badge** (`RegressionBadge`): Severity-colored badges with detailed popovers on test results.
+
+### Azure DevOps — Full Integration
+
+First-class Azure DevOps REST API v7.1 integration, following the same patterns as GitHub, Jira, and Confluence.
+
+**Service Layer** (`AzureDevOpsService`):
+- **Pipelines**: List, get, trigger runs, list recent runs.
+- **Builds**: List with filters, get details, build timeline (stages/jobs/tasks), build logs.
+- **Work Items**: WIQL query, search by text/type/state, get, create, update.
+- **Wiki**: List wikis, get/create/update/delete pages, page tree navigation.
+- **Repositories**: List repos in project.
+- **Pull Requests**: List/get PRs, comment threads, iteration changes (file diffs).
+- **Test Runs & Results**: List test runs, get test results with outcome filtering.
+- **Project**: Get project details, list teams, get current iteration (sprint).
+
+**REST API** (`/api/v1/azure-devops/*`):
+- 25+ endpoints covering all Azure DevOps resource types.
+- JWT authentication required on all endpoints.
+- Circuit breaker protected (`azureDevOps` breaker in resilience module).
+
+**AI Copilot Tools** (12 new tools):
+- **Read-only (Tier 1)**: `azdo_get_pipeline`, `azdo_search_work_items`, `azdo_get_work_item`, `azdo_get_build`, `azdo_get_pull_request`, `azdo_list_wikis`, `azdo_get_wiki_page`, `azdo_get_test_results`.
+- **Write (Tier 2)**: `azdo_create_work_item`, `azdo_update_work_item`, `azdo_create_wiki_page`.
+- **Action (Tier 3)**: `azdo_trigger_pipeline`.
+
+**Configuration**:
+- Environment variables: `AZDO_ORG_URL`, `AZDO_PAT`, `AZDO_PROJECT`, `AZDO_TEAM` (optional).
+- Conditional initialization: only activates when org URL + PAT + project are all set.
+
+### Database Schema
+
+New models added to all three Prisma schemas (default, dev, production):
+- `TestCoverageMap`: test name → source file → covered lines mapping.
+- `DependencyEdge`: source file → target file import graph edges.
+- `SelectionAccuracy`: precision/recall/F1 tracking per selection.
+- `RegressionEvent`: detected regressions with severity, status, and attribution.
+
+### Infrastructure
+
+- Circuit breaker count: 5 → 6 (added `azureDevOps`).
+- AI tool count: 23 → 35 (12 new Azure DevOps tools).
+- Tool category: Added `azuredevops` to the tool category type system.
+- Backend test count: 856 tests, all passing.
+- Frontend test count: 145 tests, all passing.
+
+---
+
 ## [3.4.0] - 2026-03-02
 
 > **Xray Deep Integration + Card Graduation + RC Hardening**

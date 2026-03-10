@@ -1,7 +1,7 @@
 # Persona: AI_PRODUCT_MANAGER
 
 > **Role**: Product vision & scope · **Routing**: Step 8 in `TEAM_SELECTION.md`
-> **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Version**: 3.5.0 · **Last verified**: 2026-03-05
 
 ---
 

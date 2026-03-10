@@ -1,6 +1,7 @@
 import { Application } from 'express';
 import { jiraController } from '../controllers/jira.controller';
 import { xrayController } from '../controllers/xray.controller';
+import { azureDevOpsController } from '../controllers/azuredevops.controller';
 import failureArchiveRouter from './failure-archive.routes';
 import mondayRouter from './monday.routes';
 import metricsRouter from './metrics.routes';
@@ -12,6 +13,7 @@ import aiRouter from './ai';
 import channelRouter from './channel.routes';
 import shareRouter from './share.routes';
 import healingRouter from './healing.routes';
+import webhookRouter from './webhook.routes';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -47,6 +49,8 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/channels', channelRouter);
   app.use('/api/v1/shares', shareRouter);
   app.use('/api/v1/healing', healingRouter);
+  app.use('/api/v1/webhooks', webhookRouter);
+  app.use('/api/v1/azure-devops', azureDevOpsController);
 }
 
 export default registerRoutes;

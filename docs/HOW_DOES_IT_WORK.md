@@ -1,7 +1,7 @@
 # How Does TestOps Copilot Actually Work?
 
 > A plain-English guide for anyone who wants to understand what happens under the hood.
-> Updated for v3.4.0 — Xray Deep Integration, Card Graduation, AI Enrichment Pipeline.
+> Updated for v3.5.0 — Smart Test Selection, Azure DevOps Integration, Intelligent CI Pipeline.
 
 ---
 
@@ -21,13 +21,13 @@ Every time your tests run, it automatically collects the results, uses AI to fig
 TestOps Copilot plugs into the tools you already use:
 
 ```
-Your Code Repo (GitHub)  --->  CI/CD (Jenkins / GitHub Actions)
+Your Code Repo (GitHub)  --->  CI/CD (Jenkins / GitHub Actions / Azure DevOps)
                                         |
                                         v
                               TestOps Copilot
 ```
 
-You provide the URL of your Jenkins server or GitHub repo, plus an API token so we can talk to it. That's it. No agents to install, no code changes, no SDK. We use the same APIs your CI/CD tools already expose.
+You provide the URL of your Jenkins server, GitHub repo, or Azure DevOps project, plus an API token so we can talk to it. That's it. No agents to install, no code changes, no SDK. We use the same APIs your CI/CD tools already expose.
 
 ### 2. Tests Run, We Listen
 
@@ -171,7 +171,7 @@ The persona badge appears in the chat: *"Test Engineer is handling this"*
 
 #### The ReAct Loop: Reason - Act - Observe - Answer
 
-The copilot doesn't just answer from memory. It has **18 tools** it can use:
+The copilot doesn't just answer from memory. It has **35 tools** it can use:
 
 **Read tools** (auto-approved):
 - Search Jira issues, get issue details
@@ -179,11 +179,14 @@ The copilot doesn't just answer from memory. It has **18 tools** it can use:
 - Search Confluence for docs
 - Check Jenkins pipeline status
 - Query dashboard metrics and failure predictions
+- Search Azure DevOps work items, pipelines, builds, PRs, wikis, test results
+- Smart test selection (which tests should run for changed files?)
 
 **Write tools** (require your approval):
 - Create Jira issues, transition status, add comments
 - Create GitHub PRs, branches, update files
 - Trigger Jenkins builds, retry/cancel test runs
+- Create/update Azure DevOps work items, trigger pipelines, publish wiki pages
 
 When you ask a question, the AI reasons about what tools it needs, calls them, looks at the results, and either calls more tools or gives you an answer. This is the ReAct loop (Reason - Act - Observe - Answer), and you see every step in real time via streaming SSE events.
 
@@ -231,7 +234,7 @@ Here's the complete picture of what talks to what:
 
 ```
   +------------------+
-  |  Your CI/CD      |  Jenkins / GitHub Actions
+  |  Your CI/CD      |  Jenkins / GitHub Actions / Azure DevOps
   |  (runs tests)    |
   +--------+---------+
            |
@@ -262,16 +265,16 @@ Here's the complete picture of what talks to what:
            | Sends notifications, creates tickets,
            | AND reads back context
            v
-  +--------------------------------------------------+
-  |  Jira  |  Slack  |  Confluence  |  Monday  |  TestRail  |
-  |  (read |         |  (read &     |          |            |
-  |  &write)         |   write)     |          |            |
-  +--------------------------------------------------+
-           ^                 ^              ^
-           |                 |              |
-           +--------+--------+--------------+
-                    |
-           GitHub API (commit diffs, PRs)
+  +---------------------------------------------------------------+
+  |  Jira  |  Slack  |  Confluence  |  Monday  |  TestRail  | AzDO |
+  |  (read |         |  (read &     |          |            | (full|
+  |  &write)         |   write)     |          |            |  API)|
+  +---------------------------------------------------------------+
+           ^                 ^              ^          ^
+           |                 |              |          |
+           +--------+--------+--------------+----------+
+                    |                       |
+           GitHub API (commit diffs, PRs)   Azure DevOps API (pipelines, work items, wiki)
 ```
 
 ---

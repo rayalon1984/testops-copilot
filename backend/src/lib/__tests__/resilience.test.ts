@@ -362,7 +362,7 @@ describe('circuitBreakers', () => {
 
   it('getAllCircuitBreakerStatuses() returns all breaker states', () => {
     const statuses = getAllCircuitBreakerStatuses();
-    expect(statuses).toHaveLength(5);
+    expect(statuses).toHaveLength(6);
 
     const names = statuses.map(s => s.name);
     expect(names).toContain('github');
@@ -370,6 +370,7 @@ describe('circuitBreakers', () => {
     expect(names).toContain('jenkins');
     expect(names).toContain('confluence');
     expect(names).toContain('xray');
+    expect(names).toContain('azureDevOps');
 
     statuses.forEach(s => {
       expect(s.state).toBe('CLOSED');

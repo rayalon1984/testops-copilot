@@ -1,0 +1,122 @@
+name: 'Smart Test Selection'
+description: 'Determines which tests to run based on changed files in a PR or push'
+
+inputs:
+  api-url:
+    description: 'TestOps Copilot API base URL'
+    required: false
+    default: 'http://localhost:4000'
+  ci-token:
+    description: 'CI API token for authentication (set as GitHub secret)'
+    required: true
+  base-ref:
+    description: 'Base branch to diff against (default: main)'
+    required: false
+    default: 'main'
+
+outputs:
+  selected-tests:
+    description: 'Space-separated list of selected test file paths, or "ALL" for full suite'
+    value: ${{ steps.select.outputs.selected-tests }}
+  test-count:
+    description: 'Number of tests selected'
+    value: ${{ steps.select.outputs.test-count }}
+  strategy:
+    description: 'Selection strategy used (direct, convention, global, mixed)'
+    value: ${{ steps.select.outputs.strategy }}
+  confidence:
+    description: 'Confidence score (0-1)'
+    value: ${{ steps.select.outputs.confidence }}
+  saved-tests:
+    description: 'Number of tests saved by smart selection'
+    value: ${{ steps.select.outputs.saved-tests }}
+  ci-command:
+    description: 'Ready-to-run test command'
+    value: ${{ steps.select.outputs.ci-command }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get changed files
+      id: changes
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          # For PRs: diff against base branch
+          git fetch origin ${{ inputs.base-ref }} --depth=1
+          FILES=$(git diff --name-only origin/${{ inputs.base-ref }}...HEAD | tr '\n' ',' | sed 's/,$//')
+        else
+          # For push: diff against parent commit
+          FILES=$(git diff --name-only HEAD~1 HEAD | tr '\n' ',' | sed 's/,$//')
+        fi
+        echo "files=$FILES" >> $GITHUB_OUTPUT
+        echo "Changed files: $FILES"
+
+    - name: Call smart-select API
+      id: select
+      shell: bash
+      run: |
+        FILES="${{ steps.changes.outputs.files }}"
+
+        if [ -z "$FILES" ]; then
+          echo "No files changed — skipping smart selection"
+          echo "selected-tests=" >> $GITHUB_OUTPUT
+          echo "test-count=0" >> $GITHUB_OUTPUT
+          echo "strategy=none" >> $GITHUB_OUTPUT
+          echo "confidence=1.0" >> $GITHUB_OUTPUT
+          echo "saved-tests=0" >> $GITHUB_OUTPUT
+          echo "ci-command=echo 'No tests to run'" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Convert comma-separated to JSON array
+        JSON_FILES=$(echo "$FILES" | tr ',' '\n' | jq -R . | jq -s .)
+
+        # Call the API
+        RESPONSE=$(curl -s -w "\n%{http_code}" \
+          -X POST "${{ inputs.api-url }}/api/v1/ci/smart-select" \
+          -H "Content-Type: application/json" \
+          -H "X-CI-Token: ${{ inputs.ci-token }}" \
+          -d "{\"files\": $JSON_FILES}" \
+          --max-time 30)
+
+        HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+        BODY=$(echo "$RESPONSE" | head -n -1)
+
+        if [ "$HTTP_CODE" != "200" ]; then
+          echo "::warning::Smart select API returned $HTTP_CODE — falling back to full suite"
+          echo "selected-tests=ALL" >> $GITHUB_OUTPUT
+          echo "test-count=0" >> $GITHUB_OUTPUT
+          echo "strategy=fallback" >> $GITHUB_OUTPUT
+          echo "confidence=0" >> $GITHUB_OUTPUT
+          echo "saved-tests=0" >> $GITHUB_OUTPUT
+          echo "ci-command=npm test" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Parse response
+        SELECTED=$(echo "$BODY" | jq -r '.data.selectedTests | join(" ")')
+        COUNT=$(echo "$BODY" | jq -r '.data.selectedTests | length')
+        STRATEGY=$(echo "$BODY" | jq -r '.data.selectionStrategy')
+        CONFIDENCE=$(echo "$BODY" | jq -r '.data.confidence')
+        SAVED=$(echo "$BODY" | jq -r '.data.savedTests')
+
+        # Build CI command
+        if [ "$SELECTED" = "ALL" ]; then
+          CI_CMD="npm test"
+        elif [ "$COUNT" = "0" ]; then
+          CI_CMD="echo 'No tests to run'"
+        else
+          # Build Jest test pattern
+          PATTERN=$(echo "$SELECTED" | tr ' ' '|')
+          CI_CMD="npx jest --testPathPatterns=\"$PATTERN\""
+        fi
+
+        echo "selected-tests=$SELECTED" >> $GITHUB_OUTPUT
+        echo "test-count=$COUNT" >> $GITHUB_OUTPUT
+        echo "strategy=$STRATEGY" >> $GITHUB_OUTPUT
+        echo "confidence=$CONFIDENCE" >> $GITHUB_OUTPUT
+        echo "saved-tests=$SAVED" >> $GITHUB_OUTPUT
+        echo "ci-command=$CI_CMD" >> $GITHUB_OUTPUT
+
+        echo "Smart selection: $COUNT tests ($STRATEGY, confidence: $CONFIDENCE)"

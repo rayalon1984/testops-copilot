@@ -1,35 +1,41 @@
-
 import { Request, Response, NextFunction } from 'express';
-import { testImpactService } from '../services/test/TestImpactService';
+import { testImpactService, TestSelectionResult } from '../services/test/TestImpactService';
 
+/**
+ * Test Impact Controller
+ *
+ * Thin HTTP adapter for smart test selection.
+ * All business logic lives in TestImpactService.
+ */
 class TestImpactController {
-    /**
-     * Determines which tests to run based on a list of changed files.
-     * POST /api/v1/ci/smart-select
-     * Body: { files: string[] }
-     */
-    async getImpactedtests(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { files } = req.body;
+  /**
+   * Determines which tests to run based on a list of changed files.
+   * POST /api/v1/ci/smart-select
+   * Body: { files: string[], options?: SmartSelectOptions }
+   *
+   * Input is validated by Zod middleware before reaching this handler.
+   */
+  async getImpactedTests(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { files, options } = req.body;
 
-            if (!files || !Array.isArray(files)) {
-                res.status(400).json({
-                    success: false,
-                    error: 'Invalid input. "files" must be an array of strings.'
-                });
-                return;
-            }
+      const result: TestSelectionResult = await testImpactService.getTestsForChanges(
+        files,
+        options
+      );
 
-            const result = await testImpactService.getTestsForChanges(files);
-
-            res.json({
-                success: true,
-                data: result
-            });
-        } catch (error) {
-            next(error);
-        }
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
     }
+  }
 }
 
 export const testImpactController = new TestImpactController();

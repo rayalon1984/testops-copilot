@@ -1,7 +1,7 @@
 # Product Specification — TestOps Copilot
 
 > **Status**: Living document · **Owner**: AI Product Manager
-> **Last synced**: 2026-03-05 · **Version**: 3.4.0
+> **Last synced**: 2026-03-10 · **Version**: 3.5.0
 
 ---
 
@@ -22,7 +22,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 
 ### 3.1 Pipeline & Test Orchestration
 
-- Multi-CI integration: Jenkins, GitHub Actions, custom systems
+- Multi-CI integration: Jenkins, GitHub Actions, Azure DevOps, custom systems
 - Real-time test run tracking: PENDING → RUNNING → PASSED / FAILED / FLAKY / SKIPPED
 - Test result aggregation with pass rate, duration, error logs
 - Pipeline scheduling (cron) and manual trigger support
@@ -57,7 +57,7 @@ Reduce test failure investigation from **2+ hours to 5 minutes** by combining AI
 | Issue Tracking | Jira (bi-directional sync, auto-create), Monday.com (GraphQL) |
 | Test Management | TestRail (test case sync, milestone support), Xray Cloud (OAuth2, GraphQL search, test execution sync) |
 | Knowledge | Confluence (RCA publishing, knowledge search) |
-| CI/CD | Jenkins, GitHub Actions, custom |
+| CI/CD | Jenkins, GitHub Actions, Azure DevOps (Pipelines, Builds, Test Runs), custom |
 | Source Control | GitHub (PR awareness, commit diffs, branch creation) |
 | Notifications | Slack, Email (SMTP), Pushover |
 | Monitoring | Grafana (pre-built dashboards), Prometheus (`/metrics` endpoint) |

@@ -1,6 +1,6 @@
 # TestOps Copilot Documentation
 
-> **Version**: 3.4.0 · **Last updated**: 2026-03-05
+> **Version**: 3.5.0 · **Last updated**: 2026-03-10
 
 Welcome to the TestOps Copilot documentation. This guide will help you understand, install, and use TestOps Copilot effectively.
 

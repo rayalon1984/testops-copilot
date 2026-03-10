@@ -1,6 +1,6 @@
 # Security Guide
 
-> **Canonical spec**: [`specs/SECURITY.md`](../specs/SECURITY.md) (v3.4.0) — auth, RBAC, transport, rate limiting, AI gates
+> **Canonical spec**: [`specs/SECURITY.md`](../specs/SECURITY.md) (v3.5.0) — auth, RBAC, transport, rate limiting, AI gates
 
 ## Overview
 

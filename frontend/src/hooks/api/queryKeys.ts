@@ -81,4 +81,11 @@ export const queryKeys = {
     quarantine: () => ['healing-quarantine'] as const,
     fixSuggestions: () => ['healing-fix-suggestions'] as const,
   },
+
+  smartSelection: {
+    accuracy: (windowDays?: number) => ['smart-selection', 'accuracy', windowDays ?? 30] as const,
+    regressions: (windowDays?: number) => ['smart-selection', 'regressions', windowDays ?? 30] as const,
+    regressionDetail: (id: string | undefined) => ['smart-selection', 'regression', id] as const,
+    recallHealth: () => ['smart-selection', 'recall-health'] as const,
+  },
 } as const;

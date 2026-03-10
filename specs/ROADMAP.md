@@ -1,13 +1,13 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-02
-> **Current Version**: 3.4.0 (March 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-10
+> **Current Version**: 3.5.0 (March 2026)
 
 ---
 
 ## Planned
 
-### v3.5.0 — Sprint 13: Xray Bi-Directional Sync + Xray Server (TBD)
+### v3.6.0 — Sprint 14: Xray Bi-Directional Sync + Xray Server (TBD)
 - [ ] Xray bi-directional sync (push results, pull test case updates)
 - [ ] Xray Server (on-prem) support
 - [ ] Test case creation from Copilot
@@ -15,6 +15,24 @@
 ---
 
 ## Shipped
+
+### v3.5.0 — Sprint 13: Smart Test Selection Platform + Azure DevOps Integration (March 2026)
+- [x] Smart Test Selection foundation — Zod validation, real test count, file existence checks, expanded global triggers
+- [x] Dependency graph analysis — DependencyGraphService, TypeScript import parsing, BFS transitive traversal, DependencyEdge DB model
+- [x] Coverage mapping — CoverageMapService, LCOV/Istanbul parsing, TestCoverageMap DB model, coverage upload endpoint
+- [x] Strategy composition — Coverage → Dependency → Convention → Direct → Global with per-strategy confidence weighting
+- [x] Historical correlation learning — TestCorrelationService, co-failure matrix (Jaccard), file-to-failure correlation, recency weighting
+- [x] Selection accuracy tracking — SelectionAccuracyService, precision/recall/F1, weekly trends, recall health monitoring
+- [x] AI-powered explanations — SelectionExplainerService with fallback to rule-based templates
+- [x] Regression detection — RegressionDetectionService, severity assessment, confirm/false-positive actions, RegressionEvent DB model
+- [x] Cross-pipeline impact — CrossPipelineService, shared path detection, pipeline mapping
+- [x] Smart Selection dashboard — SmartSelection.tsx with accuracy trends, strategy performance, regression list
+- [x] RegressionBadge — severity-colored badges with detailed popovers on test results
+- [x] Azure DevOps full integration — AzureDevOpsService (Pipelines, Builds, Work Items, Wiki, Repos, PRs, Test Runs)
+- [x] Azure DevOps REST API — 25+ endpoints at `/api/v1/azure-devops/*`, JWT auth, circuit breaker protected
+- [x] Azure DevOps AI tools — 12 new copilot tools (8 read-only, 3 write, 1 action)
+- [x] `smart_test_select` AI tool with correlation and quarantine exclusion support
+- [x] 1,001 tests passing (856 backend + 145 frontend), 35 AI tools registered
 
 ### v3.4.0 — Sprint 12: Xray Deep Integration + Card Graduation (March 2026)
 - [x] Auto-sync to Xray — fire-and-forget on test run completion (trigger=AUTO)
@@ -247,7 +265,7 @@
 **CI/CD Expansion**:
 - [ ] GitLab CI integration
 - [ ] CircleCI integration
-- [ ] Azure DevOps integration
+- [x] Azure DevOps integration (shipped in v3.5.0)
 - [ ] Bitbucket Pipelines
 
 **Quality Gates**:

@@ -1,6 +1,6 @@
 # SECURITY.md — Security Architecture
 
-> **Owner**: Security Engineer · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Owner**: Security Engineer · **Status**: Living document · **Version**: 3.5.0 · **Last verified**: 2026-03-10
 
 ---
 
@@ -226,6 +226,8 @@ LLM proposes write tool → PendingAction created (DB) → SSE notification → 
 | TestRail | `TESTRAIL_API_KEY` | Environment |
 | Email | `EMAIL_PASSWORD` | Environment |
 | Pushover | `PUSHOVER_USER_KEY`, `PUSHOVER_APP_TOKEN` | Environment |
+| Azure DevOps | `AZDO_ORG_URL`, `AZDO_PAT`, `AZDO_PROJECT` | Environment |
+| Xray | `XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET` | Environment |
 
 **No credentials stored in database.** All secrets loaded from environment at startup.
 

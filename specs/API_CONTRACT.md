@@ -1,6 +1,6 @@
 # API_CONTRACT.md — API Contract
 
-> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Owner**: Senior Engineer · **Status**: Living document · **Version**: 3.5.0 · **Last verified**: 2026-03-10
 
 ---
 
@@ -66,7 +66,7 @@ Production responses include `message` only. Development adds `stack` and `detai
 {
   "status": "healthy | degraded | unhealthy",
   "timestamp": "ISO-8601",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "uptime": 12345,
   "services": {
     "database": { "status": "up | down", "responseTime": 5 },
@@ -76,7 +76,7 @@ Production responses include `message` only. Development adds `stack` and `detai
   },
   "circuitBreakers": [
     {
-      "name": "github | jira | jenkins | confluence",
+      "name": "github | jira | jenkins | confluence | xray | azureDevOps",
       "state": "CLOSED | OPEN | HALF_OPEN",
       "failures": 0,
       "lastFailureTime": "ISO-8601 | null",
@@ -252,11 +252,59 @@ Production responses include `message` only. Development adds `stack` and `detai
 | GET | `/api/v1/metrics/health` | Yes | VIEWER | System health metrics |
 | GET | `/metrics` | Yes | VIEWER | Prometheus format (text/plain) |
 
-### 4.11 CI Integration
+### 4.11 CI Integration — Smart Test Selection
 
 | Method | Path | Auth | Role | Description |
 |--------|------|------|------|-------------|
 | POST | `/api/v1/ci/smart-select` | Yes | VIEWER | Smart test selection by code changes |
+
+**Request body** (`POST /api/v1/ci/smart-select`):
+```json
+{
+  "files": ["backend/src/services/auth.service.ts", "frontend/src/pages/Login.tsx"],
+  "options": {
+    "projectRoot": "/absolute/path/to/project",
+    "testPatterns": ["**/*.test.ts"],
+    "globalFiles": ["schema.prisma", "package.json"],
+    "validateFileExistence": false
+  }
+}
+```
+
+- `files` (required): Array of changed file paths relative to project root.
+- `options` (optional): Override default behavior.
+  - `projectRoot`: Absolute path for file existence validation.
+  - `testPatterns`: Custom glob patterns for test discovery.
+  - `globalFiles`: Files that trigger a full test suite run.
+  - `validateFileExistence`: When `true`, verify mapped test files exist on disk.
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "selectedTests": ["backend/src/services/__tests__/auth.service.test.ts"],
+    "reason": "Impact Analysis (1 tests selected)",
+    "totalTests": 250,
+    "savedTests": 249,
+    "selectionStrategy": "convention",
+    "confidence": 0.7,
+    "details": [
+      {
+        "changedFile": "backend/src/services/auth.service.ts",
+        "mappedTests": ["backend/src/services/__tests__/auth.service.test.ts"],
+        "strategy": "convention"
+      }
+    ]
+  }
+}
+```
+
+**Selection strategies** (in priority order):
+1. **Global** — config file changes (schema.prisma, package.json, etc.) trigger `ALL` tests.
+2. **Direct** — changed test files are selected as-is (confidence: 1.0).
+3. **Convention** — source files map to `__tests__/name.test.ts` (confidence: 0.7).
+4. **Mixed** — combination of strategies when multiple files change.
 
 ### 4.12 Monday.com Integration
 
@@ -341,6 +389,42 @@ Production responses include `message` only. Development adds `stack` and `detai
 **Pattern types**: `regex`, `keyword`, `signature`
 **Healing categories**: `transient`, `infrastructure`, `flaky`, `custom`
 
+### 4.16 Azure DevOps Integration (v3.5.0)
+
+| Method | Path | Auth | Role | Description |
+|--------|------|------|------|-------------|
+| GET | `/api/v1/azure-devops/status` | Yes | VIEWER | Connection status |
+| GET | `/api/v1/azure-devops/pipelines` | Yes | VIEWER | List pipelines |
+| GET | `/api/v1/azure-devops/pipelines/:id` | Yes | VIEWER | Get pipeline |
+| POST | `/api/v1/azure-devops/pipelines/:id/run` | Yes | EDITOR | Trigger pipeline run |
+| GET | `/api/v1/azure-devops/pipelines/:id/runs` | Yes | VIEWER | List pipeline runs |
+| GET | `/api/v1/azure-devops/builds` | Yes | VIEWER | List builds (with status/result/branch filters) |
+| GET | `/api/v1/azure-devops/builds/:id` | Yes | VIEWER | Get build |
+| GET | `/api/v1/azure-devops/builds/:id/timeline` | Yes | VIEWER | Get build timeline |
+| POST | `/api/v1/azure-devops/work-items/query` | Yes | VIEWER | Query work items (WIQL) |
+| GET | `/api/v1/azure-devops/work-items/search` | Yes | VIEWER | Search work items by text |
+| GET | `/api/v1/azure-devops/work-items/:id` | Yes | VIEWER | Get work item (with expand) |
+| POST | `/api/v1/azure-devops/work-items` | Yes | EDITOR | Create work item |
+| PATCH | `/api/v1/azure-devops/work-items/:id` | Yes | EDITOR | Update work item |
+| GET | `/api/v1/azure-devops/wikis` | Yes | VIEWER | List wikis |
+| GET | `/api/v1/azure-devops/wikis/:wikiId/pages` | Yes | VIEWER | Get/list wiki pages |
+| PUT | `/api/v1/azure-devops/wikis/:wikiId/pages` | Yes | EDITOR | Create/update wiki page |
+| GET | `/api/v1/azure-devops/repos` | Yes | VIEWER | List repositories |
+| GET | `/api/v1/azure-devops/repos/:repoId/pull-requests` | Yes | VIEWER | List pull requests |
+| GET | `/api/v1/azure-devops/repos/:repoId/pull-requests/:prId` | Yes | VIEWER | Get pull request |
+| GET | `/api/v1/azure-devops/repos/:repoId/pull-requests/:prId/threads` | Yes | VIEWER | Get PR threads |
+| GET | `/api/v1/azure-devops/test-runs` | Yes | VIEWER | List test runs |
+| GET | `/api/v1/azure-devops/test-runs/:id/results` | Yes | VIEWER | Get test results |
+| GET | `/api/v1/azure-devops/project` | Yes | VIEWER | Get project info |
+| GET | `/api/v1/azure-devops/teams` | Yes | VIEWER | List teams |
+| GET | `/api/v1/azure-devops/iterations/current` | Yes | VIEWER | Get current iteration |
+
+**Authentication**: Basic auth with Personal Access Token (PAT). Header: `Authorization: Basic base64(:PAT)`.
+
+**Env vars**: `AZDO_ORG_URL`, `AZDO_PAT`, `AZDO_PROJECT`, `AZDO_TEAM` (optional)
+
+**503 response**: All endpoints return `{ enabled: false, message: "Azure DevOps integration is not configured" }` when env vars are not set.
+
 ---
 
 ## 5. Endpoint Summary
@@ -362,7 +446,8 @@ Production responses include `message` only. Development adds `stack` and `detai
 | Teams | 15 | 15 | 1 |
 | Xray | 6 | 6 | 1 |
 | Self-Healing | 17 | 17 | 1 |
-| **Total** | **122** | **117** | **7** |
+| Azure DevOps | 25 | 25 | 0 |
+| **Total** | **147** | **142** | **7** |
 
 ---
 

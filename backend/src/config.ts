@@ -135,6 +135,15 @@ const envSchema = z.object({
   XRAY_PROJECT_KEY: z.string().optional(),
   XRAY_CLOUD_URL: z.string().url().optional().default('https://xray.cloud.getxray.app'),
   XRAY_AUTO_SYNC: z.string().transform(val => val === 'true').default('false'),
+
+  // Azure DevOps (optional)
+  AZDO_ORG_URL: z.string().optional(),
+  AZDO_PAT: z.string().optional(),
+  AZDO_PROJECT: z.string().optional(),
+  AZDO_TEAM: z.string().optional(),
+
+  // CI Integration (optional)
+  CI_API_TOKEN: z.string().optional(),
 });
 
 // Parse and validate environment variables
@@ -286,6 +295,12 @@ export interface Config {
     cloudUrl: string;
     autoSync: boolean;
   };
+  azureDevOps?: {
+    orgUrl: string;
+    pat: string;
+    project: string;
+    team?: string;
+  };
   ai: {
     provider: 'openai' | 'anthropic' | 'mock';
     apiKey: string;
@@ -351,6 +366,14 @@ export const config: Config = {
       apiToken: env.CONFLUENCE_API_TOKEN,
       spaceKey: env.CONFLUENCE_SPACE_KEY,
       parentPageId: env.CONFLUENCE_PARENT_PAGE_ID,
+    },
+  }),
+  ...(env.AZDO_ORG_URL && env.AZDO_PAT && env.AZDO_PROJECT && {
+    azureDevOps: {
+      orgUrl: env.AZDO_ORG_URL,
+      pat: env.AZDO_PAT,
+      project: env.AZDO_PROJECT,
+      team: env.AZDO_TEAM,
     },
   }),
   github: {

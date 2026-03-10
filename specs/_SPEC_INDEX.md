@@ -1,7 +1,7 @@
 # _SPEC_INDEX.md — Specification Directory
 
 > **Purpose**: Single index of all living specs. If a document isn't listed here, it's not canonical.
-> **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Version**: 3.5.0 · **Last verified**: 2026-03-10
 
 ---
 
@@ -21,8 +21,8 @@
 | `specs/SPEC.md` | AI_PRODUCT_MANAGER | Product specification — mission, users, capabilities, NFRs, metrics |
 | `specs/ARCHITECTURE.md` | SENIOR_ENGINEER | System design — layers, services, data model, AI architecture, deployment |
 | `specs/SECURITY.md` | SECURITY_ENGINEER | Security — auth, RBAC, transport, rate limiting, AI gates, known gaps |
-| `specs/AI_TOOLS.md` | AI_ARCHITECT | AI tool registry — 13 tools, ReAct loop, providers, cost, MCP |
-| `specs/API_CONTRACT.md` | SENIOR_ENGINEER | API contract — 116 endpoints, auth, roles, validation, schemas |
+| `specs/AI_TOOLS.md` | AI_ARCHITECT | AI tool registry — 35 tools, ReAct loop, providers, cost, MCP |
+| `specs/API_CONTRACT.md` | SENIOR_ENGINEER | API contract — 150+ endpoints, auth, roles, validation, schemas |
 | `specs/DESIGN_LANG_V2.md` | UX_DESIGNER | Design language — layout, colors, typography, components, a11y |
 | `specs/ROADMAP.md` | AI_PRODUCT_MANAGER | Roadmap — shipped versions, planned features, tech debt |
 

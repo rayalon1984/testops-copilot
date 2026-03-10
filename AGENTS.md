@@ -3,7 +3,7 @@
 > This file is the **single entrypoint** for all AI coding agents working in this repo.
 > It defines how AI should reason about this codebase, what to prioritize, and how to collaborate.
 >
-> **Version**: 3.4.0 | **Updated**: 2026-03-05
+> **Version**: 3.5.0 | **Updated**: 2026-03-10
 
 ---
 
@@ -159,7 +159,7 @@ On the fast path: apply AGENTS.md rules directly → implement → run the verif
 | Logging | Use winston logger (`logger.info/warn/error`). Never `console.log` in production code. |
 | Auth | JWT Bearer tokens. All protected routes use `authenticate` middleware. Check RBAC with `authorize(role)`. |
 | Integrations | Dedicated service classes for external APIs. Never hardcode API calls in controllers. |
-| Resilience | Wrap external service calls with `withResilience()` from `@/lib/resilience`. Pre-configured breakers: github, jira, jenkins, confluence. Never call external APIs without circuit breaker protection. |
+| Resilience | Wrap external service calls with `withResilience()` from `@/lib/resilience`. Pre-configured breakers: github, jira, jenkins, confluence, xray, azureDevOps. Never call external APIs without circuit breaker protection. |
 | Secrets | Environment variables only. Never in code. `backend/.env` and `frontend/.env` are separate. |
 
 ### Frontend Patterns
@@ -362,6 +362,7 @@ TestOps Copilot integrates with these external systems:
 | Confluence | `backend/src/services/confluence.service.ts` | Knowledge base, runbook search |
 | GitHub | `backend/src/services/github.service.ts` | Commit diffs, PR changes, repo info |
 | Jenkins | `backend/src/services/jenkins.service.ts` | Build status, logs, triggering |
+| Azure DevOps | `backend/src/services/azuredevops.service.ts` | Pipelines, builds, work items, wiki, PRs, test runs |
 | Slack | `backend/src/services/notification.service.ts` | Alerts, notifications |
 | Weaviate | `backend/src/services/ai/vector/` | Vector embeddings, semantic search |
 | AI Providers | `backend/src/services/ai/providers/` | Anthropic, OpenAI, Google, Azure, AWS Bedrock |

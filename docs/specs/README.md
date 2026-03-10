@@ -1,6 +1,6 @@
 # Technical Specifications
 
-> **Version**: 3.4.0 · **Last updated**: 2026-03-05
+> **Version**: 3.5.0 · **Last updated**: 2026-03-10
 
 All active technical specifications now live in the repository root `specs/` directory.
 

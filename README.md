@@ -10,10 +10,10 @@
 
 <p align="center">
   <a href="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml"><img src="https://github.com/rayalon1984/testops-copilot/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.4.0-blue" alt="Version"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-3.5.0-blue" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node.js Version"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-967%20passing-brightgreen" alt="Tests"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/tests-1001%20passing-brightgreen" alt="Tests"></a>
   <a href="specs/features/"><img src="https://img.shields.io/badge/spec%20assertions-320%2F320-brightgreen" alt="Spec Coverage"></a>
 </p>
 
@@ -80,7 +80,7 @@ Not everyone wants the same level of AI independence:
 | **Balanced** | Low-risk actions (searches, reads, labels) auto-execute. Team-visible actions show one-click approval cards. |
 | **Autonomous** | The AI handles what it can, escalates what it should. Destructive actions always need your sign-off. |
 
-22 tools. 8 auto-execute. 11 with tiered approval. 3 housekeeping. Every write operation goes through a human-in-the-loop confirmation gate with a 5-minute TTL.
+35 tools. 18 auto-execute. 14 with tiered approval. 3 housekeeping. Every write operation goes through a human-in-the-loop confirmation gate with a 5-minute TTL.
 
 ### Bring Your Own Provider
 
@@ -109,7 +109,7 @@ Your failure knowledge base gets smarter with every test run:
 
 | Area | What You Get |
 |------|-------------|
-| **Multi-Pipeline Dashboard** | Unified view for Jenkins, GitHub Actions, and custom CI |
+| **Multi-Pipeline Dashboard** | Unified view for Jenkins, GitHub Actions, Azure DevOps, and custom CI |
 | **3-Column Mission Control** | Real-time dashboard with integrated AI copilot panel |
 | **Team Workspaces** | Teams, members (OWNER/ADMIN/MEMBER/VIEWER), scoped pipelines |
 | **Collaborative RCA** | Comments on failures, version-tracked RCA revisions with optimistic locking |
@@ -129,6 +129,7 @@ TestOps Copilot plugs into your existing stack:
 | **Jira** | Issue creation, bi-directional sync, similar issue search (JQL) | `JIRA_BASE_URL` + `JIRA_API_TOKEN` |
 | **GitHub** | Commit diffs, PR lookup, branch/file ops, workflow triggering | `GITHUB_TOKEN` |
 | **Confluence** | Knowledge reader (CQL), RCA doc publishing, runbook lookup | `CONFLUENCE_BASE_URL` + `CONFLUENCE_API_TOKEN` |
+| **Azure DevOps** | Pipelines, builds, work items, wiki, PRs, test runs | `AZDO_ORG_URL` + `AZDO_PAT` + `AZDO_PROJECT` |
 | **Slack** | Push notifications on failures and pipeline status changes | `SLACK_WEBHOOK_URL` |
 | **Monday.com** | Work OS integration for task management | `MONDAY_API_TOKEN` |
 | **TestRail** | Test case management sync | `TESTRAIL_HOST` + `TESTRAIL_API_KEY` |
@@ -203,7 +204,7 @@ npm run local:start && npm run dev
 
 | Command | What It Does |
 |---------|-------------|
-| `npm run test` | Run all 760 tests (Jest + Vitest) |
+| `npm run test` | Run all 1,001 tests (Jest + Vitest) |
 | `npm run typecheck` | Type check backend + frontend |
 | `npm run lint` | ESLint both projects |
 | `npm run build` | Build all packages |
@@ -261,7 +262,7 @@ testops-copilot/
 │       ├── services/ai/
 │       │   ├── AIChatService.ts         # ReAct loop + SSE streaming
 │       │   ├── PersonaRouter.ts         # Two-tier query classifier
-│       │   ├── tools/                   # 22 agentic tool wrappers
+│       │   ├── tools/                   # 35 agentic tool wrappers
 │       │   ├── providers/               # 6 AI provider adapters
 │       │   └── features/               # RCA, categorization, enrichment
 │       ├── middleware/                   # Auth, validation, error handling

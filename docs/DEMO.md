@@ -1,7 +1,7 @@
 # TestOps Copilot - Demo & Screenshots
 
 > Visual guide to TestOps Copilot's features and user interface.
-> Updated for v3.4.0 — Xray Deep Integration, Card Graduation, AI Enrichment Pipeline.
+> Updated for v3.5.0 — Smart Test Selection, Azure DevOps Integration, Intelligent CI Pipeline.
 
 ---
 
@@ -192,6 +192,10 @@ Write operations show a preview card before executing:
 - `github_create_pr` -- Open pull request
 - `github_create_branch` -- Create branch
 - `github_update_file` -- Modify file contents
+- `azdo_create_work_item` -- Create Azure DevOps work item
+- `azdo_update_work_item` -- Update Azure DevOps work item
+- `azdo_trigger_pipeline` -- Trigger Azure DevOps pipeline
+- `azdo_create_wiki_page` -- Create/update Azure DevOps wiki page
 
 ---
 

@@ -331,6 +331,10 @@ export const circuitBreakers = {
     failureThreshold: 5,
     resetTimeoutMs: 30_000,
   }),
+  azureDevOps: new CircuitBreaker('azureDevOps', {
+    failureThreshold: 5,
+    resetTimeoutMs: 30_000,
+  }),
 } as const;
 
 /** Snapshot of all circuit breaker states (for /health/full). */

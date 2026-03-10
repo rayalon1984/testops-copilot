@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — System Design
 
-> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.4.0 · **Last verified**: 2026-03-05
+> **Owner**: Senior Engineer + AI Architect · **Status**: Living document · **Version**: 3.5.0 · **Last verified**: 2026-03-10
 
 ---
 
@@ -180,11 +180,11 @@ FOR iteration 0..7 (max 8):
 
 ### 5.3 Tool Registry
 
-- 12 read-only tools (auto-approved): `jira_search`, `jira_get`, `github_get_commit`, `github_get_pr`, `confluence_search`, `jenkins_get_status`, `dashboard_metrics`, `failure_predictions`, `giphy_search`, `rca_identify`, `jira_link_issues`, `jira_add_label`
-- 7 write tools (confirmation required): `jira_create_issue`, `jira_transition_issue`, `jira_comment`, `github_create_pr`, `github_create_branch`, `github_update_file`, `github_merge_pr`
-- 4 action-gap tools (confirmation required): `jenkins_trigger_build`, `testrun_cancel`, `testrun_retry`, `github_rerun_workflow`
+- 18 read-only tools (auto-approved): `jira_search`, `jira_get`, `github_get_commit`, `github_get_pr`, `confluence_search`, `jenkins_get_status`, `dashboard_metrics`, `failure_predictions`, `giphy_search`, `rca_identify`, `jira_link_issues`, `jira_add_label`, `xray_search`, `smart_test_select`, `azdo_get_pipeline`, `azdo_search_work_items`, `azdo_get_work_item`, `azdo_get_build`, `azdo_get_pull_request`, `azdo_list_wikis`, `azdo_get_wiki_page`, `azdo_get_test_results`
+- 10 write tools (confirmation required): `jira_create_issue`, `jira_transition_issue`, `jira_comment`, `github_create_pr`, `github_create_branch`, `github_update_file`, `github_merge_pr`, `azdo_create_work_item`, `azdo_update_work_item`, `azdo_create_wiki_page`
+- 5 action-gap tools (confirmation required): `jenkins_trigger_build`, `testrun_cancel`, `testrun_retry`, `github_rerun_workflow`, `azdo_trigger_pipeline`
 
-See `specs/AI_TOOLS.md` for full registry (23 tools total).
+See `specs/AI_TOOLS.md` for full registry (35 tools total).
 
 ### 5.4 Cost Management
 
@@ -245,6 +245,8 @@ Service Call → withResilience()
 | Jira | 5 consecutive | 30s | 2 | 10s |
 | Jenkins | 3 consecutive | 60s | 1 | 15s |
 | Confluence | 5 consecutive | 30s | 2 | 10s |
+| Xray | 5 consecutive | 30s | 2 | 10s |
+| Azure DevOps | 5 consecutive | 30s | 2 | 15s |
 
 **Circuit breaker states**:
 - **CLOSED** — Healthy, all calls pass through

@@ -62,7 +62,7 @@ export interface Tool {
     description: string;
 
     /** Category for grouping in UI and logs */
-    category: 'jira' | 'github' | 'confluence' | 'jenkins' | 'slack' | 'dashboard' | 'monday' | 'xray';
+    category: 'jira' | 'github' | 'confluence' | 'jenkins' | 'slack' | 'dashboard' | 'monday' | 'xray' | 'azuredevops';
 
     /** Parameter definitions for the LLM */
     parameters: ToolParameter[];

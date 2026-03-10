@@ -7,7 +7,7 @@ owner: AI_ARCHITECT
 category: frontend
 spec_source: DESIGN_LANG_V2.md
 
-# Feature flag removed in v3.4.0 — V2 is the only card style.
+# Feature flag removed in v3.5.0 — V2 is the only card style.
 # The useFeatureFlag hook and V1 GitHubPRCard have been deleted.
 
 capabilities:
@@ -149,7 +149,7 @@ acceptance_criteria:
 changelog:
   - version: "2.0.0"
     date: "2026-03-02"
-    product_version: "v3.4.0"
+    product_version: "v3.5.0"
     changes:
       - "Graduated: feature flag removed, V2 is the default (V1 GitHubPRCard deleted)"
       - "ToolResultCard switch statement simplified — no conditional V1/V2 routing"

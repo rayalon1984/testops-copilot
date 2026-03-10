@@ -1,6 +1,6 @@
 {
   "name": "testops-copilot-backend",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Backend for TestOps Copilot",
   "main": "dist/index.js",
   "scripts": {
