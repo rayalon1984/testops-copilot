@@ -12,33 +12,33 @@ Beta releases are pre-release builds on the path to production GA.
 
 v3.5 is the biggest intelligence upgrade since launch. Smart Test Selection evolves from a simple convention-based mapper to a full platform with dependency graph analysis, code coverage mapping, historical correlation learning, and regression detection. Azure DevOps joins as a first-class integration alongside GitHub, Jira, and Jenkins.
 
-### Smart Test Selection — Foundation to Platform (Phases 1-5)
+### Smart Test Selection Platform
 
-**Phase 1: Production-Ready Foundation**
+**Core Engine**
 - **Zod validation**: `POST /api/v1/ci/smart-select` now validates input via `smartSelectSchema` middleware, matching all other endpoints.
 - **Real test count**: `totalTests` is queried from the database (no more hardcoded `100`).
 - **File existence check**: Optional `validateFileExistence` flag verifies mapped test paths exist on disk.
 - **Expanded global triggers**: `tsconfig.json`, `jest.config.*`, `vitest.config.*`, `docker-compose.yml`, `package-lock.json` now trigger full suite.
 - **Controller renamed**: `getImpactedtests` → `getImpactedTests` (typo fix).
 
-**Phase 2: CI/CD Integration**
+**CI/CD Integration**
 - **CI auth token**: `X-CI-Token` header support alongside JWT (env: `CI_API_TOKEN`).
 - **AI Copilot tool**: `smart_test_select` lets the copilot answer "which tests should I run for my PR?"
 - **Enhanced response**: `ciCommand`, `confidence` score, `selectionStrategy`, `estimatedTimeSaved`, `details[]`, and `metadata`.
 
-**Phase 3: Intelligence Layer**
+**Intelligence Layer**
 - **Dependency graph** (`DependencyGraphService`): Parses TypeScript imports, builds adjacency list, BFS traversal for transitive dependents, cached in `DependencyEdge` DB model.
 - **Coverage mapping** (`CoverageMapService`): Parses LCOV and Istanbul JSON, maps test → source file → covered lines, stored in `TestCoverageMap` model.
 - **Coverage upload**: `POST /api/v1/ci/coverage-upload` accepts LCOV/Istanbul/Cobertura for CI integration.
 - **Strategy composition**: Coverage → Dependency → Convention → Direct → Global (safety net), with per-strategy confidence weighting.
 
-**Phase 4: AI-Powered Historical Learning**
+**AI-Powered Historical Learning**
 - **Correlation engine** (`TestCorrelationService`): Co-failure matrix (Jaccard similarity), file-to-failure correlation, exponential decay recency weighting (30-day half-life).
 - **Selection accuracy tracking** (`SelectionAccuracyService`): Precision, recall, F1 after every CI run. Weekly trend bucketing. Recall health monitoring (>95% threshold).
 - **AI explanation** (`SelectionExplainerService`): Natural-language explanations via AIManager with fallback to rule-based templates.
 - **Quarantine exclusion**: Flaky/quarantined tests are automatically excluded from selection.
 
-**Phase 5: Full Loop — Regression Detection & Cross-Pipeline**
+**Regression Detection & Cross-Pipeline**
 - **Regression detection** (`RegressionDetectionService`): Compares test results across runs. Severity assessment (CRITICAL/HIGH/MEDIUM). Confirm or mark as false positive. `RegressionEvent` DB model.
 - **Cross-pipeline impact** (`CrossPipelineService`): Shared path detection across pipelines. When shared code changes, affected pipelines are identified.
 - **Frontend dashboard** (`SmartSelection.tsx`): Accuracy trends, strategy performance, regression list with actions.
