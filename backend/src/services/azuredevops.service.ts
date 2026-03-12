@@ -372,8 +372,11 @@ export class AzureDevOpsService {
 }
 
 // ── Content extension (Wiki, Repos, PRs, Test Runs, Utility) ────────────
-// Side-effect import: attaches additional methods to AzureDevOpsService.prototype
-import './azuredevops-content.service';
+// Import method map and attach to prototype (no circular dependency since
+// the content file no longer imports from this module).
+import { contentMethods } from './azuredevops-content.service';
+
+Object.assign(AzureDevOpsService.prototype, contentMethods);
 
 // ── Singleton Export ──────────────────────────────────────────────────────
 

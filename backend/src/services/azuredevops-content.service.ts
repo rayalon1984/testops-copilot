@@ -17,7 +17,9 @@
 import { AxiosError } from 'axios';
 import { logger } from '@/utils/logger';
 import { withResilience, circuitBreakers } from '@/lib/resilience';
-import { AzureDevOpsService } from './azuredevops.service';
+// Type-only import: erased at runtime, so no circular dependency.
+// The main service file attaches these methods to the prototype.
+import type { AzureDevOpsService } from './azuredevops.service';
 import type {
   AzdoWiki,
   AzdoWikiPage,
@@ -408,9 +410,10 @@ async function getCurrentIteration(
   }, AZDO_RESILIENCE);
 }
 
-// ── Attach all methods to the prototype ─────────────────────────────────
-
-Object.assign(AzureDevOpsService.prototype, {
+// ── Export methods for prototype attachment ──────────────────────────────
+// The main service file (azuredevops.service.ts) calls Object.assign on its
+// own prototype using these exports, avoiding a circular dependency.
+export const contentMethods = {
   // Wiki
   listWikis,
   getWikiPage,
@@ -434,4 +437,4 @@ Object.assign(AzureDevOpsService.prototype, {
   getProject,
   listTeams,
   getCurrentIteration,
-});
+};
