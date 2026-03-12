@@ -14,7 +14,7 @@ These documents live elsewhere in the repo:
 - **Changelog**: [`CHANGELOG.md`](../../CHANGELOG.md) (repo root)
 - **Roadmap**: [`specs/ROADMAP.md`](../../specs/ROADMAP.md)
 - **Security spec**: [`specs/SECURITY.md`](../../specs/SECURITY.md)
-- **Security guide**: [`docs/security.md`](../security.md)
+- **Security guide**: [`docs/operations/security.md`](../operations/security.md)
 
 ## For Contributors
 

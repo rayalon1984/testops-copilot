@@ -35,7 +35,7 @@ npm run local:start
 npm run dev
 ```
 
-See the [Quick Start Guide](quickstart.md) for detailed instructions.
+See the [Quick Start Guide](../getting-started/quickstart.md) for detailed instructions.
 
 #### What are the system requirements?
 - Node.js 18.x or higher
@@ -207,8 +207,8 @@ Contact our sales team at sales@testops-copilot.com for enterprise licensing.
 ### Support
 
 #### Where can I get help?
-- [Quick Start Guide](quickstart.md)
-- [Troubleshooting Guide](troubleshooting.md)
+- [Quick Start Guide](../getting-started/quickstart.md)
+- [Troubleshooting Guide](../operations/troubleshooting.md)
 - [GitHub Issues](https://github.com/rayalon1984/testops-copilot/issues)
 - [GitHub Discussions](https://github.com/rayalon1984/testops-copilot/discussions)
 

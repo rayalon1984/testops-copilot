@@ -10,7 +10,7 @@ TestOps Copilot includes a **built-in Grafana and Prometheus integration** for c
 
 ### Quick Start
 
-For complete setup instructions, see the [Grafana Integration Guide](integrations/grafana.md).
+For complete setup instructions, see the [Grafana Integration Guide](../integrations/grafana.md).
 
 **Key Features:**
 - Pre-built Grafana dashboard with 7 visualization panels
@@ -38,7 +38,7 @@ curl http://localhost:3000/metrics
 - `testops_execution_time_p99_seconds` - 99th percentile execution time
 - `testops_rca_coverage_percent` - RCA documentation coverage
 - `testops_test_failures_count{test_name="..."}` - Per-test failure counts
-- And more... See [full metrics list](integrations/grafana.md#available-metrics)
+- And more... See [full metrics list](../integrations/grafana.md#available-metrics)
 
 ### JSON API Endpoints
 
@@ -68,7 +68,7 @@ Import the pre-built Grafana dashboard from `grafana-dashboards/testops-overview
 6. Top Failing Tests (pie chart breakdown)
 7. Execution Time Percentiles (P50, P95, P99)
 
-See [complete Grafana setup guide](integrations/grafana.md).
+See [complete Grafana setup guide](../integrations/grafana.md).
 
 ---
 
@@ -289,7 +289,7 @@ newrelic.recordMetric('Custom/Tests/FlakyCount', flakyTests.length);
 
 ### Pre-configured Alert Examples
 
-TestOps Copilot documentation includes alert examples for common scenarios. See [Grafana integration guide - Alerting](integrations/grafana.md#alerting-configuration).
+TestOps Copilot documentation includes alert examples for common scenarios. See [Grafana integration guide - Alerting](../integrations/grafana.md#alerting-configuration).
 
 **Example Alerts:**
 
@@ -335,7 +335,7 @@ groups:
     description: "P95 execution time: {{ $value }}s (threshold: 10s)"
 ```
 
-See [complete alerting guide](integrations/grafana.md#alerting-configuration) for more examples.
+See [complete alerting guide](../integrations/grafana.md#alerting-configuration) for more examples.
 
 ### Alert Channels
 
@@ -395,7 +395,7 @@ TestOps Copilot includes a **pre-built Grafana dashboard** at `grafana-dashboard
 **Auto-refresh:** 30 seconds
 **Time range:** Last 6 hours (configurable)
 
-See [complete dashboard documentation](integrations/grafana.md#pre-built-dashboard).
+See [complete dashboard documentation](../integrations/grafana.md#pre-built-dashboard).
 
 ### Custom Dashboards
 

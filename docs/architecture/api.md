@@ -1,6 +1,6 @@
 # TestOps Copilot API Documentation
 
-> Updated for v3.5.0 | **Canonical spec**: [`specs/API_CONTRACT.md`](../specs/API_CONTRACT.md) (150+ endpoints, Zod schemas) | **AI tools**: [`specs/AI_TOOLS.md`](../specs/AI_TOOLS.md)
+> Updated for v3.5.0 | **Canonical spec**: [`specs/API_CONTRACT.md`](../../specs/API_CONTRACT.md) (150+ endpoints, Zod schemas) | **AI tools**: [`specs/AI_TOOLS.md`](../../specs/AI_TOOLS.md)
 
 ## Base URL
 ```

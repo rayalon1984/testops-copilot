@@ -86,7 +86,7 @@ Full templates: `backend/.env.example` and `frontend/.env.example`.
 
 **Best for**: Staging/production, beta users
 
-See the **[Production Quickstart](PRODUCTION_QUICKSTART.md)** for full instructions. The short version:
+See the **[Production Quickstart](../deployment/PRODUCTION_QUICKSTART.md)** for full instructions. The short version:
 
 ```bash
 cp .env.production.example .env.production
@@ -262,7 +262,7 @@ npm run build            # Build for production
 ## Next Steps
 
 - [Development Guide](development.md) — Coding standards, testing, git workflow
-- [API Reference](api.md) — Full REST API documentation
-- [Architecture](architecture.md) — System design overview
-- [Lessons Learned](LESSONS_LEARNED.md) — Known pitfalls and prevention
+- [API Reference](../architecture/api.md) — Full REST API documentation
+- [Architecture](../architecture/architecture.md) — System design overview
+- [Lessons Learned](../project/LESSONS_LEARNED.md) — Known pitfalls and prevention
 - [GitHub Issues](https://github.com/rayalon1984/testops-copilot/issues) — Report bugs or request features

@@ -80,7 +80,7 @@ lsof -i :5173
 cd backend && npx prisma migrate reset --force
 ```
 
-> **Warning**: Never run `rm -rf backend/prisma/migrations`. The migration baseline is required for production deployments and cannot be regenerated from scratch. See [LESSONS_LEARNED.md — EPR-007](LESSONS_LEARNED.md#epr-007-migration-baseline-incompleteness).
+> **Warning**: Never run `rm -rf backend/prisma/migrations`. The migration baseline is required for production deployments and cannot be regenerated from scratch. See [LESSONS_LEARNED.md — EPR-007](../project/LESSONS_LEARNED.md#epr-007-migration-baseline-incompleteness).
 
 ### Re-seed Demo Data
 
@@ -158,7 +158,7 @@ cp backend/prisma/schema.production.prisma backend/prisma/schema.prisma
 cd backend && npx prisma generate
 ```
 
-> See [LESSONS_LEARNED.md — EPR-008](LESSONS_LEARNED.md#epr-008-cross-database-type-mismatch-sqlite-vs-postgresql-enums) for why SQLite and PostgreSQL schemas can have different type behavior.
+> See [LESSONS_LEARNED.md — EPR-008](../project/LESSONS_LEARNED.md#epr-008-cross-database-type-mismatch-sqlite-vs-postgresql-enums) for why SQLite and PostgreSQL schemas can have different type behavior.
 
 ---
 
@@ -192,7 +192,7 @@ docker compose exec redis redis-cli FLUSHALL
 
 ## Getting Help
 
-1. Check the [Quick Start Guide](quickstart.md) for setup instructions
-2. Review [Lessons Learned](LESSONS_LEARNED.md) for known pitfalls
+1. Check the [Quick Start Guide](../getting-started/quickstart.md) for setup instructions
+2. Review [Lessons Learned](../project/LESSONS_LEARNED.md) for known pitfalls
 3. Search [existing issues](https://github.com/rayalon1984/testops-copilot/issues)
 4. Open a [new issue](https://github.com/rayalon1984/testops-copilot/issues/new/choose)

@@ -36,7 +36,7 @@ The Confluence integration allows you to:
 - **CQL semantic search** across your wiki for pages matching a failure's error message or test name
 - **Label-based filtering**: automatically scopes searches to pages tagged `rca`, `runbook`, `architecture`, or `troubleshooting`
 - **Excerpt extraction**: returns the first 500 characters of matching pages as plain text
-- Used automatically by the [Context Enrichment API](../api.md#context-enrichment-v280) (`POST /api/ai/enrich`)
+- Used automatically by the [Context Enrichment API](../architecture/api.md#context-enrichment-v280) (`POST /api/ai/enrich`)
 
 **Example: How it surfaces knowledge**
 

@@ -18,10 +18,10 @@
 </p>
 
 <p align="center">
-  <a href="docs/quickstart.md"><strong>Quick Start</strong></a> ·
-  <a href="docs/DEMO.md"><strong>Demo Guide</strong></a> ·
-  <a href="docs/HOW_DOES_IT_WORK.md"><strong>How It Works</strong></a> ·
-  <a href="docs/MCP_INTEGRATION.md"><strong>MCP Server</strong></a> ·
+  <a href="docs/getting-started/quickstart.md"><strong>Quick Start</strong></a> ·
+  <a href="docs/getting-started/DEMO.md"><strong>Demo Guide</strong></a> ·
+  <a href="docs/architecture/HOW_DOES_IT_WORK.md"><strong>How It Works</strong></a> ·
+  <a href="docs/features/MCP_INTEGRATION.md"><strong>MCP Server</strong></a> ·
   <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
@@ -49,7 +49,7 @@ No PostgreSQL. No Redis. No API keys. Login with `engineer@testops.ai` / `demo12
 
 That's it. You're talking to the copilot.
 
-> **Want production mode?** See the **[Production Quickstart](docs/PRODUCTION_QUICKSTART.md)** for Docker + PostgreSQL + real AI providers.
+> **Want production mode?** See the **[Production Quickstart](docs/deployment/PRODUCTION_QUICKSTART.md)** for Docker + PostgreSQL + real AI providers.
 
 ---
 
@@ -247,7 +247,7 @@ GET  /api/v1/failure-archive/predictions      # Risk scores per test
 GET  /api/v1/failure-archive/anomalies        # Anomaly detection
 ```
 
-Full API reference: **[docs/api.md](docs/api.md)**
+Full API reference: **[docs/architecture/api.md](docs/architecture/api.md)**
 
 ---
 
@@ -287,17 +287,17 @@ testops-copilot/
 
 | Document | Description |
 |----------|-------------|
-| **[Quick Start](docs/quickstart.md)** | Get running in 5 minutes |
-| **[How Does It Work?](docs/HOW_DOES_IT_WORK.md)** | Plain-English guide to the platform |
-| **[Demo Guide](docs/DEMO.md)** | Visual guide with workflow diagrams |
-| **[UI Tour](docs/UI_TOUR.md)** | Visual walkthrough with annotated screenshots |
-| **[API Reference](docs/api.md)** | Full REST API documentation |
-| **[Architecture](docs/architecture.md)** | System design and components |
-| **[MCP Server](docs/MCP_INTEGRATION.md)** | Model Context Protocol integration |
-| **[Development Guide](docs/development.md)** | Coding standards, testing, git workflow |
+| **[Quick Start](docs/getting-started/quickstart.md)** | Get running in 5 minutes |
+| **[How Does It Work?](docs/architecture/HOW_DOES_IT_WORK.md)** | Plain-English guide to the platform |
+| **[Demo Guide](docs/getting-started/DEMO.md)** | Visual guide with workflow diagrams |
+| **[UI Tour](docs/features/UI_TOUR.md)** | Visual walkthrough with annotated screenshots |
+| **[API Reference](docs/architecture/api.md)** | Full REST API documentation |
+| **[Architecture](docs/architecture/architecture.md)** | System design and components |
+| **[MCP Server](docs/features/MCP_INTEGRATION.md)** | Model Context Protocol integration |
+| **[Development Guide](docs/getting-started/development.md)** | Coding standards, testing, git workflow |
 | **[Roadmap](specs/ROADMAP.md)** | What's shipped and what's next |
 | **[Changelog](CHANGELOG.md)** | Full version history |
-| **[Lessons Learned](docs/LESSONS_LEARNED.md)** | Living error pattern registry |
+| **[Lessons Learned](docs/project/LESSONS_LEARNED.md)** | Living error pattern registry |
 
 ---
 

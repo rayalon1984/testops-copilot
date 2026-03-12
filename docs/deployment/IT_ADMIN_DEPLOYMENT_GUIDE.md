@@ -29,13 +29,31 @@ and optional SAML SSO.
 | **CPU** | 2 cores | 4+ cores |
 | **RAM** | 4 GB | 8+ GB |
 | **Disk** | 20 GB free | 50+ GB SSD (database and vector store grow over time) |
-| **OS** | Any OS that runs Docker (Linux, macOS, Windows with WSL2) | Ubuntu 22.04 LTS or RHEL 9 |
 
 > **Note on AI features**: If you enable AI (Anthropic Claude, OpenAI, etc.), the AI
 > providers run externally; they do **not** add local CPU/GPU load. The Weaviate
 > vector store adds ~200 MB of base RAM.
 
-### 2.2 Required Software
+### 2.2 Supported Operating Systems
+
+**[DECISION NEEDED]** Choose an OS based on your environment and team familiarity.
+
+| OS | Docker Deployment | Bare-metal Deployment | Notes |
+|----|-------------------|----------------------|-------|
+| **Ubuntu 22.04 / 24.04 LTS** | Fully supported | Fully supported | **Recommended.** Best community support, widest Docker compatibility, native apt packages for PostgreSQL/Redis/Nginx. |
+| **Debian 12 (Bookworm)** | Fully supported | Fully supported | Equally good as Ubuntu; preferred by some for minimal footprint. |
+| **RHEL 9 / AlmaLinux 9 / Rocky 9** | Fully supported | Fully supported | Enterprise choice. Use `dnf` instead of `apt`. SELinux may require additional Docker/port policies. |
+| **Amazon Linux 2023** | Fully supported | Fully supported | Native choice for AWS EC2. Docker via `dnf install docker`. |
+| **macOS (Apple Silicon / Intel)** | Docker Desktop only | Supported for dev/eval | Suitable for evaluation or small-team use. Not recommended for production servers. |
+| **Windows Server 2022** | Docker Desktop or WSL2 | Not supported | Run via **WSL2 + Docker Desktop**. Native Windows is not supported -- the backend relies on Unix process signals and shell scripts (`start.sh`). |
+| **Windows 10/11 (workstation)** | Docker Desktop (WSL2 backend) | Not supported | Evaluation/development only. Same WSL2 requirement as above. |
+
+**Bottom line:**
+- **Production server** -- Use **Linux** (Ubuntu 22.04 LTS is the path of least resistance).
+- **Evaluation / demo** -- Any OS with Docker Desktop works fine.
+- **Windows** -- Always requires WSL2; never run bare-metal on native Windows.
+
+### 2.3 Required Software
 
 | Software | Version | Purpose |
 |----------|---------|---------|
@@ -55,7 +73,7 @@ For **bare-metal** (non-Docker) deployment, you additionally need:
 | **Redis** | 7.x | Caching, session store, token blacklist |
 | **Nginx** | 1.24+ | Reverse proxy / static file server |
 
-### 2.3 Network and Port Requirements
+### 2.4 Network and Port Requirements
 
 | Port | Service | Exposure |
 |------|---------|----------|

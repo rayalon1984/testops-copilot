@@ -100,6 +100,6 @@ See `.env.production.example` for all available options.
 
 ## 📖 Need More Help?
 
-- [Full README](../README.md)
-- [Demo Mode Guide](DEV_MODE.md)
-- [Integration Guides](integrations/)
+- [Full README](../../README.md)
+- [Demo Mode Guide](../getting-started/DEV_MODE.md)
+- [Integration Guides](../integrations/)
