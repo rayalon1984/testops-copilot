@@ -31,8 +31,8 @@ import {
 
 export type { ChatRequest } from './chat-helpers';
 
-const STREAM_CHUNK_SIZE = 12;
-const STREAM_CHUNK_DELAY = 30;
+const STREAM_CHUNK_SIZE = 80;
+const STREAM_CHUNK_DELAY = 8;
 
 function sendSSE(res: Response, event: SSEEvent): void {
     if (res.writableEnded) return;
