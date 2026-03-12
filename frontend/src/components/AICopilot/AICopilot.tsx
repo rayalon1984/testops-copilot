@@ -262,7 +262,7 @@ export default function AICopilot() {
                 <div ref={bottomRef} />
             </Box>
 
-            <ChatInput onSend={sendWithContext} disabled={isStreaming} />
+            <ChatInput onSend={sendWithContext} isStreaming={isStreaming} />
         </Box>
     );
 }

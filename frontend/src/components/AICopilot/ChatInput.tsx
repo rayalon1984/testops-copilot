@@ -11,12 +11,13 @@ import { Send as SendIcon } from '@mui/icons-material';
 interface ChatInputProps {
     onSend: (message: string) => void;
     disabled?: boolean;
+    isStreaming?: boolean;
 }
 
 const MAX_ROWS = 5;
 const LINE_HEIGHT = 20;
 
-export default function ChatInput({ onSend, disabled }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, isStreaming }: ChatInputProps) {
     const [value, setValue] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const theme = useTheme();
@@ -30,12 +31,13 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     }, [value]);
 
     const handleSend = () => {
-        if (!value.trim() || disabled) return;
+        if (!value.trim() || disabled || isStreaming) return;
         onSend(value);
         setValue('');
-        // Reset height
+        // Reset height and refocus
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
+            textareaRef.current.focus();
         }
     };
 
@@ -70,6 +72,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={disabled}
+                    autoFocus
                     placeholder="Let's TOC... ask about a failing test"
                     rows={1}
                     sx={{
@@ -95,7 +98,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
                     color="primary"
                     sx={{ p: '10px', mr: 0.5 }}
                     onClick={handleSend}
-                    disabled={!value.trim() || disabled}
+                    disabled={!value.trim() || disabled || isStreaming}
                 >
                     <SendIcon />
                 </IconButton>
