@@ -111,9 +111,10 @@ export const PROVIDER_MODELS: Record<string, { label: string; models: { id: stri
     bedrock: {
         label: 'AWS Bedrock',
         models: [
-            { id: 'us.anthropic.claude-opus-4-20250514-v1:0', label: 'Claude Opus 4 (Bedrock)' },
-            { id: 'anthropic.claude-sonnet-4-5-20250514-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
-            { id: 'anthropic.claude-haiku-4-5-20250514-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
+            { id: 'eu.anthropic.claude-opus-4-6-v1', label: 'Claude Opus 4.6 (Bedrock)' },
+            { id: 'eu.anthropic.claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (Bedrock)' },
+            { id: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
+            { id: 'eu.anthropic.claude-haiku-4-5-20251001-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
         ],
     },
 };

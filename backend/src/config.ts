@@ -116,7 +116,7 @@ const envSchema = z.object({
   PUSHOVER_APP_TOKEN: z.string().optional(),
 
   // AI
-  AI_PROVIDER: z.enum(['openai', 'anthropic', 'mock']).default('mock'),
+  AI_PROVIDER: z.enum(['openai', 'anthropic', 'bedrock', 'mock']).default('mock'),
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().optional(),
 
@@ -302,7 +302,7 @@ export interface Config {
     team?: string;
   };
   ai: {
-    provider: 'openai' | 'anthropic' | 'mock';
+    provider: 'openai' | 'anthropic' | 'bedrock' | 'mock';
     apiKey: string;
     model: string;
   };
@@ -451,7 +451,7 @@ export const config: Config = {
     }),
   },
   ai: {
-    provider: env.AI_PROVIDER as 'openai' | 'anthropic' | 'mock',
+    provider: env.AI_PROVIDER as 'openai' | 'anthropic' | 'bedrock' | 'mock',
     apiKey: env.AI_API_KEY || 'demo-key',
     model: env.AI_MODEL || 'gpt-4o',
   },
