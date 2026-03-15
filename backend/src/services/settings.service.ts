@@ -61,7 +61,8 @@ class SettingsServiceImpl {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError('User not found');
 
-    const stored = (user.settings ?? {}) as Record<string, unknown>;
+    const raw = user.settings ?? {};
+    const stored = (typeof raw === 'string' ? JSON.parse(raw) : raw) as Record<string, unknown>;
     return deepMerge(
       DEFAULT_SETTINGS as unknown as Record<string, unknown>,
       stored,
@@ -72,12 +73,13 @@ class SettingsServiceImpl {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError('User not found');
 
-    const existing = (user.settings ?? {}) as Record<string, unknown>;
+    const rawExisting = user.settings ?? {};
+    const existing = (typeof rawExisting === 'string' ? JSON.parse(rawExisting) : rawExisting) as Record<string, unknown>;
     const merged = deepMerge(existing, partial);
 
     await prisma.user.update({
       where: { id: userId },
-      data: { settings: merged },
+      data: { settings: JSON.stringify(merged) },
     });
 
     logger.info(`Settings updated for user ${userId}`);
