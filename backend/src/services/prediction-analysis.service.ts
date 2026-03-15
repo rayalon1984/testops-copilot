@@ -7,6 +7,7 @@
 
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
+import { config } from '../config';
 import {
   TimeSeriesPoint,
   TrendAnalysis,
@@ -14,6 +15,8 @@ import {
   RiskFactor,
   AnomalyResult,
 } from '../types/prediction';
+
+const isPostgres = config.database.url.startsWith('postgres');
 
 /** Severity multiplier for risk scoring */
 const SEVERITY_WEIGHTS: Record<string, number> = {
@@ -41,30 +44,49 @@ export class PredictionAnalysisService {
 
     // Conditional WHERE fragments using Prisma.sql (no string interpolation)
     const testNameFilter = params.testName
-      ? Prisma.sql`AND testName = ${params.testName}`
+      ? Prisma.sql`AND "testName" = ${params.testName}`
       : Prisma.empty;
     const categoryFilter = params.category
-      ? Prisma.sql`AND category = ${params.category}`
+      ? Prisma.sql`AND "category" = ${params.category}`
       : Prisma.empty;
 
-    // Two static queries — date function cannot be parameterized, so we branch
+    // PostgreSQL uses "failure_archive" (@@map), DATE(), and to_char()
+    // SQLite uses FailureArchive (model name), DATE(), and strftime()
     const rows = params.groupBy === 'week'
-      ? await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
-          SELECT strftime('%Y-W%W', lastOccurrence) as date, COUNT(*) as count
-          FROM FailureArchive
-          WHERE lastOccurrence >= ${since.toISOString()}
-          ${testNameFilter}
-          ${categoryFilter}
-          GROUP BY date
-          ORDER BY date ASC`
-      : await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
-          SELECT DATE(lastOccurrence) as date, COUNT(*) as count
-          FROM FailureArchive
-          WHERE lastOccurrence >= ${since.toISOString()}
-          ${testNameFilter}
-          ${categoryFilter}
-          GROUP BY date
-          ORDER BY date ASC`;
+      ? isPostgres
+        ? await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+            SELECT to_char("lastOccurrence", 'IYYY-"W"IW') as date, COUNT(*) as count
+            FROM "failure_archive"
+            WHERE "lastOccurrence" >= ${since}
+            ${testNameFilter}
+            ${categoryFilter}
+            GROUP BY date
+            ORDER BY date ASC`
+        : await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+            SELECT strftime('%Y-W%W', lastOccurrence) as date, COUNT(*) as count
+            FROM FailureArchive
+            WHERE lastOccurrence >= ${since.toISOString()}
+            ${testNameFilter}
+            ${categoryFilter}
+            GROUP BY date
+            ORDER BY date ASC`
+      : isPostgres
+        ? await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+            SELECT DATE("lastOccurrence")::text as date, COUNT(*) as count
+            FROM "failure_archive"
+            WHERE "lastOccurrence" >= ${since}
+            ${testNameFilter}
+            ${categoryFilter}
+            GROUP BY DATE("lastOccurrence")
+            ORDER BY date ASC`
+        : await prisma.$queryRaw<Array<{ date: string; count: bigint }>>`
+            SELECT DATE(lastOccurrence) as date, COUNT(*) as count
+            FROM FailureArchive
+            WHERE lastOccurrence >= ${since.toISOString()}
+            ${testNameFilter}
+            ${categoryFilter}
+            GROUP BY date
+            ORDER BY date ASC`;
 
     return rows.map(r => ({
       date: r.date,
