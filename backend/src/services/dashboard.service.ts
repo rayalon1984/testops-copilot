@@ -7,6 +7,7 @@
 
 import { prisma } from '../lib/prisma';
 import { getCache } from './ai/cache';
+import { getConfig } from './ai';
 import { FailureCategory } from './ai/types';
 
 // ─── Response types ───
@@ -224,7 +225,8 @@ class DashboardService {
   }
 
   private async getAICostData(): Promise<{ totalCost: number; monthlySpent: number; monthlyBudget: number }> {
-    return { totalCost: 2.34, monthlySpent: 47.20, monthlyBudget: 100 };
+    const budget = getConfig().cost.monthlyBudgetUSD;
+    return { totalCost: 0, monthlySpent: 0, monthlyBudget: budget };
   }
 
   private async getFailureCategoriesBreakdown(startDate: Date): Promise<FailureCategoryBreakdown[]> {

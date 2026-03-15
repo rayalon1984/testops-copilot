@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getAIManager } from '../../services/ai';
+import { getAIManager, getConfig } from '../../services/ai';
 import { TestFailure } from '../../services/ai/types';
 import { RCAMatchingOptions } from '../../services/ai/features/rca-matching';
 import { CategorizationOptions } from '../../services/ai/features/categorization';
@@ -195,10 +195,11 @@ router.get('/costs', async (req: Request, res: Response) => {
       : await aiManager.getCostSummary();
 
     // Enrich with fields the frontend CostMetrics interface expects
+    const monthlyBudget = getConfig().cost.monthlyBudgetUSD;
     const enriched = {
       ...summary,
       monthlySpent: summary.totalCost,
-      monthlyBudget: 100, // matches default in cost-tracker config
+      monthlyBudget,
       cacheSavings: summary.cacheHitRate > 0
         ? (summary.totalCost * summary.cacheHitRate) / (1 - summary.cacheHitRate)
         : 0,
