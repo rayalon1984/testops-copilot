@@ -160,10 +160,15 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling middleware
 app.use((err: Error | ApiError, req: Request, res: Response, _next: NextFunction) => {
-  const apiError = err instanceof ApiError
-    ? err
-    : new ApiError(500, err.message || 'Internal Server Error');
-  errorHandler(apiError, req, res);
+  if (err instanceof ApiError) {
+    errorHandler(err, req, res);
+    return;
+  }
+  // Preserve statusCode from third-party middleware (e.g. csrf-csrf throws with statusCode 403)
+  const statusCode = (err as ApiError).statusCode
+    ?? (err as unknown as Record<string, unknown>).status as number
+    ?? 500;
+  errorHandler(new ApiError(statusCode, err.message || 'Internal Server Error'), req, res);
 });
 
 // 404 handler

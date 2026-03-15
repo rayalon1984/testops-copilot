@@ -481,4 +481,32 @@ Production responses include `message` only. Development adds `stack` and `detai
 
 ---
 
+## User Settings
+
+### `GET /api/v1/settings`
+Returns the authenticated user's settings, merged with defaults. No request body.
+
+**Response** (200): Raw `Settings` object (no envelope).
+```json
+{
+  "notifications": {
+    "slack": { "enabled": false, "webhookUrl": "" },
+    "email": { "enabled": false, "recipients": [] }
+  },
+  "cicd": {
+    "jenkins": { "enabled": false, "url": "", "username": "", "apiToken": "" },
+    "github": { "enabled": false, "apiToken": "", "repositories": [] }
+  },
+  "general": { "autoRefresh": false, "refreshInterval": 30, "theme": "dark" }
+}
+```
+
+### `PUT /api/v1/settings`
+Deeply-merges partial settings into the user's existing settings. Requires CSRF token.
+
+**Request body**: Any subset of the `Settings` shape (all fields optional).
+**Response** (200): Full merged `Settings` object.
+
+---
+
 *Canonical source. Update when routes change — not after.*
