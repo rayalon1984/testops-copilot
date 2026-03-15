@@ -20,6 +20,7 @@ model User {
   role           String   @default("USER") // ADMIN | USER
   autonomyLevel         String   @default("balanced") // conservative | balanced | autonomous
   pinnedStarterPrompts  String?  // JSON array of pinned prompt objects, null = use role defaults
+  settings              String?  @default("{}") // JSON settings blob
   createdAt             DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

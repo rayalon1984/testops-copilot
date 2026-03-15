@@ -19,6 +19,7 @@ model User {
   role           UserRole      @default(USER)
   autonomyLevel         AutonomyLevel @default(balanced)
   pinnedStarterPrompts  String?
+  settings              Json?         @default("{}")
   createdAt             DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 

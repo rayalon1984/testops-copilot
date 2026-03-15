@@ -14,6 +14,7 @@ import channelRouter from './channel.routes';
 import shareRouter from './share.routes';
 import healingRouter from './healing.routes';
 import webhookRouter from './webhook.routes';
+import settingsRouter from './settings.routes';
 import { MetricsController } from '../controllers/metrics.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -50,6 +51,7 @@ export function registerRoutes(app: Application): void {
   app.use('/api/v1/shares', shareRouter);
   app.use('/api/v1/healing', healingRouter);
   app.use('/api/v1/webhooks', webhookRouter);
+  app.use('/api/v1/settings', settingsRouter);
   app.use('/api/v1/azure-devops', azureDevOpsController);
 }
 
