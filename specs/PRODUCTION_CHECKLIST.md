@@ -43,3 +43,16 @@ ln -sf .env.production .env
 
 ### Alpine IPv6 in Docker
 Alpine-based images (nginx:alpine, node:20-alpine) may resolve `localhost` to `::1`. Always use `127.0.0.1` in healthcheck commands.
+
+### Weaviate Auth
+Weaviate crashes in a loop if `AUTHENTICATION_APIKEY_ENABLED=true` but `AUTHENTICATION_APIKEY_ALLOWED_KEYS` is empty. The compose defaults to anonymous access (`WEAVIATE_ANON_ACCESS=true`) which is safe for internal Docker network. To enable API key auth, set in `.env.production`:
+```
+WEAVIATE_API_KEY=your-key-here
+WEAVIATE_APIKEY_ENABLED=true
+WEAVIATE_ANON_ACCESS=false
+WEAVIATE_ADMIN_LIST=true
+WEAVIATE_ADMIN_USERS=admin
+```
+
+### Frontend Version Display
+The sidebar version chip reads from `__APP_VERSION__` which Vite injects from `package.json` at build time. Bumping `frontend/package.json` version and rebuilding is all that's needed — no hardcoded strings to update.

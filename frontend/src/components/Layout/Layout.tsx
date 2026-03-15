@@ -203,7 +203,7 @@ function SidebarContent({
 
       <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Chip
-          label="v3.1.0"
+          label={`v${__APP_VERSION__}`}
           size="small"
           variant="outlined"
           sx={{
