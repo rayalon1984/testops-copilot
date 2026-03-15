@@ -194,7 +194,21 @@ router.get('/costs', async (req: Request, res: Response) => {
       ? await aiManager.getCostSummary(new Date(startDate as string), new Date(endDate as string))
       : await aiManager.getCostSummary();
 
-    return res.json(summary);
+    // Enrich with fields the frontend CostMetrics interface expects
+    const enriched = {
+      ...summary,
+      monthlySpent: summary.totalCost,
+      monthlyBudget: 100, // matches default in cost-tracker config
+      cacheSavings: summary.cacheHitRate > 0
+        ? (summary.totalCost * summary.cacheHitRate) / (1 - summary.cacheHitRate)
+        : 0,
+      averageCostPerAnalysis: summary.totalRequests > 0
+        ? summary.totalCost / summary.totalRequests
+        : 0,
+      totalAnalyses: summary.totalRequests,
+    };
+
+    return res.json(enriched);
   } catch (error) {
     logger.error('[AIAnalysis] Failed to get cost summary:', error);
     return res.status(500).json({ error: 'Failed to get cost summary', message: error instanceof Error ? error.message : 'Unknown error' });
