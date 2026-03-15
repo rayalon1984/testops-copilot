@@ -31,6 +31,30 @@ router.get(
   })
 );
 
+// @route   GET /api/v1/notifications/unread
+// @desc    Alias for /undelivered — used by frontend badge polling
+// @access  Private
+router.get(
+  '/unread',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const notifications = await notificationController.getUndeliveredNotifications(req.user!.id);
+    res.status(200).json(notifications);
+  })
+);
+
+// @route   POST /api/v1/notifications/mark-all-read
+// @desc    Mark all notifications as read for the current user
+// @access  Private
+router.post(
+  '/mark-all-read',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    await notificationController.markAllAsRead(req.user!.id);
+    res.status(200).json({ success: true, message: 'All notifications marked as read' });
+  })
+);
+
 // @route   PATCH /api/v1/notifications/:id/delivered
 // @desc    Mark notification as delivered (read)
 // @access  Private
@@ -40,6 +64,18 @@ router.patch(
   asyncHandler(async (req, res) => {
     await notificationController.markAsDelivered(String(req.params.id), String(req.user!.id));
     res.status(200).json({ success: true, message: 'Notification marked as delivered' });
+  })
+);
+
+// @route   PATCH /api/v1/notifications/:id/read
+// @desc    Alias for /:id/delivered — used by frontend useMarkNotificationAsRead
+// @access  Private
+router.patch(
+  '/:id/read',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    await notificationController.markAsDelivered(String(req.params.id), String(req.user!.id));
+    res.status(200).json({ success: true, message: 'Notification marked as read' });
   })
 );
 

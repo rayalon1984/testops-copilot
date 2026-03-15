@@ -73,6 +73,13 @@ export class NotificationController {
     await prisma.notification.deleteMany({ where: { userId } });
   }
 
+  async markAllAsRead(userId: string) {
+    await prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+  }
+
   // ─── Preferences & Channels ───────────────────────────────
 
   async getPreferences(userId: string) {

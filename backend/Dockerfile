@@ -58,6 +58,8 @@ RUN npm install -g prisma@5 && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
+# Copy OpenAPI spec (consumed by Swagger UI at /api/docs)
+COPY --from=builder /app/openapi.yaml ./openapi.yaml
 # Copy Prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
 # Copy generated Prisma Client from builder
@@ -71,7 +73,7 @@ USER node
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:3000/health || exit 1
 
 EXPOSE 3000
 

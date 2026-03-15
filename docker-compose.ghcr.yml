@@ -19,6 +19,12 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1:80/health || exit 1" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       - backend
     networks:
@@ -31,8 +37,16 @@ services:
     restart: always
     env_file:
       - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testops}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_ENABLED=true
+      - LOG_LEVEL=info
     healthcheck:
-      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/health/ready || exit 1" ]
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1:3000/health/ready || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -59,7 +73,7 @@ services:
     networks:
       - testops-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5

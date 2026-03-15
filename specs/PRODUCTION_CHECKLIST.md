@@ -14,6 +14,8 @@
 | 5 | Healthchecks use `127.0.0.1` (not `localhost`) | Alpine images resolve `localhost` to IPv6 `::1`; most services listen IPv4 only |
 | 6 | DB healthcheck user matches `POSTGRES_USER` | `pg_isready -U <user>` must use the actual DB user, not hardcoded `postgres` |
 | 7 | `REDIS_ENABLED=true` when Redis container is present | Without this, backend falls back to MemoryStore (leaks memory, loses sessions) |
+| 8 | `openapi.yaml` copied in Dockerfile production stage | Without it, `/api/docs` serves a blank spec. Must `COPY --from=builder /app/openapi.yaml ./openapi.yaml` |
+| 9 | GHCR compose mirrors prod compose fixes | `docker-compose.ghcr.yml` must have the same healthcheck, env, and Redis fixes as `docker-compose.prod.yml` |
 
 ## Post-Deploy
 
@@ -53,6 +55,9 @@ WEAVIATE_ANON_ACCESS=false
 WEAVIATE_ADMIN_LIST=true
 WEAVIATE_ADMIN_USERS=admin
 ```
+
+### Frontend/Backend Route Naming
+The frontend and backend sometimes use different naming for the same concept. Example: the frontend uses "read/unread" while the backend originally used "delivered/undelivered" for notifications. Always verify that every `api.get()`/`api.post()` call in `frontend/src/hooks/api/` has a matching route in `backend/src/routes/`. The alias routes added in `notification.routes.ts` (`/unread`, `/:id/read`, `/mark-all-read`) bridge this gap.
 
 ### Frontend Version Display
 The sidebar version chip reads from `__APP_VERSION__` which Vite injects from `package.json` at build time. Bumping `frontend/package.json` version and rebuilding is all that's needed — no hardcoded strings to update.
