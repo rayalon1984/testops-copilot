@@ -1,6 +1,6 @@
 # Production Deployment Checklist
 
-> Lessons learned from the v3.5.1 production debug audit.
+> Lessons learned from the v3.5.1–v3.5.2 production debug audit.
 > Run through this checklist before and after every production deployment.
 
 ## Pre-Deploy
