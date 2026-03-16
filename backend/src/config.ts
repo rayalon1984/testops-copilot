@@ -43,6 +43,7 @@ const envSchema = z.object({
 
   // Jira (optional)
   JIRA_BASE_URL: z.string().optional(),
+  JIRA_EMAIL: z.string().optional(),
   JIRA_API_TOKEN: z.string().optional(),
   JIRA_PROJECT_KEY: z.string().optional(),
   JIRA_DEFAULT_ISSUE_TYPE: z.string().default('Bug'),
@@ -211,6 +212,7 @@ export interface Config {
   github: GitHubConfig;
   jira?: {
     baseUrl: string;
+    email: string;
     apiToken: string;
     projectKey: string;
     defaultIssueType: string;
@@ -336,6 +338,7 @@ export const config: Config = {
   ...(env.JIRA_BASE_URL && env.JIRA_API_TOKEN && env.JIRA_PROJECT_KEY && {
     jira: {
       baseUrl: env.JIRA_BASE_URL,
+      email: env.JIRA_EMAIL || '',
       apiToken: env.JIRA_API_TOKEN,
       projectKey: env.JIRA_PROJECT_KEY,
       defaultIssueType: env.JIRA_DEFAULT_ISSUE_TYPE,
