@@ -263,6 +263,18 @@ model AIUsage {
   @@map("ai_usage")
 }
 
+model JiraConfig {
+  id            String    @id @default(uuid()) @db.Uuid
+  baseUrl       String
+  apiToken      String
+  projectKey    String
+  defaultType   String    @default("BUG")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("jira_config")
+}
+
 model JiraIssue {
   id              String    @id @default(uuid()) @db.Uuid
   jiraKey         String    @unique
