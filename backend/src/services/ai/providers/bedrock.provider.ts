@@ -177,10 +177,17 @@ export class BedrockProvider extends BaseProvider {
       const body = JSON.parse(new TextDecoder().decode(response.body));
       return Array.isArray(body.content) && body.content.length > 0;
     } catch (error) {
-      logger.error('[BedrockProvider] Health check failed:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      const name = error instanceof Error ? error.name : 'UnknownError';
+      logger.error(`[BedrockProvider] Health check failed (${name}): ${msg}`);
+      // Store last error for diagnostics
+      this.lastHealthError = `${name}: ${msg}`;
       return false;
     }
   }
+
+  /** Last health check error message (for diagnostics) */
+  lastHealthError: string | null = null;
 
   // ── Private helpers ──
 

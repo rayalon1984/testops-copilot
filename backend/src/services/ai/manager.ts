@@ -400,10 +400,16 @@ export class AIManager {
     if (this.provider) {
       try {
         const providerHealthy = await this.provider.healthCheck();
-        status.services!.provider = {
+        const providerInfo: Record<string, unknown> = {
           healthy: providerHealthy,
           name: this.provider.getName(),
         };
+        // Expose last health error for diagnostics
+        const lastError = (this.provider as unknown as { lastHealthError?: string }).lastHealthError;
+        if (!providerHealthy && lastError) {
+          providerInfo.error = lastError;
+        }
+        status.services!.provider = providerInfo as HealthStatus['services'] extends Record<string, infer V> ? V : never;
         if (!providerHealthy) status.healthy = false;
       } catch (error) {
         status.services!.provider = {
