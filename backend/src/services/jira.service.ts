@@ -37,7 +37,7 @@ export class JiraService {
         apiVersion: '2',
         strictSSL: true,
         ...(config.jira.email
-          ? { basic_auth: { email: config.jira.email, api_token: config.jira.apiToken } }
+          ? { username: config.jira.email, password: config.jira.apiToken }
           : { bearer: config.jira.apiToken }),
       });
       this.projectKey = config.jira.projectKey;
