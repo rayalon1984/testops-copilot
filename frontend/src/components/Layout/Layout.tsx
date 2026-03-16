@@ -34,6 +34,7 @@ import {
   AttachMoney as CostIcon,
   Groups as TeamsIcon,
   Healing as HealingIcon,
+  TrackChanges as SmartSelectIcon,
 } from '@mui/icons-material';
 import { useDesignMode } from '../../contexts/DesignModeContext';
 import AICopilot from '../AICopilot/AICopilot';
@@ -67,6 +68,7 @@ const navSections: NavSection[] = [
       { text: 'Test Runs', icon: <TestRunIcon />, path: '/test-runs' },
       { text: 'Failure Knowledge Base', icon: <BugReportIcon />, path: '/failure-knowledge-base' },
       { text: 'Self-Healing', icon: <HealingIcon />, path: '/self-healing' },
+      { text: 'Smart Selection', icon: <SmartSelectIcon />, path: '/smart-selection' },
     ],
   },
   {

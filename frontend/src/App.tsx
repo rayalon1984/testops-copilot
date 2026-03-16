@@ -32,6 +32,7 @@ const FailureKnowledgeBase = lazy(() => import('./pages/FailureKnowledgeBase').t
 const CostTracker = lazy(() => import('./pages/CostTracker'));
 const TeamSettings = lazy(() => import('./pages/TeamSettings'));
 const SelfHealing = lazy(() => import('./pages/SelfHealing'));
+const SmartSelection = lazy(() => import('./pages/SmartSelection'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Create Query Client
@@ -95,6 +96,9 @@ function AppContent() {
 
                     {/* Self-Healing */}
                     <Route path="/self-healing" element={<SelfHealing />} />
+
+                    {/* Smart Test Selection */}
+                    <Route path="/smart-selection" element={<SmartSelection />} />
 
                     {/* Settings */}
                     <Route path="/settings" element={<Settings />} />
