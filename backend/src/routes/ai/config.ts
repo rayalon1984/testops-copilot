@@ -122,11 +122,11 @@ router.post('/config/test', async (req: Request, res: Response) => {
     if (!provider || !model) {
       return res.status(400).json({ error: 'provider and model are required' });
     }
-    if (provider !== 'mock' && !apiKey) {
+    if (provider !== 'mock' && provider !== 'bedrock' && !apiKey) {
       return res.status(400).json({ error: 'apiKey is required for connection test' });
     }
 
-    const result = await providerConfig.testProviderConnection(provider, model, apiKey || 'mock-key', extraConfig);
+    const result = await providerConfig.testProviderConnection(provider, model, apiKey || 'bedrock-iam-auth', extraConfig);
     return res.json({ data: result });
   } catch (error) {
     return res.status(500).json({ error: 'Connection test failed', message: error instanceof Error ? error.message : 'Unknown error' });

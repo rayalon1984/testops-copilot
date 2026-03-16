@@ -75,9 +75,10 @@ const PROVIDER_CATALOG: Record<string, ProviderEntry> = {
     bedrock: {
         label: 'AWS Bedrock',
         models: [
-            { id: 'us.anthropic.claude-opus-4-20250514-v1:0', label: 'Claude Opus 4 (Bedrock)' },
-            { id: 'anthropic.claude-sonnet-4-5-20250514-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
-            { id: 'anthropic.claude-haiku-4-5-20250514-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
+            { id: 'eu.anthropic.claude-opus-4-6-v1', label: 'Claude Opus 4.6 (Bedrock)' },
+            { id: 'eu.anthropic.claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (Bedrock)' },
+            { id: 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0', label: 'Claude Sonnet 4.5 (Bedrock)' },
+            { id: 'eu.anthropic.claude-haiku-4-5-20251001-v1:0', label: 'Claude Haiku 4.5 (Bedrock)' },
         ],
     },
 };
@@ -104,9 +105,16 @@ const DEFAULT_CONFIG: ProviderConfig = {
 
 // ─── Sub-components ───
 
-function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, needsKey, apiKey, setApiKey, showKey, setShowKey, activeConfig, testStatus, setTestStatus, testError, saveError, handleTest, handleSave, saving, canSave, isChanged }: {
+/** Providers that work without an API key (mock = demo, bedrock = IAM role auth on AWS) */
+const NO_KEY_PROVIDERS = new Set(['mock', 'bedrock']);
+
+function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, needsKey, isBedrock, apiKey, setApiKey, bedrockRegion, setBedrockRegion, bedrockAccessKeyId, setBedrockAccessKeyId, bedrockSecretAccessKey, setBedrockSecretAccessKey, showKey, setShowKey, activeConfig, testStatus, setTestStatus, testError, saveError, handleTest, handleSave, saving, canSave, isChanged }: {
     provider: string; setProvider: (v: string) => void; model: string; setModel: (v: string) => void;
-    catalog: ProviderEntry; needsKey: boolean; apiKey: string; setApiKey: (v: string) => void;
+    catalog: ProviderEntry; needsKey: boolean; isBedrock: boolean;
+    apiKey: string; setApiKey: (v: string) => void;
+    bedrockRegion: string; setBedrockRegion: (v: string) => void;
+    bedrockAccessKeyId: string; setBedrockAccessKeyId: (v: string) => void;
+    bedrockSecretAccessKey: string; setBedrockSecretAccessKey: (v: string) => void;
     showKey: boolean; setShowKey: (v: boolean) => void; activeConfig: ProviderConfig;
     testStatus: TestStatus; setTestStatus: (v: TestStatus) => void; testError: string; saveError: string;
     handleTest: () => void; handleSave: () => void; saving: boolean; canSave: boolean; isChanged: boolean;
@@ -159,6 +167,41 @@ function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, 
                 />
             )}
 
+            {isBedrock && (
+                <>
+                    <TextField
+                        fullWidth size="small" label="AWS Region"
+                        value={bedrockRegion} onChange={(e) => { setBedrockRegion(e.target.value); setTestStatus('idle'); }}
+                        placeholder="eu-west-1"
+                        sx={{ mb: 1.5 }}
+                    />
+                    <Alert severity="info" sx={{ mb: 1.5, py: 0, fontSize: '0.75rem' }}>
+                        On AWS VMs, IAM role auth is used automatically. Only fill credentials below for non-AWS environments.
+                    </Alert>
+                    <TextField
+                        fullWidth size="small" label="Access Key ID (optional)"
+                        value={bedrockAccessKeyId} onChange={(e) => { setBedrockAccessKeyId(e.target.value); setTestStatus('idle'); }}
+                        placeholder="AKIA..."
+                        sx={{ mb: 1.5 }}
+                    />
+                    <TextField
+                        fullWidth size="small" label="Secret Access Key (optional)" type={showKey ? 'text' : 'password'}
+                        value={bedrockSecretAccessKey} onChange={(e) => { setBedrockSecretAccessKey(e.target.value); setTestStatus('idle'); }}
+                        placeholder="Leave empty for IAM role auth"
+                        sx={{ mb: 1.5 }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton size="small" onClick={() => setShowKey(!showKey)} edge="end">
+                                        {showKey ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </>
+            )}
+
             {testStatus === 'success' && (
                 <Alert severity="success" sx={{ mb: 1.5, py: 0 }} icon={<ConnectedIcon fontSize="small" />}>Connected</Alert>
             )}
@@ -170,12 +213,10 @@ function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, 
             )}
 
             <Box sx={{ display: 'flex', gap: 1 }}>
-                {needsKey && (
-                    <Button size="small" variant="outlined" onClick={handleTest} disabled={testStatus === 'testing' || (!apiKey && !activeConfig.hasApiKey)} sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}>
-                        {testStatus === 'testing' ? <CircularProgress size={16} sx={{ mr: 0.5 }} /> : null}
-                        Test
-                    </Button>
-                )}
+                <Button size="small" variant="outlined" onClick={handleTest} disabled={testStatus === 'testing' || (needsKey && !apiKey && !activeConfig.hasApiKey)} sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}>
+                    {testStatus === 'testing' ? <CircularProgress size={16} sx={{ mr: 0.5 }} /> : null}
+                    Test
+                </Button>
                 <Button size="small" variant="contained" onClick={handleSave} disabled={saving || !canSave || !isChanged} sx={{ flex: 1, textTransform: 'none', fontSize: '0.8rem' }}>
                     {saving ? <CircularProgress size={16} sx={{ mr: 0.5, color: 'inherit' }} /> : null}
                     Activate
@@ -209,6 +250,11 @@ export default function ProviderPicker() {
     const [testError, setTestError] = useState('');
     const [saveError, setSaveError] = useState('');
 
+    // Bedrock-specific fields
+    const [bedrockRegion, setBedrockRegion] = useState('eu-west-1');
+    const [bedrockAccessKeyId, setBedrockAccessKeyId] = useState('');
+    const [bedrockSecretAccessKey, setBedrockSecretAccessKey] = useState('');
+
     // Popover anchor
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
     const open = Boolean(anchorEl);
@@ -218,6 +264,7 @@ export default function ProviderPicker() {
         if (activeConfig) {
             setProvider(activeConfig.provider);
             setModel(activeConfig.model);
+            if (activeConfig.extraConfig?.region) setBedrockRegion(activeConfig.extraConfig.region);
         }
     }, [activeConfig]);
 
@@ -229,10 +276,21 @@ export default function ProviderPicker() {
         }
     }, [provider, model]);
 
+    const isBedrock = provider === 'bedrock';
+
+    /** Build extraConfig for providers that need it */
+    const buildExtraConfig = (): Record<string, string> | undefined => {
+        if (!isBedrock) return undefined;
+        const extra: Record<string, string> = { region: bedrockRegion };
+        if (bedrockAccessKeyId) extra.accessKeyId = bedrockAccessKeyId;
+        if (bedrockSecretAccessKey) extra.secretAccessKey = bedrockSecretAccessKey;
+        return extra;
+    };
+
     const handleTest = () => {
         setTestStatus('testing');
         setTestError('');
-        testMutation.mutate({ provider, model, apiKey }, {
+        testMutation.mutate({ provider, model, apiKey: apiKey || 'bedrock-iam-auth', extraConfig: buildExtraConfig() }, {
             onSuccess: (data) => {
                 if (data?.success) {
                     setTestStatus('success');
@@ -250,9 +308,11 @@ export default function ProviderPicker() {
 
     const handleSave = () => {
         setSaveError('');
-        saveMutation.mutate({ provider, model, apiKey: apiKey || undefined }, {
+        saveMutation.mutate({ provider, model, apiKey: apiKey || undefined, extraConfig: buildExtraConfig() }, {
             onSuccess: () => {
                 setApiKey('');
+                setBedrockAccessKeyId('');
+                setBedrockSecretAccessKey('');
                 setTestStatus('idle');
                 setAnchorEl(null);
             },
@@ -263,9 +323,9 @@ export default function ProviderPicker() {
     };
 
     const catalog = PROVIDER_CATALOG[provider] || PROVIDER_CATALOG.mock;
-    const needsKey = provider !== 'mock';
-    const canSave = provider === 'mock' || activeConfig.hasApiKey || !!apiKey;
-    const isChanged = provider !== activeConfig.provider || model !== activeConfig.model || !!apiKey;
+    const needsKey = !NO_KEY_PROVIDERS.has(provider);
+    const canSave = NO_KEY_PROVIDERS.has(provider) || activeConfig.hasApiKey || !!apiKey;
+    const isChanged = provider !== activeConfig.provider || model !== activeConfig.model || !!apiKey || (isBedrock && (!!bedrockAccessKeyId || !!bedrockSecretAccessKey));
 
     return (
         <>
@@ -305,7 +365,11 @@ export default function ProviderPicker() {
             >
                 <ProviderPopoverBody
                     provider={provider} setProvider={setProvider} model={model} setModel={setModel}
-                    catalog={catalog} needsKey={needsKey} apiKey={apiKey} setApiKey={setApiKey}
+                    catalog={catalog} needsKey={needsKey} isBedrock={isBedrock}
+                    apiKey={apiKey} setApiKey={setApiKey}
+                    bedrockRegion={bedrockRegion} setBedrockRegion={setBedrockRegion}
+                    bedrockAccessKeyId={bedrockAccessKeyId} setBedrockAccessKeyId={setBedrockAccessKeyId}
+                    bedrockSecretAccessKey={bedrockSecretAccessKey} setBedrockSecretAccessKey={setBedrockSecretAccessKey}
                     showKey={showKey} setShowKey={setShowKey} activeConfig={activeConfig}
                     testStatus={testStatus} setTestStatus={setTestStatus} testError={testError} saveError={saveError}
                     handleTest={handleTest} handleSave={handleSave} saving={saveMutation.isPending} canSave={canSave} isChanged={isChanged}

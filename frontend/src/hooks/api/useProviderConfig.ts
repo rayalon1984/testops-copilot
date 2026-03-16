@@ -14,6 +14,7 @@ export interface ProviderConfig {
   providerLabel: string;
   modelLabel: string;
   hasApiKey: boolean;
+  extraConfig?: Record<string, string>;
 }
 
 // ─── Query ────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ export function useProviderConfig() {
 
 export function useTestProviderConnection() {
   return useMutation({
-    mutationFn: async (data: { provider: string; model: string; apiKey: string }) => {
+    mutationFn: async (data: { provider: string; model: string; apiKey: string; extraConfig?: Record<string, string> }) => {
       const json = await api.post<{ data: { success: boolean; error?: string } }>('/ai/config/test', data);
       return json.data;
     },
@@ -42,7 +43,7 @@ export function useTestProviderConnection() {
 export function useSaveProviderConfig() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { provider: string; model: string; apiKey?: string }) => {
+    mutationFn: async (data: { provider: string; model: string; apiKey?: string; extraConfig?: Record<string, string> }) => {
       const json = await api.put<{ data: ProviderConfig }>('/ai/config', data);
       return json.data;
     },

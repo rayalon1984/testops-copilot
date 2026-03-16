@@ -4,6 +4,7 @@ import { logger } from './utils/logger';
 import { prisma } from './lib/prisma';
 
 import { initializeAI } from './services/ai/manager';
+import { loadProviderConfigFromDB } from './services/ai/provider-config.service';
 
 async function startServer() {
   try {
@@ -23,6 +24,8 @@ async function startServer() {
 
     try {
       await initializeAI({ db: mockDbPool });
+      // Load DB-stored provider config (from Settings UI) — overrides env-based defaults
+      await loadProviderConfigFromDB();
       logger.info('AI Services initialized');
     } catch (aiError) {
       logger.warn('Failed to initialize AI services (non-critical for basic app):', aiError);
