@@ -37,6 +37,11 @@ services:
       - REDIS_PORT=6379
       - REDIS_ENABLED=true
       - LOG_LEVEL=info
+      # AWS Bedrock — forward host credentials into container
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-eu-west-1}
+      - AWS_REGION=${AWS_REGION:-eu-west-1}
     healthcheck:
       test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://127.0.0.1:3000/health/ready || exit 1" ]
       interval: 15s

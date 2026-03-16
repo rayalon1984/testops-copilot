@@ -334,7 +334,7 @@ export default function ProviderPicker() {
                 icon={<span style={{ fontSize: '0.85rem' }}>{PROVIDER_ICONS[activeConfig.provider] || '\u2B21'}</span>}
                 label={activeConfig.provider === 'mock'
                     ? 'Demo'
-                    : `${activeConfig.providerLabel} \u00B7 ${activeConfig.modelLabel}`
+                    : activeConfig.modelLabel.replace(/\s*\(Bedrock\)/, '')
                 }
                 size="small"
                 variant="outlined"
