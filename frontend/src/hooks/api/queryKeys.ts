@@ -63,6 +63,7 @@ export const queryKeys = {
 
   aiConfig: {
     current: () => ['ai-config'] as const,
+    my: () => ['ai-config', 'my'] as const,
   },
 
   xray: {

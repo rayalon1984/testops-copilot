@@ -72,6 +72,15 @@ class ProviderRegistry {
   }
 
   /**
+   * Create a fresh (uncached) provider instance. Used for per-user providers.
+   */
+  createFresh(name: AIProviderName, config: ProviderConfig): BaseProvider {
+    const factory = this.providers.get(name);
+    if (!factory) throw new Error(`Provider '${name}' is not registered`);
+    return factory(config);
+  }
+
+  /**
    * Create a provider from AIConfigManager (central config source)
    */
   createFromConfig(configManager?: AIConfigManager): BaseProvider {

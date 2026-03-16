@@ -66,6 +66,11 @@ jest.mock('@/services/ai/mock-tool-results', () => ({
   getMockToolResult: jest.fn(),
 }));
 
+jest.mock('@/services/ai/user-provider-config.service', () => ({
+  __esModule: true,
+  createProviderForUser: jest.fn().mockResolvedValue(null),
+}));
+
 import { Request, Response } from 'express';
 
 // Dynamic import after mocks

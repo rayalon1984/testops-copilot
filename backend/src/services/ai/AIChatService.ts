@@ -6,7 +6,6 @@
  */
 
 import { Response } from 'express';
-import { getAIManager } from './manager';
 import { toolRegistry } from './tools';
 import { SSEEvent, SSEEventType, ToolResult } from './tools/types';
 import { ChatMessage } from './types';
@@ -111,7 +110,7 @@ async function handleStreamToolCall(
     }
 
     sendSSE(res, createEvent('tool_start', `Calling ${tool.name}...`, tool.name));
-    const toolResult = await executeTool(toolCall.name, toolCall.arguments, ctx.toolContext);
+    const toolResult = await executeTool(toolCall.name, toolCall.arguments, ctx.toolContext, ctx.providerName);
     collectedResults.push({ name: tool.name, result: toolResult });
 
     // Emit result — Tier 1 auto-executed write tools use 'autonomous_action'
@@ -162,7 +161,7 @@ export async function handleChatStream(req: ChatRequest, res: Response): Promise
 
         let aiResponse;
         try {
-            aiResponse = await getAIManager().getProvider()!.chat(ctx.messages, {
+            aiResponse = await ctx.provider.chat(ctx.messages, {
                 maxTokens: ctx.ctxManager.getMaxOutputTokens(2048),
                 temperature: 0.3,
                 tools: ctx.useNativeTools ? ctx.toolDefinitions : undefined,
@@ -222,7 +221,7 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
     for (let iteration = 0; iteration < MAX_REACT_ITERATIONS; iteration++) {
         let aiResponse;
         try {
-            aiResponse = await getAIManager().getProvider()!.chat(ctx.messages, {
+            aiResponse = await ctx.provider.chat(ctx.messages, {
                 maxTokens: ctx.ctxManager.getMaxOutputTokens(2048),
                 temperature: 0.3,
                 tools: ctx.useNativeTools ? ctx.toolDefinitions : undefined,
@@ -264,7 +263,7 @@ export async function handleChatBuffered(req: ChatRequest): Promise<BufferedChat
                 };
             }
 
-            const toolResult = await executeTool(tc.name, tc.arguments, ctx.toolContext);
+            const toolResult = await executeTool(tc.name, tc.arguments, ctx.toolContext, ctx.providerName);
             toolCallCount++;
             collectedToolCalls.push({ name: tool.name, summary: toolResult.summary, data: toolResult.data });
 

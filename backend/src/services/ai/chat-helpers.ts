@@ -8,13 +8,14 @@ import { toolRegistry } from './tools';
 import * as confirmationService from './ConfirmationService';
 import * as chatSessionService from './ChatSessionService';
 import { ToolContext, ToolResult, hasRequiredRole } from './tools/types';
-import { ChatMessage } from './types';
+import { AIProviderName, ChatMessage } from './types';
 import { getConfigManager } from './config';
 import { getMockToolResult } from './mock-tool-results';
 import { routeToPersona, PersonaSelection } from './PersonaRouter';
 import { getPersonaInstruction } from './PersonaInstructions';
 import { ContextWindowManager } from './context-window-manager';
 import { estimateMessageTokens, TokenBudgetTracker } from './token-budget';
+import { BaseProvider } from './providers/base.provider';
 import { logger } from '@/utils/logger';
 import type { AutonomyLevel } from './AutonomyClassifier';
 
@@ -26,6 +27,8 @@ export interface ChatRequest {
     history?: ChatMessage[];
     autonomyLevel?: AutonomyLevel;
     uiContext?: string;
+    providerOverride?: BaseProvider;
+    providerName?: string;
 }
 
 export interface ChatContext {
@@ -37,6 +40,8 @@ export interface ChatContext {
     ctxManager: ContextWindowManager;
     useNativeTools: boolean;
     toolDefinitions: ReturnType<typeof toolRegistry.getToolDefinitions>;
+    provider: BaseProvider;
+    providerName: string;
 }
 
 const MAX_TOOL_CALLS = 5;
@@ -111,8 +116,11 @@ export function detectToolCalls(
 /** Shared setup: persona routing, session init, context window, message prep. */
 export async function prepareChatContext(req: ChatRequest): Promise<ChatContext> {
     const aiManager = getAIManager();
-    if (!aiManager.isInitialized() || !aiManager.isEnabled()) {
-        throw new Error('AI services are not initialized or enabled.');
+    // When user has their own provider, skip the global enabled check
+    if (!req.providerOverride) {
+        if (!aiManager.isInitialized() || !aiManager.isEnabled()) {
+            throw new Error('AI services are not initialized or enabled.');
+        }
     }
 
     const sessionNeeded = req.sessionId && req.sessionId !== 'anonymous';
@@ -134,10 +142,16 @@ export async function prepareChatContext(req: ChatRequest): Promise<ChatContext>
     };
 
     const configManager = getConfigManager();
+    const provider = req.providerOverride || aiManager.getProvider()!;
+    const resolvedProviderName = (req.providerName || configManager.getProvider()) as AIProviderName;
+    const resolvedModelId = req.providerOverride
+        ? ((req.providerOverride as unknown as { config?: { model?: string } }).config?.model || configManager.getModel())
+        : configManager.getModel();
+
     const ctxWindowConfig = configManager.getContextWindowConfig();
     const ctxManager = new ContextWindowManager({
-        modelId: configManager.getModel(),
-        provider: configManager.getProvider(),
+        modelId: resolvedModelId,
+        provider: resolvedProviderName,
         contextWindowOverride: ctxWindowConfig?.sizeOverride,
         budgetOverride: ctxWindowConfig ? {
             maxToolResultTokens: ctxWindowConfig.maxToolResultTokens,
@@ -166,6 +180,8 @@ export async function prepareChatContext(req: ChatRequest): Promise<ChatContext>
         ctxManager,
         useNativeTools: ctxManager.supportsNativeToolCalling(),
         toolDefinitions: toolRegistry.getToolDefinitions(),
+        provider,
+        providerName: resolvedProviderName,
     };
 }
 
@@ -174,9 +190,11 @@ export async function executeTool(
     toolName: string,
     toolArgs: Record<string, unknown>,
     context: ToolContext,
+    providerName?: string,
 ): Promise<ToolResult> {
     const tool = toolRegistry.get(toolName)!;
-    const mockResult = getConfigManager().getProvider() === 'mock'
+    const effectiveProvider = providerName || getConfigManager().getProvider();
+    const mockResult = effectiveProvider === 'mock'
         ? getMockToolResult(toolName, toolArgs)
         : null;
     if (mockResult) return mockResult;

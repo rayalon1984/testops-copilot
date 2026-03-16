@@ -19,9 +19,10 @@ import {
     SwapHoriz as SwapIcon,
 } from '@mui/icons-material';
 import {
-    useProviderConfig,
-    useTestProviderConnection,
-    useSaveProviderConfig,
+    useMyProviderConfig,
+    useTestMyProviderConnection,
+    useSaveMyProviderConfig,
+    useDeleteMyProviderConfig,
 } from '../../hooks/api';
 import type { ProviderConfig } from '../../hooks/api';
 
@@ -236,10 +237,11 @@ export default function ProviderPicker() {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
 
-    // Server state via React Query
-    const { data: activeConfig = DEFAULT_CONFIG } = useProviderConfig();
-    const testMutation = useTestProviderConnection();
-    const saveMutation = useSaveProviderConfig();
+    // Server state via React Query (per-user config)
+    const { data: activeConfig = DEFAULT_CONFIG } = useMyProviderConfig();
+    const testMutation = useTestMyProviderConnection();
+    const saveMutation = useSaveMyProviderConfig();
+    const deleteMutation = useDeleteMyProviderConfig();
 
     // Form state (local UI)
     const [provider, setProvider] = useState('mock');
@@ -322,6 +324,22 @@ export default function ProviderPicker() {
         });
     };
 
+    const handleReset = () => {
+        setSaveError('');
+        deleteMutation.mutate(undefined, {
+            onSuccess: () => {
+                setApiKey('');
+                setBedrockAccessKeyId('');
+                setBedrockSecretAccessKey('');
+                setTestStatus('idle');
+                setAnchorEl(null);
+            },
+            onError: (err) => {
+                setSaveError(err instanceof Error ? err.message : 'Reset failed');
+            },
+        });
+    };
+
     const catalog = PROVIDER_CATALOG[provider] || PROVIDER_CATALOG.mock;
     const needsKey = !NO_KEY_PROVIDERS.has(provider);
     const canSave = NO_KEY_PROVIDERS.has(provider) || activeConfig.hasApiKey || !!apiKey;
@@ -374,6 +392,23 @@ export default function ProviderPicker() {
                     testStatus={testStatus} setTestStatus={setTestStatus} testError={testError} saveError={saveError}
                     handleTest={handleTest} handleSave={handleSave} saving={saveMutation.isPending} canSave={canSave} isChanged={isChanged}
                 />
+
+                {activeConfig.isPersonal && (
+                    <Button
+                        size="small"
+                        color="warning"
+                        onClick={handleReset}
+                        disabled={deleteMutation.isPending}
+                        sx={{ mt: 1, textTransform: 'none', fontSize: '0.75rem', width: '100%' }}
+                    >
+                        {deleteMutation.isPending ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : null}
+                        Reset to system default
+                    </Button>
+                )}
+
+                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5, textAlign: 'center', fontSize: '0.6rem' }}>
+                    {activeConfig.isPersonal ? 'Personal config' : 'Using system default'}
+                </Typography>
             </Popover>
         </>
     );

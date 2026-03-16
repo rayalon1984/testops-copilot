@@ -13,6 +13,7 @@ import { ToolResult } from '../../services/ai/tools/types';
 import { getConfigManager } from '../../services/ai/config';
 import { getMockToolResult } from '../../services/ai/mock-tool-results';
 import { getUserAutonomyLevel } from '../../services/ai/autonomy.service';
+import { createProviderForUser } from '../../services/ai/user-provider-config.service';
 import { validateChatMessage, validateConfirmAction } from '../../middleware/validation';
 import { logger } from '../../utils/logger';
 
@@ -47,6 +48,21 @@ router.post('/chat', validateChatMessage, async (req: Request, res: Response): P
       }
     }
 
+    // Resolve per-user AI provider (if configured)
+    let providerOverride: import('../../services/ai/providers/base.provider').BaseProvider | undefined;
+    let providerName: string | undefined;
+    if (user?.id) {
+      try {
+        const result = await createProviderForUser(user.id);
+        if (result) {
+          providerOverride = result.provider;
+          providerName = result.providerName;
+        }
+      } catch (err) {
+        logger.warn('[AIChat] Failed to load per-user provider, using global:', err);
+      }
+    }
+
     await handleChatStream(
       {
         message,
@@ -56,6 +72,8 @@ router.post('/chat', validateChatMessage, async (req: Request, res: Response): P
         history: history || [],
         autonomyLevel,
         uiContext: typeof uiContext === 'string' ? uiContext : undefined,
+        providerOverride,
+        providerName,
       },
       res,
     );

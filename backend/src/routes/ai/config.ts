@@ -10,6 +10,7 @@ import { authorize } from '../../middleware/auth';
 import { validateAIConfigUpdate, validateAIAutonomy } from '../../middleware/validation';
 import { UserRole } from '../../constants';
 import * as providerConfig from '../../services/ai/provider-config.service';
+import * as userProviderConfig from '../../services/ai/user-provider-config.service';
 import { getAvailablePersonas } from '../../services/ai/PersonaRouter';
 import { getUserAutonomyLevel, setUserAutonomyLevel } from '../../services/ai/autonomy.service';
 import { logger } from '../../utils/logger';
@@ -130,6 +131,87 @@ router.post('/config/test', async (req: Request, res: Response) => {
     return res.json({ data: result });
   } catch (error) {
     return res.status(500).json({ error: 'Connection test failed', message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// ─── Per-User Provider Configuration ───
+
+router.get('/my-config', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user?.id) { res.status(401).json({ error: 'Authentication required' }); return; }
+
+    const config = await userProviderConfig.getUserProviderConfig(user.id);
+    res.json({ data: config, providers: providerConfig.PROVIDER_MODELS });
+  } catch (error) {
+    logger.error('[AI MyConfig] Failed to get user config:', error);
+    res.status(500).json({ error: 'Failed to get user provider config', message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+router.put('/my-config', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user?.id) { res.status(401).json({ error: 'Authentication required' }); return; }
+
+    const { provider, model, apiKey, extraConfig } = req.body;
+    if (!provider || !model) {
+      res.status(400).json({ error: 'provider and model are required' });
+      return;
+    }
+
+    const validProviders = ['anthropic', 'openai', 'google', 'azure', 'openrouter', 'bedrock', 'mock'];
+    if (!validProviders.includes(provider)) {
+      res.status(400).json({ error: `Invalid provider. Must be one of: ${validProviders.join(', ')}` });
+      return;
+    }
+
+    if (provider !== 'mock' && provider !== 'bedrock' && !apiKey) {
+      const existing = await userProviderConfig.getUserProviderConfig(user.id);
+      if (!existing.hasApiKey || !existing.isPersonal) {
+        res.status(400).json({ error: 'API key is required for non-mock providers' });
+        return;
+      }
+    }
+
+    const result = await userProviderConfig.updateUserProviderConfig(user.id, { provider, model, apiKey, extraConfig });
+    res.json({ data: result });
+  } catch (error) {
+    logger.error('[AI MyConfig] Update failed:', error);
+    res.status(500).json({ error: 'Failed to update user provider config', message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+router.post('/my-config/test', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { provider, model, apiKey, extraConfig } = req.body;
+    if (!provider || !model) {
+      res.status(400).json({ error: 'provider and model are required' });
+      return;
+    }
+    if (provider !== 'mock' && provider !== 'bedrock' && !apiKey) {
+      res.status(400).json({ error: 'apiKey is required for connection test' });
+      return;
+    }
+
+    const result = await providerConfig.testProviderConnection(provider, model, apiKey || 'bedrock-iam-auth', extraConfig);
+    res.json({ data: result });
+  } catch (error) {
+    res.status(500).json({ error: 'Connection test failed', message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+router.delete('/my-config', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user?.id) { res.status(401).json({ error: 'Authentication required' }); return; }
+
+    await userProviderConfig.deleteUserProviderConfig(user.id);
+    const config = await userProviderConfig.getUserProviderConfig(user.id);
+    res.json({ data: config });
+  } catch (error) {
+    logger.error('[AI MyConfig] Delete failed:', error);
+    res.status(500).json({ error: 'Failed to delete user provider config', message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

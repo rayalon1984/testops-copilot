@@ -15,6 +15,7 @@ export interface ProviderConfig {
   modelLabel: string;
   hasApiKey: boolean;
   extraConfig?: Record<string, string>;
+  isPersonal?: boolean;
 }
 
 // ─── Query ────────────────────────────────────────────────────
@@ -49,6 +50,53 @@ export function useSaveProviderConfig() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.aiConfig.current() });
+    },
+  });
+}
+
+// ─── Per-User Config ─────────────────────────────────────────
+
+export function useMyProviderConfig() {
+  return useQuery({
+    queryKey: queryKeys.aiConfig.my(),
+    queryFn: async () => {
+      const json = await api.get<{ data: ProviderConfig }>('/ai/my-config');
+      return json.data;
+    },
+  });
+}
+
+export function useSaveMyProviderConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { provider: string; model: string; apiKey?: string; extraConfig?: Record<string, string> }) => {
+      const json = await api.put<{ data: ProviderConfig }>('/ai/my-config', data);
+      return json.data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.aiConfig.my() });
+    },
+  });
+}
+
+export function useTestMyProviderConnection() {
+  return useMutation({
+    mutationFn: async (data: { provider: string; model: string; apiKey: string; extraConfig?: Record<string, string> }) => {
+      const json = await api.post<{ data: { success: boolean; error?: string } }>('/ai/my-config/test', data);
+      return json.data;
+    },
+  });
+}
+
+export function useDeleteMyProviderConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const json = await api.delete<{ data: ProviderConfig }>('/ai/my-config');
+      return json.data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.aiConfig.my() });
     },
   });
 }

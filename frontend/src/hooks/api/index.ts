@@ -17,7 +17,7 @@ export { useDashboardMetrics } from './useDashboard';
 export { useFlakyTests } from './useFlakyTests';
 export { useFailureInsights, useFailureSearch, useFailureComments, useAddFailureComment, useDeleteFailureComment } from './useFailureArchive';
 export { useTeams, useTeamDetail, useCreateTeam, useAddTeamMember, useRemoveTeamMember, useUpdateTeamMemberRole } from './useTeams';
-export { useProviderConfig, useTestProviderConnection, useSaveProviderConfig, type ProviderConfig } from './useProviderConfig';
+export { useProviderConfig, useTestProviderConnection, useSaveProviderConfig, useMyProviderConfig, useSaveMyProviderConfig, useTestMyProviderConnection, useDeleteMyProviderConfig, type ProviderConfig } from './useProviderConfig';
 export { useHealingRules, useHealingEvents, useHealingStats, useCreateHealingRule, useUpdateHealingRule, useToggleHealingRule, useDeleteHealingRule, useEvaluateHealing, useExecuteHealing, useSeedHealingRules, useQuarantinedTests, useQuarantineTest, useReinstateTest, useDeleteQuarantinedTest, useFixSuggestions, type HealingRule, type HealingEvent, type HealingStats, type QuarantinedTest, type FixSuggestion } from './useHealing';
 export { useStarterPrompts, useStarterPromptCatalog, useSavePinnedPrompts, useResetPinnedPrompts, type StarterPrompt, type PinnedPromptEntry } from './useStarterPrompts';
 export { useXrayTestConnection, useXrayTestCases, useXrayTestPlans, useXrayTestPlanDetail, useXraySyncTestRun, useXraySyncHistory, useXraySyncStatus, useXrayConfig, useUpdateXrayConfig, type XrayTestCase, type XrayTestPlan, type XrayTestPlanDetail, type XraySyncRecord, type XraySyncResult, type XrayConfig } from './useXray';

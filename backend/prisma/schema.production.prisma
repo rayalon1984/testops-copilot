@@ -28,6 +28,7 @@ model User {
   chatSessions     ChatSession[]
   pendingActions   PendingAction[]
   auditLogs        AuditLog[]
+  aiConfig         UserAIConfig?
 
   @@map("users")
 }
@@ -400,6 +401,21 @@ model AIProviderConfig {
   createdAt   DateTime @default(now())
 
   @@map("ai_provider_config")
+}
+
+model UserAIConfig {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  provider    String   @default("mock")
+  model       String   @default("mock-model")
+  apiKey      String?                          // AES-256-GCM encrypted
+  extraConfig String?                          // JSON: bedrock region, azure endpoint, etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_ai_configs")
 }
 
 // ─── Team Workspaces ───
