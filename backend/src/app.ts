@@ -28,6 +28,11 @@ declare global {
 
 const app: Application = express();
 
+// Trust first proxy (nginx) so express-rate-limit and req.ip work correctly behind reverse proxy
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security middleware
 app.use(asMiddleware(helmet()));
 app.use(asMiddleware(cors({
