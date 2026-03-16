@@ -6,6 +6,47 @@ Beta releases are pre-release builds on the path to production GA.
 
 ---
 
+## [3.5.3] - 2026-03-16
+
+> **Production Hardening + Smart Selection Dashboard + Deploy Automation**
+
+This release focuses on production reliability. Every fix in v3.5.3 came from real-world deployment debugging on a live VM — issues that are now impossible to repeat thanks to automated validation, secure defaults, and correct integration auth.
+
+### Smart Selection Dashboard
+
+- **New page: Smart Selection** — accuracy trends, strategy performance breakdown, and regression list with confirm/false-positive actions. Accessible from the sidebar under Testing.
+- **5 new API endpoints** (`/ci/smart-select/accuracy`, `/ci/smart-select/regressions`, `/ci/smart-select/recall-health`, plus confirm and false-positive actions) wired to the existing intelligence services.
+
+### Jira Integration Fix (Atlassian Cloud)
+
+- **Auth format corrected** — `jira-client` uses `{username, password}` for Basic auth, not `{basic_auth}` or `{bearer}`. Previous versions silently failed with 401 on every Jira operation.
+- **`JIRA_EMAIL` now a first-class config var** — added to Zod schema, config type, `.env.production.example`, and the preflight validator. Without it, Atlassian Cloud auth is impossible.
+
+### Production Security & Networking
+
+- **`trust proxy` enabled** — Express now trusts the first proxy (nginx) in production, so `req.ip` returns the real client IP and `express-rate-limit` stops logging `X-Forwarded-For` warnings.
+- **Secure cookies by default** — `SECURE_COOKIE` now auto-defaults to `true` when `NODE_ENV=production`. Operators no longer need to remember this setting for HTTPS deployments.
+
+### Deployment Automation
+
+- **`preflight-check.sh`** — a comprehensive pre-deploy validator that catches: missing/placeholder env vars, whitespace in tokens, Docker availability, Compose variable resolution, Prisma schema drift (model + field counts), Dockerfile healthcheck issues (Alpine IPv6), missing `openapi.yaml`, incomplete Jira config, AI provider key mismatches, Redis enablement, and low disk space. Cross-platform (macOS + Linux).
+- **`npm run preflight`** — one command to validate before deploying.
+- **`.env.production.example` rewritten** — clear REQUIRED vs OPTIONAL sections, generation instructions for secrets, all integration vars documented with auth format notes.
+- **`PRODUCTION_CHECKLIST.md` updated** — added gotchas for raw SQL table names, Jira Basic auth, API response shape mismatches, long token paste corruption, and Alpine IPv6.
+
+### API Fixes
+
+- **`/ai/costs` response enriched** — now returns `monthlySpent`, `cacheSavings`, `averageCostPerAnalysis`, and budget fields the CostTracker page expects.
+- **Config-driven AI budget** — removed hardcoded `$100` monthly cap; reads from `AI_MONTHLY_BUDGET_USD` env var.
+
+### Quality
+
+- 856 passed (backend) + 145 passed (frontend)
+- 0 TypeScript errors across all packages
+- All 19 production API endpoints verified (15 return 200, 4 return 404 by design)
+
+---
+
 ## [3.5.0] - 2026-03-10
 
 > **Smart Test Selection Platform + Azure DevOps Integration + AI-Powered Regression Detection**
