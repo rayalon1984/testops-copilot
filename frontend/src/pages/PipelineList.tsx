@@ -84,12 +84,65 @@ function AddPipelineDialog({
               setFormData({
                 ...formData,
                 type: e.target.value as 'jenkins' | 'github-actions',
+                config: {},
               })
             }
           >
             <MenuItem value="jenkins">Jenkins</MenuItem>
             <MenuItem value="github-actions">GitHub Actions</MenuItem>
           </TextField>
+          {formData.type === 'github-actions' && (
+            <>
+              <TextField
+                margin="dense"
+                label="Repository Owner"
+                fullWidth
+                required
+                placeholder="e.g. my-org"
+                value={(formData.config as Record<string, string>)?.owner || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, config: { ...formData.config, owner: e.target.value } })
+                }
+              />
+              <TextField
+                margin="dense"
+                label="Repository Name"
+                fullWidth
+                required
+                placeholder="e.g. my-repo"
+                value={(formData.config as Record<string, string>)?.repo || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, config: { ...formData.config, repo: e.target.value } })
+                }
+              />
+              <TextField
+                margin="dense"
+                label="Workflow File"
+                fullWidth
+                required
+                placeholder="e.g. ci.yml"
+                value={(formData.config as Record<string, string>)?.workflow || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, config: { ...formData.config, workflow: e.target.value } })
+                }
+              />
+            </>
+          )}
+          {formData.type === 'jenkins' && (
+            <>
+              <TextField
+                margin="dense"
+                label="Jenkins Job URL"
+                fullWidth
+                required
+                placeholder="e.g. https://jenkins.example.com/job/my-job"
+                value={(formData.config as Record<string, string>)?.jobUrl || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, config: { ...formData.config, jobUrl: e.target.value } })
+                }
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

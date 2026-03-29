@@ -70,7 +70,7 @@ class PipelineService {
       include: {
         testRuns: {
           orderBy: { createdAt: 'desc' as const },
-          take: 20,
+          take: 100,
         },
       },
     });
@@ -107,7 +107,7 @@ class PipelineService {
       include: {
         testRuns: {
           orderBy: { createdAt: 'desc' as const },
-          take: 5,
+          take: 50,
         },
       },
     });
@@ -120,7 +120,9 @@ class PipelineService {
   }
 
   async create(data: CreatePipelineDTO, userId: string) {
-    await this.githubService.validateConnection(data.config);
+    if (data.type === PipelineType.GITHUB_ACTIONS) {
+      await this.githubService.validateConnection(data.config);
+    }
 
     const createData = createPipelineInput({ ...data });
     const pipeline = await prisma.pipeline.create({ data: createData });
@@ -191,7 +193,7 @@ class PipelineService {
     const runs = await prisma.testRun.findMany({
       where: { pipelineId },
       orderBy: { createdAt: 'desc' as const },
-      take: 20,
+      take: 100,
       include: { results: { select: { status: true } } },
     });
 

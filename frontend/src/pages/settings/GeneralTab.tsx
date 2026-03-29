@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -12,18 +13,30 @@ import { Save as SaveIcon } from '@mui/icons-material';
 import type { SettingsTabProps } from './types';
 
 export function GeneralTab({ settings, updateSettings, onSubmit }: SettingsTabProps): React.ReactElement {
+  const [general, setGeneral] = useState(settings.general);
+
+  useEffect(() => {
+    setGeneral(settings.general);
+  }, [settings.general]);
+
+  const handleSubmit = (e: React.FormEvent): void => {
+    settings.general = general;
+    onSubmit(e);
+  };
+
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader title="Application Settings" />
         <CardContent>
           <FormControlLabel
             control={
               <Switch
-                checked={settings.general.autoRefresh}
+                checked={general.autoRefresh}
                 onChange={(e) => {
-                  settings.general.autoRefresh = e.target.checked;
-                  updateSettings.mutate({ general: settings.general });
+                  const updated = { ...general, autoRefresh: e.target.checked };
+                  setGeneral(updated);
+                  updateSettings.mutate({ general: updated });
                 }}
               />
             }
@@ -34,11 +47,9 @@ export function GeneralTab({ settings, updateSettings, onSubmit }: SettingsTabPr
             fullWidth
             type="number"
             label="Refresh Interval (seconds)"
-            value={settings.general.refreshInterval}
-            onChange={(e) => {
-              settings.general.refreshInterval = parseInt(e.target.value, 10);
-            }}
-            disabled={!settings.general.autoRefresh}
+            value={general.refreshInterval}
+            onChange={(e) => setGeneral({ ...general, refreshInterval: parseInt(e.target.value, 10) })}
+            disabled={!general.autoRefresh}
           />
         </CardContent>
       </Card>

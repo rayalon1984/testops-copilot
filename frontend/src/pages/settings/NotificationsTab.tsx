@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   Grid,
   Card,
@@ -13,8 +14,19 @@ import { Save as SaveIcon } from '@mui/icons-material';
 import type { SettingsTabProps } from './types';
 
 export function NotificationsTab({ settings, updateSettings, onSubmit }: SettingsTabProps): React.ReactElement {
+  const [notifications, setNotifications] = useState(settings.notifications);
+
+  useEffect(() => {
+    setNotifications(settings.notifications);
+  }, [settings.notifications]);
+
+  const handleSubmit = (e: React.FormEvent): void => {
+    settings.notifications = notifications;
+    onSubmit(e);
+  };
+
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Card>
@@ -23,10 +35,11 @@ export function NotificationsTab({ settings, updateSettings, onSubmit }: Setting
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.notifications.slack.enabled}
+                    checked={notifications.slack.enabled}
                     onChange={(e) => {
-                      settings.notifications.slack.enabled = e.target.checked;
-                      updateSettings.mutate({ notifications: settings.notifications });
+                      const updated = { ...notifications, slack: { ...notifications.slack, enabled: e.target.checked } };
+                      setNotifications(updated);
+                      updateSettings.mutate({ notifications: updated });
                     }}
                   />
                 }
@@ -36,11 +49,9 @@ export function NotificationsTab({ settings, updateSettings, onSubmit }: Setting
                 margin="normal"
                 fullWidth
                 label="Webhook URL"
-                value={settings.notifications.slack.webhookUrl}
-                onChange={(e) => {
-                  settings.notifications.slack.webhookUrl = e.target.value;
-                }}
-                disabled={!settings.notifications.slack.enabled}
+                value={notifications.slack.webhookUrl}
+                onChange={(e) => setNotifications({ ...notifications, slack: { ...notifications.slack, webhookUrl: e.target.value } })}
+                disabled={!notifications.slack.enabled}
               />
             </CardContent>
           </Card>
@@ -53,10 +64,11 @@ export function NotificationsTab({ settings, updateSettings, onSubmit }: Setting
               <FormControlLabel
                 control={
                   <Switch
-                    checked={settings.notifications.email.enabled}
+                    checked={notifications.email.enabled}
                     onChange={(e) => {
-                      settings.notifications.email.enabled = e.target.checked;
-                      updateSettings.mutate({ notifications: settings.notifications });
+                      const updated = { ...notifications, email: { ...notifications.email, enabled: e.target.checked } };
+                      setNotifications(updated);
+                      updateSettings.mutate({ notifications: updated });
                     }}
                   />
                 }
