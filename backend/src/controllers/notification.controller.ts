@@ -42,7 +42,7 @@ export class NotificationController {
     const notifications = await prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 200,
     });
     return notifications.map(toNotificationDTO);
   }
@@ -51,7 +51,7 @@ export class NotificationController {
     const notifications = await prisma.notification.findMany({
       where: { userId, read: false },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 200,
     });
     return notifications.map(toNotificationDTO);
   }

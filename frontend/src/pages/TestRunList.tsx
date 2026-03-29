@@ -191,10 +191,10 @@ export default function TestRunList() {
       </Box>
 
       <TableContainer component={Paper}>
-        <TestRunTable data={data} navigate={navigate} />
+        <TestRunTable data={data?.data} navigate={navigate} />
         <TablePagination
           component="div"
-          count={-1}
+          count={data?.total ?? -1}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

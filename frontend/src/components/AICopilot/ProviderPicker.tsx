@@ -231,19 +231,13 @@ function ProviderPopoverBody({ provider, setProvider, model, setModel, catalog, 
     );
 }
 
-// ─── Component ───
+// ─── Hook: state + handlers ───
 
-export default function ProviderPicker() {
-    const theme = useTheme();
-    const isDark = theme.palette.mode === 'dark';
-
-    // Server state via React Query (per-user config)
-    const { data: activeConfig = DEFAULT_CONFIG } = useMyProviderConfig();
+function useProviderPickerState(activeConfig: ProviderConfig) {
     const testMutation = useTestMyProviderConnection();
     const saveMutation = useSaveMyProviderConfig();
     const deleteMutation = useDeleteMyProviderConfig();
 
-    // Form state (local UI)
     const [provider, setProvider] = useState('mock');
     const [model, setModel] = useState('mock-model');
     const [apiKey, setApiKey] = useState('');
@@ -251,17 +245,11 @@ export default function ProviderPicker() {
     const [testStatus, setTestStatus] = useState<TestStatus>('idle');
     const [testError, setTestError] = useState('');
     const [saveError, setSaveError] = useState('');
-
-    // Bedrock-specific fields
     const [bedrockRegion, setBedrockRegion] = useState('eu-west-1');
     const [bedrockAccessKeyId, setBedrockAccessKeyId] = useState('');
     const [bedrockSecretAccessKey, setBedrockSecretAccessKey] = useState('');
-
-    // Popover anchor
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const open = Boolean(anchorEl);
 
-    // Sync form when server config changes
     useEffect(() => {
         if (activeConfig) {
             setProvider(activeConfig.provider);
@@ -270,7 +258,6 @@ export default function ProviderPicker() {
         }
     }, [activeConfig]);
 
-    // Reset model when provider changes
     useEffect(() => {
         const catalog = PROVIDER_CATALOG[provider];
         if (catalog && !catalog.models.some(m => m.id === model)) {
@@ -280,7 +267,6 @@ export default function ProviderPicker() {
 
     const isBedrock = provider === 'bedrock';
 
-    /** Build extraConfig for providers that need it */
     const buildExtraConfig = (): Record<string, string> | undefined => {
         if (!isBedrock) return undefined;
         const extra: Record<string, string> = { region: bedrockRegion };
@@ -289,119 +275,104 @@ export default function ProviderPicker() {
         return extra;
     };
 
-    const handleTest = () => {
+    const resetFields = (): void => {
+        setApiKey('');
+        setBedrockAccessKeyId('');
+        setBedrockSecretAccessKey('');
+        setTestStatus('idle');
+    };
+
+    const handleTest = (): void => {
         setTestStatus('testing');
         setTestError('');
         testMutation.mutate({ provider, model, apiKey: apiKey || 'bedrock-iam-auth', extraConfig: buildExtraConfig() }, {
             onSuccess: (data) => {
-                if (data?.success) {
-                    setTestStatus('success');
-                } else {
-                    setTestStatus('error');
-                    setTestError(data?.error || 'Connection failed');
-                }
+                if (data?.success) { setTestStatus('success'); }
+                else { setTestStatus('error'); setTestError(data?.error || 'Connection failed'); }
             },
-            onError: (err) => {
-                setTestStatus('error');
-                setTestError(err instanceof Error ? err.message : 'Network error');
-            },
+            onError: (err) => { setTestStatus('error'); setTestError(err instanceof Error ? err.message : 'Network error'); },
         });
     };
 
-    const handleSave = () => {
+    const handleSave = (): void => {
         setSaveError('');
         saveMutation.mutate({ provider, model, apiKey: apiKey || undefined, extraConfig: buildExtraConfig() }, {
-            onSuccess: () => {
-                setApiKey('');
-                setBedrockAccessKeyId('');
-                setBedrockSecretAccessKey('');
-                setTestStatus('idle');
-                setAnchorEl(null);
-            },
-            onError: (err) => {
-                setSaveError(err instanceof Error ? err.message : 'Save failed');
-            },
+            onSuccess: () => { resetFields(); setAnchorEl(null); },
+            onError: (err) => { setSaveError(err instanceof Error ? err.message : 'Save failed'); },
         });
     };
 
-    const handleReset = () => {
+    const handleReset = (): void => {
         setSaveError('');
         deleteMutation.mutate(undefined, {
-            onSuccess: () => {
-                setApiKey('');
-                setBedrockAccessKeyId('');
-                setBedrockSecretAccessKey('');
-                setTestStatus('idle');
-                setAnchorEl(null);
-            },
-            onError: (err) => {
-                setSaveError(err instanceof Error ? err.message : 'Reset failed');
-            },
+            onSuccess: () => { resetFields(); setAnchorEl(null); },
+            onError: (err) => { setSaveError(err instanceof Error ? err.message : 'Reset failed'); },
         });
     };
 
-    const catalog = PROVIDER_CATALOG[provider] || PROVIDER_CATALOG.mock;
-    const needsKey = !NO_KEY_PROVIDERS.has(provider);
-    const canSave = NO_KEY_PROVIDERS.has(provider) || activeConfig.hasApiKey || !!apiKey;
-    const isChanged = provider !== activeConfig.provider || model !== activeConfig.model || !!apiKey || (isBedrock && (!!bedrockAccessKeyId || !!bedrockSecretAccessKey));
+    const closePopover = (): void => { setAnchorEl(null); setTestStatus('idle'); setTestError(''); setSaveError(''); };
+
+    return {
+        provider, setProvider, model, setModel, apiKey, setApiKey, showKey, setShowKey,
+        testStatus, setTestStatus, testError, saveError,
+        bedrockRegion, setBedrockRegion, bedrockAccessKeyId, setBedrockAccessKeyId,
+        bedrockSecretAccessKey, setBedrockSecretAccessKey,
+        anchorEl, setAnchorEl, open: Boolean(anchorEl), isBedrock,
+        catalog: PROVIDER_CATALOG[provider] || PROVIDER_CATALOG.mock,
+        needsKey: !NO_KEY_PROVIDERS.has(provider),
+        canSave: NO_KEY_PROVIDERS.has(provider) || activeConfig.hasApiKey || !!apiKey,
+        isChanged: provider !== activeConfig.provider || model !== activeConfig.model || !!apiKey || (isBedrock && (!!bedrockAccessKeyId || !!bedrockSecretAccessKey)),
+        handleTest, handleSave, handleReset, closePopover,
+        saving: saveMutation.isPending, deleting: deleteMutation.isPending,
+    };
+}
+
+// ─── Component ───
+
+export default function ProviderPicker() {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const { data: activeConfig = DEFAULT_CONFIG } = useMyProviderConfig();
+    const s = useProviderPickerState(activeConfig);
 
     return (
         <>
-            {/* Clickable provider badge */}
             <Chip
                 icon={<span style={{ fontSize: '0.85rem' }}>{PROVIDER_ICONS[activeConfig.provider] || '\u2B21'}</span>}
-                label={activeConfig.provider === 'mock'
-                    ? 'Demo'
-                    : activeConfig.modelLabel.replace(/\s*\(Bedrock\)/, '')
-                }
-                size="small"
-                variant="outlined"
-                onClick={(e) => setAnchorEl(e.currentTarget)}
+                label={activeConfig.provider === 'mock' ? 'Demo' : activeConfig.modelLabel.replace(/\s*\(Bedrock\)/, '')}
+                size="small" variant="outlined"
+                onClick={(e) => s.setAnchorEl(e.currentTarget)}
                 sx={{
-                    cursor: 'pointer',
-                    fontSize: '0.7rem',
-                    height: 26,
-                    borderColor: activeConfig.provider === 'mock'
-                        ? 'text.disabled'
-                        : 'primary.main',
-                    color: activeConfig.provider === 'mock'
-                        ? 'text.secondary'
-                        : 'primary.main',
+                    cursor: 'pointer', fontSize: '0.7rem', height: 26,
+                    borderColor: activeConfig.provider === 'mock' ? 'text.disabled' : 'primary.main',
+                    color: activeConfig.provider === 'mock' ? 'text.secondary' : 'primary.main',
                     '& .MuiChip-icon': { ml: 0.5 },
                     '&:hover': { bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
                 }}
             />
 
-            {/* Configuration popover */}
             <Popover
-                open={open}
-                anchorEl={anchorEl}
-                onClose={() => { setAnchorEl(null); setTestStatus('idle'); setTestError(''); setSaveError(''); }}
+                open={s.open} anchorEl={s.anchorEl} onClose={s.closePopover}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 slotProps={{ paper: { sx: { width: 320, p: 2.5, mt: 0.5, borderRadius: 2 } } }}
             >
                 <ProviderPopoverBody
-                    provider={provider} setProvider={setProvider} model={model} setModel={setModel}
-                    catalog={catalog} needsKey={needsKey} isBedrock={isBedrock}
-                    apiKey={apiKey} setApiKey={setApiKey}
-                    bedrockRegion={bedrockRegion} setBedrockRegion={setBedrockRegion}
-                    bedrockAccessKeyId={bedrockAccessKeyId} setBedrockAccessKeyId={setBedrockAccessKeyId}
-                    bedrockSecretAccessKey={bedrockSecretAccessKey} setBedrockSecretAccessKey={setBedrockSecretAccessKey}
-                    showKey={showKey} setShowKey={setShowKey} activeConfig={activeConfig}
-                    testStatus={testStatus} setTestStatus={setTestStatus} testError={testError} saveError={saveError}
-                    handleTest={handleTest} handleSave={handleSave} saving={saveMutation.isPending} canSave={canSave} isChanged={isChanged}
+                    provider={s.provider} setProvider={s.setProvider} model={s.model} setModel={s.setModel}
+                    catalog={s.catalog} needsKey={s.needsKey} isBedrock={s.isBedrock}
+                    apiKey={s.apiKey} setApiKey={s.setApiKey}
+                    bedrockRegion={s.bedrockRegion} setBedrockRegion={s.setBedrockRegion}
+                    bedrockAccessKeyId={s.bedrockAccessKeyId} setBedrockAccessKeyId={s.setBedrockAccessKeyId}
+                    bedrockSecretAccessKey={s.bedrockSecretAccessKey} setBedrockSecretAccessKey={s.setBedrockSecretAccessKey}
+                    showKey={s.showKey} setShowKey={s.setShowKey} activeConfig={activeConfig}
+                    testStatus={s.testStatus} setTestStatus={s.setTestStatus} testError={s.testError} saveError={s.saveError}
+                    handleTest={s.handleTest} handleSave={s.handleSave} saving={s.saving} canSave={s.canSave} isChanged={s.isChanged}
                 />
 
                 {activeConfig.isPersonal && (
-                    <Button
-                        size="small"
-                        color="warning"
-                        onClick={handleReset}
-                        disabled={deleteMutation.isPending}
-                        sx={{ mt: 1, textTransform: 'none', fontSize: '0.75rem', width: '100%' }}
-                    >
-                        {deleteMutation.isPending ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : null}
+                    <Button size="small" color="warning" onClick={s.handleReset} disabled={s.deleting}
+                        sx={{ mt: 1, textTransform: 'none', fontSize: '0.75rem', width: '100%' }}>
+                        {s.deleting ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : null}
                         Reset to system default
                     </Button>
                 )}

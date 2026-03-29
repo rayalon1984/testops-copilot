@@ -92,7 +92,7 @@ export class MetricsService {
   /**
    * Get top failing tests
    */
-  static async getTopFailingTests(limit: number = 10): Promise<TopFailingTest[]> {
+  static async getTopFailingTests(limit: number = 50): Promise<TopFailingTest[]> {
     const failures = await prisma.failureArchive.groupBy({
       by: ['testName'],
       _count: {

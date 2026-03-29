@@ -121,7 +121,8 @@ class PipelineService {
 
   async create(data: CreatePipelineDTO, userId: string) {
     if (data.type === PipelineType.GITHUB_ACTIONS) {
-      await this.githubService.validateConnection(data.config);
+      const parsedConfig = typeof data.config === 'string' ? JSON.parse(data.config) : data.config;
+      await this.githubService.validateConnection(parsedConfig);
     }
 
     const createData = createPipelineInput({ ...data });

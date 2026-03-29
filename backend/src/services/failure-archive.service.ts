@@ -306,7 +306,7 @@ export class FailureArchiveService {
             testName: 'desc'
           }
         },
-        take: 10
+        take: 50
       })
     ]);
 

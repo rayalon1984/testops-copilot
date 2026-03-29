@@ -27,6 +27,9 @@ export interface TestRunFilters {
     endDate?: string;
     branch?: string;
     tags?: string[];
+    page?: number;
+    limit?: number;
+    search?: string;
 }
 
 const STATUS_MAP: Record<string, string> = {
@@ -53,7 +56,7 @@ export interface FormattedTestRun {
 
 export class TestRunService {
 
-    async getFormattedTestRuns(userId: string): Promise<FormattedTestRun[]> {
+    async getFormattedTestRuns(userId: string, limit: number = 500): Promise<FormattedTestRun[]> {
         const testRuns = await prisma.testRun.findMany({
             where: { userId },
             include: {
@@ -61,7 +64,7 @@ export class TestRunService {
                 results: { select: { status: true } },
             },
             orderBy: { createdAt: 'desc' },
-            take: 100,
+            take: limit,
         });
 
         return testRuns.map(run => {
@@ -109,7 +112,7 @@ export class TestRunService {
         };
     }
 
-    async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<TestRun[]> {
+    async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<{ data: FormattedTestRun[]; total: number }> {
         const where: Prisma.TestRunWhereInput = { userId };
 
         if (filters.pipelineId) {
@@ -117,11 +120,21 @@ export class TestRunService {
         }
 
         if (filters.status) {
-            where.status = filters.status as Prisma.TestRunWhereInput['status'];
+            // Map frontend status names to DB enum values
+            const statusMap: Record<string, string> = {
+                success: 'PASSED', failed: 'FAILED', running: 'RUNNING',
+                pending: 'PENDING', skipped: 'SKIPPED', flaky: 'FLAKY',
+            };
+            const dbStatus = statusMap[filters.status] || filters.status;
+            where.status = dbStatus as Prisma.TestRunWhereInput['status'];
         }
 
         if (filters.branch) {
             where.branch = filters.branch;
+        }
+
+        if (filters.search) {
+            where.name = { contains: filters.search };
         }
 
         // Note: SQLite schema in prisma uses a String for tags, not array.
@@ -144,15 +157,42 @@ export class TestRunService {
             }
         }
 
-        return prisma.testRun.findMany({
-            where,
-            include: {
-                pipeline: true,
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
+        const page = filters.page || 1;
+        const limit = Math.min(filters.limit || 50, 500);
+        const skip = (page - 1) * limit;
+
+        const [runs, total] = await Promise.all([
+            prisma.testRun.findMany({
+                where,
+                include: {
+                    pipeline: true,
+                    results: { select: { status: true } },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                take: limit,
+                skip,
+            }),
+            prisma.testRun.count({ where }),
+        ]);
+
+        const data = runs.map(run => {
+            const failed = run.results?.filter((r: { status: string }) => r.status === 'FAILED').length || 0;
+            return {
+                id: run.id,
+                pipelineId: run.pipelineId,
+                pipelineName: run.pipeline?.name || 'Unknown Pipeline',
+                status: STATUS_MAP[run.status] || 'pending',
+                startTime: run.startedAt?.toISOString() || run.createdAt.toISOString(),
+                endTime: run.completedAt?.toISOString() || run.createdAt.toISOString(),
+                duration: run.duration || 0,
+                errorCount: failed,
+                screenshots: [],
+            };
         });
+
+        return { data, total };
     }
 
     async getTestRunById(id: string, userId: string): Promise<TestRun> {

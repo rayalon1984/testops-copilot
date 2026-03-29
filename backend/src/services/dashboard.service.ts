@@ -169,7 +169,7 @@ class DashboardService {
       const failures = await prisma.failureArchive.findMany({
         where: { category: { not: null } },
         orderBy: { lastOccurrence: 'desc' },
-        take: 10,
+        take: 50,
         select: {
           id: true,
           testName: true,

@@ -1,7 +1,7 @@
 # ROADMAP.md — Canonical Roadmap
 
-> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-10
-> **Current Version**: 3.5.0 (March 2026)
+> **Owner**: AI Product Manager · **Status**: Living document · **Last verified**: 2026-03-19
+> **Current Version**: 3.5.3 (March 2026)
 
 ---
 
@@ -15,6 +15,22 @@
 ---
 
 ## Shipped
+
+### v3.5.3 — Production Hardening + Smart Selection Dashboard (March 2026)
+- [x] Smart Selection dashboard with 5 API endpoints
+- [x] Jira auth fix for Atlassian Cloud (username/password format)
+- [x] Express trust proxy behind nginx
+- [x] Secure cookies default in production
+- [x] Preflight validation script
+- [x] AI costs API enrichment
+- [x] Per-user AI provider credentials (encrypted at rest, hot-swap)
+
+### v3.5.1 — Production Debug Audit (March 2026)
+- [x] Frontend healthcheck fix (Alpine IPv6 → 127.0.0.1)
+- [x] DB healthcheck fix (use correct POSTGRES_USER)
+- [x] Redis enabled in docker-compose (prevent MemoryStore fallback)
+- [x] CSRF error status code preservation (500 → 403)
+- [x] Production checklist documentation
 
 ### v3.5.0 — Sprint 13: Smart Test Selection Platform + Azure DevOps Integration (March 2026)
 - [x] Smart Test Selection foundation — Zod validation, real test count, file existence checks, expanded global triggers

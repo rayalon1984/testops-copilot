@@ -14,10 +14,13 @@ export class TestRunController {
         startDate: req.query.startDate as string,
         endDate: req.query.endDate as string,
         tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
+        search: req.query.search as string,
       };
 
-      const testRuns = await testRunService.getAllTestRuns(userId, filters);
-      res.json(testRuns);
+      const { data, total } = await testRunService.getAllTestRuns(userId, filters);
+      res.json({ data, total, page: filters.page || 1, limit: filters.limit || 50 });
     } catch (error) {
       next(error);
     }

@@ -13,9 +13,16 @@ interface TestRunListFilters {
   debouncedSearch: string;
 }
 
+export interface PaginatedTestRuns {
+  data: TestRun[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 /** GET /test-runs?page=&limit=&status=&search= */
 export function useTestRuns({ page, rowsPerPage, statusFilter, debouncedSearch }: TestRunListFilters) {
-  return useQuery<TestRun[]>({
+  return useQuery<PaginatedTestRuns>({
     queryKey: queryKeys.testRuns.list({
       page,
       limit: rowsPerPage,
@@ -29,7 +36,7 @@ export function useTestRuns({ page, rowsPerPage, statusFilter, debouncedSearch }
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(debouncedSearch && { search: debouncedSearch }),
       });
-      return api.get<TestRun[]>(`/test-runs?${params}`);
+      return api.get<PaginatedTestRuns>(`/test-runs?${params}`);
     },
     placeholderData: keepPreviousData,
   });
