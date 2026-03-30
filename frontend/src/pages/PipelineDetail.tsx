@@ -66,7 +66,7 @@ function PipelineOverview({
                 <ListItemIcon><HistoryIcon /></ListItemIcon>
                 <ListItemText
                   primary="Last Run"
-                  secondary={new Date(pipeline.lastRun).toLocaleString()}
+                  secondary={pipeline.lastRun && !isNaN(new Date(pipeline.lastRun).getTime()) ? new Date(pipeline.lastRun).toLocaleString() : 'Never'}
                 />
               </ListItem>
               <ListItem>

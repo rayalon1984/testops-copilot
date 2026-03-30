@@ -3,8 +3,9 @@ import { config } from '../config';
 import { logger } from '../utils/logger';
 import { PipelineStatus, TestStatus, PipelineType } from '../constants';
 import { Pipeline, TestRun, TestRunWithPipeline } from '../types/pipeline';
-import { sleep, generateUUID } from '../utils/common';
+import { sleep } from '../utils/common';
 import { withResilience, circuitBreakers } from '../lib/resilience';
+import { prisma } from '../lib/prisma';
 
 const GITHUB_RESILIENCE = {
   circuitBreaker: circuitBreakers.github,
@@ -66,26 +67,16 @@ export class GitHubService {
         ref = repoInfo.data.default_branch;
       }
 
-      // Create a test run
-      const testRun: TestRun = {
-        id: generateUUID(),
-        pipelineId: pipeline.id,
-        userId: pipeline.userId || null,
-        status: TestStatus.PENDING,
-        branch: ref,
-        commit: null,
-        startTime: new Date(),
-        endTime: null,
-        duration: null,
-        passed: 0,
-        failed: 0,
-        skipped: 0,
-        flaky: 0,
-        results: {},
-        error: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      // Persist test run to database
+      const testRun = await prisma.testRun.create({
+        data: {
+          pipelineId: pipeline.id,
+          name: pipeline.name,
+          status: 'PENDING',
+          branch: ref,
+          startedAt: new Date(),
+        },
+      });
 
       // Start GitHub workflow
       const response = await withResilience(
@@ -99,14 +90,43 @@ export class GitHubService {
       );
 
       if (response.status !== 204) {
+        await prisma.testRun.update({ where: { id: testRun.id }, data: { status: 'FAILED' } });
         throw new Error('Failed to start GitHub workflow');
       }
 
+      // Update to RUNNING and start monitoring
+      const updatedTestRun = await prisma.testRun.update({
+        where: { id: testRun.id },
+        data: { status: 'RUNNING' },
+      });
+
+      // Update pipeline lastRunAt
+      await prisma.pipeline.update({
+        where: { id: pipeline.id },
+        data: { lastRunAt: new Date() },
+      });
+
       // Start monitoring the workflow progress
-      this.monitorWorkflowProgress(workflowConfig, testRun, pipeline);
+      this.monitorWorkflowProgress(workflowConfig, updatedTestRun.id, pipeline);
 
       return {
-        ...testRun,
+        id: updatedTestRun.id,
+        pipelineId: updatedTestRun.pipelineId,
+        userId: updatedTestRun.userId,
+        status: TestStatus.RUNNING,
+        branch: updatedTestRun.branch,
+        commit: updatedTestRun.commit,
+        startTime: updatedTestRun.startedAt || updatedTestRun.createdAt,
+        endTime: updatedTestRun.completedAt,
+        duration: updatedTestRun.duration,
+        passed: updatedTestRun.passed,
+        failed: updatedTestRun.failed,
+        skipped: updatedTestRun.skipped,
+        flaky: updatedTestRun.flaky,
+        results: {},
+        error: null,
+        createdAt: updatedTestRun.createdAt,
+        updatedAt: updatedTestRun.updatedAt,
         pipeline: {
           ...pipeline,
           status: PipelineStatus.RUNNING
@@ -120,7 +140,7 @@ export class GitHubService {
 
   private async monitorWorkflowProgress(
     config: GitHubWorkflowConfig,
-    testRun: TestRun,
+    testRunId: string,
     _pipeline: Pipeline
   ): Promise<void> {
     try {
@@ -139,26 +159,43 @@ export class GitHubService {
           continue;
         }
 
-        // Update test run status
         const status = this.mapGitHubStatus(latestRun.status, latestRun.conclusion || '');
-        testRun.status = status;
-        testRun.commit = latestRun.head_sha;
-        testRun.updatedAt = new Date();
 
         if (this.isCompleted(status)) {
-          testRun.endTime = new Date(latestRun.updated_at);
-          testRun.duration = this.calculateDuration(testRun);
+          const startedAt = await prisma.testRun.findUnique({ where: { id: testRunId }, select: { startedAt: true } });
+          const completedAt = new Date(latestRun.updated_at);
+          const duration = startedAt?.startedAt
+            ? completedAt.getTime() - startedAt.startedAt.getTime()
+            : null;
+
+          await prisma.testRun.update({
+            where: { id: testRunId },
+            data: {
+              status,
+              commit: latestRun.head_sha,
+              completedAt,
+              duration,
+            },
+          });
           break;
         }
+
+        await prisma.testRun.update({
+          where: { id: testRunId },
+          data: { status, commit: latestRun.head_sha },
+        });
 
         await sleep(5000);
       }
     } catch (error) {
       logger.error('Error monitoring GitHub workflow:', error);
-      testRun.status = TestStatus.ERROR;
-      testRun.error = error instanceof Error ? error.message : 'Unknown error';
-      testRun.endTime = new Date();
-      testRun.duration = this.calculateDuration(testRun);
+      await prisma.testRun.update({
+        where: { id: testRunId },
+        data: {
+          status: TestStatus.ERROR,
+          completedAt: new Date(),
+        },
+      }).catch(() => { /* best effort */ });
     }
   }
 
@@ -470,10 +507,6 @@ export class GitHubService {
     ].includes(status);
   }
 
-  private calculateDuration(testRun: TestRun): number {
-    if (!testRun.startTime || !testRun.endTime) return 0;
-    return testRun.endTime.getTime() - testRun.startTime.getTime();
-  }
 }
 
 export const githubService = new GitHubService();
