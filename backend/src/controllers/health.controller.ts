@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { redis } from '../lib/redis';
 import { getAllCircuitBreakerStatuses, type CircuitBreakerStatus } from '../lib/resilience';
+import { githubSyncService } from '../services/github-sync.service';
 
 /** Run a promise with a timeout; resolves to false on timeout */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -24,6 +25,7 @@ interface HealthCheckResult {
     weaviate?: ServiceStatus;
     ai?: ServiceStatus;
   };
+  githubSync: { running: boolean; lastSyncAt: Date | null; mode: string };
   circuitBreakers: CircuitBreakerStatus[];
   environment: {
     nodeEnv: string;
@@ -77,6 +79,7 @@ export async function healthCheckFull(req: Request, res: Response): Promise<void
       weaviate: await checkWeaviate(),
       ai: await checkAI()
     },
+    githubSync: githubSyncService.getStatus(),
     circuitBreakers: getAllCircuitBreakerStatuses(),
     environment: {
       nodeEnv: process.env.NODE_ENV || 'development',
