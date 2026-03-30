@@ -113,7 +113,10 @@ export class TestRunService {
     }
 
     async getAllTestRuns(userId: string, filters: TestRunFilters): Promise<{ data: FormattedTestRun[]; total: number }> {
-        const where: Prisma.TestRunWhereInput = { userId };
+        // Show runs created by this user OR system-triggered runs (userId is null)
+        const where: Prisma.TestRunWhereInput = {
+            OR: [{ userId }, { userId: null }],
+        };
 
         if (filters.pipelineId) {
             where.pipelineId = filters.pipelineId;
