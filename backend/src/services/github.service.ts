@@ -171,7 +171,8 @@ export class GitHubService {
           await prisma.testRun.update({
             where: { id: testRunId },
             data: {
-              status: status as string,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              status: status as any,
               commit: latestRun.head_sha,
               completedAt,
               duration,
@@ -182,7 +183,8 @@ export class GitHubService {
 
         await prisma.testRun.update({
           where: { id: testRunId },
-          data: { status: status as string, commit: latestRun.head_sha },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data: { status: status as any, commit: latestRun.head_sha },
         });
 
         await sleep(5000);
@@ -192,7 +194,8 @@ export class GitHubService {
       await prisma.testRun.update({
         where: { id: testRunId },
         data: {
-          status: TestStatus.ERROR as string,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          status: TestStatus.ERROR as any,
           completedAt: new Date(),
         },
       }).catch(() => { /* best effort */ });
