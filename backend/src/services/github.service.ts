@@ -171,7 +171,7 @@ export class GitHubService {
           await prisma.testRun.update({
             where: { id: testRunId },
             data: {
-              status,
+              status: status as string,
               commit: latestRun.head_sha,
               completedAt,
               duration,
@@ -182,7 +182,7 @@ export class GitHubService {
 
         await prisma.testRun.update({
           where: { id: testRunId },
-          data: { status, commit: latestRun.head_sha },
+          data: { status: status as string, commit: latestRun.head_sha },
         });
 
         await sleep(5000);
@@ -192,7 +192,7 @@ export class GitHubService {
       await prisma.testRun.update({
         where: { id: testRunId },
         data: {
-          status: TestStatus.ERROR,
+          status: TestStatus.ERROR as string,
           completedAt: new Date(),
         },
       }).catch(() => { /* best effort */ });
