@@ -157,8 +157,10 @@ export default function PipelineDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openRunConfirm, setOpenRunConfirm] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<Pipeline>>({});
   const [error, setError] = useState('');
+  const [runStatus, setRunStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Shared query hooks
   const { data: pipeline, isLoading: isPipelineLoading } = usePipeline(id);
@@ -225,7 +227,7 @@ export default function PipelineDetail() {
           startIcon={startPipelineMutation.isPending ? <CircularProgress size={18} color="inherit" /> : <RunIcon />}
           sx={{ mr: 1 }}
           disabled={startPipelineMutation.isPending}
-          onClick={() => id && startPipelineMutation.mutate(id)}
+          onClick={() => setOpenRunConfirm(true)}
         >
           {startPipelineMutation.isPending ? 'Starting...' : 'Run Pipeline'}
         </Button>
@@ -248,6 +250,41 @@ export default function PipelineDetail() {
         setEditFormData={setEditFormData}
         onSubmit={handleSubmit}
       />
+
+      <Dialog open={openRunConfirm} onClose={() => setOpenRunConfirm(false)}>
+        <DialogTitle>Run Pipeline</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to trigger <strong>{pipeline.name}</strong>? This will dispatch a GitHub Actions workflow run.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenRunConfirm(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setOpenRunConfirm(false);
+              setRunStatus(null);
+              id && startPipelineMutation.mutate(id, {
+                onSuccess: () => setRunStatus({ type: 'success', message: 'Pipeline triggered successfully! Workflow is now running.' }),
+                onError: (err) => setRunStatus({ type: 'error', message: err instanceof Error ? err.message : 'Failed to start pipeline' }),
+              });
+            }}
+          >
+            Run
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {runStatus && (
+        <Alert
+          severity={runStatus.type}
+          onClose={() => setRunStatus(null)}
+          sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, minWidth: 350, boxShadow: 3 }}
+        >
+          {runStatus.message}
+        </Alert>
+      )}
     </Container>
   );
 }
