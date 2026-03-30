@@ -110,6 +110,12 @@ services:
       - weaviate_data:/var/lib/weaviate
     networks:
       - testops-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/v1/.well-known/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres_data:
