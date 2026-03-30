@@ -473,7 +473,48 @@ export class GitHubService {
     return !!config.github.token;
   }
 
-  private parseConfig(config: unknown): GitHubWorkflowConfig {
+  /**
+   * Fetch recent workflow runs from GitHub for a given pipeline config.
+   * Returns raw GitHub API data for the caller to process.
+   */
+  async fetchRecentRuns(
+    workflowConfig: GitHubWorkflowConfig,
+    perPage: number = 10
+  ): Promise<Array<{
+    id: number;
+    status: string;
+    conclusion: string | null;
+    head_sha: string;
+    head_branch: string;
+    created_at: string;
+    updated_at: string;
+    run_number: number;
+    name: string;
+  }>> {
+    const response = await withResilience(
+      () => this.octokit.actions.listWorkflowRuns({
+        owner: workflowConfig.owner,
+        repo: workflowConfig.repo,
+        workflow_id: workflowConfig.workflow,
+        per_page: perPage,
+      }),
+      GITHUB_RESILIENCE,
+    );
+
+    return response.data.workflow_runs.map((run) => ({
+      id: run.id,
+      status: run.status ?? 'unknown',
+      conclusion: run.conclusion ?? null,
+      head_sha: run.head_sha,
+      head_branch: run.head_branch ?? 'unknown',
+      created_at: run.created_at,
+      updated_at: run.updated_at,
+      run_number: run.run_number,
+      name: run.name ?? workflowConfig.workflow,
+    }));
+  }
+
+  parseConfig(config: unknown): GitHubWorkflowConfig {
     if (
       !config ||
       typeof config !== 'object' ||
@@ -492,7 +533,7 @@ export class GitHubService {
     };
   }
 
-  private mapGitHubStatus(status: string, conclusion: string): TestStatus {
+  mapGitHubStatus(status: string, conclusion: string): TestStatus {
     if (status === 'queued') return TestStatus.PENDING;
     if (status === 'in_progress') return TestStatus.RUNNING;
     if (conclusion === 'success') return TestStatus.PASSED;
@@ -501,7 +542,7 @@ export class GitHubService {
     return TestStatus.ERROR;
   }
 
-  private isCompleted(status: TestStatus): boolean {
+  isCompleted(status: TestStatus): boolean {
     return [
       TestStatus.PASSED,
       TestStatus.FAILED,
