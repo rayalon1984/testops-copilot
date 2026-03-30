@@ -253,6 +253,7 @@ export class AIConfigManager {
       bedrockRegion: env.AWS_BEDROCK_REGION || env.AWS_DEFAULT_REGION || env.AWS_REGION || undefined,
       bedrockAccessKeyId: env.AWS_BEDROCK_ACCESS_KEY_ID || env.AWS_ACCESS_KEY_ID || undefined,
       bedrockSecretAccessKey: env.AWS_BEDROCK_SECRET_ACCESS_KEY || env.AWS_SECRET_ACCESS_KEY || undefined,
+      bedrockSessionToken: env.AWS_SESSION_TOKEN || undefined,
       bedrockEmbeddingModel: env.AWS_BEDROCK_EMBEDDING_MODEL || undefined,
     };
 

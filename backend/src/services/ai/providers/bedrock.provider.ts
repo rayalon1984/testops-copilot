@@ -19,6 +19,7 @@ export interface BedrockProviderConfig extends ProviderConfig {
   region: string;
   accessKeyId?: string;
   secretAccessKey?: string;
+  sessionToken?: string;
   embeddingModel?: string;
 }
 
@@ -44,11 +45,12 @@ export class BedrockProvider extends BaseProvider {
       region: this.region,
     };
 
-    // Explicit credentials override IAM role (useful for local dev)
+    // Explicit credentials override IAM role (useful for local dev / SSO)
     if (config.accessKeyId && config.secretAccessKey) {
       clientConfig.credentials = {
         accessKeyId: config.accessKeyId,
         secretAccessKey: config.secretAccessKey,
+        ...(config.sessionToken && { sessionToken: config.sessionToken }),
       };
     }
 

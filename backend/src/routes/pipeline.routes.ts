@@ -52,7 +52,7 @@ router.post(
     const pipeline = await pipelineController.createPipeline({
       name,
       type: type === 'jenkins' ? PipelineType.JENKINS : type === 'github-actions' ? PipelineType.GITHUB_ACTIONS : PipelineType.CUSTOM,
-      config: JSON.stringify(config || {})
+      config: config || {}
     }, req.user.id);
 
     // Strip credentials from config for response if needed
