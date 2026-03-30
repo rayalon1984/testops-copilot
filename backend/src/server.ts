@@ -5,6 +5,7 @@ import { prisma } from './lib/prisma';
 
 import { initializeAI } from './services/ai/manager';
 import { loadProviderConfigFromDB } from './services/ai/provider-config.service';
+import { githubSyncService } from './services/github-sync.service';
 
 async function startServer() {
   try {
@@ -36,11 +37,15 @@ async function startServer() {
       logger.info(`Server is running on port ${config.port}`);
       logger.info(`Environment: ${config.env}`);
       logger.info(`API Base URL: ${config.api.prefix}`);
+
+      // Start GitHub workflow run sync
+      githubSyncService.start();
     });
 
     // Graceful shutdown
     const shutdown = async () => {
       logger.info('Shutting down server...');
+      githubSyncService.stop();
 
       server.close(async () => {
         logger.info('HTTP server closed');
