@@ -40,6 +40,9 @@ const envSchema = z.object({
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().default('https://api.github.com'),
   GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  GITHUB_SYNC_ENABLED: z.string().transform(val => val === 'true').default('true'),
+  GITHUB_SYNC_INTERVAL_MS: z.string().transform(Number).default('120000'),
+  GITHUB_SYNC_CATCHUP_INTERVAL_MS: z.string().transform(Number).default('900000'),
 
   // Jira (optional)
   JIRA_BASE_URL: z.string().optional(),
@@ -182,6 +185,9 @@ export interface GitHubConfig {
   token?: string;
   apiUrl: string;
   webhookSecret?: string;
+  syncEnabled: boolean;
+  syncIntervalMs: number;
+  syncCatchupIntervalMs: number;
 }
 
 export interface Config {
@@ -383,6 +389,9 @@ export const config: Config = {
     token: env.GITHUB_TOKEN,
     apiUrl: env.GITHUB_API_URL,
     webhookSecret: env.GITHUB_WEBHOOK_SECRET,
+    syncEnabled: env.GITHUB_SYNC_ENABLED,
+    syncIntervalMs: env.GITHUB_SYNC_INTERVAL_MS,
+    syncCatchupIntervalMs: env.GITHUB_SYNC_CATCHUP_INTERVAL_MS,
   },
   log: {
     level: env.LOG_LEVEL,
