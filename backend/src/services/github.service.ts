@@ -17,6 +17,7 @@ interface GitHubWorkflowConfig {
   owner: string;
   repo: string;
   workflow: string;
+  ref?: string;
 }
 
 interface GitHubWorkflowRun {
@@ -55,13 +56,23 @@ export class GitHubService {
     try {
       const workflowConfig = this.parseConfig(pipeline.config);
 
+      // Resolve the branch ref: use pipeline config ref, or fetch the repo's default branch
+      let ref = workflowConfig.ref;
+      if (!ref) {
+        const repoInfo = await withResilience(
+          () => this.octokit.repos.get({ owner: workflowConfig.owner, repo: workflowConfig.repo }),
+          GITHUB_RESILIENCE,
+        );
+        ref = repoInfo.data.default_branch;
+      }
+
       // Create a test run
       const testRun: TestRun = {
         id: generateUUID(),
         pipelineId: pipeline.id,
         userId: pipeline.userId || null,
         status: TestStatus.PENDING,
-        branch: 'main',
+        branch: ref,
         commit: null,
         startTime: new Date(),
         endTime: null,
@@ -82,7 +93,7 @@ export class GitHubService {
           owner: workflowConfig.owner,
           repo: workflowConfig.repo,
           workflow_id: workflowConfig.workflow,
-          ref: 'main'
+          ref: ref!
         }),
         GITHUB_RESILIENCE,
       );
@@ -436,7 +447,8 @@ export class GitHubService {
     return {
       owner: String(config.owner),
       repo: String(config.repo),
-      workflow: String(config.workflow)
+      workflow: String(config.workflow),
+      ...('ref' in config && config.ref ? { ref: String(config.ref) } : {}),
     };
   }
 
