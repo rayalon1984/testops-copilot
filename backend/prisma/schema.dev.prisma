@@ -63,6 +63,7 @@ model TestRun {
   @@index([userId])
   @@index([status])
   @@index([startedAt])
+  @@unique([pipelineId, buildNumber], name: "unique_pipeline_build")
 }
 
 model FailureArchive {

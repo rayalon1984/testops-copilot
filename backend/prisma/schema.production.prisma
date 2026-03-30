@@ -75,6 +75,7 @@ model TestRun {
   @@index([pipelineId])
   @@index([status])
   @@index([startedAt])
+  @@unique([pipelineId, buildNumber], name: "unique_pipeline_build")
   @@map("test_runs")
 }
 
