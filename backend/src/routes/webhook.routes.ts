@@ -11,6 +11,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { testImpactService } from '../services/test/TestImpactService';
+import { githubSyncService } from '../services/github-sync.service';
+import { prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
 import { config } from '../config';
 
@@ -146,6 +148,59 @@ router.post('/github', githubWebhookMiddleware, async (req: Request, res: Respon
           branch: req.body.ref,
           selection: result,
         });
+        return;
+      }
+
+      case 'workflow_run': {
+        const { workflow_run, repository } = req.body;
+        if (!workflow_run || !repository) {
+          res.status(400).json({ error: 'Missing workflow_run or repository' });
+          return;
+        }
+
+        const owner = repository.owner?.login;
+        const repo = repository.name;
+
+        // Find matching pipeline by owner/repo in config
+        const pipelines = await prisma.pipeline.findMany({
+          where: { type: 'GITHUB_ACTIONS', enabled: true },
+          select: { id: true, name: true, config: true },
+        });
+
+        const matchedPipeline = pipelines.find((p) => {
+          try {
+            const cfg = typeof p.config === 'string' ? JSON.parse(p.config) : p.config;
+            return cfg?.owner === owner && cfg?.repo === repo;
+          } catch {
+            return false;
+          }
+        });
+
+        if (!matchedPipeline) {
+          logger.debug(`[GitHubWebhook] No pipeline found for ${owner}/${repo}`);
+          res.json({ ignored: true, reason: 'no matching pipeline' });
+          return;
+        }
+
+        await githubSyncService.upsertWorkflowRun(matchedPipeline.id, matchedPipeline.name, {
+          id: workflow_run.id,
+          status: workflow_run.status,
+          conclusion: workflow_run.conclusion,
+          head_sha: workflow_run.head_sha,
+          head_branch: workflow_run.head_branch,
+          created_at: workflow_run.created_at,
+          updated_at: workflow_run.updated_at,
+          run_number: workflow_run.run_number,
+          name: workflow_run.name,
+        });
+
+        logger.info('[GitHubWebhook] workflow_run processed', {
+          runId: workflow_run.id,
+          pipelineId: matchedPipeline.id,
+          status: workflow_run.status,
+        });
+
+        res.json({ processed: true, pipelineId: matchedPipeline.id });
         return;
       }
 
