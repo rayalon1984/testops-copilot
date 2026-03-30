@@ -54,6 +54,19 @@ export function useUpdatePipeline(id: string | undefined) {
   });
 }
 
+/** POST /pipelines/:id/start */
+export function useStartPipeline() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<unknown>(`/pipelines/${id}/start`),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.testRuns(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.pipelines.all() });
+    },
+  });
+}
+
 /** DELETE /pipelines/:id */
 export function useDeletePipeline() {
   const queryClient = useQueryClient();

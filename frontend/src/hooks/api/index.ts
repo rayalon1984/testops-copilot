@@ -8,7 +8,7 @@
 export { queryKeys } from './queryKeys';
 
 // Domain hooks
-export { usePipelines, usePipeline, usePipelineTestRuns, useCreatePipeline, useUpdatePipeline, useDeletePipeline } from './usePipelines';
+export { usePipelines, usePipeline, usePipelineTestRuns, useCreatePipeline, useUpdatePipeline, useStartPipeline, useDeletePipeline } from './usePipelines';
 export { useTestRuns, useTestRun } from './useTestRuns';
 export { useSettings, useUpdateSettings } from './useSettings';
 export { useUnreadNotifications, useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useMarkNotificationAsDelivered, useDeleteNotification, useClearAllNotifications, type AppNotification } from './useNotifications';

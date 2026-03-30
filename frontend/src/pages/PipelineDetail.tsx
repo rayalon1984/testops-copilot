@@ -35,7 +35,7 @@ import {
 
 import type { ApiSchemas } from '../api';
 import { usePageContext } from '../hooks/usePageContext';
-import { usePipeline, usePipelineTestRuns, useUpdatePipeline, useDeletePipeline } from '../hooks/api';
+import { usePipeline, usePipelineTestRuns, useUpdatePipeline, useStartPipeline, useDeletePipeline } from '../hooks/api';
 type Pipeline = ApiSchemas['Pipeline'];
 type TestRun = ApiSchemas['TestRun'];
 
@@ -171,6 +171,7 @@ export default function PipelineDetail() {
   const { data: testRuns, isLoading: isTestRunsLoading } = usePipelineTestRuns(id);
 
   const updatePipeline = useUpdatePipeline(id);
+  const startPipelineMutation = useStartPipeline();
   const deletePipelineMutation = useDeletePipeline();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -221,10 +222,12 @@ export default function PipelineDetail() {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<RunIcon />}
+          startIcon={startPipelineMutation.isPending ? <CircularProgress size={18} color="inherit" /> : <RunIcon />}
           sx={{ mr: 1 }}
+          disabled={startPipelineMutation.isPending}
+          onClick={() => id && startPipelineMutation.mutate(id)}
         >
-          Run Pipeline
+          {startPipelineMutation.isPending ? 'Starting...' : 'Run Pipeline'}
         </Button>
         <IconButton onClick={() => setOpenEditDialog(true)} sx={{ mr: 1 }}>
           <EditIcon />

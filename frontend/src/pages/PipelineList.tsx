@@ -34,7 +34,7 @@ import {
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 import type { ApiSchemas } from '../api';
-import { usePipelines, useCreatePipeline, useDeletePipeline } from '../hooks/api';
+import { usePipelines, useCreatePipeline, useStartPipeline, useDeletePipeline } from '../hooks/api';
 
 type Pipeline = ApiSchemas['Pipeline'];
 type CreatePipelineRequest = ApiSchemas['CreatePipelineRequest'];
@@ -160,11 +160,13 @@ function PipelineTableRow({
   navigate,
   getStatusIcon,
   onDelete,
+  onStart,
 }: {
   pipeline: Pipeline;
   navigate: ReturnType<typeof useNavigate>;
   getStatusIcon: (status: string) => React.ReactNode;
   onDelete: (id: string) => void;
+  onStart: (id: string) => void;
 }) {
   return (
     <TableRow
@@ -202,7 +204,10 @@ function PipelineTableRow({
         </IconButton>
         <IconButton
           color="primary"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStart(pipeline.id);
+          }}
         >
           <RunIcon />
         </IconButton>
@@ -234,6 +239,7 @@ export default function PipelineList() {
   // Shared query hooks
   const { data: pipelines, isLoading } = usePipelines();
   const createPipeline = useCreatePipeline();
+  const startPipeline = useStartPipeline();
   const deletePipeline = useDeletePipeline();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -301,6 +307,7 @@ export default function PipelineList() {
                 navigate={navigate}
                 getStatusIcon={getStatusIcon}
                 onDelete={(id) => deletePipeline.mutate(id)}
+                onStart={(id) => startPipeline.mutate(id)}
               />
             ))}
           </TableBody>
