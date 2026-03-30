@@ -169,6 +169,25 @@ async function main() {
   });
 
   console.log('Database has been seeded with sample data');
+
+  // Create admin from env vars if provided and no users exist
+  const envAdminEmail = process.env.ADMIN_EMAIL;
+  const envAdminPassword = process.env.ADMIN_PASSWORD;
+  if (envAdminEmail && envAdminPassword) {
+    const existingUser = await prisma.user.findUnique({ where: { email: envAdminEmail } });
+    if (!existingUser) {
+      const hashedPassword = await bcrypt.hash(envAdminPassword, 12);
+      await prisma.user.create({
+        data: {
+          email: envAdminEmail,
+          passwordHash: hashedPassword,
+          name: 'Admin',
+          role: UserRole.ADMIN,
+        },
+      });
+      console.log(`  Admin account created: ${envAdminEmail}`);
+    }
+  }
 }
 
 main()
