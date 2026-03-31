@@ -144,13 +144,14 @@ import { recordResponseTime } from './middleware/responseTime';
 app.use(recordResponseTime);
 
 // Health check endpoints (no auth required)
-import { livenessCheck, readinessCheck } from './controllers/health.controller';
+import { healthCheckFull, livenessCheck, readinessCheck } from './controllers/health.controller';
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString()
   });
 });
+app.get('/health/full', healthCheckFull);
 app.get('/health/live', livenessCheck);
 app.get('/health/ready', readinessCheck);
 
