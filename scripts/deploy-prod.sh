@@ -172,7 +172,7 @@ wait_for_health() {
 }
 
 HEALTH_ERRORS=0
-wait_for_health "Backend"  "http://localhost:3000/health/ready" 120 || HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
+wait_for_health "Backend"  "http://localhost:3000/health" 120 || HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
 wait_for_health "Frontend" "http://localhost:80/health" 60           || HEALTH_ERRORS=$((HEALTH_ERRORS + 1))
 
 if [ "$HEALTH_ERRORS" -gt 0 ]; then

@@ -23,6 +23,9 @@ out/
 .env.production
 .env.full
 
+# Watchdog state
+.watchdog/
+
 # IDE
 .idea/
 .vscode/
